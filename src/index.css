@@ -1,3 +1,13 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Lobster+Two&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Cabin|Cabin+Condensed|Cabin+Sketch&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Amatic+SC|Anton|Bebas+Neue|Crushed|Gruppo|Marcellus+SC|Six+Caps|Special+Elite|Staatliches&display=swap');
+
+* {
+  margin: 0;
+  font-family: Roboto, sans-serif;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

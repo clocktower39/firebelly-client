@@ -1,6 +1,6 @@
 import React from 'react'
 import About from '../img/about.jpg';
-import { Grid, Paper, makeStyles } from '@material-ui/core';
+import { Grid, Slide, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles({
     root: {
@@ -19,32 +19,48 @@ export default function Home() {
         <Grid container className={classes.root} >
             <Grid container item xs={12} >
                 <Grid xs={12} sm={6}>
-                    <img className={classes.aboutImg} src={About} alt="about me" /></Grid>
-                <Grid xs={12} sm={6}><div>About</div></Grid>
+                    <Slide direction="right" in={true} mountOnEnter unmountOnExit>
+                        <img className={classes.aboutImg} src={About} alt="about me" />
+                    </Slide>
+                </Grid>
+                <Grid xs={12} sm={6}><Slide direction="left" in={true} mountOnEnter unmountOnExit><div>About</div></Slide></Grid>
 
             </Grid>
             <Grid container item xs={12} >
                 <Grid xs={12} sm={6}>
-                    <img className={classes.aboutImg} src={About} alt="about me" /></Grid>
-                <Grid xs={12} sm={6}><div>Fitness</div></Grid>
+                    <Slide direction="right" in={true} mountOnEnter unmountOnExit>
+                        <img className={classes.aboutImg} src={About} alt="about me" />
+                    </Slide>
+                </Grid>
+                <Grid xs={12} sm={6}><Slide direction="left" in={true} mountOnEnter unmountOnExit><div>Fitness</div></Slide></Grid>
 
             </Grid>
             <Grid container item xs={12} >
                 <Grid xs={12} sm={6}>
-                    <img className={classes.aboutImg} src={About} alt="about me" /></Grid>
-                <Grid xs={12} sm={6}><div>Nutrition</div></Grid>
+                    <Slide direction="right" in={true} mountOnEnter unmountOnExit>
+                        <img className={classes.aboutImg} src={About} alt="about me" />
+                    </Slide>
+                </Grid>
+                <Grid xs={12} sm={6}><Slide direction="left" in={true} mountOnEnter unmountOnExit><div>Nutrition</div></Slide></Grid>
 
             </Grid>
             <Grid container item xs={12} >
                 <Grid xs={12} sm={6}>
-                    <img className={classes.aboutImg} src={About} alt="about me" /></Grid>
-                <Grid xs={12} sm={6}><div>Workshops</div></Grid>
+                    <Slide direction="right" in={true} mountOnEnter unmountOnExit>
+                        <img className={classes.aboutImg} src={About} alt="about me" />
+                    </Slide>
+                </Grid>
+                <Grid xs={12} sm={6}><Slide direction="left" in={true} mountOnEnter unmountOnExit><div>Workshops</div></Slide></Grid>
 
             </Grid>
             <Grid container item xs={12} >
                 <Grid xs={12} sm={6}>
-                    <img className={classes.aboutImg} src={About} alt="about me" /></Grid>
-                <Grid xs={12} sm={6}><div>Personal Training</div></Grid>
+                    <Slide direction="right" in={true} mountOnEnter unmountOnExit>
+                        <img className={classes.aboutImg} src={About} alt="about me" />
+                    </Slide>
+                </Grid>
+                <Grid xs={12} sm={6}>
+                    <Slide direction="left" in={true} mountOnEnter unmountOnExit><div>Personal Training</div></Slide></Grid>
 
             </Grid>
         </Grid>
