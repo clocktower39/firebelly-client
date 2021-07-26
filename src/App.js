@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Container, Typography } from '@material-ui/core';
 import { login } from "./Redux/actions";
+import Navbar from './Components/Navbar';
 import Home from './Components/Home';
 import './App.css';
 
@@ -16,7 +17,7 @@ function App() {
   },[])
   return loading?<Typography variant="h6" align="center" >Loading</Typography>:(
     <Router>
-      {/* <Navbar /> */}
+      <Navbar />
       <Container maxWidth={'md'}>
         <Switch>
           <Route exact path='/' component={Home} />
