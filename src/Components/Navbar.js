@@ -14,7 +14,6 @@ const useStyles = makeStyles({
         minHeight: '58px',
     },
     logoImg: {
-        position: 'fixed',
         width: '115px',
         height: '115px',
     },
@@ -46,13 +45,13 @@ export default function Navbar() {
     return (
         <AppBar position='fixed' >
             <Toolbar className={classes.Toolbar} >
-                <div style={{height: '0px',marginTop: '25px',}}><IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={Logo} alt="Logo" /></IconButton></div>
+                <IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={Logo} alt="Logo" /></IconButton>
                 <div>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
                     <Button className={classes.NavLink} >Nutrition</Button>
                     <Button className={classes.NavLink} >Workshops</Button>
-                    <Button className={classes.NavLink} >Personal Training</Button>
+                    <Button className={classes.NavLink} >Training</Button>
                 </div>
                 <div className={classes.NavAccountContainer}>
                     <Button className={classes.NavAccountOptions} style={{color: '#ee2726',}}>Login</Button>

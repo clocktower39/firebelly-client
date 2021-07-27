@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { login } from "./Redux/actions";
 import Navbar from './Components/Navbar';
-import Home from './Components/Home';
+// import Home from './Components/Home';
+import AltHome from './Components/AltHome';
 import './App.css';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
     <Router>
       <Navbar />
         <Switch>
-          <Route exact path='/' component={Home} />
+          <Route exact path='/' component={AltHome} />
         </Switch>
     </Router>
   );
