@@ -27,6 +27,18 @@ const useStyles = makeStyles({
         letterSpacing: '0.143em',
         textTransform: 'uppercase',
     },
+    NavAccountContainer:{
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    NavAccountOptions:{
+        color: '#FEFFFF',
+        fontFamily: 'Cabin',
+        fontWeight: 500,
+        fontSize: '12px',
+        letterSpacing: '0.143em',
+        textTransform: 'uppercase',
+    },
 });
 
 export default function Navbar() {
@@ -36,13 +48,16 @@ export default function Navbar() {
             <Toolbar className={classes.Toolbar} >
                 <div style={{height: '0px',marginTop: '25px',}}><IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={Logo} alt="Logo" /></IconButton></div>
                 <div>
-                <Button className={classes.NavLink} >About</Button>
-                <Button className={classes.NavLink} >Fitness</Button>
-                <Button className={classes.NavLink} >Nutrition</Button>
-                <Button className={classes.NavLink} >Workshops</Button>
-                <Button className={classes.NavLink} >Personal Training</Button>
+                    <Button className={classes.NavLink} >About</Button>
+                    <Button className={classes.NavLink} >Fitness</Button>
+                    <Button className={classes.NavLink} >Nutrition</Button>
+                    <Button className={classes.NavLink} >Workshops</Button>
+                    <Button className={classes.NavLink} >Personal Training</Button>
                 </div>
-                <div>Login<br />Sign up</div>
+                <div className={classes.NavAccountContainer}>
+                    <Button className={classes.NavAccountOptions} style={{color: '#ee2726',}}>Login</Button>
+                    <Button className={classes.NavAccountOptions} >Sign up</Button>
+                </div>
             </Toolbar>
         </AppBar>
     )

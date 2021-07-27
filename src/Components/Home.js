@@ -4,7 +4,7 @@ import { Grid, Slide, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles({
     root: {
-        marginTop: '250px',
+        marginTop: '125px',
     },
     aboutImg: {
         width: '125px',
