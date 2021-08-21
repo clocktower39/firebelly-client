@@ -4,8 +4,8 @@ import DeadliftImg from '../img/deadlift.jpg';
 
 export default function AltHome() {
     return (
-        <div>
-            <CardMedia image={DeadliftImg} style={{height: 0, paddingTop: '56%'}}/>
+        <div style={{marginTop: '-50px'}}>
+            <CardMedia image={DeadliftImg} style={{height: 0, paddingTop: '56.25%',}}/>
         </div>
     )
 }

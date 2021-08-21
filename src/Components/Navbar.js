@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Avatar, Button, IconButton, makeStyles, Toolbar } from '@material-ui/core';
 import Logo from '../img/logo.png';
@@ -12,6 +12,7 @@ const useStyles = makeStyles({
         backgroundColor: '#000000',
         flexWrap: 'nowrap',
         minHeight: '58px',
+        maxHeight: '139px',
     },
     logoImg: {
         width: '115px',
@@ -42,11 +43,17 @@ const useStyles = makeStyles({
 
 export default function Navbar() {
     const classes = useStyles();
+    const [pageWidth, setPageWidth] = useState(window.innerWidth);
+
+    useEffect(()=>{
+
+        window.addEventListener('resize', setPageWidth(window.innerWidth))
+    },[])
     return (
         <AppBar position='fixed' >
             <Toolbar className={classes.Toolbar} >
                 <IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={Logo} alt="Logo" /></IconButton>
-                <div>
+                <div style={pageWidth < 800? {display: 'none'}:{display: 'block'}}>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
                     <Button className={classes.NavLink} >Nutrition</Button>
@@ -54,8 +61,8 @@ export default function Navbar() {
                     <Button className={classes.NavLink} >Training</Button>
                 </div>
                 <div className={classes.NavAccountContainer}>
-                    <Button className={classes.NavAccountOptions} style={{color: '#ee2726',}}>Login</Button>
-                    <Button className={classes.NavAccountOptions} >Sign up</Button>
+                    <Button className={classes.NavAccountOptions} style={{color: '#ee2726',}} component={Link} to="/login">Login</Button>
+                    <Button className={classes.NavAccountOptions} component={Link} to="/signup">Sign up</Button>
                 </div>
             </Toolbar>
         </AppBar>

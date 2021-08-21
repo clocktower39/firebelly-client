@@ -6,6 +6,8 @@ import { login } from "./Redux/actions";
 import Navbar from './Components/Navbar';
 // import Home from './Components/Home';
 import AltHome from './Components/AltHome';
+import Login from './Components/Login';
+import SignUp from './Components/SignUp';
 import './App.css';
 
 function App() {
@@ -19,8 +21,11 @@ function App() {
   return loading?<Typography variant="h6" align="center" >Loading</Typography>:(
     <Router>
       <Navbar />
+      <div style={{marginTop: '150px'}}></div>
         <Switch>
           <Route exact path='/' component={AltHome} />
+          <Route exact path='/login' component={Login} />
+          <Route exact path='/signup' component={SignUp} />
         </Switch>
     </Router>
   );
