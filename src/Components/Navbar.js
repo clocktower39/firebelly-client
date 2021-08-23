@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { AppBar, Avatar, Button, IconButton, makeStyles, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar, Typography } from '@material-ui/core';
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import Logo from '../img/logo.png';
 
 const useStyles = makeStyles({
@@ -46,6 +47,7 @@ export default function Navbar() {
     const classes = useStyles();
     const [pageWidth, setPageWidth] = useState(window.innerWidth);
     const user = useSelector(state => state.user);
+    const [isListOpen, setIsListOpen] = useState(false);
 
     useEffect(() => {
 
@@ -63,8 +65,27 @@ export default function Navbar() {
                     <Button className={classes.NavLink} >Training</Button>
                 </div>
                 <div className={classes.NavAccountContainer}>
-                    {user.email ? (<Typography variant="h6">{user.firstName} {user.lastName}</Typography>) : (<><Button className={classes.NavAccountOptions} style={{ color: '#ee2726', }} component={Link} to="/login">Login</Button>
-                        <Button className={classes.NavAccountOptions} component={Link} to="/signup">Sign up</Button></>)}
+                    {user.email ?
+                        (<List>
+                            <ListItem button onClick={()=>setIsListOpen(!isListOpen)}>
+                                <ListItemText>{user.firstName} {user.lastName}</ListItemText>
+                                {isListOpen ? <ExpandLess /> : <ExpandMore />}
+                            </ListItem>
+                            <Collapse in={isListOpen} timeout="auto" unmountOnExit>
+                                <List component="div" disablePadding>
+                                    <ListItem button component={Link} to="/dashboard">
+                                        <ListItemText>Dashboard</ListItemText>
+                                    </ListItem>
+                                </List>
+                            </Collapse>
+                        </List>) :
+                        (
+                            <>
+                                <Button className={classes.NavAccountOptions} style={{ color: '#ee2726', }} component={Link} to="/login">Login</Button>
+                                <Button className={classes.NavAccountOptions} component={Link} to="/signup">Sign up</Button>
+                            </>
+                        )
+                    }
                 </div>
             </Toolbar>
         </AppBar>
