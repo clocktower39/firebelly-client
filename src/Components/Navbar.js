@@ -30,6 +30,10 @@ const useStyles = makeStyles(theme=>({
         letterSpacing: '0.143em',
         textTransform: 'uppercase',
     },
+    NavAccountContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
     NavAccountOptions: {
         color: '#FEFFFF',
         fontFamily: 'Cabin',
@@ -65,7 +69,7 @@ export default function Navbar() {
                     <Button className={classes.NavLink} >Workshops</Button>
                     <Button className={classes.NavLink} >Training</Button>
                 </div>
-                <div>
+                <div className={classes.NavAccountContainer}>
                     {user.email ?
                         (<List component="nav" aria-labelledby="nested-list-subheader">
                             <ListItem button onClick={()=>setIsListOpen(!isListOpen)}>
