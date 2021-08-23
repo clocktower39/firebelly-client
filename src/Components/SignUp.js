@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState } from 'react';
 import { Button, TextField, Grid, Paper, makeStyles } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
@@ -15,7 +15,7 @@ const useStyles = makeStyles({
     button: {
     },
 
-  });
+});
 
 export const SignUp = (props) => {
     const classes = useStyles();
@@ -29,107 +29,102 @@ export const SignUp = (props) => {
     const user = useSelector(state => state.user);
 
     const handleKeyDown = (e) => {
-        if(e.key === 'Enter'){
-            if(firstName && lastName && email && password && confirmPassword){
+        if (e.key === 'Enter') {
+            if (firstName && lastName && email && password && confirmPassword) {
                 handleSignupAttempt();
             }
         }
     }
     const handleSignupAttempt = (e) => {
-        if(email && password){
-            dispatch(signupUser(JSON.stringify({ firstName, lastName, email, password})));
+        if (email && password) {
+            dispatch(signupUser(JSON.stringify({ firstName, lastName, email, password })));
             localStorage.setItem('email', email);
         }
     }
-    if(user.email){
-        return (<Redirect to={{ pathname: '/'}} />)
+    if (user.email) {
+        return (<Redirect to={{ pathname: '/' }} />)
     }
 
     return (
         <Grid container className={classes.root}>
 
             <Grid item xs={12}>
-                <Paper>
                 <TextField
-                error={error === true ? true : false}
-                helperText={error === true ? "Please enter your first name" : false}
-                className={classes.textField}
-                label="First Name"
-                value={firstName}
-                onKeyDown={(e) => handleKeyDown(e)}
-                onChange={(e) => setFirstName(e.target.value)}
+                    variant="outlined"
+                    error={error === true ? true : false}
+                    helperText={error === true ? "Please enter your first name" : false}
+                    className={classes.textField}
+                    label="First Name"
+                    value={firstName}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => setFirstName(e.target.value)}
                 />
-                </Paper>
             </Grid>
 
             <Grid item xs={12}>
-                <Paper>
                 <TextField
-                error={error === true ? true : false}
-                helperText={error === true ? "Please enter your last name" : false}
-                className={classes.textField}
-                label="Last Name"
-                value={lastName}
-                onKeyDown={(e) => handleKeyDown(e)}
-                onChange={(e) => setLastName(e.target.value)}
+                    variant="outlined"
+                    error={error === true ? true : false}
+                    helperText={error === true ? "Please enter your last name" : false}
+                    className={classes.textField}
+                    label="Last Name"
+                    value={lastName}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => setLastName(e.target.value)}
                 />
-                </Paper>
             </Grid>
 
             <Grid item xs={12}>
-                <Paper>
                 <TextField
-                error={error === true ? true : false}
-                helperText={error === true ? "Please enter your email" : false}
-                className={classes.textField}
-                label="Email"
-                value={email}
-                onKeyDown={(e) => handleKeyDown(e)}
-                onChange={(e) => setEmail(e.target.value)}
+                    variant="outlined"
+                    error={error === true ? true : false}
+                    helperText={error === true ? "Please enter your email" : false}
+                    className={classes.textField}
+                    label="Email"
+                    value={email}
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
-                </Paper>
             </Grid>
             <Grid item xs={12}>
-                <Paper>
                 <TextField
-                error={error === true ? true : false}
-                helperText={(error === true)?"Please enter your password":false}
-                className={classes.textField}
-                label="Password"
-                value={password}
-                type="password"
-                onKeyDown={(e) => handleKeyDown(e)}
-                onChange={(e) => {
-                    setPassword(e.target.value);
-                    (e.target.value === '')?setError(true):setError(false);
-                }}
+                    variant="outlined"
+                    error={error === true ? true : false}
+                    helperText={(error === true) ? "Please enter your password" : false}
+                    className={classes.textField}
+                    label="Password"
+                    value={password}
+                    type="password"
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => {
+                        setPassword(e.target.value);
+                        (e.target.value === '') ? setError(true) : setError(false);
+                    }}
                 />
-                </Paper>
             </Grid>
             <Grid item xs={12}>
-                <Paper>
                 <TextField
-                error={error === true ? true : false}
-                helperText={(error === true)?"Please enter your password":false}
-                className={classes.textField}
-                label="Confirm Password"
-                value={confirmPassword}
-                type="password"
-                onKeyDown={(e) => handleKeyDown(e)}
-                onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    (e.target.value === '')?setError(true):setError(false);
-                }}
+                    variant="outlined"
+                    error={error === true ? true : false}
+                    helperText={(error === true) ? "Please enter your password" : false}
+                    className={classes.textField}
+                    label="Confirm Password"
+                    value={confirmPassword}
+                    type="password"
+                    onKeyDown={(e) => handleKeyDown(e)}
+                    onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        (e.target.value === '') ? setError(true) : setError(false);
+                    }}
                 />
-                </Paper>
             </Grid>
             <Grid item xs={12}>
                 <Button
-                variant="contained"
-                color="primary"
-                className={classes.button}
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
                 >
-                Sign Up
+                    Sign Up
                 </Button>
             </Grid>
         </Grid>

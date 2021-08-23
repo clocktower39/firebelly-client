@@ -54,8 +54,8 @@ export const Login = (props) => {
     return (
         <Grid container className={classes.root}>
             <Grid item xs={12}>
-                <Paper>
                     <TextField
+                        variant="outlined"
                         error={error === true ? true : false}
                         helperText={error === true ? "Please enter your email" : false}
                         className={classes.textField}
@@ -64,11 +64,10 @@ export const Login = (props) => {
                         onKeyDown={(e) => handleKeyDown(e)}
                         onChange={(e) => setEmail(e.target.value)}
                     />
-                </Paper>
             </Grid>
             <Grid item xs={12}>
-                <Paper>
                     <TextField
+                        variant="outlined"
                         error={error === true ? true : false}
                         helperText={(error === true) ? "Please enter your password" : false}
                         className={classes.textField}
@@ -81,7 +80,6 @@ export const Login = (props) => {
                             (e.target.value === '') ? setError(true) : setError(false);
                         }}
                     />
-                </Paper>
             </Grid>
             <Grid item xs={12}>
                 <Button
