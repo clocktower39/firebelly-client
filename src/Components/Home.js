@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch } from 'react-redux';
+import { loginJWT } from '../Redux/actions';
 import AboutImg from '../img/about.jpg';
 import FitnessImg from '../img/fitness.jpg';
 import DeadliftImg from '../img/deadlift.jpg';
@@ -21,6 +23,18 @@ const useStyles = makeStyles({
 
 export default function Home() {
     const classes = useStyles();
+    const dispatch = useDispatch();
+
+    const handleLoginAttempt = async (e) => {
+        dispatch(loginJWT(localStorage.getItem('JWT_AUTH_TOKEN')));
+    }
+
+    useEffect(()=>{
+        if(localStorage.getItem('JWT_AUTH_TOKEN')!==null){
+            handleLoginAttempt();
+        }
+        // eslint-disable-next-line
+    },[])
 
     return (
         <Container maxWidth="md">
