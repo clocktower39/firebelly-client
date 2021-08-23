@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../Redux/actions';
 import { Link } from 'react-router-dom';
 import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar, Typography } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
@@ -45,6 +46,7 @@ const useStyles = makeStyles({
 
 export default function Navbar() {
     const classes = useStyles();
+    const dispatch = useDispatch();
     const [pageWidth, setPageWidth] = useState(window.innerWidth);
     const user = useSelector(state => state.user);
     const [isListOpen, setIsListOpen] = useState(false);
@@ -75,6 +77,9 @@ export default function Navbar() {
                                 <List component="div" disablePadding>
                                     <ListItem button component={Link} to="/dashboard">
                                         <ListItemText>Dashboard</ListItemText>
+                                    </ListItem>
+                                    <ListItem button onClick={()=>dispatch(logoutUser())}>
+                                        <ListItemText>Logout</ListItemText>
                                     </ListItem>
                                 </List>
                             </Collapse>

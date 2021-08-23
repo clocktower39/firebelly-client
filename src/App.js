@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import AuthRoute from './Components/AuthRoute';
 import Navbar from './Components/Navbar';
 // import Home from './Components/Home';
 import AltHome from './Components/AltHome';
 import Login from './Components/Login';
 import SignUp from './Components/SignUp';
+import Dashboard from './Components/Dashboard';
 import './App.css';
 
 function App() {
@@ -16,6 +18,7 @@ function App() {
           <Route exact path='/' component={AltHome} />
           <Route exact path='/login' component={Login} />
           <Route exact path='/signup' component={SignUp} />
+          <AuthRoute exact path='/dashboard' component={Dashboard} />
         </Switch>
     </Router>
   );
