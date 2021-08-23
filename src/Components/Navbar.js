@@ -6,7 +6,7 @@ import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Colla
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import Logo from '../img/logo.png';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme=>({
     Toolbar: {
         margin: 0,
         display: 'flex',
@@ -30,10 +30,6 @@ const useStyles = makeStyles({
         letterSpacing: '0.143em',
         textTransform: 'uppercase',
     },
-    NavAccountContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
     NavAccountOptions: {
         color: '#FEFFFF',
         fontFamily: 'Cabin',
@@ -42,7 +38,10 @@ const useStyles = makeStyles({
         letterSpacing: '0.143em',
         textTransform: 'uppercase',
     },
-});
+    nested: {
+      paddingLeft: theme.spacing(4),
+    },
+}));
 
 export default function Navbar() {
     const classes = useStyles();
@@ -66,19 +65,19 @@ export default function Navbar() {
                     <Button className={classes.NavLink} >Workshops</Button>
                     <Button className={classes.NavLink} >Training</Button>
                 </div>
-                <div className={classes.NavAccountContainer}>
+                <div>
                     {user.email ?
-                        (<List>
+                        (<List component="nav" aria-labelledby="nested-list-subheader">
                             <ListItem button onClick={()=>setIsListOpen(!isListOpen)}>
                                 <ListItemText>{user.firstName} {user.lastName}</ListItemText>
                                 {isListOpen ? <ExpandLess /> : <ExpandMore />}
                             </ListItem>
-                            <Collapse in={isListOpen} timeout="auto" unmountOnExit>
+                            <Collapse in={isListOpen} timeout="auto" unmountOnExit style={{position: 'absolute'}}>
                                 <List component="div" disablePadding>
-                                    <ListItem button component={Link} to="/dashboard">
+                                    <ListItem button component={Link} to="/dashboard" className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>
-                                    <ListItem button onClick={()=>dispatch(logoutUser())}>
+                                    <ListItem button onClick={()=>dispatch(logoutUser())} className={classes.nested}>
                                         <ListItemText>Logout</ListItemText>
                                     </ListItem>
                                 </List>
