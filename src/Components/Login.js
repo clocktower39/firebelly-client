@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { Button, TextField, Grid, Paper, makeStyles } from '@material-ui/core';
+import { Button, TextField, Grid, makeStyles } from '@material-ui/core';
 import { loginUser } from '../Redux/actions';
 
 const useStyles = makeStyles({

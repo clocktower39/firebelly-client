@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../Redux/actions';
 import { Link } from 'react-router-dom';
-import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import Logo from '../img/logo.png';
 
