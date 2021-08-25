@@ -16,8 +16,8 @@ export default function Today() {
                     expandIcon={<ExpandMore />}
                 >
                     <Grid container alignItems="center">
-                        <Grid item xs={2}><Typography className={classes.heading}>Daily Tasks</Typography></Grid>
-                        <Grid item xs={10} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={3}><Typography className={classes.heading}>Daily Tasks</Typography></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -32,8 +32,8 @@ export default function Today() {
                     expandIcon={<ExpandMore />}
                 >
                     <Grid container alignItems="center">
-                        <Grid item xs={2}><Typography className={classes.heading}>Training</Typography></Grid>
-                        <Grid item xs={10} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={3}><Typography className={classes.heading}>Training</Typography></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -48,8 +48,8 @@ export default function Today() {
                     expandIcon={<ExpandMore />}
                 >
                     <Grid container alignItems="center">
-                        <Grid item xs={2}><Typography className={classes.heading}>Nutrition</Typography></Grid>
-                        <Grid item xs={10} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={3}><Typography className={classes.heading}>Nutrition</Typography></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>

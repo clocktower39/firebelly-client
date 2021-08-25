@@ -29,7 +29,7 @@ export function signupUser(user){
 
 export function loginUser(user){
     return async (dispatch, getState) => {
-        const response = await fetch('http://localhost:6969/login', {
+        const response = await fetch('http://192.168.0.205:6969/login', {
             method: 'post',
             dataType: 'json',
             body: user,

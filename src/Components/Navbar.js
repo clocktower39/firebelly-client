@@ -44,6 +44,10 @@ const useStyles = makeStyles(theme=>({
     },
     nested: {
       paddingLeft: theme.spacing(4),
+      backgroundColor: '#000000',
+      '&:hover': {
+          backgroundColor: '#222222',
+      }
     },
 }));
 
@@ -81,7 +85,7 @@ export default function Navbar() {
                                     <ListItem button component={Link} to="/dashboard" className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>
-                                    <ListItem button onClick={()=>dispatch(logoutUser())} className={classes.nested}>
+                                    <ListItem button  onClick={()=>dispatch(logoutUser())} className={classes.nested}>
                                         <ListItemText>Logout</ListItemText>
                                     </ListItem>
                                 </List>
