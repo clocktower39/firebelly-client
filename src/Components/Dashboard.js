@@ -14,12 +14,12 @@ export default function Dashboard() {
     return (
         <Container maxWidth="md">
                     <Typography variant="h4" display="block" align="center">Dashboard</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Today</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Weekly View</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Month View</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Exervise Library</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Basic Workouts</Typography>
-                    <Typography variant="h5" component={Link} to="/" display="block" className={classes.PageLink}>Need to Know Information</Typography>
+                    <Typography variant="h5" component={Link} to="/today" display="block" className={classes.PageLink}>Today</Typography>
+                    <Typography variant="h5" component={Link} to="/week" display="block" className={classes.PageLink}>Weekly View</Typography>
+                    <Typography variant="h5" component={Link} to="/month" display="block" className={classes.PageLink}>Month View</Typography>
+                    <Typography variant="h5" component={Link} to="/exerciselibrary" display="block" className={classes.PageLink}>Exervise Library</Typography>
+                    <Typography variant="h5" component={Link} to="/workouts" display="block" className={classes.PageLink}>Basic Workouts</Typography>
+                    <Typography variant="h5" component={Link} to="/information" display="block" className={classes.PageLink}>Need to Know Information</Typography>
         </Container>
     )
 }
