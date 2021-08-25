@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { ThemeProvider } from '@material-ui/core';
+import { theme } from './theme';
 import AuthRoute from './Components/AuthRoute';
 import Navbar from './Components/Navbar';
 // import Home from './Components/Home';
@@ -12,9 +14,10 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Navbar />
-      <div style={{marginTop: '150px'}}></div>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <Navbar />
+        <div style={{ marginTop: '150px' }}></div>
         <Switch>
           <Route exact path='/' component={AltHome} />
           <Route exact path='/login' component={Login} />
@@ -22,7 +25,8 @@ function App() {
           <AuthRoute exact path='/dashboard' component={Dashboard} />
           <AuthRoute exact path='/today' component={Today} />
         </Switch>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 
