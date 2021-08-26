@@ -1,4 +1,5 @@
-import React from 'react'
+import React from 'react';
+import { useSelector } from 'react-redux';
 import { Accordion, AccordionDetails, AccordionSummary, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
 
@@ -8,6 +9,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Today() {
     const classes = useStyles();
+    const today = useSelector(state => state.today );
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
@@ -21,10 +23,11 @@ export default function Today() {
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Typography>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                        sit amet blandit leo lobortis eget.
-                    </Typography>
+                    <Grid container spacing={2}>
+                        {today.dailyTasks.map(task => (
+                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.name} /></Grid>
+                        ))}
+                    </Grid>
                 </AccordionDetails>
             </Accordion>
             <Accordion>
@@ -37,10 +40,16 @@ export default function Today() {
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Typography>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                        sit amet blandit leo lobortis eget.
-                    </Typography>
+                    <Grid container spacing={2}>
+                        {today.todayTraining.map((group, index) => (
+                            <Grid item xs={12} key={group}>
+                                <Typography variant="h5">Set {index+1}</Typography>
+                                {group.map(exercise => (
+                                    <TextField key={exercise} fullWidth variant="outlined" label={exercise.exercise} />
+                                ))}
+                            </Grid>
+                        ))}
+                    </Grid>
                 </AccordionDetails>
             </Accordion>
             <Accordion>
@@ -54,11 +63,9 @@ export default function Today() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Grid container spacing={2}>
-                        <Grid item xs={12}><TextField fullWidth variant="outlined" label="Calories In" /></Grid>
-                        <Grid item xs={12}><TextField fullWidth variant="outlined" label="Calories Out" /></Grid>
-                        <Grid item xs={12}><TextField fullWidth variant="outlined" label="Protein" /></Grid>
-                        <Grid item xs={12}><TextField fullWidth variant="outlined" label="Carbs" /></Grid>
-                        <Grid item xs={12}><TextField fullWidth variant="outlined" label="Fats" /></Grid>
+                        {today.todayNutrition.map(task => (
+                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
+                        ))}
                     </Grid>
                 </AccordionDetails>
             </Accordion>
