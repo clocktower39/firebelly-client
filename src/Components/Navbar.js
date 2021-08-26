@@ -58,6 +58,8 @@ export default function Navbar() {
     const user = useSelector(state => state.user);
     const [isListOpen, setIsListOpen] = useState(false);
 
+    const toggleList = ()=>setIsListOpen(!isListOpen);
+
     useEffect(() => {
 
         window.addEventListener('resize', setPageWidth(window.innerWidth))
@@ -76,13 +78,13 @@ export default function Navbar() {
                 <div className={classes.NavAccountContainer}>
                     {user.email ?
                         (<List component="nav" aria-labelledby="nested-list-subheader">
-                            <ListItem button onClick={()=>setIsListOpen(!isListOpen)}>
+                            <ListItem button onClick={toggleList}>
                                 <ListItemText>{user.firstName} {user.lastName}</ListItemText>
                                 {isListOpen ? <ExpandLess /> : <ExpandMore />}
                             </ListItem>
                             <Collapse in={isListOpen} timeout="auto" unmountOnExit style={{position: 'absolute'}}>
                                 <List component="div" disablePadding>
-                                    <ListItem button component={Link} to="/dashboard" className={classes.nested}>
+                                    <ListItem button component={Link} to="/dashboard" onClick={toggleList} className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>
                                     <ListItem button  onClick={()=>dispatch(logoutUser())} className={classes.nested}>

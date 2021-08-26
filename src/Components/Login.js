@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { Button, TextField, Grid, makeStyles } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Typography, makeStyles } from '@material-ui/core';
 import { loginUser } from '../Redux/actions';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
     root: {
-        padding: '125px 0',
+        padding: '25px 0',
         textAlign: 'center',
     },
     textField: {
@@ -15,7 +15,7 @@ const useStyles = makeStyles({
     button: {
     },
 
-});
+}));
 
 export const Login = (props) => {
     const classes = useStyles();
@@ -52,10 +52,11 @@ export const Login = (props) => {
         return (<Redirect to={{ pathname: '/' }} />)
     }
     return (
-        <Grid container className={classes.root}>
+        <Grid container className={classes.root} component={Paper}>
+            <Grid item xs={12}><Typography variant="h4" gutterBottom >Log in</Typography></Grid>
             <Grid item xs={12}>
                     <TextField
-                        variant="outlined"
+                        color="secondary"
                         error={error === true ? true : false}
                         helperText={error === true ? "Please enter your email" : false}
                         className={classes.textField}
@@ -67,7 +68,7 @@ export const Login = (props) => {
             </Grid>
             <Grid item xs={12}>
                     <TextField
-                        variant="outlined"
+                        color="secondary"
                         error={error === true ? true : false}
                         helperText={(error === true) ? "Please enter your password" : false}
                         className={classes.textField}
@@ -84,7 +85,7 @@ export const Login = (props) => {
             <Grid item xs={12}>
                 <Button
                     variant="contained"
-                    color="primary"
+                    color="secondary"
                     className={classes.button}
                     onClick={(e) => handleLoginAttempt(e)}
                     disabled={disableButtonDuringLogin}

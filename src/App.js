@@ -10,6 +10,7 @@ import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import Dashboard from './Components/Dashboard';
 import Today from './Components/Today';
+import Week from './Components/Week';
 import './App.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route exact path='/signup' component={SignUp} />
           <AuthRoute exact path='/dashboard' component={Dashboard} />
           <AuthRoute exact path='/today' component={Today} />
+          <AuthRoute exact path='/week' component={Week} />
         </Switch>
       </Router>
     </ThemeProvider>

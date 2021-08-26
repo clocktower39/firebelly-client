@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Button, TextField, Grid, makeStyles } from '@material-ui/core';
+import { Button, Grid, Paper, TextField, Typography, makeStyles } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { signupUser } from '../Redux/actions';
 
 const useStyles = makeStyles({
     root: {
-        padding: '125px 0 25px 0',
+        padding: '25px 0',
         textAlign: 'center',
     },
     textField: {
@@ -46,11 +46,11 @@ export const SignUp = (props) => {
     }
 
     return (
-        <Grid container className={classes.root}>
-
+        <Grid container className={classes.root} component={Paper}>
+            <Grid item xs={12}><Typography variant="h4" gutterBottom >Sign Up</Typography></Grid>
             <Grid item xs={12}>
                 <TextField
-                    variant="outlined"
+                    color="secondary"
                     error={error === true ? true : false}
                     helperText={error === true ? "Please enter your first name" : false}
                     className={classes.textField}
@@ -63,7 +63,7 @@ export const SignUp = (props) => {
 
             <Grid item xs={12}>
                 <TextField
-                    variant="outlined"
+                    color="secondary"
                     error={error === true ? true : false}
                     helperText={error === true ? "Please enter your last name" : false}
                     className={classes.textField}
@@ -76,7 +76,7 @@ export const SignUp = (props) => {
 
             <Grid item xs={12}>
                 <TextField
-                    variant="outlined"
+                    color="secondary"
                     error={error === true ? true : false}
                     helperText={error === true ? "Please enter your email" : false}
                     className={classes.textField}
@@ -88,7 +88,7 @@ export const SignUp = (props) => {
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    variant="outlined"
+                    color="secondary"
                     error={error === true ? true : false}
                     helperText={(error === true) ? "Please enter your password" : false}
                     className={classes.textField}
@@ -104,7 +104,7 @@ export const SignUp = (props) => {
             </Grid>
             <Grid item xs={12}>
                 <TextField
-                    variant="outlined"
+                    color="secondary"
                     error={error === true ? true : false}
                     helperText={(error === true) ? "Please enter your password" : false}
                     className={classes.textField}
@@ -121,7 +121,7 @@ export const SignUp = (props) => {
             <Grid item xs={12}>
                 <Button
                     variant="contained"
-                    color="primary"
+                    color="secondary"
                     className={classes.button}
                 >
                     Sign Up
