@@ -14,7 +14,7 @@ export default function Week() {
     const weeklyView = useSelector(state => state.calander.weeklyView);
 
     const dayOfWeek = (index) => {
-        switch(index){
+        switch (index) {
             case 0:
                 return "Sunday";
             case 1:
@@ -36,8 +36,8 @@ export default function Week() {
 
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
-            <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Weekly View</Typography>
-            {weeklyView.weeklyTraining.map((day,index) => (
+            <Typography variant="h5" gutterBottom style={{ color: '#fff' }}>Weekly View</Typography>
+            {weeklyView.weeklyTraining.map((day, index) => (
                 <Accordion>
                     <AccordionSummary
                         expandIcon={<ExpandMore />}
@@ -51,14 +51,14 @@ export default function Week() {
                         <Typography variant="h6">Training Category: <Typography variant="body1" display="inline">{day.trainingCategory}</Typography></Typography>
                     </AccordionDetails>
                     <AccordionDetails>
-                    <Typography variant="h6">Daily Tasks Status: <Typography variant="body1" display="inline"></Typography></Typography>
+                        <Typography variant="h6">Daily Tasks Status: <Typography variant="body1" display="inline">{weeklyView.weeklyTasks[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved}</Typography></Typography>
                     </AccordionDetails>
                     <AccordionDetails>
                         <Typography variant="h6">Nutrition: <Typography variant="body1" display="inline"></Typography></Typography>
                     </AccordionDetails>
-                </Accordion>    
+                </Accordion>
             ))}
-            
+
         </Container>
     )
 }

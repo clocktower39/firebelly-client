@@ -7,36 +7,42 @@ export let dailyTasks = [
         unit: 'seconds',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
     {
         title: 'Planche',
         unit: 'seconds',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
     {
         title: 'Lever',
         unit: 'seconds',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
     {
         title: 'Push ups',
         unit: 'amount',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
     {
         title: 'Pull ups',
         unit: 'amount',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
     {
         title: 'Pistol Squats',
         unit: 'amount',
         goal: 0,
         achieved: 0,
+        date: new Date(),
     },
 ];
 
