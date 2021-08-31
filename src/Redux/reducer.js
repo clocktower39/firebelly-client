@@ -1,6 +1,6 @@
 import { LOGIN_USER, LOGOUT_USER, ERROR } from './actions';
-import { user, dailyTasks, todayTraining, todayNutrition } from './states';
-export let reducer = (state = { user, today: { dailyTasks, todayTraining, todayNutrition }}, action) => {
+import { user, calander } from './states';
+export let reducer = (state = { user, calander }, action) => {
     switch (action.type) {
         case LOGIN_USER:
             return {

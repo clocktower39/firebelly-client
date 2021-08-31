@@ -3,44 +3,46 @@ export let user = {
 
 export let dailyTasks = [
     {
-        name: 'Handstand',
+        title: 'Handstand',
         unit: 'seconds',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
-        name: 'Planche',
+        title: 'Planche',
         unit: 'seconds',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
-        name: 'Lever',
+        title: 'Lever',
         unit: 'seconds',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
-        name: 'Push ups',
+        title: 'Push ups',
         unit: 'amount',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
-        name: 'Pull ups',
+        title: 'Pull ups',
         unit: 'amount',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
-        name: 'Pistol Squats',
+        title: 'Pistol Squats',
         unit: 'amount',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
 ];
 
-export let todayTraining = [
+export let dailyTraining = {
+    trainingCategory: "Push, Muscular Endurance",
+    training:[
     [
         {
             exercise: "Incline DB Chest Press",
@@ -105,32 +107,58 @@ export let todayTraining = [
             },
         },
     ],
-];
+]};
 
-export let todayNutrition = [
+export let dailyNutrition = [
     {
         title: 'Calories In',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
         title: 'Calories Out',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
         title: 'Protein',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
         title: 'Carbs',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
     {
         title: 'Fats',
-        goal: 'open',
+        goal: 0,
         achieved: 0,
     },
 ];
+
+export let weeklyTasks = [dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks];
+export let weeklyTraining = [dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining];
+export let weeklyNutrition = [dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition];
+
+export let monthlyTasks = [weeklyTasks,weeklyTasks,weeklyTasks,weeklyTasks];
+export let monthlyTraining = [weeklyTraining,weeklyTraining,weeklyTraining,weeklyTraining];
+export let monthlyNutrition = [weeklyNutrition,weeklyNutrition,weeklyNutrition,weeklyNutrition];
+
+export let calander = {
+    dailyView:{
+        dailyTasks,
+        dailyTraining,
+        dailyNutrition,
+    },
+    weeklyView:{
+        weeklyTasks,
+        weeklyTraining,
+        weeklyNutrition,
+    },
+    monthlyView:{
+        monthlyTasks,
+        monthlyTraining,
+        monthlyNutrition,
+    },
+}

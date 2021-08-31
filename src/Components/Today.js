@@ -9,7 +9,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Today() {
     const classes = useStyles();
-    const today = useSelector(state => state.today );
+    const today = useSelector(state => state.calander.dailyView );
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
@@ -25,7 +25,7 @@ export default function Today() {
                 <AccordionDetails>
                     <Grid container spacing={2}>
                         {today.dailyTasks.map(task => (
-                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.name} /></Grid>
+                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
                         ))}
                     </Grid>
                 </AccordionDetails>
@@ -41,7 +41,7 @@ export default function Today() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Grid container spacing={2}>
-                        {today.todayTraining.map((group, index) => (
+                        {today.dailyTraining.training.map((group, index) => (
                             <Grid item xs={12} key={group}>
                                 <Typography variant="h5">Set {index+1}</Typography>
                                 {group.map(exercise => (
@@ -63,7 +63,7 @@ export default function Today() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Grid container spacing={2}>
-                        {today.todayNutrition.map(task => (
+                        {today.dailyNutrtion.map(task => (
                             <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
                         ))}
                     </Grid>
