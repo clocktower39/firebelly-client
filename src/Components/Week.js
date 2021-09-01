@@ -37,31 +37,49 @@ export default function Week() {
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Typography variant="h5" gutterBottom style={{ color: '#fff' }}>Weekly View</Typography>
-            {weeklyView.weeklyTraining.map((day, index) => (
-                <Accordion>
-                    <AccordionSummary
-                        expandIcon={<ExpandMore />}
-                    >
-                        <Grid container alignItems="center">
-                            <Grid item xs={3}><Typography variant="h5" className={classes.heading}>{dayOfWeek(index)}</Typography></Grid>
-                            <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
-                        </Grid>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <Typography variant="h6">Training Category: <Typography variant="body1" display="inline">{day.trainingCategory}</Typography></Typography>
-                    </AccordionDetails>
-                    <AccordionDetails>
-                        <Typography variant="h6">Daily Tasks Status: 
-                            <Typography variant="body1" display="inline">{weeklyView.weeklyTasks[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved}/{weeklyView.weeklyTasks[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal}</Typography>
-                        </Typography>
-                    </AccordionDetails>
-                    <AccordionDetails>
-                        <Typography variant="h6">Nutrition: 
-                            <Typography variant="body1" display="inline">{weeklyView.weeklyNutrition[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved}/{weeklyView.weeklyNutrition[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal}</Typography>
-                        </Typography>
-                    </AccordionDetails>
-                </Accordion>
-            ))}
+            {weeklyView.weeklyTraining.map((day, index) => {
+                let allTraining = [];
+                day.training.forEach(set => {
+                    set.forEach(task => {
+                        allTraining.push({
+                            goal: task.goals.sets,
+                            achieved: task.achieved.sets,
+                        })
+                    })
+                })
+
+                let dailyTaskAchieved = weeklyView.weeklyTasks[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+                let dailyTaskGoal = weeklyView.weeklyTasks[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+
+                let dailyNutritionAchieved = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+                let dailyNutritionGoal = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+
+                return (
+                    <Accordion>
+                        <AccordionSummary
+                            expandIcon={<ExpandMore />}
+                        >
+                            <Grid container alignItems="center">
+                                <Grid item xs={3}><Typography variant="h5" className={classes.heading}>{dayOfWeek(index)}</Typography></Grid>
+                                <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
+                            </Grid>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Typography variant="h6">Training Category: <Typography variant="body1" display="inline">{day.trainingCategory}</Typography></Typography>
+                        </AccordionDetails>
+                        <AccordionDetails>
+                            <Typography variant="h6">Daily Tasks Status: 
+                                <Typography variant="body1" display="inline">{dailyTaskAchieved}/{dailyTaskGoal}</Typography>
+                            </Typography>
+                        </AccordionDetails>
+                        <AccordionDetails>
+                            <Typography variant="h6">Nutrition: 
+                                <Typography variant="body1" display="inline">{dailyNutritionAchieved}/{dailyNutritionGoal}</Typography>
+                            </Typography>
+                        </AccordionDetails>
+                    </Accordion>
+                )
+            })}
 
         </Container>
     )
