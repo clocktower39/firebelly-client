@@ -10,6 +10,15 @@ const useStyles = makeStyles(theme => ({
 export default function Today() {
     const classes = useStyles();
     const today = useSelector(state => state.calander.dailyView );
+    let allTraining = [];
+    today.dailyTraining.training.forEach(set => {
+        set.forEach(task => {
+            allTraining.push({
+                goal: task.goals.sets,
+                achieved: task.achieved.sets,
+            })
+        })
+    })
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
@@ -19,7 +28,7 @@ export default function Today() {
                 >
                     <Grid container alignItems="center">
                         <Grid item xs={3}><Typography className={classes.heading}>Daily Tasks</Typography></Grid>
-                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={(today.dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved/today.dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal)*100} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -36,7 +45,7 @@ export default function Today() {
                 >
                     <Grid container alignItems="center">
                         <Grid item xs={3}><Typography className={classes.heading}>Training</Typography></Grid>
-                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={(allTraining.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved/allTraining.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal)*100} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -58,7 +67,7 @@ export default function Today() {
                 >
                     <Grid container alignItems="center">
                         <Grid item xs={3}><Typography className={classes.heading}>Nutrition</Typography></Grid>
-                        <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
+                        <Grid item xs={9} ><LinearProgress variant="determinate" value={(today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved/today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal)*100} /></Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>

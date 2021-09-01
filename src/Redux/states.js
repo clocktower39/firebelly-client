@@ -5,42 +5,42 @@ export let dailyTasks = [
     {
         title: 'Handstand',
         unit: 'seconds',
-        goal: 0,
-        achieved: 0,
+        goal: 30,
+        achieved: 30,
         date: new Date(),
     },
     {
         title: 'Planche',
         unit: 'seconds',
-        goal: 0,
+        goal: 15,
         achieved: 0,
         date: new Date(),
     },
     {
         title: 'Lever',
         unit: 'seconds',
-        goal: 0,
+        goal: 10,
         achieved: 0,
         date: new Date(),
     },
     {
         title: 'Push ups',
         unit: 'amount',
-        goal: 0,
+        goal: 35,
         achieved: 0,
         date: new Date(),
     },
     {
         title: 'Pull ups',
         unit: 'amount',
-        goal: 0,
+        goal: 12,
         achieved: 0,
         date: new Date(),
     },
     {
         title: 'Pistol Squats',
         unit: 'amount',
-        goal: 0,
+        goal: 10,
         achieved: 0,
         date: new Date(),
     },
@@ -57,6 +57,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 4,
+                reps: [],
+            }
         }
     ],
     [
@@ -67,6 +71,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
         {
             exercise: "DB Lateral Raises",
@@ -75,6 +83,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
     ],
     [
@@ -85,6 +97,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
         {
             exercise: "DB Chest Fly",
@@ -93,6 +109,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
     ],
     [
@@ -103,6 +123,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
         {
             exercise: "Cable Rope Tricep Pushdown",
@@ -111,6 +135,10 @@ export let dailyTraining = {
                 minReps: 12,
                 maxReps: 15,
             },
+            achieved: {
+                sets: 0,
+                reps: [],
+            }
         },
     ],
 ]};
@@ -118,28 +146,33 @@ export let dailyTraining = {
 export let dailyNutrition = [
     {
         title: 'Calories In',
-        goal: 0,
+        goal: 3000,
         achieved: 0,
+        unit: 'calories',
     },
     {
         title: 'Calories Out',
-        goal: 0,
-        achieved: 0,
+        goal: 1200,
+        achieved: 1200,
+        unit: 'calories',
     },
     {
         title: 'Protein',
-        goal: 0,
-        achieved: 0,
+        goal: 150,
+        achieved: 150,
+        unit: 'grams',
     },
     {
         title: 'Carbs',
         goal: 0,
         achieved: 0,
+        unit: 'grams',
     },
     {
         title: 'Fats',
         goal: 0,
         achieved: 0,
+        unit: 'grams',
     },
 ];
 
