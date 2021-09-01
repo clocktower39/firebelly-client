@@ -63,7 +63,7 @@ export default function Today() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Grid container spacing={2}>
-                        {today.dailyNutrtion.map(task => (
+                        {today.dailyNutrition.map(task => (
                             <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
                         ))}
                     </Grid>
