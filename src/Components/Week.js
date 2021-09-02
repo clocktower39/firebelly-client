@@ -51,6 +51,9 @@ export default function Week() {
                 let dailyTaskAchieved = weeklyView.weeklyTasks[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
                 let dailyTaskGoal = weeklyView.weeklyTasks[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
+                const dailyTrainingAchieved = allTraining.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+                const dailyTrainingGoal = allTraining.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+
                 let dailyNutritionAchieved = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
                 let dailyNutritionGoal = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
@@ -65,7 +68,7 @@ export default function Week() {
                             </Grid>
                         </AccordionSummary>
                         <AccordionDetails>
-                            <Typography variant="h6">Training Category: <Typography variant="body1" display="inline">{day.trainingCategory}</Typography></Typography>
+                            <Typography variant="h6">Training Category: <Typography variant="body1" display="inline">{day.trainingCategory} {dailyTrainingAchieved}/{dailyTrainingGoal}</Typography></Typography>
                         </AccordionDetails>
                         <AccordionDetails>
                             <Typography variant="h6">Daily Tasks Status: 
