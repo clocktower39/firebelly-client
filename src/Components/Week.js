@@ -57,6 +57,9 @@ export default function Week() {
                 let dailyNutritionAchieved = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
                 let dailyNutritionGoal = weeklyView.weeklyNutrition[index].reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
+                let totalAchieved = dailyTaskAchieved + dailyTrainingAchieved + dailyNutritionAchieved;
+                let totalGoal = dailyTaskGoal + dailyTrainingGoal + dailyNutritionGoal;
+
                 return (
                     <Accordion>
                         <AccordionSummary
@@ -64,7 +67,7 @@ export default function Week() {
                         >
                             <Grid container alignItems="center">
                                 <Grid item xs={3}><Typography variant="h5" className={classes.heading}>{dayOfWeek(index)}</Typography></Grid>
-                                <Grid item xs={9} ><LinearProgress variant="determinate" value={50} /></Grid>
+                                <Grid item xs={9} ><LinearProgress variant="determinate" value={(totalAchieved/totalGoal)*100} /></Grid>
                             </Grid>
                         </AccordionSummary>
                         <AccordionDetails>
