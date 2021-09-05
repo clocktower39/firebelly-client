@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Accordion, AccordionDetails, AccordionSummary, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
+import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
@@ -10,6 +10,11 @@ const useStyles = makeStyles(theme => ({
 export default function Today() {
     const classes = useStyles();
     const today = useSelector(state => state.calander.dailyView );
+    const [note, setNote] = useState('');
+    const handleChange = (e) => {
+        setNote(e.value)
+    }
+
     let allTraining = [];
     today.dailyTraining.training.forEach(set => {
         set.forEach(task => {
@@ -84,6 +89,21 @@ export default function Today() {
                         {today.dailyNutrition.map(task => (
                             <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
                         ))}
+                    </Grid>
+                </AccordionDetails>
+            </Accordion>
+            <Accordion>
+                <AccordionSummary
+                    expandIcon={<ExpandMore />}
+                >
+                    <Grid container alignItems="center">
+                        <Grid item xs={3}><Typography className={classes.heading}>Notes</Typography></Grid>
+                    </Grid>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} ><TextField fullWidth variant="outlined" value={note} onChange={(e)=>handleChange(e)} label="Please provide feedback on your day; what was difficult and what went well?"/></Grid>
+                        <Grid item xs={12} ><Button variant="outlined" >Save</Button></Grid>
                     </Grid>
                 </AccordionDetails>
             </Accordion>

@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Accordion, AccordionDetails, AccordionSummary, Container, Grid, LinearProgress, Typography, makeStyles } from '@material-ui/core';
+import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({
@@ -12,7 +12,11 @@ const useStyles = makeStyles(theme => ({
 export default function Week() {
     const classes = useStyles();
     const weeklyView = useSelector(state => state.calander.weeklyView);
+    const [note, setNote] = useState('');
 
+    const handleChange = (e) => {
+        setNote(e.value)
+    }
     const dayOfWeek = (index) => {
         switch (index) {
             case 0:
@@ -86,7 +90,22 @@ export default function Week() {
                     </Accordion>
                 )
             })}
-
+            
+            <Accordion>
+                <AccordionSummary
+                    expandIcon={<ExpandMore />}
+                >
+                    <Grid container alignItems="center">
+                        <Grid item xs={3}><Typography variant="h5" className={classes.heading}>Notes</Typography></Grid>
+                    </Grid>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} ><TextField fullWidth variant="outlined" value={note} onChange={(e)=>handleChange(e)} label="Please provide feedback on your day; what was difficult and what went well?"/></Grid>
+                        <Grid item xs={12} ><Button variant="outlined" >Save</Button></Grid>
+                    </Grid>
+                </AccordionDetails>
+            </Accordion>
         </Container>
     )
 }
