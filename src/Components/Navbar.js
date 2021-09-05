@@ -87,6 +87,18 @@ export default function Navbar() {
                                     <ListItem button component={Link} to="/dashboard" onClick={toggleList} className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>
+                                    <ListItem button component={Link} to="/account" onClick={toggleList} className={classes.nested}>
+                                        <ListItemText>Account</ListItemText>
+                                    </ListItem>
+                                    <ListItem button component={Link} to="/today" onClick={toggleList} className={classes.nested}>
+                                        <ListItemText>Today</ListItemText>
+                                    </ListItem>
+                                    <ListItem button component={Link} to="/week" onClick={toggleList} className={classes.nested}>
+                                        <ListItemText>Weekly</ListItemText>
+                                    </ListItem>
+                                    <ListItem button component={Link} to="/month" onClick={toggleList} className={classes.nested}>
+                                        <ListItemText>Month</ListItemText>
+                                    </ListItem>
                                     <ListItem button  onClick={()=>dispatch(logoutUser())} className={classes.nested}>
                                         <ListItemText>Logout</ListItemText>
                                     </ListItem>
