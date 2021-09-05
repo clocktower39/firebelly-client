@@ -11,7 +11,7 @@ import SignUp from './Components/SignUp';
 import Dashboard from './Components/Dashboard';
 import Today from './Components/Today';
 import Week from './Components/Week';
-import Account from './Components/Account';
+import Account from './Components/AccountComponents/Account';
 import './App.css';
 
 function App() {
