@@ -4,6 +4,7 @@ export const LOGIN_USER = 'LOGIN_USER';
 export const LOGOUT_USER = 'LOGOUT_USER';
 export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
+export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
 
 export function signupUser(user){
     return async (dispatch, getState) => {
@@ -71,6 +72,23 @@ export function logoutUser(){
         localStorage.removeItem('JWT_AUTH_TOKEN');
         return dispatch({
             type: LOGOUT_USER
+        })
+    }
+}
+
+export function checkToggleDailyTask(title){
+    return async (dispatch, getState) => {
+        const state = getState();
+        const dailyTasks = state.calander.dailyView.dailyTasks.map(task => {
+            if(task.title === title){
+                task.achieved===0?task.achieved = 1: task.achieved = 0;
+            }
+            return task;
+        });
+
+        return dispatch({
+            type: EDIT_DAILY_TASK,
+            dailyTasks,
         })
     }
 }

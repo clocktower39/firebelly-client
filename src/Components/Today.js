@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
+import { useSelector, useDispatch } from 'react-redux';
+import { 
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Button,
+    Checkbox,
+    Container,
+    FormGroup,
+    FormControlLabel,
+    FormControl,
+    Grid,
+    LinearProgress,
+    TextField,
+    Typography,
+    makeStyles
+} from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
+import { checkToggleDailyTask } from '../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -9,6 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Today() {
     const classes = useStyles();
+    const dispatch = useDispatch();
     const today = useSelector(state => state.calander.dailyView );
     const [note, setNote] = useState('');
     const handleChange = (e) => {
@@ -47,9 +64,25 @@ export default function Today() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Grid container spacing={2}>
-                        {today.dailyTasks.map(task => (
-                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
-                        ))}
+                        {today.dailyTasks.map(task => {
+                            const handleCheckChange = (e) => {
+                                dispatch(checkToggleDailyTask(task.title))
+                            }
+
+                            return(
+                                <FormControl component="fieldset" >
+                                    <FormGroup aria-label="position" row>
+                                        <FormControlLabel
+                                        value={task.achieved}
+                                        control={<Checkbox color="primary" />}
+                                        label={task.title}
+                                        labelPlacement="top"
+                                        onChange={handleCheckChange}
+                                        checked={task.achieved>0?true:false}
+                                        />
+                                    </FormGroup>
+                                </FormControl>
+                        )})}
                     </Grid>
                 </AccordionDetails>
             </Accordion>
