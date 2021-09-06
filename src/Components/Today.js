@@ -11,16 +11,30 @@ import {
     FormControlLabel,
     FormControl,
     Grid,
+    IconButton,
     LinearProgress,
+    Modal,
+    Paper,
     TextField,
     Typography,
     makeStyles
 } from '@material-ui/core';
+import {
+    AddCircle,
+} from '@material-ui/icons';
 import { ExpandMore } from '@material-ui/icons';
 import { checkToggleDailyTask } from '../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
+    ModalPaper: {
+        position: 'absolute',
+        padding: '17.5px',
+        width: '65%',
+        backgroundColor: '#fcfcfc',
+        left: '50%',
+        transform: 'translate(-50%, 50%)',
+    },
 }))
 
 export default function Today() {
@@ -30,6 +44,13 @@ export default function Today() {
     const [note, setNote] = useState('');
     const handleChange = (e) => {
         setNote(e.value)
+    }
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const handleModalToggle = () => setIsModalOpen(!isModalOpen);
+
+    const addDailyTask = () => {
+
     }
 
     let allTraining = [];
@@ -52,6 +73,18 @@ export default function Today() {
 
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
+            <Modal open={isModalOpen} >
+                
+                <Paper className={classes.ModalPaper}>
+                    <Grid container >
+                        <Grid item xs={12} container justifyContent="center"><TextField label="New Task Title" /></Grid>
+                        <Grid item xs={12} container justifyContent="center">
+                            <Button variant="outlined">Cancel</Button>
+                            <Button variant="outlined">Submit</Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Modal>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
             <Accordion>
                 <AccordionSummary
@@ -63,7 +96,7 @@ export default function Today() {
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} justifyContent="center">
                         {today.dailyTasks.map(task => {
                             const handleCheckChange = (e) => {
                                 dispatch(checkToggleDailyTask(task.title))
@@ -83,6 +116,16 @@ export default function Today() {
                                     </FormGroup>
                                 </FormControl>
                         )})}
+                                <FormControl component="fieldset" >
+                                    <FormGroup aria-label="position" row>
+                                        <FormControlLabel
+                                        control={<IconButton onClick={handleModalToggle}><AddCircle /></IconButton>}
+                                        label="Add Task"
+                                        labelPlacement="top"
+                                        />
+                                    </FormGroup>
+                                </FormControl>
+                        
                     </Grid>
                 </AccordionDetails>
             </Accordion>
