@@ -96,7 +96,7 @@ export function checkToggleDailyTask(title){
 export function addDailyTask(newTask){
     return async (dispatch, getState) => {
         const state = getState();
-        const dailyTasks = state.calander.dailyView.dailyTasks.push(newTask);
+        const dailyTasks = [...state.calander.dailyView.dailyTasks, newTask];
 
         return dispatch({
             type: EDIT_DAILY_TASK,

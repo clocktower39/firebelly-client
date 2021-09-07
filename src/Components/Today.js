@@ -23,7 +23,7 @@ import {
     AddCircle,
 } from '@material-ui/icons';
 import { ExpandMore } from '@material-ui/icons';
-import { checkToggleDailyTask } from '../Redux/actions';
+import { checkToggleDailyTask, addDailyTask } from '../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -49,8 +49,21 @@ export default function Today() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const handleModalToggle = () => setIsModalOpen(!isModalOpen);
 
-    const addDailyTask = () => {
-
+    const [modalNewTaskTitle, setModalNewTaskTitle] = useState('');
+    const submitDailyTask = () => {
+        if(modalNewTaskTitle!==""){
+            dispatch(addDailyTask({
+                title: modalNewTaskTitle,
+                goal: 1,
+                achieved: 0,
+                date: new Date(),
+            }))
+            .then(()=>handleModalToggle()).then(()=>setModalNewTaskTitle(''));
+        }
+    }
+    const cancelNewTask = () => {
+        setIsModalOpen(false);
+        setModalNewTaskTitle('');
     }
 
     let allTraining = [];
@@ -77,10 +90,10 @@ export default function Today() {
                 
                 <Paper className={classes.ModalPaper}>
                     <Grid container >
-                        <Grid item xs={12} container justifyContent="center"><TextField label="New Task Title" /></Grid>
+                        <Grid item xs={12} container justifyContent="center"><TextField label="New Task Title" value={modalNewTaskTitle} onChange={(e)=>setModalNewTaskTitle(e.target.value)} /></Grid>
                         <Grid item xs={12} container justifyContent="center">
-                            <Button variant="outlined">Cancel</Button>
-                            <Button variant="outlined">Submit</Button>
+                            <Button variant="outlined" onClick={cancelNewTask}>Cancel</Button>
+                            <Button variant="outlined" onClick={submitDailyTask}>Submit</Button>
                         </Grid>
                     </Grid>
                 </Paper>
@@ -103,7 +116,7 @@ export default function Today() {
                             }
 
                             return(
-                                <FormControl component="fieldset" >
+                                <FormControl component="fieldset" kay={task.title}>
                                     <FormGroup aria-label="position" row>
                                         <FormControlLabel
                                         value={task.achieved}
