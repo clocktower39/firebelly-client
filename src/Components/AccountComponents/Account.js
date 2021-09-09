@@ -1,4 +1,5 @@
 import React from "react";
+import { Route, Switch, Link } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -8,12 +9,13 @@ import {
   ListItemText,
 } from "@material-ui/core";
 import MyAccount from "./MyAccount";
+import AccountTasks from "./AccountTasks";
 
 export default function Account() {
   return (
     <Container maxWidth="md" style={{ height: "100%" }}>
       <Grid container>
-        <Grid container item xs={4}>
+        <Grid container item xs={4} alignContent="flex-start">
           <Grid item xs={12}>
             <Typography variant="h5" style={{ color: "#fff" }}>
               Account Settings
@@ -21,15 +23,24 @@ export default function Account() {
           </Grid>
           <Grid container item xs={12}>
             <List>
-              <ListItem button >
+              <ListItem button component={Link} to='/account'>
                 <ListItemText primary="My Account" />
+              </ListItem>
+            </List>
+          </Grid><Grid container item xs={12}>
+            <List>
+              <ListItem button component={Link} to='/account/tasks'>
+                <ListItemText primary="Tasks" />
               </ListItem>
             </List>
           </Grid>
         </Grid>
-        <Grid container item xs={7}>
-          <MyAccount />
-        </Grid>
+          <Grid container item xs={7}>
+            <Switch>
+              <Route exact path="/account" component={MyAccount} />
+              <Route exact path="/account/tasks" component={AccountTasks} />
+            </Switch>
+          </Grid>
       </Grid>
     </Container>
   );

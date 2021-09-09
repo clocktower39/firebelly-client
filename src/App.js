@@ -27,7 +27,7 @@ function App() {
           <AuthRoute exact path='/dashboard' component={Dashboard} />
           <AuthRoute exact path='/today' component={Today} />
           <AuthRoute exact path='/week' component={Week} />
-          <AuthRoute exact path='/account' component={Account} />
+          <AuthRoute path='/account' component={Account} />
         </Switch>
       </Router>
     </ThemeProvider>
