@@ -5,10 +5,11 @@ export const LOGOUT_USER = 'LOGOUT_USER';
 export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
 export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
+const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user){
     return async (dispatch, getState) => {
-        const response = await fetch('http://localhost:6969/signup', {
+        const response = await fetch(`http:${CURRENT_IP}:6969/signup`, {
             method: 'post',
             dataType: 'json',
             body: user,
@@ -30,7 +31,7 @@ export function signupUser(user){
 
 export function loginUser(user){
     return async (dispatch, getState) => {
-        const response = await fetch('http://192.168.0.205:6969/login', {
+        const response = await fetch(`http:${CURRENT_IP}:6969/login`, {
             method: 'post',
             dataType: 'json',
             body: user,

@@ -21,19 +21,18 @@ export default function Account() {
               Account Settings
             </Typography>
           </Grid>
-          <Grid container item xs={12}>
             <List>
               <ListItem button component={Link} to='/account'>
                 <ListItemText primary="My Account" />
               </ListItem>
-            </List>
-          </Grid><Grid container item xs={12}>
-            <List>
               <ListItem button component={Link} to='/account/tasks'>
-                <ListItemText primary="Tasks" />
+                <ListItemText primary="Default Tasks" />
+              </ListItem>
+              <ListItem button component={Link} to='/account/tasks'>
+                <ListItemText primary="Biometrics" />
               </ListItem>
             </List>
-          </Grid>
+            
         </Grid>
           <Grid container item xs={7}>
             <Switch>

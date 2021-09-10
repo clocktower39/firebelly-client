@@ -4,7 +4,7 @@ import { logoutUser } from '../Redux/actions';
 import { Link } from 'react-router-dom';
 import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import Logo from '../img/logo.png';
+import FireBellyLogo from '../img/fireBellyLogo.jpg';
 
 const useStyles = makeStyles(theme=>({
     Toolbar: {
@@ -67,7 +67,7 @@ export default function Navbar() {
     return (
         <AppBar position='fixed' >
             <Toolbar className={classes.Toolbar} >
-                <IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={Logo} alt="Logo" /></IconButton>
+                <IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={FireBellyLogo} alt="Logo" /></IconButton>
                 <div style={pageWidth < 800 ? { display: 'none' } : { display: 'block' }}>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
