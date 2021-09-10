@@ -22,7 +22,7 @@ export default function MyAccount() {
       <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
         My Account
       </Typography>
-      <Grid container component={Paper} spacing={2}>
+      <Grid container component={Paper} spacing={2} style={{padding: '15px'}}>
         <Grid item xs={12}>
             <TextField label="First Name" value={firstName} onChange={(e)=>handleChange(e.target.value,setFirstName)} fullWidth/>
         </Grid>

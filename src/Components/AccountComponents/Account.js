@@ -10,6 +10,7 @@ import {
 } from "@material-ui/core";
 import MyAccount from "./MyAccount";
 import AccountTasks from "./AccountTasks";
+import Biometrics from "./Biometrics";
 
 export default function Account() {
   return (
@@ -28,7 +29,7 @@ export default function Account() {
               <ListItem button component={Link} to='/account/tasks'>
                 <ListItemText primary="Default Tasks" />
               </ListItem>
-              <ListItem button component={Link} to='/account/tasks'>
+              <ListItem button component={Link} to='/account/biometrics'>
                 <ListItemText primary="Biometrics" />
               </ListItem>
             </List>
@@ -38,6 +39,7 @@ export default function Account() {
             <Switch>
               <Route exact path="/account" component={MyAccount} />
               <Route exact path="/account/tasks" component={AccountTasks} />
+              <Route exact path="/account/biometrics" component={Biometrics} />
             </Switch>
           </Grid>
       </Grid>
