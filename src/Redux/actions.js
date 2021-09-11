@@ -6,6 +6,7 @@ export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
 export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
 export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
+export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user){
@@ -77,6 +78,16 @@ export function logoutUser(){
         })
     }
 }
+export function editUser(user){
+    return async (dispatch, getState) => {
+        const state = getState();
+        
+        return dispatch({
+            type: EDIT_MYACCOUNT,
+            user,
+        })
+    }
+}
 
 export function checkToggleDailyTask(title){
     return async (dispatch, getState) => {
@@ -109,6 +120,18 @@ export function addDailyTask(newTask){
 
 export function addDefaultDailyTask(defaultTasks){
     return async (dispatch, getState) => {
+        return dispatch({
+            type: EDIT_DEFAULT_TASK,
+            defaultTasks,
+        })
+    }
+}
+export function removeDefaultDailyTask(removeTask){
+    return async (dispatch, getState) => {
+        const state = getState();
+        const currentDefaultTasks = [...state.user.defaultTasks];
+        const defaultTasks = currentDefaultTasks.filter(item => item !== removeTask);
+
         return dispatch({
             type: EDIT_DEFAULT_TASK,
             defaultTasks,

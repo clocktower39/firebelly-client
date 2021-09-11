@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Button, Container, Paper, TextField, Typography, Grid } from "@material-ui/core";
+import { editUser } from "../../Redux/actions";
 
 export default function MyAccount() {
+    const dispatch = useDispatch()
     const user = useSelector(state => state.user);
     const [firstName, setFirstName] = useState(user.firstName);
     const [lastName, setLastName] = useState(user.lastName);
@@ -15,6 +17,16 @@ export default function MyAccount() {
         setLastName(user.lastName);
         setEmail(user.email);
         setPhoneNumber(user.phoneNumber);
+    }
+
+    const saveChanges = () => {
+      dispatch(editUser({
+        ...user,
+        firstName,
+        lastName,
+        email,
+        phoneNumber
+      }))
     }
 
   return (
@@ -37,7 +49,7 @@ export default function MyAccount() {
         </Grid>
         <Grid container justifyContent="center" item xs={12} spacing={2}>
           <Grid item ><Button variant="contained" onClick={handleCancel}>Cancel</Button></Grid>
-          <Grid item ><Button variant="contained" onClick={handleCancel}>Save</Button></Grid>
+          <Grid item ><Button variant="contained" onClick={saveChanges}>Save</Button></Grid>
         </Grid>
       </Grid>
     </Container>

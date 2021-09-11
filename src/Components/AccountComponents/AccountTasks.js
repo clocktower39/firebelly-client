@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
@@ -10,7 +10,7 @@ import {
   Grid,
 } from "@material-ui/core";
 import { AddCircle, RemoveCircle } from "@material-ui/icons";
-import { addDefaultDailyTask } from "../../Redux/actions";
+import { addDefaultDailyTask, removeDefaultDailyTask } from "../../Redux/actions";
 
 export default function AccountTasks() {
   const dispatch = useDispatch();
@@ -28,6 +28,8 @@ export default function AccountTasks() {
   const handleChange = (value, setter) => setter(value);
   const handleCancel = () => setDefaultTasks([...user.defaultTasks]);
 
+  const removeTask = (removeTask) => dispatch(removeDefaultDailyTask(removeTask));
+
   const saveTasks = () => dispatch(addDefaultDailyTask([...defaultTasks]));
 
   const TaskTextField = (props) => {
@@ -35,6 +37,7 @@ export default function AccountTasks() {
 
     return (
       <TextField
+        disabled
         label={`Task ${props.index + 1}`}
         value={taskTitle}
         onChange={(e) => handleChange(e.target.value, setTaskTitle)}
@@ -42,6 +45,10 @@ export default function AccountTasks() {
       />
     );
   };
+
+  useEffect(()=>{
+    setDefaultTasks(user.defaultTasks)
+  },[user.defaultTasks])
 
   return (
     <Container maxWidth="md" style={{ height: "100%" }}>
@@ -56,7 +63,7 @@ export default function AccountTasks() {
                 <TaskTextField key={task.title} task={task} index={index} />
               </Grid>
               <Grid item xs={2}>
-                <IconButton>
+                <IconButton onClick={()=>removeTask(task)}>
                   <RemoveCircle />
                 </IconButton>
               </Grid>
@@ -67,7 +74,7 @@ export default function AccountTasks() {
           <TextField
             label="Add a new default task"
             value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
+            onChange={(e) => handleChange(e.target.value, setNewTask)}
             fullWidth
           />
         </Grid>
