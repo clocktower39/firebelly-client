@@ -5,6 +5,7 @@ export const LOGOUT_USER = 'LOGOUT_USER';
 export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
 export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
+export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user){
@@ -102,6 +103,18 @@ export function addDailyTask(newTask){
         return dispatch({
             type: EDIT_DAILY_TASK,
             dailyTasks,
+        })
+    }
+}
+
+export function addDefaultDailyTask(newTask){
+    return async (dispatch, getState) => {
+        const state = getState();
+        const defaultTasks = [...state.user.defaultTasks, newTask];
+
+        return dispatch({
+            type: EDIT_DEFAULT_TASK,
+            defaultTasks,
         })
     }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
   Container,
@@ -10,12 +10,20 @@ import {
   Grid,
 } from "@material-ui/core";
 import { AddCircle, RemoveCircle } from "@material-ui/icons";
+import { addDefaultDailyTask } from "../../Redux/actions";
 
 export default function AccountTasks() {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const [defaultTasks, setDefaultTasks] = useState(user.defaultTasks);
 
   const [newTask, setNewTask] = useState("");
+  const submitNewTask = () => {
+    if (newTask !== "") {
+      setDefaultTasks(prev => [...prev, {title:newTask, goal: 1, achieved: 0 }])
+      setNewTask("")
+    }
+  };
 
   const handleChange = (value, setter) => setter(value);
   const handleCancel = () => setDefaultTasks([...user.defaultTasks]);
@@ -23,8 +31,15 @@ export default function AccountTasks() {
   const TaskTextField = (props) => {
     const [taskTitle, setTaskTitle] = useState(props.task.title);
 
-    return (<TextField label={`Task ${props.index+1}`} value={taskTitle} onChange={(e)=>handleChange(e.target.value, setTaskTitle)} fullWidth />);
-  }
+    return (
+      <TextField
+        label={`Task ${props.index + 1}`}
+        value={taskTitle}
+        onChange={(e) => handleChange(e.target.value, setTaskTitle)}
+        fullWidth
+      />
+    );
+  };
 
   return (
     <Container maxWidth="md" style={{ height: "100%" }}>
@@ -39,8 +54,8 @@ export default function AccountTasks() {
                 <TaskTextField key={task.title} task={task} index={index} />
               </Grid>
               <Grid item xs={2}>
-                  <IconButton>
-                <RemoveCircle />
+                <IconButton>
+                  <RemoveCircle />
                 </IconButton>
               </Grid>
             </>
@@ -55,8 +70,8 @@ export default function AccountTasks() {
           />
         </Grid>
         <Grid item xs={2}>
-        <IconButton>
-          <AddCircle />
+          <IconButton onClick={submitNewTask}>
+            <AddCircle />
           </IconButton>
         </Grid>
         <Grid container justifyContent="center" item xs={12} spacing={2}>
