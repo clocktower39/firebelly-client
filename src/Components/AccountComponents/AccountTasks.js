@@ -18,7 +18,13 @@ export default function AccountTasks() {
   const [newTask, setNewTask] = useState("");
 
   const handleChange = (value, setter) => setter(value);
-  const handleCancel = () => setDefaultTasks(user.defaultTasks);
+  const handleCancel = () => setDefaultTasks([...user.defaultTasks]);
+
+  const TaskTextField = (props) => {
+    const [taskTitle, setTaskTitle] = useState(props.task.title);
+
+    return (<TextField label={`Task ${props.index+1}`} value={taskTitle} onChange={(e)=>handleChange(e.target.value, setTaskTitle)} fullWidth />);
+  }
 
   return (
     <Container maxWidth="md" style={{ height: "100%" }}>
@@ -26,11 +32,11 @@ export default function AccountTasks() {
         Default Tasks
       </Typography>
       <Grid container component={Paper} spacing={2} style={{ padding: "15px" }}>
-        {defaultTasks.map((task) => {
+        {defaultTasks.map((task, index) => {
           return (
             <>
               <Grid item xs={10}>
-                <TextField label={task.title} value={task.title} fullWidth />
+                <TaskTextField key={task.title} task={task} index={index} />
               </Grid>
               <Grid item xs={2}>
                   <IconButton>
