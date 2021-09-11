@@ -10,7 +10,7 @@ import {
   Grid,
 } from "@material-ui/core";
 import { AddCircle, RemoveCircle } from "@material-ui/icons";
-import { addDefaultDailyTask, removeDefaultDailyTask } from "../../Redux/actions";
+import { editDefaultDailyTask } from "../../Redux/actions";
 
 export default function AccountTasks() {
   const dispatch = useDispatch();
@@ -28,9 +28,9 @@ export default function AccountTasks() {
   const handleChange = (value, setter) => setter(value);
   const handleCancel = () => setDefaultTasks([...user.defaultTasks]);
 
-  const removeTask = (removeTask) => dispatch(removeDefaultDailyTask(removeTask));
+  const removeTask = (removeTask) => setDefaultTasks(prev => prev.filter(task=> task !== removeTask));
 
-  const saveTasks = () => dispatch(addDefaultDailyTask([...defaultTasks]));
+  const saveTasks = () => dispatch(editDefaultDailyTask([...defaultTasks]));
 
   const TaskTextField = (props) => {
     const [taskTitle, setTaskTitle] = useState(props.task.title);

@@ -118,7 +118,7 @@ export function addDailyTask(newTask){
     }
 }
 
-export function addDefaultDailyTask(defaultTasks){
+export function editDefaultDailyTask(defaultTasks){
     return async (dispatch, getState) => {
         return dispatch({
             type: EDIT_DEFAULT_TASK,
