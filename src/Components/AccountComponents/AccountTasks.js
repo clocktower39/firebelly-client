@@ -20,13 +20,15 @@ export default function AccountTasks() {
   const [newTask, setNewTask] = useState("");
   const submitNewTask = () => {
     if (newTask !== "") {
-      setDefaultTasks(prev => [...prev, {title:newTask, goal: 1, achieved: 0 }])
+      setDefaultTasks(prev => [...prev, { title:newTask, goal: 1, achieved: 0 }])
       setNewTask("")
     }
   };
 
   const handleChange = (value, setter) => setter(value);
   const handleCancel = () => setDefaultTasks([...user.defaultTasks]);
+
+  const saveTasks = () => dispatch(addDefaultDailyTask([...defaultTasks]));
 
   const TaskTextField = (props) => {
     const [taskTitle, setTaskTitle] = useState(props.task.title);
@@ -65,7 +67,7 @@ export default function AccountTasks() {
           <TextField
             label="Add a new default task"
             value={newTask}
-            onChange={(e) => handleChange(e.target.value, setNewTask)}
+            onChange={(e) => setNewTask(e.target.value)}
             fullWidth
           />
         </Grid>
@@ -81,7 +83,7 @@ export default function AccountTasks() {
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" onClick={handleCancel}>
+            <Button variant="contained" onClick={saveTasks}>
               Save
             </Button>
           </Grid>

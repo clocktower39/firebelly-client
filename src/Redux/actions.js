@@ -107,11 +107,8 @@ export function addDailyTask(newTask){
     }
 }
 
-export function addDefaultDailyTask(newTask){
+export function addDefaultDailyTask(defaultTasks){
     return async (dispatch, getState) => {
-        const state = getState();
-        const defaultTasks = [...state.user.defaultTasks, newTask];
-
         return dispatch({
             type: EDIT_DEFAULT_TASK,
             defaultTasks,
