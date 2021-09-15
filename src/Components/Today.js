@@ -40,6 +40,7 @@ const useStyles = makeStyles(theme => ({
 export default function Today() {
     const classes = useStyles();
     const dispatch = useDispatch();
+    const user = useSelector(state => state.user );
     const today = useSelector(state => state.calander.dailyView );
     const [note, setNote] = useState('');
     const handleChange = (e) => {
@@ -75,6 +76,17 @@ export default function Today() {
             })
         })
     })
+
+    // format a Date object like ISO
+    const dateToISOLikeButLocal = (date) => {
+        const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+        const msLocal = date.getTime() - offsetMs;
+        const dateLocal = new Date(msLocal);
+        const iso = dateLocal.toISOString();
+        const isoLocal = iso.slice(0, 19);
+        return isoLocal;
+    }
+
     const dailyTasksAchieved = today.dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyTasksGoal = today.dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal;
     
@@ -85,7 +97,7 @@ export default function Today() {
     const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
     useEffect(()=>{
-        dispatch(requestDailyTasks(1,"9/13/2021"))
+        dispatch(requestDailyTasks(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     return (
@@ -120,7 +132,7 @@ export default function Today() {
                             }
 
                             return(
-                                <FormControl component="fieldset" kay={task.title}>
+                                <FormControl component="fieldset" key={task.title}>
                                     <FormGroup aria-label="position" row>
                                         <FormControlLabel
                                         value={task.achieved}
@@ -158,10 +170,10 @@ export default function Today() {
                 <AccordionDetails>
                     <Grid container spacing={2}>
                         {today.dailyTraining.training.map((group, index) => (
-                            <Grid item xs={12} key={group}>
+                            <Grid item xs={12} key={index}>
                                 <Typography variant="h5">Set {index+1}</Typography>
                                 {group.map(exercise => (
-                                    <TextField key={exercise} fullWidth variant="outlined" label={exercise.exercise} />
+                                    <TextField key={exercise.exercise} fullWidth variant="outlined" label={exercise.exercise} />
                                 ))}
                             </Grid>
                         ))}
@@ -180,7 +192,7 @@ export default function Today() {
                 <AccordionDetails>
                     <Grid container spacing={2}>
                         {today.dailyNutrition.map(task => (
-                            <Grid item xs={12} key={task}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
+                            <Grid item xs={12} key={task.title}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
                         ))}
                     </Grid>
                 </AccordionDetails>

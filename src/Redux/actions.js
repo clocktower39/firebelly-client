@@ -141,6 +141,7 @@ export function removeDefaultDailyTask(removeTask){
 
 export function requestDailyTasks(accountId, date){
     return async (dispatch, getState) => {
+        const state = getState();
         const response = await fetch(`http:${CURRENT_IP}:6969/tasks`, {
             method: 'post',
             dataType: 'json',
@@ -152,7 +153,10 @@ export function requestDailyTasks(accountId, date){
               "Content-type": "application/json; charset=UTF-8"
             }
           })
-        const data = await response.json();
+        let data = await response.json();
+        if(data.length === 0){
+            data = [...state.user.defaultTasks];
+        }
 
         return dispatch({
             type: EDIT_DAILY_TASK,
