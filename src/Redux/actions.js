@@ -80,7 +80,6 @@ export function logoutUser(){
 }
 export function editUser(user){
     return async (dispatch, getState) => {
-        const state = getState();
         
         return dispatch({
             type: EDIT_MYACCOUNT,
@@ -126,6 +125,7 @@ export function editDefaultDailyTask(defaultTasks){
         })
     }
 }
+
 export function removeDefaultDailyTask(removeTask){
     return async (dispatch, getState) => {
         const state = getState();
@@ -135,6 +135,28 @@ export function removeDefaultDailyTask(removeTask){
         return dispatch({
             type: EDIT_DEFAULT_TASK,
             defaultTasks,
+        })
+    }
+}
+
+export function requestDailyTasks(accountId, date){
+    return async (dispatch, getState) => {
+        const response = await fetch(`http:${CURRENT_IP}:6969/tasks`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId,
+                date
+            }),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          })
+        const data = await response.json();
+
+        return dispatch({
+            type: EDIT_DAILY_TASK,
+            dailyTasks: data,
         })
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
     Accordion,
@@ -23,7 +23,7 @@ import {
     AddCircle,
 } from '@material-ui/icons';
 import { ExpandMore } from '@material-ui/icons';
-import { checkToggleDailyTask, addDailyTask } from '../Redux/actions';
+import { requestDailyTasks, checkToggleDailyTask, addDailyTask } from '../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -84,6 +84,10 @@ export default function Today() {
     const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
+    useEffect(()=>{
+        dispatch(requestDailyTasks(1,"9/13/2021"))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[])
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Modal open={isModalOpen} >
