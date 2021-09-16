@@ -5,6 +5,7 @@ export const LOGOUT_USER = 'LOGOUT_USER';
 export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
 export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
+export const EDIT_DAILY_NUTRITION = 'EDIT_DAILY_NUTRITION';
 export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 const CURRENT_IP = window.location.href.split(":")[1];
@@ -161,6 +162,32 @@ export function requestDailyTasks(accountId, date){
         return dispatch({
             type: EDIT_DAILY_TASK,
             dailyTasks: data,
+        })
+    }
+}
+
+export function requestDailyNutrition(accountId, date){
+    return async (dispatch, getState) => {
+        const state = getState();
+        const response = await fetch(`http:${CURRENT_IP}:6969/nutrition`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId,
+                date
+            }),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          })
+        let data = await response.json();
+        if(data.length === 0){
+            data = state.user.defaultNutrition
+        }
+
+        return dispatch({
+            type: EDIT_DAILY_NUTRITION,
+            dailyNutrition: data,
         })
     }
 }

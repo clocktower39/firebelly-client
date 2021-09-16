@@ -23,7 +23,7 @@ import {
     AddCircle,
 } from '@material-ui/icons';
 import { ExpandMore } from '@material-ui/icons';
-import { requestDailyTasks, checkToggleDailyTask, addDailyTask } from '../Redux/actions';
+import { requestDailyTasks, requestDailyNutrition, checkToggleDailyTask, addDailyTask } from '../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -77,16 +77,6 @@ export default function Today() {
         })
     })
 
-    // format a Date object like ISO
-    const dateToISOLikeButLocal = (date) => {
-        const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-        const msLocal = date.getTime() - offsetMs;
-        const dateLocal = new Date(msLocal);
-        const iso = dateLocal.toISOString();
-        const isoLocal = iso.slice(0, 19);
-        return isoLocal;
-    }
-
     const dailyTasksAchieved = today.dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyTasksGoal = today.dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal;
     
@@ -96,8 +86,18 @@ export default function Today() {
     const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
+    // format a Date object like ISO
+    const dateToISOLikeButLocal = (date) => {
+        const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+        const msLocal = date.getTime() - offsetMs;
+        const dateLocal = new Date(msLocal);
+        const iso = dateLocal.toISOString();
+        const isoLocal = iso.slice(0, 19);
+        return isoLocal;
+    }
     useEffect(()=>{
         dispatch(requestDailyTasks(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
+        dispatch(requestDailyNutrition(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
     return (
