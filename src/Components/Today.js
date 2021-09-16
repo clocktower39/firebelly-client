@@ -77,15 +77,6 @@ export default function Today() {
         })
     })
 
-    const dailyTasksAchieved = today.dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
-    const dailyTasksGoal = today.dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal;
-    
-    const dailyTrainingAchieved = allTraining.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
-    const dailyTrainingGoal = allTraining.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
-    
-    const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
-    const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
-
     // format a Date object like ISO
     const dateToISOLikeButLocal = (date) => {
         const offsetMs = date.getTimezoneOffset() * 60 * 1000;
@@ -95,8 +86,22 @@ export default function Today() {
         const isoLocal = iso.slice(0, 19);
         return isoLocal;
     }
+
+    const dailyTasksAchieved = today.dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+    const dailyTasksGoal = today.dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal;
+    
+    const dailyTrainingAchieved = allTraining.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+    const dailyTrainingGoal = allTraining.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+    
+    const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
+    const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+
     useEffect(()=>{
         dispatch(requestDailyTasks(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[])
+
+    useEffect(()=>{
         dispatch(requestDailyNutrition(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
