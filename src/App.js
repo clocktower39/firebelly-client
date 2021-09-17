@@ -9,7 +9,7 @@ import AltHome from './Components/AltHome';
 import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import Dashboard from './Components/Dashboard';
-import Today from './Components/Today';
+import Day from './Components/DailyView/Day';
 import Week from './Components/Week';
 import Account from './Components/AccountComponents/Account';
 import './App.css';
@@ -25,7 +25,7 @@ function App() {
           <Route exact path='/login' component={Login} />
           <Route exact path='/signup' component={SignUp} />
           <AuthRoute exact path='/dashboard' component={Dashboard} />
-          <AuthRoute exact path='/today' component={Today} />
+          <AuthRoute exact path='/day' component={Day} />
           <AuthRoute exact path='/week' component={Week} />
           <AuthRoute path='/account' component={Account} />
         </Switch>
