@@ -72,8 +72,8 @@ export default function Tasks() {
         return isoLocal;
     }
 
-    const dailyTasksAchieved = dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
-    const dailyTasksGoal = dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal;
+    const dailyTasksAchieved = dailyTasks.length>0?dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved:0;
+    const dailyTasksGoal = dailyTasks.length>0?dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal:0;
     
     useEffect(()=>{
         dispatch(requestDailyTasks(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))

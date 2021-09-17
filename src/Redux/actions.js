@@ -5,6 +5,7 @@ export const LOGOUT_USER = 'LOGOUT_USER';
 export const SIGNUP_USER = 'SIGNUP_USER';
 export const ERROR = 'ERROR';
 export const EDIT_DAILY_TASK = 'EDIT_DAILY_TASK';
+export const FETCH_DAILY_TASK = 'FETCH_DAILY_TASK';
 export const EDIT_DAILY_NUTRITION = 'EDIT_DAILY_NUTRITION';
 export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
@@ -118,24 +119,14 @@ export function addDailyTask(newTask){
     }
 }
 
-export function editDefaultDailyTask(defaultTasks){
-    return async (dispatch, getState) => {
-        return dispatch({
-            type: EDIT_DEFAULT_TASK,
-            defaultTasks,
-        })
-    }
-}
-
-export function removeDefaultDailyTask(removeTask){
+export function editDailyTask(newTask){
     return async (dispatch, getState) => {
         const state = getState();
-        const currentDefaultTasks = [...state.user.defaultTasks];
-        const defaultTasks = currentDefaultTasks.filter(item => item !== removeTask);
+        const dailyTasks = [...state.calander.dailyView.dailyTasks, newTask];
 
         return dispatch({
-            type: EDIT_DEFAULT_TASK,
-            defaultTasks,
+            type: EDIT_DAILY_TASK,
+            dailyTasks,
         })
     }
 }
@@ -155,13 +146,46 @@ export function requestDailyTasks(accountId, date){
             }
           })
         let data = await response.json();
-        if(data.length === 0){
-            data = [...state.user.defaultTasks];
+
+        // return default tasks if array is empty
+        if(data.length < 1){
+            data = state.user.defaultTasks;
+
+            // add the current date, accountId and convert strings to number type
+            data.map(task=> {
+                task.date = new Date(date);
+                task.accountId = accountId;
+                task.achieved = Number(task.achieved);
+                task.goal = Number(task.goal);
+                return task;
+            })
         }
 
         return dispatch({
-            type: EDIT_DAILY_TASK,
+            type: FETCH_DAILY_TASK,
             dailyTasks: data,
+        })
+    }
+}
+
+export function editDefaultDailyTask(defaultTasks){
+    return async (dispatch, getState) => {
+        return dispatch({
+            type: EDIT_DEFAULT_TASK,
+            defaultTasks,
+        })
+    }
+}
+
+export function removeDefaultDailyTask(removeTask){
+    return async (dispatch, getState) => {
+        const state = getState();
+        const currentDefaultTasks = [...state.user.defaultTasks];
+        const defaultTasks = currentDefaultTasks.filter(item => item !== removeTask);
+
+        return dispatch({
+            type: EDIT_DEFAULT_TASK,
+            defaultTasks,
         })
     }
 }
