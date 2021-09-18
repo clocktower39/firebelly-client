@@ -4,7 +4,9 @@ import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
+    Button,
     Grid,
+    InputAdornment,
     LinearProgress,
     TextField,
     Typography,
@@ -61,9 +63,13 @@ export default function Nutrition() {
             </AccordionSummary>
             <AccordionDetails>
                 <Grid container spacing={2}>
-                    {today.dailyNutrition.map(task => (
-                        <Grid item xs={12} key={task.title}><TextField fullWidth variant="outlined" label={task.title} /></Grid>
-                    ))}
+                    {today.dailyNutrition.map(task => (<>
+                        <Grid item xs={12} key={task.title}><TextField fullWidth variant="outlined" label={task.title} value={task.achieved} InputProps={{endAdornment: <InputAdornment position="start">/{task.goal} {task.unit}</InputAdornment>,}} /></Grid>
+                    </>))}
+                    <Grid xs={12} item container justifyContent="center" >
+                        <Button variant="outlined" >Edit Goals</Button>
+                        <Button variant="outlined" >Save</Button>
+                    </Grid>
                 </Grid>
             </AccordionDetails>
         </Accordion>
