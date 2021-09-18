@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
     Accordion,
@@ -46,6 +46,19 @@ export default function Nutrition() {
     const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
 
+    const NutritionStat = (props) => {
+        const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+        const handleChange = (e) => {
+            setTaskAchieved(e.target.value);
+        }
+
+        return (
+            <Grid item xs={12} key={props.task.title}>
+                <TextField fullWidth variant="outlined" label={props.task.title} value={taskAchieved} onChange={handleChange} type="number" InputProps={{endAdornment: <InputAdornment position="start">/{props.task.goal} {props.task.unit}</InputAdornment>,}} />
+            </Grid>
+            );
+    }
+
     // useEffect(()=>{
     //     dispatch(requestDailyNutrition(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
     // // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,9 +76,9 @@ export default function Nutrition() {
             </AccordionSummary>
             <AccordionDetails>
                 <Grid container spacing={2}>
-                    {today.dailyNutrition.map(task => (<>
-                        <Grid item xs={12} key={task.title}><TextField fullWidth variant="outlined" label={task.title} value={task.achieved} InputProps={{endAdornment: <InputAdornment position="start">/{task.goal} {task.unit}</InputAdornment>,}} /></Grid>
-                    </>))}
+                    {today.dailyNutrition.map(task => (
+                        <NutritionStat task={task} />
+                    ))}
                     <Grid xs={12} item container justifyContent="center" >
                         <Button variant="outlined" >Edit Goals</Button>
                         <Button variant="outlined" >Save</Button>
