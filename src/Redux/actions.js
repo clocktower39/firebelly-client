@@ -181,12 +181,12 @@ export function editDefaultDailyTask(defaultTasks){
             }
           })
           const data = await response.json();
-
-          console.log(data);
+          console.log(data)
+          localStorage.setItem('JWT_AUTH_TOKEN', data.accessToken);
 
           return dispatch({
             type: EDIT_MYACCOUNT,
-            user: data,
+            user: data.user,
         })
     }
 }

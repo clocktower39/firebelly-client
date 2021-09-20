@@ -63,7 +63,7 @@ export default function Nutrition() {
     };
 
     return (
-      <Grid item xs={12} key={props.task.title}>
+      <Grid item xs={12} >
         <TextField
           fullWidth
           variant="outlined"
@@ -102,7 +102,7 @@ export default function Nutrition() {
       <AccordionDetails>
         <Grid container spacing={2}>
           {today.dailyNutrition.map((task) => (
-            <NutritionStat task={task} />
+            <NutritionStat key={task.title} task={task} />
           ))}
           <Grid xs={12} item container justifyContent="center">
             <Button variant="outlined">Edit Goals</Button>

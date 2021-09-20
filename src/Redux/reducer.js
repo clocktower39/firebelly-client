@@ -57,7 +57,6 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 user: {
                     ...action.user,
-                    
                 }
             }
         case EDIT_DEFAULT_TASK:
