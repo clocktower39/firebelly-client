@@ -90,12 +90,32 @@ export function editUser(user){
     }
 }
 
-export function checkToggleDailyTask(title){
+export function checkToggleDailyTask(id){
     return async (dispatch, getState) => {
         const state = getState();
         const dailyTasks = state.calander.dailyView.dailyTasks.map(task => {
-            if(task.title === title){
+            if(task._id === id){
                 task.achieved===0?task.achieved = 1: task.achieved = 0;
+                fetch(`http:${CURRENT_IP}:6969/updateTask`, {
+                    method: 'post',
+                    dataType: 'json',
+                    body: JSON.stringify({
+                        _id: id,
+                        achieved: task.achieved
+                    }),
+                    headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error){
+                        return dispatch({
+                            type: ERROR,
+                            error: data.error
+                        })
+                    }
+                })
             }
             return task;
         });
@@ -110,7 +130,32 @@ export function checkToggleDailyTask(title){
 export function addDailyTask(newTask){
     return async (dispatch, getState) => {
         const state = getState();
-        const dailyTasks = [...state.calander.dailyView.dailyTasks, newTask];
+        
+        const dbTask = await fetch(`http:${CURRENT_IP}:6969/createTask`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId: newTask.accountId,
+                date: newTask.date,
+                title: newTask.title,
+                goal: 1,
+                achieved: 0
+            }),
+            headers: {
+            "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.error){
+                return dispatch({
+                    type: ERROR,
+                    error: data.error
+                })
+            }
+            return data.task;
+        })
+        const dailyTasks = [...state.calander.dailyView.dailyTasks, dbTask];
 
         return dispatch({
             type: EDIT_DAILY_TASK,
@@ -149,15 +194,37 @@ export function requestDailyTasks(accountId, date){
 
         // return default tasks if array is empty
         if(data.length < 1){
-            data = state.user.defaultTasks;
+            let newTaskList = [];
 
-            // add the current date, accountId and convert strings to number type
-            data.map(task=> {
-                task.date = new Date(date);
-                task.accountId = accountId;
-                task.achieved = Number(task.achieved);
-                task.goal = Number(task.goal);
-                return task;
+            state.user.defaultTasks.forEach(task => {
+                fetch(`http:${CURRENT_IP}:6969/createTask`, {
+                    method: 'post',
+                    dataType: 'json',
+                    body: JSON.stringify({
+                        accountId,
+                        date,
+                        title: task.title,
+                        goal: 1,
+                        achieved: 0
+                    }),
+                    headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error){
+                        return dispatch({
+                            type: ERROR,
+                            error: data.error
+                        })
+                    }
+                    newTaskList.push(data.task);
+                })
+            })
+            return dispatch({
+                type: FETCH_DAILY_TASK,
+                dailyTasks: newTaskList,
             })
         }
 

@@ -18,8 +18,7 @@ import {
   Typography,
   makeStyles,
 } from "@material-ui/core";
-import { AddCircle } from "@material-ui/icons";
-import { ExpandMore } from "@material-ui/icons";
+import { AddCircle, ExpandMore } from "@material-ui/icons";
 import {
   requestDailyTasks,
   checkToggleDailyTask,
@@ -39,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Tasks() {
+export default function Tasks(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
@@ -58,7 +57,8 @@ export default function Tasks() {
           title: modalNewTaskTitle,
           goal: 1,
           achieved: 0,
-          date: new Date(),
+          date: props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/"),
+          accountId: user._id,
         })
       )
         .then(() => handleModalToggle())
@@ -68,16 +68,6 @@ export default function Tasks() {
   const cancelNewTask = () => {
     setIsModalOpen(false);
     setModalNewTaskTitle("");
-  };
-
-  // format a Date object like ISO
-  const dateToISOLikeButLocal = (date) => {
-    const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-    const msLocal = date.getTime() - offsetMs;
-    const dateLocal = new Date(msLocal);
-    const iso = dateLocal.toISOString();
-    const isoLocal = iso.slice(0, 19);
-    return isoLocal;
   };
 
   const dailyTasksAchieved =
@@ -94,7 +84,7 @@ export default function Tasks() {
     dispatch(
       requestDailyTasks(
         user["_id"],
-        dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/")
+        props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/")
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,11 +131,11 @@ export default function Tasks() {
           <Grid container spacing={2} justifyContent="center">
             {dailyTasks.map((task) => {
               const handleCheckChange = (e) => {
-                dispatch(checkToggleDailyTask(task.title));
+                dispatch(checkToggleDailyTask(task._id));
               };
 
               return (
-                <FormControl component="fieldset" key={task.title}>
+                <FormControl component="fieldset" key={task._id}>
                   <FormGroup aria-label="position" row>
                     <FormControlLabel
                       value={task.achieved}
