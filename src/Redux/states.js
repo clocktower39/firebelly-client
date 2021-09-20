@@ -6,37 +6,31 @@ export let dailyTasks = [
     //     title: 'Handstand',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
     // {
     //     title: 'Planche',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
     // {
     //     title: 'Lever',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
     // {
     //     title: 'Push ups',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
     // {
     //     title: 'Pull ups',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
     // {
     //     title: 'Pistol Squats',
     //     goal: 1,
     //     achieved: 1,
-    //     date: new Date(),
     // },
 ];
 

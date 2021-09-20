@@ -71,7 +71,6 @@ export const loginJWT = (token) => {
     }
 }
 
-
 export function logoutUser(){
     return async (dispatch, getState) => {
         localStorage.removeItem('JWT_AUTH_TOKEN');
@@ -80,6 +79,7 @@ export function logoutUser(){
         })
     }
 }
+
 export function editUser(user){
     return async (dispatch, getState) => {
         
@@ -170,9 +170,23 @@ export function requestDailyTasks(accountId, date){
 
 export function editDefaultDailyTask(defaultTasks){
     return async (dispatch, getState) => {
-        return dispatch({
-            type: EDIT_DEFAULT_TASK,
-            defaultTasks,
+        const state = getState();
+        // send update to DB
+        const response = await fetch(`http:${CURRENT_IP}:6969/updateDefaultTasks`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({ _id: state.user._id, defaultTasks}),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          })
+          const data = await response.json();
+
+          console.log(data);
+
+          return dispatch({
+            type: EDIT_MYACCOUNT,
+            user: data,
         })
     }
 }
