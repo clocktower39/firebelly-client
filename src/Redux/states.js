@@ -158,13 +158,13 @@ export let dailyNutrition = [
     },
     {
         title: 'Carbs',
-        goal: 0,
+        goal: 250,
         achieved: 0,
         unit: 'grams',
     },
     {
         title: 'Fats',
-        goal: 0,
+        goal: 50,
         achieved: 0,
         unit: 'grams',
     },

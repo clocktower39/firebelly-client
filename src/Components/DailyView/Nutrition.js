@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { 
     Accordion,
     AccordionDetails,
@@ -13,7 +13,6 @@ import {
     makeStyles
 } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
-import { requestDailyNutrition } from '../../Redux/actions';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -29,19 +28,9 @@ const useStyles = makeStyles(theme => ({
 
 export default function Nutrition() {
     const classes = useStyles();
-    const dispatch = useDispatch();
-    const user = useSelector(state => state.user );
+    // const dispatch = useDispatch();
+    // const user = useSelector(state => state.user );
     const today = useSelector(state => state.calander.dailyView );
-    
-    // format a Date object like ISO
-    const dateToISOLikeButLocal = (date) => {
-        const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-        const msLocal = date.getTime() - offsetMs;
-        const dateLocal = new Date(msLocal);
-        const iso = dateLocal.toISOString();
-        const isoLocal = iso.slice(0, 19);
-        return isoLocal;
-    }
 
     const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
     const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
@@ -49,20 +38,34 @@ export default function Nutrition() {
     const NutritionStat = (props) => {
         const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
         const handleChange = (e) => {
-            setTaskAchieved(e.target.value);
+            if(e.target.value === "" && e.target.value.length === 0){
+                setTaskAchieved(0);
+            }
+            else if(Number(e.target.value) || e.target.value === "0"){
+                if(e.target.value.length > 1 && e.target.value[0] === "0"){
+                    let trimmed = e.target.value.split('');
+                    while(trimmed[0] === "0"){
+                        trimmed.shift();
+                    }
+                    setTaskAchieved(trimmed.join(''))
+                }
+                else{
+                    setTaskAchieved(e.target.value);
+                }
+            }
+        }
+        const handleKeyDown = (e) => {
+            if(e.keyCode === 8){
+                setTaskAchieved(e.target.value);
+            }
         }
 
         return (
             <Grid item xs={12} key={props.task.title}>
-                <TextField fullWidth variant="outlined" label={props.task.title} value={taskAchieved} onChange={handleChange} type="number" InputProps={{endAdornment: <InputAdornment position="start">/{props.task.goal} {props.task.unit}</InputAdornment>,}} />
+                <TextField fullWidth variant="outlined" label={props.task.title} value={taskAchieved} onChange={handleChange} onKeyDown={handleKeyDown} type="number" InputProps={{endAdornment: <InputAdornment position="start">/{props.task.goal} {props.task.unit}</InputAdornment>,}} />
             </Grid>
             );
     }
-
-    // useEffect(()=>{
-    //     dispatch(requestDailyNutrition(user["_id"], dateToISOLikeButLocal(new Date()).substr(0, 10).split('-').join('/')))
-    // // eslint-disable-next-line react-hooks/exhaustive-deps
-    // },[])
 
     return (
         <Accordion>
