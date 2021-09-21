@@ -45,7 +45,7 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 calander:{
                     dailyView:{ 
-                        ...calander.dailyView,
+                        ...state.calander.dailyView,
                         dailyNutrition: [...action.dailyNutrition],
                     },
                     weeklyView:{...calander.weeklyView},
