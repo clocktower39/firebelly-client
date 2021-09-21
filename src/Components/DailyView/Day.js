@@ -49,7 +49,7 @@ export default function Day() {
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
             <Tasks dateToISOLikeButLocal={dateToISOLikeButLocal} />
             <Training />
-            <Nutrition />
+            <Nutrition dateToISOLikeButLocal={dateToISOLikeButLocal} />
             <Accordion>
                 <AccordionSummary
                     expandIcon={<ExpandMore />}

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Accordion,
   AccordionDetails,
@@ -13,6 +13,9 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import { ExpandMore } from "@material-ui/icons";
+import {
+    requestDailyNutrition,
+} from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -26,10 +29,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Nutrition() {
+export default function Nutrition(props) {
   const classes = useStyles();
-//   const dispatch = useDispatch();
-//   const user = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
   const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({
@@ -62,6 +65,7 @@ export default function Nutrition() {
       }
     };
 
+
     return (
       <Grid item xs={12} >
         <TextField
@@ -84,6 +88,16 @@ export default function Nutrition() {
     );
   };
 
+  useEffect(() => {
+    dispatch(
+        requestDailyNutrition(
+        user["_id"],
+        props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/")
+      )
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
   return (
     <Accordion>
       <AccordionSummary expandIcon={<ExpandMore />}>
