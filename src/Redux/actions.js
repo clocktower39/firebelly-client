@@ -220,11 +220,11 @@ export function requestDailyTasks(accountId, date){
                         })
                     }
                     newTaskList.push(data.task);
+                    return dispatch({
+                        type: EDIT_DAILY_TASK,
+                        dailyTasks: newTaskList,
+                    })
                 })
-            })
-            return dispatch({
-                type: FETCH_DAILY_TASK,
-                dailyTasks: newTaskList,
             })
         }
 

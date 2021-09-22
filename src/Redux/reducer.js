@@ -21,7 +21,7 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 calander:{
                     dailyView:{ 
-                        ...calander.dailyView,
+                        ...state.calander.dailyView,
                         dailyTasks: [...action.dailyTasks],
                     },
                     weeklyView:{...calander.weeklyView},
@@ -33,8 +33,8 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 calander:{
                     dailyView:{ 
-                        ...calander.dailyView,
-                        dailyTasks: action.dailyTasks,
+                        ...state.calander.dailyView,
+                        dailyTasks: [...action.dailyTasks],
                     },
                     weeklyView:{...calander.weeklyView},
                     monthlyView:{...calander.monthlyView},
@@ -64,7 +64,7 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 user: {
                     ...state.user,
-                    defaultTasks: action.defaultTasks,
+                    defaultTasks: [...action.defaultTasks],
                 }
             }
         case ERROR:
