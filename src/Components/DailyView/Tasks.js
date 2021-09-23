@@ -57,7 +57,7 @@ export default function Tasks(props) {
           title: modalNewTaskTitle,
           goal: 1,
           achieved: 0,
-          date: props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/"),
+          date: props.selectedDate,
           accountId: user._id,
         })
       )
@@ -84,7 +84,7 @@ export default function Tasks(props) {
     dispatch(
       requestDailyTasks(
         user["_id"],
-        props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/")
+        props.selectedDate
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

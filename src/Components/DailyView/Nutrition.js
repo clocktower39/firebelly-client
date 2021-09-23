@@ -35,12 +35,16 @@ export default function Nutrition(props) {
   const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
-  const dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({
-    achieved: a.achieved + b.achieved,
-  })).achieved;
-  const dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({
-    goal: a.goal + b.goal,
-  })).goal;
+  let dailyNutritionAchieved = 0;
+  let dailyNutritionGoal = 1;
+  if(today.dailyNutrition.length > 0){
+    dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({
+      achieved: a.achieved + b.achieved,
+    })).achieved;
+    dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({
+      goal: a.goal + b.goal,
+    })).goal;
+  }
 
   const NutritionStat = (props) => {
     const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
@@ -92,7 +96,7 @@ export default function Nutrition(props) {
     dispatch(
         requestDailyNutrition(
         user["_id"],
-        props.dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/")
+        props.selectedDate
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

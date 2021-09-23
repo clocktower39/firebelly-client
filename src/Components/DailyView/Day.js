@@ -29,6 +29,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function Day() {
     const classes = useStyles();
+
     const [note, setNote] = useState('');
     const handleChange = (e) => {
         setNote(e.value)
@@ -44,12 +45,15 @@ export default function Day() {
         return isoLocal;
     }
 
+    const [selectedDate, setSelectedDate] = useState(dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/"));
+
+
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
-            <Tasks dateToISOLikeButLocal={dateToISOLikeButLocal} />
+            <Tasks selectedDate={selectedDate} />
             <Training />
-            {/* <Nutrition dateToISOLikeButLocal={dateToISOLikeButLocal} /> */}
+            <Nutrition selectedDate={selectedDate} />
             <Accordion>
                 <AccordionSummary
                     expandIcon={<ExpandMore />}

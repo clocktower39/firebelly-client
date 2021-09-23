@@ -132,36 +132,36 @@ export let dailyTraining = {
 ]};
 
 export let dailyNutrition = [
-    {
-        title: 'Calories In',
-        goal: 3000,
-        achieved: 0,
-        unit: 'calories',
-    },
-    {
-        title: 'Calories Out',
-        goal: 1200,
-        achieved: 1200,
-        unit: 'calories',
-    },
-    {
-        title: 'Protein',
-        goal: 150,
-        achieved: 150,
-        unit: 'grams',
-    },
-    {
-        title: 'Carbs',
-        goal: 250,
-        achieved: 0,
-        unit: 'grams',
-    },
-    {
-        title: 'Fats',
-        goal: 50,
-        achieved: 0,
-        unit: 'grams',
-    },
+    // {
+    //     title: 'Calories In',
+    //     goal: 3000,
+    //     achieved: 0,
+    //     unit: 'calories',
+    // },
+    // {
+    //     title: 'Calories Out',
+    //     goal: 1200,
+    //     achieved: 1200,
+    //     unit: 'calories',
+    // },
+    // {
+    //     title: 'Protein',
+    //     goal: 150,
+    //     achieved: 150,
+    //     unit: 'grams',
+    // },
+    // {
+    //     title: 'Carbs',
+    //     goal: 250,
+    //     achieved: 0,
+    //     unit: 'grams',
+    // },
+    // {
+    //     title: 'Fats',
+    //     goal: 50,
+    //     achieved: 0,
+    //     unit: 'grams',
+    // },
 ];
 
 export let weeklyTasks = [dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks];
