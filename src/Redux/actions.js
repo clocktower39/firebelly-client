@@ -286,9 +286,44 @@ export function requestDailyNutrition(accountId, date){
             }
           })
         let data = await response.json();
-        if(data.length === 0){
-            data = state.user.defaultNutrition
+
+        // return default tasks if array is empty
+        if(data.length < 1){
+            let newNutritionList = [];
+
+            state.user.defaultNutrition.forEach(nutritionTask => {
+                fetch(`http:${CURRENT_IP}:6969/createNutrition`, {
+                    method: 'post',
+                    dataType: 'json',
+                    body: JSON.stringify({
+                        accountId,
+                        date,
+                        title: nutritionTask.title,
+                        goal: nutritionTask.goal,
+                        achieved: nutritionTask.achieved,
+                        unit: nutritionTask.unit,
+                    }),
+                    headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error){
+                        return dispatch({
+                            type: ERROR,
+                            error: data.error
+                        })
+                    }
+                    newNutritionList.push(data.nutrition);
+                    return dispatch({
+                        type: EDIT_DAILY_NUTRITION,
+                        dailyNutrition: newNutritionList,
+                    })
+                })
+            })
         }
+
 
         return dispatch({
             type: EDIT_DAILY_NUTRITION,
