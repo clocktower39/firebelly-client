@@ -15,6 +15,7 @@ import {
 import { ExpandMore } from "@material-ui/icons";
 import {
     requestDailyNutrition,
+    updateDailyNutrition,
 } from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -46,6 +47,12 @@ export default function Nutrition(props) {
     })).goal;
   }
 
+  const [localNutrition, setLocalNutrition] = useState(today.dailyNutrition);
+
+  const saveChanges = () => {
+    dispatch(updateDailyNutrition(localNutrition))
+  }
+
   const NutritionStat = (props) => {
     const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
     const handleChange = (e) => {
@@ -59,16 +66,26 @@ export default function Nutrition(props) {
           }
           setTaskAchieved(trimmed.join(""));
         } else {
-          setTaskAchieved(e.target.value);
+          setTaskAchieved(e.target.value)
+          
+          setLocalNutrition(previous => {
+            return previous.length>0?previous.map(nutrition => {
+              if(nutrition._id === props.task._id){
+                nutrition.achieved = e.target.value;
+              }
+              return nutrition;
+            }):[]
+          })
+          
         }
       }
+      
     };
     const handleKeyDown = (e) => {
       if (e.keyCode === 8) {
         setTaskAchieved(e.target.value);
       }
     };
-
 
     return (
       <Grid item xs={12} >
@@ -101,6 +118,11 @@ export default function Nutrition(props) {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setLocalNutrition(today.dailyNutrition);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [today.dailyNutrition]);
   
   return (
     <Accordion>
@@ -123,8 +145,7 @@ export default function Nutrition(props) {
             <NutritionStat key={task.title} task={task} />
           ))}
           <Grid xs={12} item container justifyContent="center">
-            <Button variant="outlined">Edit Goals</Button>
-            <Button variant="outlined">Save</Button>
+            <Button variant="outlined" onClick={saveChanges}>Save</Button>
           </Grid>
         </Grid>
       </AccordionDetails>

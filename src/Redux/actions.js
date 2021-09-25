@@ -11,18 +11,18 @@ export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 const CURRENT_IP = window.location.href.split(":")[1];
 
-export function signupUser(user){
+export function signupUser(user) {
     return async (dispatch, getState) => {
         const response = await fetch(`http:${CURRENT_IP}:6969/signup`, {
             method: 'post',
             dataType: 'json',
             body: user,
             headers: {
-              "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
-          })
+        })
         const data = await response.json();
-        if(data.error){
+        if (data.error) {
             return dispatch({
                 type: ERROR,
                 error: data.error
@@ -33,18 +33,18 @@ export function signupUser(user){
     }
 }
 
-export function loginUser(user){
+export function loginUser(user) {
     return async (dispatch, getState) => {
         const response = await fetch(`http:${CURRENT_IP}:6969/login`, {
             method: 'post',
             dataType: 'json',
             body: user,
             headers: {
-              "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
-          })
+        })
         const data = await response.json();
-        if(data.error){
+        if (data.error) {
             return dispatch({
                 type: ERROR,
                 error: data.error
@@ -52,7 +52,7 @@ export function loginUser(user){
         }
         const accessToken = data.accessToken;
         const decodedAccessToken = jwt(accessToken);
-        
+
         localStorage.setItem('JWT_AUTH_TOKEN', accessToken);
         return dispatch({
             type: LOGIN_USER,
@@ -71,7 +71,7 @@ export const loginJWT = (token) => {
     }
 }
 
-export function logoutUser(){
+export function logoutUser() {
     return async (dispatch, getState) => {
         localStorage.removeItem('JWT_AUTH_TOKEN');
         return dispatch({
@@ -80,9 +80,9 @@ export function logoutUser(){
     }
 }
 
-export function editUser(user){
+export function editUser(user) {
     return async (dispatch, getState) => {
-        
+
         return dispatch({
             type: EDIT_MYACCOUNT,
             user,
@@ -90,12 +90,12 @@ export function editUser(user){
     }
 }
 
-export function checkToggleDailyTask(id){
+export function checkToggleDailyTask(id) {
     return async (dispatch, getState) => {
         const state = getState();
         const dailyTasks = state.calander.dailyView.dailyTasks.map(task => {
-            if(task._id === id){
-                task.achieved===0?task.achieved = 1: task.achieved = 0;
+            if (task._id === id) {
+                task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
                 fetch(`http:${CURRENT_IP}:6969/updateTask`, {
                     method: 'post',
                     dataType: 'json',
@@ -104,18 +104,18 @@ export function checkToggleDailyTask(id){
                         achieved: task.achieved
                     }),
                     headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8"
                     }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.error){
-                        return dispatch({
-                            type: ERROR,
-                            error: data.error
-                        })
-                    }
-                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            return dispatch({
+                                type: ERROR,
+                                error: data.error
+                            })
+                        }
+                    })
             }
             return task;
         });
@@ -127,10 +127,10 @@ export function checkToggleDailyTask(id){
     }
 }
 
-export function addDailyTask(newTask){
+export function addDailyTask(newTask) {
     return async (dispatch, getState) => {
         const state = getState();
-        
+
         const dbTask = await fetch(`http:${CURRENT_IP}:6969/createTask`, {
             method: 'post',
             dataType: 'json',
@@ -142,19 +142,19 @@ export function addDailyTask(newTask){
                 achieved: 0
             }),
             headers: {
-            "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
         })
-        .then(res => res.json())
-        .then(data => {
-            if(data.error){
-                return dispatch({
-                    type: ERROR,
-                    error: data.error
-                })
-            }
-            return data.task;
-        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    return dispatch({
+                        type: ERROR,
+                        error: data.error
+                    })
+                }
+                return data.task;
+            })
         const dailyTasks = [...state.calander.dailyView.dailyTasks, dbTask];
 
         return dispatch({
@@ -164,7 +164,7 @@ export function addDailyTask(newTask){
     }
 }
 
-export function editDailyTask(newTask){
+export function editDailyTask(newTask) {
     return async (dispatch, getState) => {
         const state = getState();
         const dailyTasks = [...state.calander.dailyView.dailyTasks, newTask];
@@ -176,7 +176,7 @@ export function editDailyTask(newTask){
     }
 }
 
-export function requestDailyTasks(accountId, date){
+export function requestDailyTasks(accountId, date) {
     return async (dispatch, getState) => {
         const state = getState();
         const response = await fetch(`http:${CURRENT_IP}:6969/tasks`, {
@@ -187,13 +187,13 @@ export function requestDailyTasks(accountId, date){
                 date
             }),
             headers: {
-              "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
-          })
+        })
         let data = await response.json();
 
         // return default tasks if array is empty
-        if(data.length < 1){
+        if (data.length < 1) {
             let newTaskList = [];
 
             state.user.defaultTasks.forEach(task => {
@@ -208,23 +208,23 @@ export function requestDailyTasks(accountId, date){
                         achieved: 0
                     }),
                     headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8"
                     }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.error){
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            return dispatch({
+                                type: ERROR,
+                                error: data.error
+                            })
+                        }
+                        newTaskList.push(data.task);
                         return dispatch({
-                            type: ERROR,
-                            error: data.error
+                            type: EDIT_DAILY_TASK,
+                            dailyTasks: newTaskList,
                         })
-                    }
-                    newTaskList.push(data.task);
-                    return dispatch({
-                        type: EDIT_DAILY_TASK,
-                        dailyTasks: newTaskList,
                     })
-                })
             })
         }
 
@@ -235,30 +235,30 @@ export function requestDailyTasks(accountId, date){
     }
 }
 
-export function editDefaultDailyTask(defaultTasks){
+export function editDefaultDailyTask(defaultTasks) {
     return async (dispatch, getState) => {
         const state = getState();
         // send update to DB
         const response = await fetch(`http:${CURRENT_IP}:6969/updateDefaultTasks`, {
             method: 'post',
             dataType: 'json',
-            body: JSON.stringify({ _id: state.user._id, defaultTasks}),
+            body: JSON.stringify({ _id: state.user._id, defaultTasks }),
             headers: {
-              "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
-          })
-          const data = await response.json();
-          console.log(data)
-          localStorage.setItem('JWT_AUTH_TOKEN', data.accessToken);
+        })
+        const data = await response.json();
+        console.log(data)
+        localStorage.setItem('JWT_AUTH_TOKEN', data.accessToken);
 
-          return dispatch({
+        return dispatch({
             type: EDIT_MYACCOUNT,
             user: data.user,
         })
     }
 }
 
-export function removeDefaultDailyTask(removeTask){
+export function removeDefaultDailyTask(removeTask) {
     return async (dispatch, getState) => {
         const state = getState();
         const currentDefaultTasks = [...state.user.defaultTasks];
@@ -271,7 +271,7 @@ export function removeDefaultDailyTask(removeTask){
     }
 }
 
-export function requestDailyNutrition(accountId, date){
+export function requestDailyNutrition(accountId, date) {
     return async (dispatch, getState) => {
         const state = getState();
         const response = await fetch(`http:${CURRENT_IP}:6969/nutrition`, {
@@ -282,13 +282,13 @@ export function requestDailyNutrition(accountId, date){
                 date
             }),
             headers: {
-              "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8"
             }
-          })
+        })
         let data = await response.json();
 
         // return default tasks if array is empty
-        if(data.length < 1){
+        if (data.length < 1) {
             let newNutritionList = [];
 
             state.user.defaultNutrition.forEach(nutritionTask => {
@@ -304,23 +304,23 @@ export function requestDailyNutrition(accountId, date){
                         unit: nutritionTask.unit,
                     }),
                     headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8"
                     }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.error){
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            return dispatch({
+                                type: ERROR,
+                                error: data.error
+                            })
+                        }
+                        newNutritionList.push(data.nutrition);
                         return dispatch({
-                            type: ERROR,
-                            error: data.error
+                            type: EDIT_DAILY_NUTRITION,
+                            dailyNutrition: newNutritionList,
                         })
-                    }
-                    newNutritionList.push(data.nutrition);
-                    return dispatch({
-                        type: EDIT_DAILY_NUTRITION,
-                        dailyNutrition: newNutritionList,
                     })
-                })
             })
         }
 
@@ -329,5 +329,39 @@ export function requestDailyNutrition(accountId, date){
             type: EDIT_DAILY_NUTRITION,
             dailyNutrition: data,
         })
+    }
+}
+
+export function updateDailyNutrition(updateList) {
+    return async (dispatch) => {
+        let newNutritionList = [];
+        updateList.forEach(async nutrition => {
+            const data = await fetch(`http:${CURRENT_IP}:6969/updateNutrition`, {
+                method: 'post',
+                dataType: 'json',
+                body: JSON.stringify({
+                    _id: nutrition._id,
+                    achieved: nutrition.achieved
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(res => res.json());
+
+            if (data.error) {
+                return dispatch({
+                    type: ERROR,
+                    error: data.error
+                })
+            }
+            else {
+                newNutritionList.push(data.nutrition);
+                return dispatch({
+                    type: EDIT_DAILY_NUTRITION,
+                    dailyNutrition: newNutritionList
+                })
+            }
+        });
     }
 }
