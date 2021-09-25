@@ -10,7 +10,7 @@ import {
     Typography,
     makeStyles
 } from '@material-ui/core';
-import { ExpandMore } from '@material-ui/icons';
+import { ArrowBack, ArrowForward, ExpandMore } from '@material-ui/icons';
 import Tasks from './Tasks';
 import Training from './Training';
 import Nutrition from './Nutrition';
@@ -45,11 +45,34 @@ export default function Day() {
         return isoLocal;
     }
 
-    const [selectedDate, setSelectedDate] = useState(dateToISOLikeButLocal(new Date()).substr(0, 10).split("-").join("/"));
+    const [selectedDate, setSelectedDate] = useState(dateToISOLikeButLocal(new Date()).substr(0, 10));
+
+    // handles when arrow buttons are clicked
+    const changeDate = (change) => {
+      let newDate = new Date(selectedDate).setDate(new Date(selectedDate).getDate() + change);
+      setSelectedDate(new Date(newDate).toISOString().substr(0, 10));
+    }
 
 
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
+            
+            <Grid item xs={12} container justify="center">
+                <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack /></Button>
+                <TextField
+                id="date"
+                label="Date"
+                type="date"
+
+                value={selectedDate}
+                className={classes.TextField}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                InputLabelProps={{
+                    shrink: true,
+                }}
+                />
+                <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward /></Button>
+            </Grid>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
             <Tasks selectedDate={selectedDate} />
             <Training />
