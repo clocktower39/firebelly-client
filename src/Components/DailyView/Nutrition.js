@@ -117,7 +117,7 @@ export default function Nutrition(props) {
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.selectedDate]);
 
   useEffect(() => {
     setLocalNutrition(today.dailyNutrition);

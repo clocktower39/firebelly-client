@@ -88,7 +88,7 @@ export default function Tasks(props) {
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.selectedDate]);
 
   return (
     <>
