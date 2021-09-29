@@ -66,16 +66,17 @@ export default function Nutrition(props) {
           }
           setTaskAchieved(trimmed.join(""));
         } else {
-          setTaskAchieved(e.target.value)
-          
-          setLocalNutrition(previous => {
-            return previous.length>0?previous.map(nutrition => {
-              if(nutrition._id === props.task._id){
-                nutrition.achieved = e.target.value;
-              }
-              return nutrition;
-            }):[]
+          setTaskAchieved(e.target.value,()=>{
+            setLocalNutrition(previous => {
+              return previous.length>0?previous.map(nutrition => {
+                if(nutrition._id === props.task._id){
+                  nutrition.achieved = e.target.value;
+                }
+                return nutrition;
+              }):[]
+            })
           })
+          
           
         }
       }
