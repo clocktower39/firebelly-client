@@ -70,7 +70,7 @@ export default function Nutrition(props) {
             setLocalNutrition(previous => {
               return previous.length>0?previous.map(nutrition => {
                 if(nutrition._id === props.task._id){
-                  nutrition.achieved = e.target.value;
+                  nutrition.achieved = taskAchieved;
                 }
                 return nutrition;
               }):[]

@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import { 
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
+import {
     Button,
     Container,
     Grid,
@@ -10,10 +7,11 @@ import {
     Typography,
     makeStyles
 } from '@material-ui/core';
-import { ArrowBack, ArrowForward, ExpandMore } from '@material-ui/icons';
+import { ArrowBack, ArrowForward } from '@material-ui/icons';
 import Tasks from './Tasks';
 import Training from './Training';
 import Nutrition from './Nutrition';
+import Notes from './Notes';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -29,11 +27,6 @@ const useStyles = makeStyles(theme => ({
 
 export default function Day() {
     const classes = useStyles();
-
-    const [note, setNote] = useState('');
-    const handleChange = (e) => {
-        setNote(e.value)
-    }
 
     // format a Date object like ISO
     const dateToISOLikeButLocal = (date) => {
@@ -77,21 +70,7 @@ export default function Day() {
             <Tasks selectedDate={selectedDate} />
             <Training />
             <Nutrition selectedDate={selectedDate} />
-            <Accordion>
-                <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                >
-                    <Grid container alignItems="center">
-                        <Grid item xs={3}><Typography className={classes.heading}>Notes</Typography></Grid>
-                    </Grid>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} ><TextField fullWidth variant="outlined" value={note} onChange={(e)=>handleChange(e)} label="Please provide feedback on your day; what was difficult and what went well?"/></Grid>
-                        <Grid item xs={12} ><Button variant="outlined" >Save</Button></Grid>
-                    </Grid>
-                </AccordionDetails>
-            </Accordion>
+            <Notes />
         </Container>
     )
 }
