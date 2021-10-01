@@ -48,13 +48,14 @@ export default function Nutrition(props) {
   }
 
   const [localNutrition, setLocalNutrition] = useState(today.dailyNutrition);
-
+console.log(localNutrition)
   const saveChanges = () => {
     dispatch(updateDailyNutrition(localNutrition))
   }
 
   const NutritionStat = (props) => {
     const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+
     const handleChange = (e) => {
       if (e.target.value === "" && e.target.value.length === 0) {
         setTaskAchieved(0);
@@ -70,8 +71,9 @@ export default function Nutrition(props) {
             setLocalNutrition(previous => {
               return previous.length>0?previous.map(nutrition => {
                 if(nutrition._id === props.task._id){
-                  nutrition.achieved = taskAchieved;
+                  nutrition.achieved = e.target.value;
                 }
+                console.log(nutrition)
                 return nutrition;
               }):[]
             })
@@ -142,7 +144,7 @@ export default function Nutrition(props) {
       </AccordionSummary>
       <AccordionDetails>
         <Grid container spacing={2}>
-          {today.dailyNutrition.sort((a,b) => a.title > b.title ).map((task) => (
+          {today.dailyNutrition.map((task) => (
             <NutritionStat key={task._id} task={task} />
           ))}
           <Grid xs={12} item container justifyContent="center">

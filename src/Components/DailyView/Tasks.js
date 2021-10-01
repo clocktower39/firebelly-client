@@ -129,7 +129,7 @@ export default function Tasks(props) {
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2} justifyContent="center">
-            {dailyTasks.map((task) => {
+            {dailyTasks.sort((a,b) => a.title > b.title ).map((task) => {
               const handleCheckChange = (e) => {
                 dispatch(checkToggleDailyTask(task._id));
               };
