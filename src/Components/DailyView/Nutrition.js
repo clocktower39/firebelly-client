@@ -47,18 +47,24 @@ export default function Nutrition(props) {
     })).goal;
   }
 
+  // stores all nutrition info as a buffer
   const [localNutrition, setLocalNutrition] = useState(today.dailyNutrition);
 
+  // Updates DB with local nutrition 
   const saveChanges = () => {
     dispatch(updateDailyNutrition(localNutrition))
   }
 
   const NutritionStat = (props) => {
     const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+    
     const handleChange = (e) => {
+      // input can not be an empty string
       if (e.target.value === "" && e.target.value.length === 0) {
         setTaskAchieved(0);
-      } else if (Number(e.target.value) || e.target.value === "0") {
+      }
+      // remove extra zeros from the front
+      else if (Number(e.target.value) || e.target.value === "0") {
         if (e.target.value.length > 1 && e.target.value[0] === "0") {
           let trimmed = e.target.value.split("");
           while (trimmed[0] === "0") {
@@ -66,6 +72,7 @@ export default function Nutrition(props) {
           }
           setTaskAchieved(trimmed.join(""));
         } else {
+          // update the local state variable
           setTaskAchieved(e.target.value,()=>{
             setLocalNutrition(previous => {
               return previous.length>0?previous.map(nutrition => {
@@ -82,6 +89,8 @@ export default function Nutrition(props) {
       }
       
     };
+
+    // allow backspace
     const handleKeyDown = (e) => {
       if (e.keyCode === 8) {
         setTaskAchieved(e.target.value);
@@ -120,6 +129,7 @@ export default function Nutrition(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedDate]);
 
+  // NEED TO FIX AND MOVE THIS, IM STUCK :(
   useEffect(() => {
     setLocalNutrition(today.dailyNutrition);
     // eslint-disable-next-line react-hooks/exhaustive-deps

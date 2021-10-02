@@ -4,8 +4,7 @@ import { ThemeProvider } from '@material-ui/core';
 import { theme } from './theme';
 import AuthRoute from './Components/AuthRoute';
 import Navbar from './Components/Navbar';
-// import Home from './Components/Home';
-import AltHome from './Components/AltHome';
+import Home from './Components/Home';
 import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import Dashboard from './Components/Dashboard';
@@ -21,7 +20,7 @@ function App() {
         <Navbar />
         <div style={{ marginTop: '150px' }}></div>
         <Switch>
-          <Route exact path='/' component={AltHome} />
+          <Route exact path='/' component={Home} />
           <Route exact path='/login' component={Login} />
           <Route exact path='/signup' component={SignUp} />
           <AuthRoute exact path='/dashboard' component={Dashboard} />
