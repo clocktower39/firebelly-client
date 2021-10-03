@@ -59,35 +59,34 @@ export default function Nutrition(props) {
     const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
     
     const handleChange = (e) => {
+      // initialize answer to be used at the end of the conditional
+      let answer = 0;
       // input can not be an empty string
       if (e.target.value === "" && e.target.value.length === 0) {
-        setTaskAchieved(0);
+        setTaskAchieved(answer);
       }
       // remove extra zeros from the front
       else if (Number(e.target.value) || e.target.value === "0") {
         if (e.target.value.length > 1 && e.target.value[0] === "0") {
-          let trimmed = e.target.value.split("");
-          while (trimmed[0] === "0") {
-            trimmed.shift();
+          answer = e.target.value.split("");
+          while (answer[0] === "0") {
+            answer.shift();
           }
-          setTaskAchieved(trimmed.join(""));
+          setTaskAchieved(answer.join(""));
         } else {
           // update the local state variable
-          setTaskAchieved(e.target.value,()=>{
-            setLocalNutrition(previous => {
-              return previous.length>0?previous.map(nutrition => {
-                if(nutrition._id === props.task._id){
-                  nutrition.achieved = taskAchieved;
-                }
-                return nutrition;
-              }):[]
-            })
-          })
-          
-          
+          answer = e.target.value;
+          setTaskAchieved(answer)
         }
       }
-      
+      setLocalNutrition(previous => {
+        return previous.map(nutrition => {
+          if(nutrition._id === props.task._id){
+            nutrition.achieved = answer;
+          }
+          return nutrition;
+        })
+      })
     };
 
     // allow backspace
