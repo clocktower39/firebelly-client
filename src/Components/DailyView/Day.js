@@ -11,7 +11,7 @@ import { ArrowBack, ArrowForward } from '@material-ui/icons';
 import Tasks from './Tasks';
 import Training from './Training';
 import Nutrition from './Nutrition';
-import Notes from './Notes';
+import Notes from './Note';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -49,7 +49,6 @@ export default function Day() {
 
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
-            
             <Grid item xs={12} container justifyContent="center">
                 <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack /></Button>
                 <TextField
@@ -70,7 +69,7 @@ export default function Day() {
             <Tasks selectedDate={selectedDate} />
             <Training />
             <Nutrition selectedDate={selectedDate} />
-            <Notes />
+            <Notes selectedDate={selectedDate} />
         </Container>
     )
 }

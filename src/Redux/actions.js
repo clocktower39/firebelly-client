@@ -9,6 +9,7 @@ export const FETCH_DAILY_TASK = 'FETCH_DAILY_TASK';
 export const EDIT_DAILY_NUTRITION = 'EDIT_DAILY_NUTRITION';
 export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
+export const EDIT_DAILY_NOTE = 'EDIT_DAILY_NOTE';
 const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user) {
@@ -363,5 +364,86 @@ export function updateDailyNutrition(updateList) {
                 })
             }
         });
+    }
+}
+
+export function requestDailyNote(accountId, date) {
+    return async (dispatch) => {
+        const response = await fetch(`http:${CURRENT_IP}:6969/note`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId,
+                date
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        let data = await response.json();
+
+        if (data.length < 1) {
+            fetch(`http:${CURRENT_IP}:6969/createNote`, {
+                method: 'post',
+                dataType: 'json',
+                body: JSON.stringify({
+                    accountId,
+                    date,
+                    note: "",
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    return dispatch({
+                        type: ERROR,
+                        error: data.error
+                    })
+                }
+                return dispatch({
+                    type: EDIT_DAILY_NOTE,
+                    dailyNote: data,
+                })
+            })
+        }
+
+        return dispatch({
+            type: EDIT_DAILY_NOTE,
+            dailyNote: data,
+        })
+    }
+}
+
+export function updateDailyNote(udpatedNote) {
+    return async (dispatch) => {
+        const data = await fetch(`http:${CURRENT_IP}:6969/updateNotes`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                _id: udpatedNote._id,
+                date: udpatedNote.date,
+                note: udpatedNote.note,
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then(res => res.json());
+
+        if (data.error) {
+            return dispatch({
+                type: ERROR,
+                error: data.error
+            })
+        }
+        else {
+            return dispatch({
+                type: EDIT_DAILY_NOTE,
+                dailyNutrition: data
+            })
+        }
     }
 }

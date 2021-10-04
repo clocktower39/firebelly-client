@@ -177,6 +177,7 @@ export let calander = {
         dailyTasks,
         dailyTraining,
         dailyNutrition,
+        dailyNote: {},
     },
     weeklyView:{
         weeklyTasks,
