@@ -50,7 +50,7 @@ export default function Day() {
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             
-            <Grid item xs={12} container justify="center">
+            <Grid item xs={12} container justifyContent="center">
                 <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack /></Button>
                 <TextField
                 id="date"

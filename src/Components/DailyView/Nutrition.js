@@ -30,6 +30,70 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+const NutritionStat = (props) => {
+  const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+  
+  const handleChange = (e) => {
+    // initialize answer to be used at the end of the conditional
+    let answer = 0;
+    // input can not be an empty string
+    if (e.target.value === "" && e.target.value.length === 0) {
+      setTaskAchieved(answer);
+    }
+    // remove extra zeros from the front
+    else if (Number(e.target.value) || e.target.value === "0") {
+      if (e.target.value.length > 1 && e.target.value[0] === "0") {
+        answer = e.target.value.split("");
+        while (answer[0] === "0") {
+          answer.shift();
+        }
+        setTaskAchieved(answer.join(""));
+      } else {
+        // update the local state variable
+        answer = e.target.value;
+        setTaskAchieved(answer)
+      }
+    }
+    props.setLocalNutrition(previous => {
+      return previous.map(nutrition => {
+        if(nutrition._id === props.task._id){
+          nutrition.achieved = answer;
+        }
+        return nutrition;
+      })
+    })
+  };
+
+  // allow backspace
+  const handleKeyDown = (e) => {
+    if (e.keyCode === 8) {
+      setTaskAchieved(e.target.value);
+    }
+  };
+
+  return (
+    <Grid item xs={12} >
+      <TextField
+        fullWidth
+        variant="outlined"
+        label={props.task.title}
+        value={taskAchieved}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        type="number"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="start">
+              /{props.task.goal} {props.task.unit}
+            </InputAdornment>
+          ),
+        }}
+      />
+    </Grid>
+  );
+};
+
 export default function Nutrition(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -55,68 +119,6 @@ export default function Nutrition(props) {
     dispatch(updateDailyNutrition(localNutrition))
   }
 
-  const NutritionStat = (props) => {
-    const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
-    
-    const handleChange = (e) => {
-      // initialize answer to be used at the end of the conditional
-      let answer = 0;
-      // input can not be an empty string
-      if (e.target.value === "" && e.target.value.length === 0) {
-        setTaskAchieved(answer);
-      }
-      // remove extra zeros from the front
-      else if (Number(e.target.value) || e.target.value === "0") {
-        if (e.target.value.length > 1 && e.target.value[0] === "0") {
-          answer = e.target.value.split("");
-          while (answer[0] === "0") {
-            answer.shift();
-          }
-          setTaskAchieved(answer.join(""));
-        } else {
-          // update the local state variable
-          answer = e.target.value;
-          setTaskAchieved(answer)
-        }
-      }
-      setLocalNutrition(previous => {
-        return previous.map(nutrition => {
-          if(nutrition._id === props.task._id){
-            nutrition.achieved = answer;
-          }
-          return nutrition;
-        })
-      })
-    };
-
-    // allow backspace
-    const handleKeyDown = (e) => {
-      if (e.keyCode === 8) {
-        setTaskAchieved(e.target.value);
-      }
-    };
-
-    return (
-      <Grid item xs={12} key={props.key}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          label={props.task.title}
-          value={taskAchieved}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          type="number"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="start">
-                /{props.task.goal} {props.task.unit}
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Grid>
-    );
-  };
 
   useEffect(() => {
     dispatch(
@@ -152,7 +154,7 @@ export default function Nutrition(props) {
       <AccordionDetails>
         <Grid container spacing={2}>
           {today.dailyNutrition.sort((a,b) => a.title > b.title ).map((task) => (
-            <NutritionStat key={task._id} task={task} />
+            <NutritionStat key={task._id} task={task} setLocalNutrition={setLocalNutrition}/>
           ))}
           <Grid xs={12} item container justifyContent="center">
             <Button variant="outlined" onClick={saveChanges}>Save</Button>
