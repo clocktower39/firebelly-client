@@ -13,7 +13,7 @@ import {
 import { ExpandMore } from '@material-ui/icons';
 import {
     requestDailyNote,
-    // updateDailyNote,
+    updateDailyNote,
 } from "../../Redux/actions";
 
 const useStyles = makeStyles(theme => ({
@@ -24,15 +24,21 @@ export default function Note(props) {
     const classes = useStyles();
     const dispatch = useDispatch();
     const user = useSelector((state) => state.user);
+    const today = useSelector((state) => state.calander.dailyView);
 
-    const [note, setNote] = useState('');
+    const [note, setNote] = useState();
     const handleChange = (e) => {
-        setNote(e.value)
+        setNote(e.target.value)
     }
 
-    // const handleSave = () => {
-    //     dispatch(updateDailyNote())
-    // }
+    const handleSave = () => {
+        dispatch(updateDailyNote({_id:today.dailyNote._id, note}))
+    }
+
+    useEffect(()=> {
+        setNote(today.dailyNote.note)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[today.dailyNote])
 
     useEffect(()=> {
         dispatch(requestDailyNote(user._id, props.selectedDate))
@@ -51,7 +57,7 @@ export default function Note(props) {
             <AccordionDetails>
                 <Grid container spacing={2}>
                     <Grid item xs={12} ><TextField fullWidth variant="outlined" value={note} onChange={(e)=>handleChange(e)} label="Please provide feedback on your day; what was difficult and what went well?"/></Grid>
-                    <Grid item container justifyContent="center" xs={12} ><Button variant="outlined" >Save</Button></Grid>
+                    <Grid item container justifyContent="center" xs={12} ><Button variant="outlined" onClick={handleSave} >Save</Button></Grid>
                 </Grid>
             </AccordionDetails>
         </Accordion>

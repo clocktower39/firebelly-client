@@ -164,6 +164,12 @@ export let dailyNutrition = [
     // },
 ];
 
+export let dailyNote = {
+    // accountId: 'loading',
+    // date: 'loading',
+    // note: 'loading',
+}
+
 export let weeklyTasks = [dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks];
 export let weeklyTraining = [dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining];
 export let weeklyNutrition = [dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition];
@@ -177,7 +183,7 @@ export let calander = {
         dailyTasks,
         dailyTraining,
         dailyNutrition,
-        dailyNote: {},
+        dailyNote,
     },
     weeklyView:{
         weeklyTasks,

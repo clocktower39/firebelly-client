@@ -405,7 +405,7 @@ export function requestDailyNote(accountId, date) {
                 }
                 return dispatch({
                     type: EDIT_DAILY_NOTE,
-                    dailyNote: data,
+                    dailyNote: data.note,
                 })
             })
         }
@@ -419,12 +419,11 @@ export function requestDailyNote(accountId, date) {
 
 export function updateDailyNote(udpatedNote) {
     return async (dispatch) => {
-        const data = await fetch(`http:${CURRENT_IP}:6969/updateNotes`, {
+        const data = await fetch(`http:${CURRENT_IP}:6969/updateNote`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
                 _id: udpatedNote._id,
-                date: udpatedNote.date,
                 note: udpatedNote.note,
             }),
             headers: {
@@ -442,7 +441,7 @@ export function updateDailyNote(udpatedNote) {
         else {
             return dispatch({
                 type: EDIT_DAILY_NOTE,
-                dailyNutrition: data
+                dailyNote: data.note,
             })
         }
     }
