@@ -1,4 +1,4 @@
-import { LOGIN_USER, LOGOUT_USER, ERROR, EDIT_DAILY_TASK, EDIT_DEFAULT_TASK, EDIT_MYACCOUNT, EDIT_DAILY_NUTRITION, FETCH_DAILY_TASK, EDIT_DAILY_NOTE } from './actions';
+import { LOGIN_USER, LOGOUT_USER, ERROR, EDIT_DAILY_TASK, EDIT_DEFAULT_TASK, EDIT_MYACCOUNT, EDIT_DAILY_NUTRITION, FETCH_DAILY_TASK, EDIT_DAILY_NOTE, EDIT_DAILY_TRAINING } from './actions';
 import { user, calander } from './states';
 export let reducer = (state = { user, calander }, action) => {
     switch (action.type) {
@@ -35,6 +35,18 @@ export let reducer = (state = { user, calander }, action) => {
                     dailyView:{ 
                         ...state.calander.dailyView,
                         dailyTasks: [...action.dailyTasks],
+                    },
+                    weeklyView:{...calander.weeklyView},
+                    monthlyView:{...calander.monthlyView},
+                },
+            }
+        case EDIT_DAILY_TRAINING:
+            return {
+                ...state,
+                calander:{
+                    dailyView:{ 
+                        ...state.calander.dailyView,
+                        dailyTraining: action.dailyTraining,
                     },
                     weeklyView:{...calander.weeklyView},
                     monthlyView:{...calander.monthlyView},

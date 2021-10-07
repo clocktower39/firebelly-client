@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from "react-redux";
 import { 
     Accordion,
     AccordionDetails,
@@ -12,6 +12,7 @@ import {
     Button
 } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
+import { requestDailyTraining } from "../../Redux/actions";
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -25,8 +26,10 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
-export default function Training() {
+export default function Training(props) {
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const user = useSelector((state) => state.user);
     const today = useSelector(state => state.calander.dailyView );
 
     const [trainingCategory, setTrainingCategory] = useState("");
@@ -53,6 +56,17 @@ export default function Training() {
     useEffect(()=>{
         setTrainingCategory(today.dailyTraining.trainingCategory);
     },[today])
+
+    
+    useEffect(() => {
+        dispatch(
+            requestDailyTraining(
+            user["_id"],
+            props.selectedDate
+        )
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.selectedDate]);
 
     return (
         <Accordion>

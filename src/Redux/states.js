@@ -35,100 +35,100 @@ export let dailyTasks = [
 ];
 
 export let dailyTraining = {
-    trainingCategory: "Push, Muscular Endurance",
+    trainingCategory: "",
     training:[
-    [
-        {
-            exercise: "Incline DB Chest Press",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 4,
-                reps: [],
-            }
-        }
-    ],
-    [
-        {
-            exercise: "Dips",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-        {
-            exercise: "DB Lateral Raises",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-    ],
-    [
-        {
-            exercise: "Seated DB Arnold Press",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-        {
-            exercise: "DB Chest Fly",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-    ],
-    [
-        {
-            exercise: "Cable Triangle Tricep Pushdown",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-        {
-            exercise: "Cable Rope Tricep Pushdown",
-            goals: {
-                sets: 4,
-                minReps: 12,
-                maxReps: 15,
-            },
-            achieved: {
-                sets: 0,
-                reps: [],
-            }
-        },
-    ],
+    // [
+    //     {
+    //         exercise: "Incline DB Chest Press",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 4,
+    //             reps: [],
+    //         }
+    //     }
+    // ],
+    // [
+    //     {
+    //         exercise: "Dips",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    //     {
+    //         exercise: "DB Lateral Raises",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    // ],
+    // [
+    //     {
+    //         exercise: "Seated DB Arnold Press",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    //     {
+    //         exercise: "DB Chest Fly",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    // ],
+    // [
+    //     {
+    //         exercise: "Cable Triangle Tricep Pushdown",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    //     {
+    //         exercise: "Cable Rope Tricep Pushdown",
+    //         goals: {
+    //             sets: 4,
+    //             minReps: 12,
+    //             maxReps: 15,
+    //         },
+    //         achieved: {
+    //             sets: 0,
+    //             reps: [],
+    //         }
+    //     },
+    // ],
 ]};
 
 export let dailyNutrition = [

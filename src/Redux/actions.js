@@ -10,6 +10,8 @@ export const EDIT_DAILY_NUTRITION = 'EDIT_DAILY_NUTRITION';
 export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 export const EDIT_DAILY_NOTE = 'EDIT_DAILY_NOTE';
+export const EDIT_DAILY_TRAINING = 'EDIT_DAILY_TRAINING';
+
 const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user) {
@@ -444,5 +446,56 @@ export function updateDailyNote(udpatedNote) {
                 dailyNote: data.note,
             })
         }
+    }
+}
+
+export function requestDailyTraining(accountId, date) {
+    return async (dispatch) => {
+        const response = await fetch(`http:${CURRENT_IP}:6969/training`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId,
+                date
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        let data = await response.json();
+
+        if (data.length < 1) {
+            fetch(`http:${CURRENT_IP}:6969/createTraining`, {
+                method: 'post',
+                dataType: 'json',
+                body: JSON.stringify({
+                    accountId,
+                    date,
+                    category: 'Unset',
+                    training: {},
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    return dispatch({
+                        type: ERROR,
+                        error: data.error
+                    })
+                }
+                return dispatch({
+                    type: EDIT_DAILY_TRAINING,
+                    dailyTraining: data[0],
+                })
+            })
+        }
+
+        return dispatch({
+            type: EDIT_DAILY_TRAINING,
+            dailyTraining: data[0],
+        })
     }
 }

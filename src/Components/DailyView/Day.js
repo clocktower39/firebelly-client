@@ -67,7 +67,7 @@ export default function Day() {
             </Grid>
             <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
             <Tasks selectedDate={selectedDate} />
-            <Training />
+            <Training selectedDate={selectedDate} />
             <Nutrition selectedDate={selectedDate} />
             <Notes selectedDate={selectedDate} />
         </Container>
