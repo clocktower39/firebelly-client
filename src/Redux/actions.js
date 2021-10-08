@@ -464,7 +464,7 @@ export function requestDailyTraining(accountId, date) {
         })
         let data = await response.json();
 
-        if (data.length < 1) {
+        if (!data || data.length < 1) {
             fetch(`http:${CURRENT_IP}:6969/createTraining`, {
                 method: 'post',
                 dataType: 'json',
@@ -486,16 +486,18 @@ export function requestDailyTraining(accountId, date) {
                         error: data.error
                     })
                 }
+                console.log(data.training)
                 return dispatch({
                     type: EDIT_DAILY_TRAINING,
-                    dailyTraining: data[0],
+                    dailyTraining: data.training,
                 })
             })
         }
-
-        return dispatch({
-            type: EDIT_DAILY_TRAINING,
-            dailyTraining: data[0],
-        })
+        else{
+            return dispatch({
+                type: EDIT_DAILY_TRAINING,
+                dailyTraining: {...data[0]},
+            })
+        }
     }
 }

@@ -36,21 +36,25 @@ export default function Training(props) {
     const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
 
     let allTraining = [];
-    today.dailyTraining.training.forEach(set => {
-        set.forEach(task => {
-            allTraining.push({
-                goal: task.goals.sets,
-                achieved: task.achieved.sets,
-            })
-        })
-    })
 
     let dailyTrainingAchieved = 0; 
     let dailyTrainingGoal = 1;
 
+    if(today.dailyTraining){
+        today.dailyTraining.training.forEach(set => {
+            set.forEach(task => {
+                allTraining.push({
+                    goal: task.goals.sets,
+                    achieved: task.achieved.sets,
+                })
+            })
+        })
+        
     if(today.dailyTraining.training.length > 0){
         dailyTrainingAchieved = allTraining.reduce((a, b) => ({ achieved: a.achieved + b.achieved }) ).achieved;
         dailyTrainingGoal = allTraining.reduce((a, b) => ({ goal: a.goal + b.goal }) ).goal;
+    }
+
     }
 
     useEffect(()=>{
@@ -87,7 +91,7 @@ export default function Training(props) {
                                 {group.map(exercise => (
                                     <Grid container>
                                         {/* <TextField key={exercise.exercise} fullWidth variant="outlined" label={exercise.exercise} /> */}
-                                        <Grid item xs={6} sm={3}><TextField label="Exercise Title" /></Grid>
+                                        <Grid item xs={6} sm={3}><TextField label="Exercise Title" value={exercise.exercise} /></Grid>
                                         <Grid item xs={6} sm={3}><TextField label="Sets" /></Grid>
                                         <Grid item xs={6} sm={3}><TextField label="Min Reps" /></Grid>
                                         <Grid item xs={6} sm={3}><TextField label="Max Reps" /></Grid>
