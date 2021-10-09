@@ -472,7 +472,22 @@ export function requestDailyTraining(accountId, date) {
                     accountId,
                     date,
                     category: 'Unset',
-                    training: {},
+                    training: [
+                        [
+                          {
+                            exercise: "Unset",
+                            goals: {
+                              sets: 0,
+                              minReps: 0,
+                              maxReps: 0,
+                            },
+                            achieved: {
+                              sets: 0,
+                              reps: [],
+                            },
+                          },
+                        ],
+                      ],
                 }),
                 headers: {
                     "Content-type": "application/json; charset=UTF-8"
@@ -497,6 +512,36 @@ export function requestDailyTraining(accountId, date) {
             return dispatch({
                 type: EDIT_DAILY_TRAINING,
                 dailyTraining: {...data[0]},
+            })
+        }
+    }
+}
+
+export function updateDailyTraining(trainingId, updatedTraining) {
+    return async (dispatch) => {
+        const data = await fetch(`http:${CURRENT_IP}:6969/updateTraining`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                _id: trainingId,
+                training: updatedTraining,
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        .then(res => res.json());
+
+        if (data.error) {
+            return dispatch({
+                type: ERROR,
+                error: data.error
+            })
+        }
+        else {
+            return dispatch({
+                type: EDIT_DAILY_TRAINING,
+                dailyTraining: updatedTraining,
             })
         }
     }

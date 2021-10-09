@@ -130,7 +130,6 @@ export default function Nutrition(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedDate]);
 
-  // NEED TO FIX AND MOVE THIS, IM STUCK :(
   useEffect(() => {
     setLocalNutrition(today.dailyNutrition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
