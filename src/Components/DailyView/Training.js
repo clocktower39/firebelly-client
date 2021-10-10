@@ -63,7 +63,33 @@ export default function Training(props) {
     }
   }
 
-  const newExercise = () => {};
+  const newExercise = (index) => {
+    const newTraining = today.dailyTraining.training.map((group, i) => {
+      if(index === i){
+        group.push(
+          {
+            exercise: "Unset",
+            goals: {
+              sets: 0,
+              minReps: 0,
+              maxReps: 0,
+            },
+            achieved: {
+              sets: 0,
+              reps: [],
+            },
+          }
+        )
+      }
+      return group;
+    })
+    dispatch(
+      updateDailyTraining(today.dailyTraining._id, {
+        ...today.dailyTraining,
+        training: [...newTraining]
+      })
+    );
+  }
 
   const newSet = () =>
     dispatch(
@@ -150,7 +176,7 @@ export default function Training(props) {
                   </Grid>
                 ))}
                 <Grid item xs={12}>
-                  <Button variant="contained">New Exercise</Button>
+                  <Button variant="contained" onClick={()=>newExercise(index)}>New Exercise</Button>
                 </Grid>
               </Grid>
             ))
