@@ -4,7 +4,7 @@ import {
     Container,
     Grid,
     TextField,
-    Typography,
+    Divider,
     makeStyles
 } from '@material-ui/core';
 import { ArrowBack, ArrowForward } from '@material-ui/icons';
@@ -65,7 +65,8 @@ export default function Day() {
                 />
                 <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward /></Button>
             </Grid>
-            <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography>
+            <Divider style={{margin: "15px"}} />
+            {/* <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography> */}
             <Tasks selectedDate={selectedDate} />
             <Training selectedDate={selectedDate} />
             <Nutrition selectedDate={selectedDate} />

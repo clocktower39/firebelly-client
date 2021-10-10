@@ -91,31 +91,29 @@ export default function Training(props) {
     );
   }
 
-  const newSet = () =>
+  const newSet = () => {
+    let newTraining =[...today.dailyTraining.training]
+    newTraining.push(
+      [{
+        exercise: "Unset",
+        goals: {
+          sets: 0,
+          minReps: 0,
+          maxReps: 0,
+        },
+        achieved: {
+          sets: 0,
+          reps: [],
+        }
+      }]
+    )
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
-        training: [
-          ...today.dailyTraining.training,
-          [
-            [
-              {
-                exercise: "Unset",
-                goals: {
-                  sets: 0,
-                  minReps: 0,
-                  maxReps: 0,
-                },
-                achieved: {
-                  sets: 0,
-                  reps: [],
-                },
-              },
-            ],
-          ],
-        ],
+        training: [...newTraining],
       })
     );
+  }
 
   useEffect(() => {
     setTrainingCategory(today.dailyTraining.trainingCategory);
@@ -154,10 +152,9 @@ export default function Training(props) {
           {today.dailyTraining.training.length > 0 ? (
             today.dailyTraining.training.map((group, index) => (
               <Grid item xs={12} key={index}>
-                <Typography variant="h5">Set {index + 1}</Typography>
+                <Typography variant="h5" gutterBottom >Set {index + 1}</Typography>
                 {group.map((exercise) => (
-                  <Grid container>
-                    {/* <TextField key={exercise.exercise} fullWidth variant="outlined" label={exercise.exercise} /> */}
+                  <Grid container spacing={2}>
                     <Grid item xs={6} sm={3}>
                       <TextField
                         label="Exercise Title"
