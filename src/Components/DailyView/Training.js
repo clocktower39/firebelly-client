@@ -12,7 +12,7 @@ import {
     makeStyles,
     Button,
 } from "@material-ui/core";
-import { ExpandMore, AddCircle, RemoveCircle } from "@material-ui/icons";
+import { ExpandMore, AddCircle, RemoveCircle, CheckCircle } from "@material-ui/icons";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -35,7 +35,7 @@ const Set = (props) => {
                 <Grid item container xs={1} alignContent="center"><IconButton onClick={() => props.removeSet(index)}><RemoveCircle /></IconButton></Grid>
             </Grid>
             {group.map((exercise, exerciseIndex) => (
-                <Exercise key={exercise._id} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} />
+                <Exercise key={exercise._id} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExercise={props.saveExercise} />
             ))}
             <Grid item xs={12}>
                 <IconButton onClick={() => props.newExercise(index)}><AddCircle /></IconButton>
@@ -54,20 +54,23 @@ const Exercise = (props) => {
 
     return (
         <Grid container spacing={2} justifyContent="center">
-            <Grid item xs={6} sm={3}>
-                <TextField label="Exercise Title" value={title} onChange={(e) => handleChange(e, setTitle)} />
+            <Grid item xs={12} sm={6}>
+                <TextField label="Exercise Title" value={title} onChange={(e) => handleChange(e, setTitle)} fullWidth />
             </Grid>
-            <Grid item xs={6} sm={2}>
+            <Grid item xs={2} sm={1}>
                 <TextField label="Sets" value={sets} onChange={(e) => handleChange(e, setSets)} />
             </Grid>
-            <Grid item xs={6} sm={2}>
+            <Grid item xs={2} sm={1}>
                 <TextField label="Min Reps" value={minReps} onChange={(e) => handleChange(e, setMinReps)} />
             </Grid>
-            <Grid item xs={6} sm={2}>
+            <Grid item xs={2} sm={1}>
                 <TextField label="Max Reps" value={maxReps} onChange={(e) => handleChange(e, setMaxReps)} />
             </Grid>
-            <Grid container item xs={12} sm={1} justifyContent="center">
-                <IconButton onClick={()=>props.removeExercise(props.setIndex, props.exerciseIndex)}><RemoveCircle /></IconButton>
+            <Grid container item xs={2} sm={1} justifyContent="center">
+                <IconButton onClick={() => props.removeExercise(props.setIndex, props.exerciseIndex)}><RemoveCircle /></IconButton>
+            </Grid>
+            <Grid container item xs={2} sm={1} justifyContent="center">
+                <IconButton onClick={() => props.saveExercise(props.setIndex, props.exerciseIndex, { title, sets, minReps, maxReps })}><CheckCircle /></IconButton>
             </Grid>
         </Grid>
     );
@@ -78,6 +81,8 @@ export default function Training(props) {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.user);
     const today = useSelector((state) => state.calander.dailyView);
+
+    const [editMode /*, setEditMode*/] = useState(false);
 
     const [trainingCategory, setTrainingCategory] = useState("");
     const handleTrainingCategoryChange = (e) =>
@@ -173,7 +178,7 @@ export default function Training(props) {
 
     const removeExercise = (setIndex, exerciseIndex) => {
         const newTraining = today.dailyTraining.training.map((set, index) => {
-            if(index === setIndex){
+            if (index === setIndex) {
                 set = set.filter((item, index) => index !== exerciseIndex);
             }
             return set;
@@ -182,6 +187,32 @@ export default function Training(props) {
         dispatch(
             updateDailyTraining(today.dailyTraining._id, {
                 ...today.dailyTraining,
+                training: [...newTraining],
+            })
+        );
+    }
+
+    const saveExercise = (setIndex, exerciseIndex, newExercise) => {
+        const newTraining = today.dailyTraining.training.map((set, index) => {
+            if (index === setIndex) {
+                set = set.map((item, index) => {
+                    if (index === exerciseIndex) {
+                        item = {
+                            ...item,
+                            exercise: newExercise.title,
+                            goals: { sets: newExercise.sets, minReps: newExercise.minReps, maxReps: newExercise.maxReps }
+                        }
+                    }
+                    return item;
+                });
+            }
+            return set;
+        });
+
+        dispatch(
+            updateDailyTraining(today.dailyTraining._id, {
+                ...today.dailyTraining,
+                category: trainingCategory,
                 training: [...newTraining],
             })
         );
@@ -215,27 +246,33 @@ export default function Training(props) {
             </AccordionSummary>
             <AccordionDetails>
                 <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                        <TextField
-                            label="Training Category"
-                            onChange={handleTrainingCategoryChange}
-                            value={trainingCategory}
-                            fullWidth
-                        />
-                    </Grid>
-                    {today.dailyTraining.training.length > 0 ? (
-                        <Set today={today} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise}/>
-                    ) : (
-                        <></>
-                    )}
-                    <Grid item xs={12}>
-                        <Button variant="contained" onClick={newSet}>
-                            New Set
-                        </Button>
-                        <Button variant="contained" onClick={save}>
-                            Save
-                        </Button>
-                    </Grid>
+                    {!editMode ?
+                        <>
+                            <Grid item xs={12}>
+                                <TextField
+                                    label="Training Category"
+                                    onChange={handleTrainingCategoryChange}
+                                    value={trainingCategory}
+                                    fullWidth
+                                />
+                            </Grid>
+                            {today.dailyTraining.training.length > 0 ? (
+                                <Set today={today} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise} saveExercise={saveExercise} />
+                            ) : (
+                                <></>
+                            )}
+                            <Grid item xs={12}>
+                                <Button variant="contained" onClick={newSet}>
+                                    New Set
+                                </Button>
+                                <Button variant="contained" onClick={save}>
+                                    Save
+                                </Button>
+                            </Grid>
+                        </>
+                        :
+                        <></>}
+
                 </Grid>
             </AccordionDetails>
         </Accordion>
