@@ -26,6 +26,50 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const Set = (props) => {
+  return props.today.dailyTraining.training.map((group, index) => (
+    <Grid item xs={12} key={index}>
+      <Typography variant="h5" gutterBottom>
+        Set {index + 1}
+      </Typography>
+      {group.map((exercise) => (
+        <Exercise key={exercise._id} exercise={exercise} />
+      ))}
+      <Grid item xs={12}>
+        <Button variant="contained" onClick={() => props.newExercise(index)}>
+          New Exercise
+        </Button>
+      </Grid>
+    </Grid>
+  ));
+};
+
+const Exercise = (props) => {
+  const [title, setTitle] = useState(props.exercise.exercise);
+  const [sets, setSets] = useState(props.exercise.goals.sets);
+  const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
+  const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
+
+  const handleChange = (e,setter) => setter(e.target.value);
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={6} sm={3}>
+        <TextField label="Exercise Title" value={title} onChange={(e)=>handleChange(e, setTitle)} />
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <TextField label="Sets" value={sets} onChange={(e)=>handleChange(e, setSets)} />
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <TextField label="Min Reps" value={minReps} onChange={(e)=>handleChange(e, setMinReps)} />
+      </Grid>
+      <Grid item xs={6} sm={3}>
+        <TextField label="Max Reps" value={maxReps} onChange={(e)=>handleChange(e, setMaxReps)} />
+      </Grid>
+    </Grid>
+  );
+};
+
 export default function Training(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -44,12 +88,12 @@ export default function Training(props) {
   if (today.dailyTraining) {
     today.dailyTraining.training.forEach((set) => {
       set.forEach((task) => {
-          if(task.goals){
-            allTraining.push({
-              goal: task.goals.sets,
-              achieved: task.achieved.sets,
-            });
-          }
+        if (task.goals) {
+          allTraining.push({
+            goal: task.goals.sets,
+            achieved: task.achieved.sets,
+          });
+        }
       });
     });
 
@@ -65,36 +109,34 @@ export default function Training(props) {
 
   const newExercise = (index) => {
     const newTraining = today.dailyTraining.training.map((group, i) => {
-      if(index === i){
-        group.push(
-          {
-            exercise: "Unset",
-            goals: {
-              sets: 0,
-              minReps: 0,
-              maxReps: 0,
-            },
-            achieved: {
-              sets: 0,
-              reps: [],
-            },
-          }
-        )
+      if (index === i) {
+        group.push({
+          exercise: "Unset",
+          goals: {
+            sets: 0,
+            minReps: 0,
+            maxReps: 0,
+          },
+          achieved: {
+            sets: 0,
+            reps: [],
+          },
+        });
       }
       return group;
-    })
+    });
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
-        training: [...newTraining]
+        training: [...newTraining],
       })
     );
-  }
+  };
 
   const newSet = () => {
-    let newTraining =[...today.dailyTraining.training]
-    newTraining.push(
-      [{
+    let newTraining = [...today.dailyTraining.training];
+    newTraining.push([
+      {
         exercise: "Unset",
         goals: {
           sets: 0,
@@ -104,19 +146,21 @@ export default function Training(props) {
         achieved: {
           sets: 0,
           reps: [],
-        }
-      }]
-    )
+        },
+      },
+    ]);
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
         training: [...newTraining],
       })
     );
-  }
+  };
+
+  const save = () => {};
 
   useEffect(() => {
-    setTrainingCategory(today.dailyTraining.trainingCategory);
+    setTrainingCategory(today.dailyTraining.category);
   }, [today]);
 
   useEffect(() => {
@@ -150,38 +194,17 @@ export default function Training(props) {
             />
           </Grid>
           {today.dailyTraining.training.length > 0 ? (
-            today.dailyTraining.training.map((group, index) => (
-              <Grid item xs={12} key={index}>
-                <Typography variant="h5" gutterBottom >Set {index + 1}</Typography>
-                {group.map((exercise) => (
-                  <Grid container spacing={2}>
-                    <Grid item xs={6} sm={3}>
-                      <TextField
-                        label="Exercise Title"
-                        value={exercise.exercise}
-                      />
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <TextField label="Sets" />
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <TextField label="Min Reps" />
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <TextField label="Max Reps" />
-                    </Grid>
-                  </Grid>
-                ))}
-                <Grid item xs={12}>
-                  <Button variant="contained" onClick={()=>newExercise(index)}>New Exercise</Button>
-                </Grid>
-              </Grid>
-            ))
+            <Set today={today} newExercise={newExercise} />
           ) : (
             <></>
           )}
           <Grid item xs={12}>
-            <Button variant="contained" onClick={newSet} >New Set</Button>
+            <Button variant="contained" onClick={newSet}>
+              New Set
+            </Button>
+            <Button variant="contained" onClick={save}>
+              Save
+            </Button>
           </Grid>
         </Grid>
       </AccordionDetails>
