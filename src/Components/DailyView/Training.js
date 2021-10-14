@@ -42,10 +42,38 @@ const Set = (props) => {
             </Grid>
         </Grid>
     ) : (
-        <>
-        </>
+        <Grid item xs={12} key={index}>
+            <Grid container item xs={12} >
+                <Grid item container xs={12} alignContent="center"><Typography variant="h5" gutterBottom>Set {index + 1}</Typography></Grid>
+            </Grid>
+            {group.map((exercise, exerciseIndex) => (
+                <Exercise key={exercise._id} editMode={props.editMode} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExercise={props.saveExercise} />
+            ))}
+        </Grid>
     ));
 };
+
+const ExerciseSet = (props) => {
+    let exerciseSets = [];
+    for (let i = props.sets; i > 0; i--) {
+        exerciseSets.push(
+            <Grid container item xs={12}>
+                <Grid item xs={5} >
+                    <TextField label="Reps" value={0} onChange={(e) => 0} />
+                </Grid>
+                <Grid item xs={5} >
+                    <TextField label="Weight" value={0} onChange={(e) => 0} />
+                </Grid>
+                <Grid item xs={2} >
+                    <IconButton onClick={() => 0}><CheckCircle /></IconButton>
+                </Grid>
+            </Grid>
+        )
+    }
+    return (
+        exerciseSets
+    );
+}
 
 const Exercise = (props) => {
     const [title, setTitle] = useState(props.exercise.exercise);
@@ -78,8 +106,33 @@ const Exercise = (props) => {
         </Grid>
     )
         : (
-            <>
-            </>
+
+            <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={3} >
+                    <Typography variant="h6">{title}:</Typography>
+                </Grid>
+                <Grid container item xs={8} spacing={1}>
+
+                    <ExerciseSet sets={sets}/>
+                    {/* <Grid container item xs={12}>
+                        <Grid item xs={5} >
+                            <TextField label="Reps" value={sets} onChange={(e) => handleChange(e, setSets)} />
+                        </Grid>
+                        <Grid item xs={5} >
+                            <TextField label="Weight" value={minReps} onChange={(e) => handleChange(e, setMinReps)} />
+                        </Grid>
+                        <Grid item xs={2} >
+                            <IconButton onClick={() => 0}><CheckCircle /></IconButton>
+                        </Grid>
+                    </Grid> */}
+
+                </Grid>
+                <Grid container item xs={1} alignContent="center">
+                    <Grid item xs={12}>
+                        <IconButton onClick={() => 0}><AddCircle /></IconButton>
+                    </Grid>
+                </Grid>
+            </Grid>
         );
 };
 
