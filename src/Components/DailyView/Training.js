@@ -37,8 +37,10 @@ const Set = (props) => {
             {group.map((exercise, exerciseIndex) => (
                 <Exercise key={exercise._id} editMode={props.editMode} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExercise={props.saveExercise} />
             ))}
-            <Grid item xs={12}>
+            <Grid container item xs={12}>
+              <Grid container item xs={12} justifyContent="center">
                 <IconButton onClick={() => props.newExercise(index)}><AddCircle /></IconButton>
+              </Grid>
             </Grid>
         </Grid>
     ) : (
@@ -112,20 +114,7 @@ const Exercise = (props) => {
                     <Typography variant="h6">{title}:</Typography>
                 </Grid>
                 <Grid container item xs={8} spacing={1}>
-
                     <ExerciseSet sets={sets}/>
-                    {/* <Grid container item xs={12}>
-                        <Grid item xs={5} >
-                            <TextField label="Reps" value={sets} onChange={(e) => handleChange(e, setSets)} />
-                        </Grid>
-                        <Grid item xs={5} >
-                            <TextField label="Weight" value={minReps} onChange={(e) => handleChange(e, setMinReps)} />
-                        </Grid>
-                        <Grid item xs={2} >
-                            <IconButton onClick={() => 0}><CheckCircle /></IconButton>
-                        </Grid>
-                    </Grid> */}
-
                 </Grid>
                 <Grid container item xs={1} alignContent="center">
                     <Grid item xs={12}>

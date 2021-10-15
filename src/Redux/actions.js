@@ -384,7 +384,7 @@ export function requestDailyNote(accountId, date) {
         })
         let data = await response.json();
 
-        if (data.length < 1) {
+        if (data.results === "No Results") {
             fetch(`http:${CURRENT_IP}:6969/createNote`, {
                 method: 'post',
                 dataType: 'json',

@@ -23,7 +23,7 @@ export default function Note(props) {
   const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
-  const [note, setNote] = useState();
+  const [note, setNote] = useState("");
   const handleChange = (e) => {
     setNote(e.target.value);
   };
@@ -35,7 +35,7 @@ export default function Note(props) {
   useEffect(() => {
     setNote(today.dailyNote.note);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today.dailyNote]);
+  }, [today.dailyNote.note]);
 
   useEffect(() => {
     setNote("");
