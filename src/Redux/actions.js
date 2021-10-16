@@ -471,19 +471,20 @@ export function requestDailyTraining(accountId, date) {
                 body: JSON.stringify({
                     accountId,
                     date,
-                    category: 'Unset',
+                    category: '',
                     training: [
                         [
                           {
-                            exercise: "Unset",
+                            exercise: "",
                             goals: {
-                              sets: 0,
+                              sets: 1,
                               minReps: 0,
                               maxReps: 0,
                             },
                             achieved: {
                               sets: 0,
-                              reps: [],
+                              reps: [0],
+                              weight: [0],
                             },
                           },
                         ],
@@ -501,7 +502,6 @@ export function requestDailyTraining(accountId, date) {
                         error: data.error
                     })
                 }
-                console.log(data.training)
                 return dispatch({
                     type: EDIT_DAILY_TRAINING,
                     dailyTraining: data.training,
@@ -509,6 +509,14 @@ export function requestDailyTraining(accountId, date) {
             })
         }
         else{
+            data[0].training.map(set => {
+                set.map(exercise=>{
+                    if(!exercise.achieved.weight){
+                        exercise.achieved.weight = [0];
+                    }
+                    return exercise;
+                })
+            })
             return dispatch({
                 type: EDIT_DAILY_TRAINING,
                 dailyTraining: {...data[0]},

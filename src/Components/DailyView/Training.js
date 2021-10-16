@@ -55,29 +55,30 @@ const Set = (props) => {
 };
 
 const ExerciseSet = (props) => {
-    const [reps, setReps] = useState([]);
-    const [weight, setWeight] = useState([]);
+    const [reps, setReps] = useState(props.exercise.achieved.reps);
+    const [weight, setWeight] = useState(props.exercise.achieved.weight);
 
     const handleChange = (e,setter,index) => setter(prev => {
         const newState = prev.map((item,i) => {
             if(index === i){
-                item = e.target.value
+                item = Number(e.target.value)||0;
             }
             return item;
         })
+        console.log(prev)
+        console.log(newState)
         return newState;
     });
 
     let exerciseSets = [];
-    for (let i = props.sets; i > 0; i--) {
-        
+    for (let i = 0; i < props.sets; i++) {        
         exerciseSets.push(
             <Grid container item xs={12}>
                 <Grid item xs={5} >
-                    <TextField label="Reps" value={reps} onChange={(e) => handleChange(e, setReps, i)} />
+                    <TextField label="Reps" value={reps[i]} onChange={(e) => handleChange(e, setReps, i)} />
                 </Grid>
                 <Grid item xs={5} >
-                    <TextField label="Weight" value={weight} onChange={(e) => handleChange(e, setWeight, i)} />
+                    <TextField label="Weight" value={weight[i]} onChange={(e) => handleChange(e, setWeight, i)} />
                 </Grid>
                 <Grid item xs={2} >
                     <IconButton onClick={() => 0}><CheckCircle /></IconButton>
@@ -116,7 +117,7 @@ const Exercise = (props) => {
                 <IconButton onClick={() => props.removeExercise(props.setIndex, props.exerciseIndex)}><RemoveCircle /></IconButton>
             </Grid>
             <Grid container item xs={2} sm={1} justifyContent="center">
-                <IconButton onClick={() => props.saveExercise(props.setIndex, props.exerciseIndex, { title, sets, minReps, maxReps, reps :props.exercise.achieved.reps })}><CheckCircle /></IconButton>
+                <IconButton onClick={() => props.saveExercise(props.setIndex, props.exerciseIndex, { title, sets, minReps, maxReps, reps: props.exercise.achieved.reps })}><CheckCircle /></IconButton>
             </Grid>
         </Grid>
     )
@@ -124,10 +125,10 @@ const Exercise = (props) => {
 
             <Grid container spacing={2} justifyContent="center">
                 <Grid item xs={3} >
-                    <Typography variant="h6">{title}:</Typography>
+                    <Typography variant="h6">{title||"Enter an exercise"}:</Typography>
                 </Grid>
                 <Grid container item xs={8} spacing={1}>
-                    <ExerciseSet sets={sets}/>
+                    <ExerciseSet exercise={props.exercise} sets={sets}/>
                 </Grid>
                 <Grid container item xs={1} alignContent="center">
                     <Grid item xs={12}>
@@ -181,7 +182,7 @@ export default function Training(props) {
         const newTraining = today.dailyTraining.training.map((group, i) => {
             if (index === i) {
                 group.push({
-                    exercise: "Unset",
+                    exercise: "",
                     goals: {
                         sets: 1,
                         minReps: 0,
@@ -189,7 +190,8 @@ export default function Training(props) {
                     },
                     achieved: {
                         sets: 1,
-                        reps: [0,],
+                        reps: [0],
+                        weight: [0],
                     },
                 });
             }
@@ -207,15 +209,16 @@ export default function Training(props) {
         let newTraining = [...today.dailyTraining.training];
         newTraining.push([
             {
-                exercise: "Unset",
+                exercise: "",
                 goals: {
-                    sets: 0,
+                    sets: 1,
                     minReps: 0,
                     maxReps: 0,
                 },
                 achieved: {
                     sets: 0,
-                    reps: [],
+                    reps: [0],
+                    weight: [0],
                 },
             },
         ]);
@@ -267,11 +270,22 @@ export default function Training(props) {
                                 newExercise.reps.push(0);
                             }
                         }
+                        if(!newExercise.weight){
+                            newExercise.weight = [0];
+                        }
+                        while(Number(newExercise.weight.length) !== Number(newExercise.sets)){
+                            if(Number(newExercise.weight.length) > Number(newExercise.sets)){
+                                newExercise.weight.pop();
+                            }
+                            else{
+                                newExercise.weight.push(0);
+                            }
+                        }
                         item = {
                             ...item,
                             exercise: newExercise.title,
                             goals: { sets: newExercise.sets, minReps: newExercise.minReps, maxReps: newExercise.maxReps },
-                            achieved: { ...item.achieved, reps: [ ...newExercise.reps] }
+                            achieved: { ...item.achieved, reps: [ ...newExercise.reps], weight: [...newExercise.weight] }
                         }
                     }
                     return item;
@@ -292,7 +306,7 @@ export default function Training(props) {
     const save = () => { };
 
     useEffect(() => {
-        setTrainingCategory(today.dailyTraining.category);
+        setTrainingCategory(today.dailyTraining.category||"");
     }, [today]);
 
     useEffect(() => {
