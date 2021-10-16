@@ -31,8 +31,7 @@ const Set = (props) => {
     return props.today.dailyTraining.training.map((group, index) => props.editMode ? (
         <Grid item xs={12} key={index}>
             <Grid container item xs={12} >
-                <Grid item container xs={11} alignContent="center"><Typography variant="h5" gutterBottom>Set {index + 1}</Typography></Grid>
-                <Grid item container xs={1} alignContent="center"><IconButton onClick={() => props.removeSet(index)}><RemoveCircle /></IconButton></Grid>
+                <Grid item container xs={12} alignContent="center"><Typography variant="h5" gutterBottom>Set {index + 1} <IconButton onClick={() => props.removeSet(index)}><RemoveCircle /></IconButton></Typography></Grid>
             </Grid>
             {group.map((exercise, exerciseIndex) => (
                 <Exercise key={exercise._id} editMode={props.editMode} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExercise={props.saveExercise} />
@@ -56,15 +55,29 @@ const Set = (props) => {
 };
 
 const ExerciseSet = (props) => {
+    const [reps, setReps] = useState([]);
+    const [weight, setWeight] = useState([]);
+
+    const handleChange = (e,setter,index) => setter(prev => {
+        const newState = prev.map((item,i) => {
+            if(index === i){
+                item = e.target.value
+            }
+            return item;
+        })
+        return newState;
+    });
+
     let exerciseSets = [];
     for (let i = props.sets; i > 0; i--) {
+        
         exerciseSets.push(
             <Grid container item xs={12}>
                 <Grid item xs={5} >
-                    <TextField label="Reps" value={0} onChange={(e) => 0} />
+                    <TextField label="Reps" value={reps} onChange={(e) => handleChange(e, setReps, i)} />
                 </Grid>
                 <Grid item xs={5} >
-                    <TextField label="Weight" value={0} onChange={(e) => 0} />
+                    <TextField label="Weight" value={weight} onChange={(e) => handleChange(e, setWeight, i)} />
                 </Grid>
                 <Grid item xs={2} >
                     <IconButton onClick={() => 0}><CheckCircle /></IconButton>
@@ -103,7 +116,7 @@ const Exercise = (props) => {
                 <IconButton onClick={() => props.removeExercise(props.setIndex, props.exerciseIndex)}><RemoveCircle /></IconButton>
             </Grid>
             <Grid container item xs={2} sm={1} justifyContent="center">
-                <IconButton onClick={() => props.saveExercise(props.setIndex, props.exerciseIndex, { title, sets, minReps, maxReps })}><CheckCircle /></IconButton>
+                <IconButton onClick={() => props.saveExercise(props.setIndex, props.exerciseIndex, { title, sets, minReps, maxReps, reps :props.exercise.achieved.reps })}><CheckCircle /></IconButton>
             </Grid>
         </Grid>
     )
@@ -170,13 +183,13 @@ export default function Training(props) {
                 group.push({
                     exercise: "Unset",
                     goals: {
-                        sets: 0,
+                        sets: 1,
                         minReps: 0,
                         maxReps: 0,
                     },
                     achieved: {
-                        sets: 0,
-                        reps: [],
+                        sets: 1,
+                        reps: [0,],
                     },
                 });
             }
@@ -246,10 +259,19 @@ export default function Training(props) {
             if (index === setIndex) {
                 set = set.map((item, index) => {
                     if (index === exerciseIndex) {
+                        if(newExercise.reps.length !== newExercise.sets){
+                            if(newExercise.reps.length > newExercise.sets){
+                                newExercise.reps.pop();
+                            }
+                            else{
+                                newExercise.reps.push(0);
+                            }
+                        }
                         item = {
                             ...item,
                             exercise: newExercise.title,
-                            goals: { sets: newExercise.sets, minReps: newExercise.minReps, maxReps: newExercise.maxReps }
+                            goals: { sets: newExercise.sets, minReps: newExercise.minReps, maxReps: newExercise.maxReps },
+                            achieved: { ...item.achieved, reps: [ ...newExercise.reps] }
                         }
                     }
                     return item;
