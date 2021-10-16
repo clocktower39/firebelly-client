@@ -259,8 +259,8 @@ export default function Training(props) {
             if (index === setIndex) {
                 set = set.map((item, index) => {
                     if (index === exerciseIndex) {
-                        if(newExercise.reps.length !== newExercise.sets){
-                            if(newExercise.reps.length > newExercise.sets){
+                        while(Number(newExercise.reps.length) !== Number(newExercise.sets)){
+                            if(Number(newExercise.reps.length) > Number(newExercise.sets)){
                                 newExercise.reps.pop();
                             }
                             else{
