@@ -48,7 +48,7 @@ const Set = (props) => {
                 <Grid item container xs={12} alignContent="center"><Typography variant="h5" gutterBottom>Set {index + 1}</Typography></Grid>
             </Grid>
             {group.map((exercise, exerciseIndex) => (
-                <Exercise key={exercise._id} editMode={props.editMode} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExercise={props.saveExercise} />
+                <Exercise key={exercise._id} editMode={props.editMode} exercise={exercise} setIndex={index} exerciseIndex={exerciseIndex} removeExercise={props.removeExercise} saveExerciseSet={props.saveExerciseSet} />
             ))}
         </Grid>
     ));
@@ -58,15 +58,13 @@ const ExerciseSet = (props) => {
     const [reps, setReps] = useState(props.exercise.achieved.reps);
     const [weight, setWeight] = useState(props.exercise.achieved.weight);
 
-    const handleChange = (e,setter,index) => setter(prev => {
+    const handleChange = (e, setter, index) => setter(prev => {
         const newState = prev.map((item,i) => {
             if(index === i){
                 item = Number(e.target.value)||0;
             }
             return item;
         })
-        console.log(prev)
-        console.log(newState)
         return newState;
     });
 
@@ -74,20 +72,26 @@ const ExerciseSet = (props) => {
     for (let i = 0; i < props.sets; i++) {        
         exerciseSets.push(
             <Grid container item xs={12}>
-                <Grid item xs={5} >
+                <Grid item xs={3} >
                     <TextField label="Reps" value={reps[i]} onChange={(e) => handleChange(e, setReps, i)} />
                 </Grid>
-                <Grid item xs={5} >
+                <Grid item xs={3} >
                     <TextField label="Weight" value={weight[i]} onChange={(e) => handleChange(e, setWeight, i)} />
-                </Grid>
-                <Grid item xs={2} >
-                    <IconButton onClick={() => 0}><CheckCircle /></IconButton>
                 </Grid>
             </Grid>
         )
     }
     return (
-        exerciseSets
+        <>
+            <Grid container item xs={8} spacing={1}>
+                {exerciseSets}
+            </Grid>
+            <Grid container item xs={1} alignContent="center">
+                <Grid item xs={12}>
+                    <IconButton onClick={() => props.saveExerciseSet(props.setIndex, props.exerciseIndex, { reps, weight })}><CheckCircle /></IconButton>
+                </Grid>
+            </Grid>
+        </>
     );
 }
 
@@ -127,14 +131,7 @@ const Exercise = (props) => {
                 <Grid item xs={3} >
                     <Typography variant="h6">{title||"Enter an exercise"}:</Typography>
                 </Grid>
-                <Grid container item xs={8} spacing={1}>
-                    <ExerciseSet exercise={props.exercise} sets={sets}/>
-                </Grid>
-                <Grid container item xs={1} alignContent="center">
-                    <Grid item xs={12}>
-                        <IconButton onClick={() => 0}><AddCircle /></IconButton>
-                    </Grid>
-                </Grid>
+                <ExerciseSet exercise={props.exercise} sets={sets} saveExerciseSet={props.saveExerciseSet} setIndex={props.setIndex} exerciseIndex={props.exerciseIndex} />
             </Grid>
         );
 };
@@ -297,7 +294,30 @@ export default function Training(props) {
         dispatch(
             updateDailyTraining(today.dailyTraining._id, {
                 ...today.dailyTraining,
-                category: trainingCategory,
+                training: [...newTraining],
+            })
+        );
+    }
+    
+    const saveExerciseSet = (setIndex, exerciseIndex, newAchieved) => {
+        const newTraining = today.dailyTraining.training.map((set, index) => {
+            if (index === setIndex) {
+                set = set.map((item, index) => {
+                    if (index === exerciseIndex) {
+                        item = {
+                            ...item,
+                            achieved: { ...item.achieved, reps: [ ...newAchieved.reps], weight: [...newAchieved.weight] }
+                        }
+                    }
+                    return item;
+                });
+            }
+            return set;
+        });
+        
+        dispatch(
+            updateDailyTraining(today.dailyTraining._id, {
+                ...today.dailyTraining,
                 training: [...newTraining],
             })
         );
@@ -343,7 +363,7 @@ export default function Training(props) {
                             </Grid>
                             <Grid container alignContent="center" item xs={1}><IconButton variant="contained" onClick={() => setEditMode(!editMode)}><ListAlt /></IconButton></Grid>
                             {today.dailyTraining.training.length > 0 ? (
-                                <Set today={today} editMode={editMode} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise} saveExercise={saveExercise} />
+                                <Set today={today} editMode={editMode} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise} saveExercise={saveExercise} saveExerciseSet={saveExerciseSet}/>
                             ) : (
                                 <></>
                             )}
@@ -369,7 +389,7 @@ export default function Training(props) {
                             </Grid>
                             <Grid item xs={1} ><IconButton variant="contained" onClick={() => setEditMode(!editMode)}><Edit /></IconButton></Grid>
                             {today.dailyTraining.training.length > 0 ? (
-                                <Set today={today} editMode={editMode} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise} saveExercise={saveExercise} />
+                                <Set today={today} editMode={editMode} newExercise={newExercise} removeSet={removeSet} removeExercise={removeExercise} saveExercise={saveExercise} saveExerciseSet={saveExerciseSet}/>
                             ) : (
                                 <Button variant="contained" onClick={() => setEditMode(!editMode)}>Build a workout</Button>
                             )}

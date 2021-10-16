@@ -57,6 +57,7 @@ export default function Note(props) {
           <Grid item xs={12}>
             <TextField
               fullWidth
+              multiline
               variant="outlined"
               value={note||''}
               onChange={(e) => handleChange(e)}
