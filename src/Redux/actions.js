@@ -516,6 +516,7 @@ export function requestDailyTraining(accountId, date) {
                     }
                     return exercise;
                 })
+                return set;
             })
             return dispatch({
                 type: EDIT_DAILY_TRAINING,
