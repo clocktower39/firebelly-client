@@ -4,7 +4,7 @@ import { loginJWT } from '../Redux/actions';
 import { CardMedia } from '@material-ui/core';
 import DeadliftImg from '../img/deadlift.jpg';
 
-export default function AltHome() {
+export default function Home() {
     const dispatch = useDispatch();
 
     const handleLoginAttempt = async (e) => {

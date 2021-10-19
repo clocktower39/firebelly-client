@@ -421,6 +421,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -492,7 +493,7 @@ export default function Training(props) {
                 onChange={handleTrainingCategoryChange}
                 value={trainingCategory}
                 fullWidth
-                disabled={editMode}
+                disabled={!editMode}
               />
             </Grid>
             <Grid container alignContent="center" item xs={1}>
