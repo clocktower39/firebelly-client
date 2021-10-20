@@ -66,11 +66,28 @@ export function loginUser(user) {
 
 export const loginJWT = (token) => {
     return async (dispatch, getState) => {
-        const decodedAccessToken = jwt(token);
-        return dispatch({
-            type: LOGIN_USER,
-            user: decodedAccessToken,
-        });
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+        const response = await fetch(`http:${CURRENT_IP}:6969/checkAuthToken`, {
+            headers: {
+                "Authorization": bearer,
+            }
+        })
+
+        const text = await response.text().then(item=>item);
+        if(text === "Authorized"){
+            const decodedAccessToken = jwt(token);
+            return dispatch({
+                type: LOGIN_USER,
+                user: decodedAccessToken,
+            });
+        }
+        else {
+            localStorage.removeItem('JWT_AUTH_TOKEN');
+            return dispatch({
+                type: LOGOUT_USER
+            })
+        }
     }
 }
 
@@ -99,6 +116,8 @@ export function checkToggleDailyTask(id) {
         const dailyTasks = state.calander.dailyView.dailyTasks.map(task => {
             if (task._id === id) {
                 task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
+                const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+                
                 fetch(`http:${CURRENT_IP}:6969/updateTask`, {
                     method: 'post',
                     dataType: 'json',
@@ -107,7 +126,8 @@ export function checkToggleDailyTask(id) {
                         achieved: task.achieved
                     }),
                     headers: {
-                        "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8",
+                        "Authorization": bearer,
                     }
                 })
                     .then(res => res.json())
@@ -134,6 +154,8 @@ export function addDailyTask(newTask) {
     return async (dispatch, getState) => {
         const state = getState();
 
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+        
         const dbTask = await fetch(`http:${CURRENT_IP}:6969/createTask`, {
             method: 'post',
             dataType: 'json',
@@ -145,7 +167,8 @@ export function addDailyTask(newTask) {
                 achieved: 0
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
             .then(res => res.json())
@@ -182,6 +205,8 @@ export function editDailyTask(newTask) {
 export function requestDailyTasks(accountId, date) {
     return async (dispatch, getState) => {
         const state = getState();
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
         const response = await fetch(`http:${CURRENT_IP}:6969/tasks`, {
             method: 'post',
             dataType: 'json',
@@ -190,7 +215,8 @@ export function requestDailyTasks(accountId, date) {
                 date
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         let data = await response.json();
@@ -200,6 +226,8 @@ export function requestDailyTasks(accountId, date) {
             let newTaskList = [];
 
             state.user.defaultTasks.forEach(task => {
+                const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
                 fetch(`http:${CURRENT_IP}:6969/createTask`, {
                     method: 'post',
                     dataType: 'json',
@@ -211,7 +239,8 @@ export function requestDailyTasks(accountId, date) {
                         achieved: 0
                     }),
                     headers: {
-                        "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8",
+                        "Authorization": bearer,
                     }
                 })
                     .then(res => res.json())
@@ -242,16 +271,19 @@ export function editDefaultDailyTask(defaultTasks) {
     return async (dispatch, getState) => {
         const state = getState();
         // send update to DB
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
         const response = await fetch(`http:${CURRENT_IP}:6969/updateDefaultTasks`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({ _id: state.user._id, defaultTasks }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         const data = await response.json();
-        console.log(data)
+        
         localStorage.setItem('JWT_AUTH_TOKEN', data.accessToken);
 
         return dispatch({
@@ -277,6 +309,8 @@ export function removeDefaultDailyTask(removeTask) {
 export function requestDailyNutrition(accountId, date) {
     return async (dispatch, getState) => {
         const state = getState();
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+        
         const response = await fetch(`http:${CURRENT_IP}:6969/nutrition`, {
             method: 'post',
             dataType: 'json',
@@ -285,7 +319,8 @@ export function requestDailyNutrition(accountId, date) {
                 date
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         let data = await response.json();
@@ -295,6 +330,8 @@ export function requestDailyNutrition(accountId, date) {
             let newNutritionList = [];
 
             state.user.defaultNutrition.forEach(nutritionTask => {
+                const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+                
                 fetch(`http:${CURRENT_IP}:6969/createNutrition`, {
                     method: 'post',
                     dataType: 'json',
@@ -307,7 +344,8 @@ export function requestDailyNutrition(accountId, date) {
                         unit: nutritionTask.unit,
                     }),
                     headers: {
-                        "Content-type": "application/json; charset=UTF-8"
+                        "Content-type": "application/json; charset=UTF-8",
+                        "Authorization": bearer,
                     }
                 })
                     .then(res => res.json())
@@ -339,6 +377,8 @@ export function updateDailyNutrition(updateList) {
     return async (dispatch) => {
         let newNutritionList = [];
         updateList.forEach(async nutrition => {
+            const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+            
             const data = await fetch(`http:${CURRENT_IP}:6969/updateNutrition`, {
                 method: 'post',
                 dataType: 'json',
@@ -347,7 +387,8 @@ export function updateDailyNutrition(updateList) {
                     achieved: nutrition.achieved
                 }),
                 headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                    "Content-type": "application/json; charset=UTF-8",
+                    "Authorization": bearer,
                 }
             })
             .then(res => res.json());
@@ -371,6 +412,8 @@ export function updateDailyNutrition(updateList) {
 
 export function requestDailyNote(accountId, date) {
     return async (dispatch) => {
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+        
         const response = await fetch(`http:${CURRENT_IP}:6969/note`, {
             method: 'post',
             dataType: 'json',
@@ -379,7 +422,8 @@ export function requestDailyNote(accountId, date) {
                 date
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         let data = await response.json();
@@ -394,7 +438,8 @@ export function requestDailyNote(accountId, date) {
                     note: "",
                 }),
                 headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                    "Content-type": "application/json; charset=UTF-8",
+                    "Authorization": bearer,
                 }
             })
             .then(res => res.json())
@@ -421,6 +466,8 @@ export function requestDailyNote(accountId, date) {
 
 export function updateDailyNote(udpatedNote) {
     return async (dispatch) => {
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
         const data = await fetch(`http:${CURRENT_IP}:6969/updateNote`, {
             method: 'post',
             dataType: 'json',
@@ -429,7 +476,8 @@ export function updateDailyNote(udpatedNote) {
                 note: udpatedNote.note,
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         .then(res => res.json());
@@ -451,6 +499,8 @@ export function updateDailyNote(udpatedNote) {
 
 export function requestDailyTraining(accountId, date) {
     return async (dispatch) => {
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+        
         const response = await fetch(`http:${CURRENT_IP}:6969/training`, {
             method: 'post',
             dataType: 'json',
@@ -459,7 +509,8 @@ export function requestDailyTraining(accountId, date) {
                 date
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         let data = await response.json();
@@ -491,7 +542,8 @@ export function requestDailyTraining(accountId, date) {
                       ],
                 }),
                 headers: {
-                    "Content-type": "application/json; charset=UTF-8"
+                    "Content-type": "application/json; charset=UTF-8",
+                    "Authorization": bearer,
                 }
             })
             .then(res => res.json())
@@ -528,6 +580,8 @@ export function requestDailyTraining(accountId, date) {
 
 export function updateDailyTraining(trainingId, updatedTraining) {
     return async (dispatch) => {
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+        
         const data = await fetch(`http:${CURRENT_IP}:6969/updateTraining`, {
             method: 'post',
             dataType: 'json',
@@ -536,7 +590,8 @@ export function updateDailyTraining(trainingId, updatedTraining) {
                 training: updatedTraining,
             }),
             headers: {
-                "Content-type": "application/json; charset=UTF-8"
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
             }
         })
         .then(res => res.json());
