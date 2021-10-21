@@ -8,9 +8,9 @@ import {
   Grid,
   TextField,
   Typography,
-  makeStyles,
-} from "@material-ui/core";
-import { ExpandMore } from "@material-ui/icons";
+} from "@mui/material";
+import { makeStyles } from '@mui/styles';
+import { ExpandMore } from "@mui/icons-material";
 import { requestDailyNote, updateDailyNote } from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({

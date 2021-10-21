@@ -16,9 +16,9 @@ import {
   Paper,
   TextField,
   Typography,
-  makeStyles,
-} from "@material-ui/core";
-import { AddCircle, ExpandMore } from "@material-ui/icons";
+} from "@mui/material";
+import { makeStyles } from '@mui/styles';
+import { AddCircle, ExpandMore } from "@mui/icons-material";
 import {
   requestDailyTasks,
   checkToggleDailyTask,

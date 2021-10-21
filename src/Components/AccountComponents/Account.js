@@ -7,7 +7,7 @@ import {
   List,
   ListItem,
   ListItemText,
-} from "@material-ui/core";
+} from "@mui/material";
 import MyAccount from "./MyAccount";
 import AccountTasks from "./AccountTasks";
 import Biometrics from "./Biometrics";

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
-import { Container, Typography, makeStyles} from '@material-ui/core';
+import { Container, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles(theme => ({
     PageLink: {

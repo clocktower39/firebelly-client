@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Grid, LinearProgress, TextField, Typography, makeStyles } from '@material-ui/core';
-import { ExpandMore } from '@material-ui/icons';
+import { Accordion, AccordionDetails, AccordionSummary, Button, Container, Grid, LinearProgress, TextField, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import { ExpandMore } from '@mui/icons-material';
 
 const useStyles = makeStyles(theme => ({
     heading: {

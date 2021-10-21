@@ -8,8 +8,8 @@ import {
   TextField,
   Typography,
   Grid,
-} from "@material-ui/core";
-import { AddCircle, RemoveCircle } from "@material-ui/icons";
+} from "@mui/material";
+import { AddCircle, RemoveCircle } from "@mui/icons-material";
 import { editDefaultDailyTask } from "../../Redux/actions";
 
 export default function AccountTasks() {

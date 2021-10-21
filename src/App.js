@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { ThemeProvider } from '@material-ui/core';
+import { ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import AuthRoute from './Components/AuthRoute';
 import Navbar from './Components/Navbar';

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../Redux/actions';
 import { Link } from 'react-router-dom';
-import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, makeStyles, Toolbar } from '@material-ui/core';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import { AppBar, Avatar, Button, IconButton, List, ListItem, ListItemText, Collapse, Toolbar } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import FireBellyLogo from '../img/fireBellyLogo.jpg';
 
 const useStyles = makeStyles(theme=>({
@@ -17,10 +18,6 @@ const useStyles = makeStyles(theme=>({
         minHeight: '58px',
         maxHeight: '139px',
     },
-    logoImg: {
-        width: '115px',
-        height: '115px',
-    },
     NavLink: {
         color: '#FEFFFF',
         padding: '20px',
@@ -29,6 +26,9 @@ const useStyles = makeStyles(theme=>({
         fontSize: '12px',
         letterSpacing: '0.143em',
         textTransform: 'uppercase',
+        "& .MuiButton-root": {
+            color: '#FEFFFF',
+        },
     },
     NavAccountContainer: {
         display: 'flex',
@@ -67,7 +67,7 @@ export default function Navbar() {
     return (
         <AppBar position='fixed' >
             <Toolbar className={classes.Toolbar} >
-                <IconButton color="inherit" component={Link} to="/"><Avatar className={classes.logoImg} src={FireBellyLogo} alt="Logo" /></IconButton>
+                <IconButton color="inherit" component={Link} to="/"><Avatar src={FireBellyLogo} alt="Logo" /></IconButton>
                 <div style={pageWidth < 800 ? { display: 'none' } : { display: 'block' }}>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
@@ -83,7 +83,7 @@ export default function Navbar() {
                                 {isListOpen ? <ExpandLess /> : <ExpandMore />}
                             </ListItem>
                             <Collapse in={isListOpen} timeout="auto" unmountOnExit style={{position: 'absolute'}}>
-                                <List component="div" disablePadding>
+                                <List component="div" disablePadding >
                                     <ListItem button component={Link} to="/dashboard" onClick={toggleList} className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>
@@ -108,7 +108,7 @@ export default function Navbar() {
                         (
                             <>
                                 <Button className={classes.NavAccountOptions} style={{ color: '#ee2726', }} component={Link} to="/login">Login</Button>
-                                <Button className={classes.NavAccountOptions} component={Link} to="/signup">Sign up</Button>
+                                <Button className={classes.NavAccountOptions} style={{ color: '#ffffff', }} component={Link} to="/signup">Sign up</Button>
                             </>
                         )
                     }

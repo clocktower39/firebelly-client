@@ -5,9 +5,9 @@ import {
     Grid,
     TextField,
     Divider,
-    makeStyles
-} from '@material-ui/core';
-import { ArrowBack, ArrowForward } from '@material-ui/icons';
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import Tasks from './Tasks';
 import Training from './Training';
 import Nutrition from './Nutrition';
@@ -22,6 +22,17 @@ const useStyles = makeStyles(theme => ({
         backgroundColor: '#fcfcfc',
         left: '50%',
         transform: 'translate(-50%, 50%)',
+    },
+    ArrowIcons: {
+        color: theme.palette.primary.dark,
+    },
+    TextField: {
+        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline':{
+            borderColor: theme.palette.primary.dark,
+        },
+        '& .MuiOutlinedInput-input':{
+            color: '#ffffff',
+        },
     },
 }))
 
@@ -50,20 +61,21 @@ export default function Day() {
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Grid item xs={12} container justifyContent="center">
-                <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack /></Button>
+                <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack className={classes.ArrowIcons} /></Button>
                 <TextField
-                id="date"
-                label="Date"
-                type="date"
-
-                value={selectedDate}
-                className={classes.TextField}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                InputLabelProps={{
-                    shrink: true,
-                }}
+                focused 
+                    id="date"
+                    label="Date"
+                    type="date"
+                    color="primary"
+                    value={selectedDate}
+                    className={classes.TextField}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
                 />
-                <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward /></Button>
+                <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward className={classes.ArrowIcons} /></Button>
             </Grid>
             <Divider style={{margin: "15px"}} />
             {/* <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography> */}

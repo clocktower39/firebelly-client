@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux';
 import { loginJWT } from '../Redux/actions';
-import { CardMedia } from '@material-ui/core';
+import { CardMedia } from '@mui/material';
 import DeadliftImg from '../img/deadlift.jpg';
 
 export default function Home() {
@@ -19,7 +19,7 @@ export default function Home() {
     },[])
 
     return (
-        <div style={{marginTop: '-50px'}}>
+        <div style={{marginTop: '-90px'}}>
             <CardMedia image={DeadliftImg} style={{height: 0, paddingTop: '56.25%',}}/>
         </div>
     )

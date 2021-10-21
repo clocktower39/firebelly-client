@@ -10,9 +10,9 @@ import {
   LinearProgress,
   TextField,
   Typography,
-  makeStyles,
   Button,
-} from "@material-ui/core";
+} from "@mui/material";
+import { makeStyles } from '@mui/styles';
 import {
   ExpandMore,
   AddCircle,
@@ -20,7 +20,7 @@ import {
   CheckCircle,
   Edit,
   ListAlt,
-} from "@material-ui/icons";
+} from "@mui/icons-material";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -487,7 +487,17 @@ export default function Training(props) {
             container
             className={classes.TrainingCategoryInputContainer}
           >
-            <Grid item xs={11} container alignContent="center">
+            <Grid container alignContent="center" item xs={1}>
+              <Grid container alignContent="center" item xs={12}>
+                <IconButton
+                  variant="contained"
+                  onClick={() => setEditMode(!editMode)}
+                >
+                  {editMode ? <ListAlt /> : <Edit />}
+                </IconButton>
+              </Grid>
+            </Grid>
+            <Grid item xs={10} container alignContent="center">
               <TextField
                 label="Training Category"
                 onChange={handleTrainingCategoryChange}

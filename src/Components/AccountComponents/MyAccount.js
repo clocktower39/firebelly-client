@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { Button, Container, Paper, TextField, Typography, Grid } from "@material-ui/core";
+import { Button, Container, Paper, TextField, Typography, Grid } from "@mui/material";
 import { editUser } from "../../Redux/actions";
 
 export default function MyAccount() {
