@@ -12,11 +12,11 @@ export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 export const EDIT_DAILY_NOTE = 'EDIT_DAILY_NOTE';
 export const EDIT_DAILY_TRAINING = 'EDIT_DAILY_TRAINING';
 
-const CURRENT_IP = window.location.href.split(":")[1];
+// const CURRENT_IP = window.location.href.split(":")[1];
 
 export function signupUser(user) {
     return async (dispatch, getState) => {
-        const response = await fetch(`http:${CURRENT_IP}:6969/signup`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/signup`, {
             method: 'post',
             dataType: 'json',
             body: user,
@@ -38,7 +38,7 @@ export function signupUser(user) {
 
 export function loginUser(user) {
     return async (dispatch, getState) => {
-        const response = await fetch(`http:${CURRENT_IP}:6969/login`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/login`, {
             method: 'post',
             dataType: 'json',
             body: user,
@@ -68,7 +68,7 @@ export const loginJWT = (token) => {
     return async (dispatch, getState) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
-        const response = await fetch(`http:${CURRENT_IP}:6969/checkAuthToken`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/checkAuthToken`, {
             headers: {
                 "Authorization": bearer,
             }
@@ -118,7 +118,7 @@ export function checkToggleDailyTask(id) {
                 task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
                 const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
                 
-                fetch(`http:${CURRENT_IP}:6969/updateTask`, {
+                fetch(`https://firebellyfitness.herokuapp.com/updateTask`, {
                     method: 'post',
                     dataType: 'json',
                     body: JSON.stringify({
@@ -156,7 +156,7 @@ export function addDailyTask(newTask) {
 
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
         
-        const dbTask = await fetch(`http:${CURRENT_IP}:6969/createTask`, {
+        const dbTask = await fetch(`https://firebellyfitness.herokuapp.com/createTask`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -207,7 +207,7 @@ export function requestDailyTasks(accountId, date) {
         const state = getState();
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
-        const response = await fetch(`http:${CURRENT_IP}:6969/tasks`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/tasks`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -228,7 +228,7 @@ export function requestDailyTasks(accountId, date) {
             state.user.defaultTasks.forEach(task => {
                 const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
-                fetch(`http:${CURRENT_IP}:6969/createTask`, {
+                fetch(`https://firebellyfitness.herokuapp.com/createTask`, {
                     method: 'post',
                     dataType: 'json',
                     body: JSON.stringify({
@@ -273,7 +273,7 @@ export function editDefaultDailyTask(defaultTasks) {
         // send update to DB
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
-        const response = await fetch(`http:${CURRENT_IP}:6969/updateDefaultTasks`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/updateDefaultTasks`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({ _id: state.user._id, defaultTasks }),
@@ -311,7 +311,7 @@ export function requestDailyNutrition(accountId, date) {
         const state = getState();
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
         
-        const response = await fetch(`http:${CURRENT_IP}:6969/nutrition`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/nutrition`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -332,7 +332,7 @@ export function requestDailyNutrition(accountId, date) {
             state.user.defaultNutrition.forEach(nutritionTask => {
                 const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
                 
-                fetch(`http:${CURRENT_IP}:6969/createNutrition`, {
+                fetch(`https://firebellyfitness.herokuapp.com/createNutrition`, {
                     method: 'post',
                     dataType: 'json',
                     body: JSON.stringify({
@@ -379,7 +379,7 @@ export function updateDailyNutrition(updateList) {
         updateList.forEach(async nutrition => {
             const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
             
-            const data = await fetch(`http:${CURRENT_IP}:6969/updateNutrition`, {
+            const data = await fetch(`https://firebellyfitness.herokuapp.com/updateNutrition`, {
                 method: 'post',
                 dataType: 'json',
                 body: JSON.stringify({
@@ -414,7 +414,7 @@ export function requestDailyNote(accountId, date) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
         
-        const response = await fetch(`http:${CURRENT_IP}:6969/note`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/note`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -429,7 +429,7 @@ export function requestDailyNote(accountId, date) {
         let data = await response.json();
 
         if (data.results === "No Results") {
-            fetch(`http:${CURRENT_IP}:6969/createNote`, {
+            fetch(`https://firebellyfitness.herokuapp.com/createNote`, {
                 method: 'post',
                 dataType: 'json',
                 body: JSON.stringify({
@@ -468,7 +468,7 @@ export function updateDailyNote(udpatedNote) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
-        const data = await fetch(`http:${CURRENT_IP}:6969/updateNote`, {
+        const data = await fetch(`https://firebellyfitness.herokuapp.com/updateNote`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -501,7 +501,7 @@ export function requestDailyTraining(accountId, date) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
         
-        const response = await fetch(`http:${CURRENT_IP}:6969/training`, {
+        const response = await fetch(`https://firebellyfitness.herokuapp.com/training`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
@@ -516,7 +516,7 @@ export function requestDailyTraining(accountId, date) {
         let data = await response.json();
 
         if (!data || data.length < 1) {
-            fetch(`http:${CURRENT_IP}:6969/createTraining`, {
+            fetch(`https://firebellyfitness.herokuapp.com/createTraining`, {
                 method: 'post',
                 dataType: 'json',
                 body: JSON.stringify({
@@ -582,7 +582,7 @@ export function updateDailyTraining(trainingId, updatedTraining) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
         
-        const data = await fetch(`http:${CURRENT_IP}:6969/updateTraining`, {
+        const data = await fetch(`https://firebellyfitness.herokuapp.com/updateTraining`, {
             method: 'post',
             dataType: 'json',
             body: JSON.stringify({
