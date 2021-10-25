@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { Button, Container, Paper, TextField, Typography, Grid } from "@mui/material";
+import { Button, Container, Divider, Paper, TextField, Typography, Grid } from "@mui/material";
 import { editUser } from "../../Redux/actions";
 
 export default function Biometrics() {
@@ -32,9 +32,12 @@ export default function Biometrics() {
 
   return (
     <Container maxWidth="md" style={{ height: "100%" }}>
+    <Grid container item xs={12} style={{padding: '15px'}}>
       <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
         Biometrics
       </Typography>
+      </Grid>
+      <Divider />
       <Grid container component={Paper} spacing={2} style={{padding: '15px'}}>
         <Grid item xs={12}>
             <TextField label="Date of Birth" value={dateOfBirth} onChange={(e)=>handleChange(e.target.value,setDateOfBirth)} fullWidth/>
@@ -45,7 +48,7 @@ export default function Biometrics() {
         <Grid item xs={12}>
             <TextField label="Sex" value={sex} onChange={(e)=>handleChange(e.target.value,setSex)} fullWidth/>
         </Grid>
-        <Grid container justifyContent="center" item xs={12} spacing={2}>
+        <Grid container style={{justifyContent:"center"}} item xs={12} spacing={2}>
           <Grid item ><Button variant="contained" onClick={handleCancel}>Cancel</Button></Grid>
           <Grid item ><Button variant="contained" onClick={saveChanges}>Save</Button></Grid>
         </Grid>

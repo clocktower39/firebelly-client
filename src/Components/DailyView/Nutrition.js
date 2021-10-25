@@ -155,7 +155,7 @@ export default function Nutrition(props) {
           {today.dailyNutrition.sort((a,b) => a.title > b.title ).map((task) => (
             <NutritionStat key={task._id} task={task} setLocalNutrition={setLocalNutrition}/>
           ))}
-          <Grid xs={12} item container justifyContent="center">
+          <Grid xs={12} item container style={{justifyContent:"center"}} >
             <Button variant="outlined" onClick={saveChanges}>Save</Button>
           </Grid>
         </Grid>

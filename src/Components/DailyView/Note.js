@@ -64,7 +64,7 @@ export default function Note(props) {
               label="Please provide feedback on your day; what was difficult and what went well?"
             />
           </Grid>
-          <Grid item container justifyContent="center" xs={12}>
+          <Grid item container style={{justifyContent:"center"}} xs={12}>
             <Button variant="outlined" onClick={handleSave}>
               Save
             </Button>

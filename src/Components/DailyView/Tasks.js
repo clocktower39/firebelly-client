@@ -95,14 +95,14 @@ export default function Tasks(props) {
       <Modal open={isModalOpen}>
         <Paper className={classes.ModalPaper}>
           <Grid container spacing={3} alignContent="center" style={{height: '100%'}}>
-            <Grid item xs={12} container justifyContent="center">
+            <Grid item xs={12} container style={{justifyContent:"center"}} >
               <TextField
                 label="New Task Title"
                 value={modalNewTaskTitle}
                 onChange={(e) => setModalNewTaskTitle(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} container justifyContent="center">
+            <Grid item xs={12} container style={{justifyContent:"center"}} >
               <Button variant="outlined" onClick={cancelNewTask}>
                 Cancel
               </Button>
@@ -128,7 +128,7 @@ export default function Tasks(props) {
           </Grid>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid container spacing={2} justifyContent="center">
+          <Grid container spacing={2} style={{justifyContent:"center"}} >
             {dailyTasks.sort((a,b) => a.title > b.title ).map((task) => {
               const handleCheckChange = (e) => {
                 dispatch(checkToggleDailyTask(task._id));

@@ -44,10 +44,6 @@ const useStyles = makeStyles(theme=>({
     },
     nested: {
       paddingLeft: theme.spacing(4),
-      backgroundColor: '#000000',
-      '&:hover': {
-          backgroundColor: '#222222',
-      }
     },
 }));
 
@@ -83,7 +79,7 @@ export default function Navbar() {
                                 {isListOpen ? <ExpandLess /> : <ExpandMore />}
                             </ListItem>
                             <Collapse in={isListOpen} timeout="auto" unmountOnExit style={{position: 'absolute'}}>
-                                <List component="div" disablePadding >
+                                <List component="div" disablePadding style={{backgroundColor: 'black'}} >
                                     <ListItem button component={Link} to="/dashboard" onClick={toggleList} className={classes.nested}>
                                         <ListItemText>Dashboard</ListItemText>
                                     </ListItem>

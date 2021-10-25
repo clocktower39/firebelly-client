@@ -60,7 +60,7 @@ export default function Day() {
 
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
-            <Grid item xs={12} container justifyContent="center">
+            <Grid item xs={12} container style={{justifyContent:"center"}} >
                 <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack className={classes.ArrowIcons} /></Button>
                 <TextField
                 focused 

@@ -64,7 +64,7 @@ const Set = (props) => {
           />
         ))}
         <Grid container item xs={12}>
-          <Grid container item xs={12} justifyContent="center">
+          <Grid container item xs={12} style={{justifyContent:"center"}} >
             <IconButton onClick={() => props.newExercise(index)}>
               <AddCircle />
             </IconButton>
@@ -170,8 +170,7 @@ const Exercise = (props) => {
     <Grid
       container
       spacing={2}
-      justifyContent="center"
-      style={{ marginBottom: "25px" }}
+      style={{ marginBottom: "25px", justifyContent:"center" }}
     >
       {props.editMode ? (
         <>
@@ -204,7 +203,7 @@ const Exercise = (props) => {
               onChange={(e) => handleChange(e, setMaxReps)}
             />
           </Grid>
-          <Grid container item xs={2} sm={1} justifyContent="center">
+          <Grid container item xs={2} sm={1} style={{justifyContent:"center"}} >
             <IconButton
               onClick={() =>
                 props.removeExercise(props.setIndex, props.exerciseIndex)
@@ -213,7 +212,7 @@ const Exercise = (props) => {
               <RemoveCircle />
             </IconButton>
           </Grid>
-          <Grid container item xs={2} sm={1} justifyContent="center">
+          <Grid container item xs={2} sm={1} style={{justifyContent:"center"}} >
             <IconButton
               onClick={() =>
                 props.saveExercise(props.setIndex, props.exerciseIndex, {
