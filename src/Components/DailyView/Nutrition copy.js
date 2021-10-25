@@ -33,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
 
 const NutritionStat = (props) => {
   const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+  
   const handleChange = (e) => {
     // initialize answer to be used at the end of the conditional
     let answer = 0;
@@ -55,11 +56,12 @@ const NutritionStat = (props) => {
       }
     }
     props.setLocalNutrition(previous => {
-      const newLocalNutrition = { ...previous };
-      newLocalNutrition.stats[props.nutritionObjectProperty].achieved = Number(answer);
-      return {
-        ...newLocalNutrition,
-      }
+      return previous.map(nutrition => {
+        if(nutrition._id === props.task._id){
+          nutrition.achieved = answer;
+        }
+        return nutrition;
+      })
     })
   };
 
@@ -69,10 +71,6 @@ const NutritionStat = (props) => {
       setTaskAchieved(e.target.value);
     }
   };
-
-  useEffect(()=>{
-    setTaskAchieved(props.task.achieved);
-  },[props.task.achieved])
 
   return (
     <Grid item xs={12} >
@@ -106,10 +104,10 @@ export default function Nutrition(props) {
   let dailyNutritionGoal = 1;
   if(today.dailyNutrition.length > 0){
     dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({
-      achieved: a.stats.achieved + b.stats.achieved,
+      achieved: a.achieved + b.achieved,
     })).achieved;
     dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({
-      goal: a.stats.goal + b.stats.goal,
+      goal: a.goal + b.goal,
     })).goal;
   }
 
@@ -133,7 +131,6 @@ export default function Nutrition(props) {
   }, [props.selectedDate]);
 
   useEffect(() => {
-    console.log(localNutrition)
     setLocalNutrition(today.dailyNutrition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [today.dailyNutrition]);
@@ -155,9 +152,9 @@ export default function Nutrition(props) {
       </AccordionSummary>
       <AccordionDetails>
         <Grid container spacing={2}>
-          {localNutrition.stats?Object.keys(today.dailyNutrition.stats).map((task) => (
-            <NutritionStat key={task} nutritionObjectProperty={task} task={localNutrition.stats[task]} setLocalNutrition={setLocalNutrition}/>
-          )):<></>}
+          {today.dailyNutrition.sort((a,b) => a.title > b.title ).map((task) => (
+            <NutritionStat key={task._id} task={task} setLocalNutrition={setLocalNutrition}/>
+          ))}
           <Grid xs={12} item container style={{justifyContent:"center"}} >
             <Button variant="outlined" onClick={saveChanges}>Save</Button>
           </Grid>
