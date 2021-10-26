@@ -139,7 +139,7 @@ export default function Nutrition(props) {
   }, [today.dailyNutrition]);
   
   return (
-    <Accordion>
+    <Accordion defaultExpanded >
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Grid container alignItems="center">
           <Grid item xs={3}>

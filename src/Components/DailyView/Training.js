@@ -19,7 +19,7 @@ import {
   RemoveCircle,
   CheckCircle,
   Edit,
-  ListAlt,
+  FactCheck,
 } from "@mui/icons-material";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
 
@@ -64,7 +64,7 @@ const Set = (props) => {
           />
         ))}
         <Grid container item xs={12}>
-          <Grid container item xs={12} style={{justifyContent:"center"}} >
+          <Grid container item xs={12} style={{ justifyContent: "center" }} >
             <IconButton onClick={() => props.newExercise(index)}>
               <AddCircle />
             </IconButton>
@@ -170,68 +170,82 @@ const Exercise = (props) => {
     <Grid
       container
       spacing={2}
-      style={{ marginBottom: "25px", justifyContent:"center" }}
+      style={{ marginBottom: "25px", justifyContent: "center" }}
     >
       {props.editMode ? (
         <>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Exercise Title"
-              value={title}
-              onChange={(e) => handleChange(e, setTitle)}
-              fullWidth
-            />
+          <Grid container item xs={10} spacing={1}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Exercise Title"
+                value={title}
+                onChange={(e) => handleChange(e, setTitle)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Type"
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={4} sm={2}>
+              <TextField
+                label="Sets"
+                value={sets}
+                onChange={(e) => handleChange(e, setSets)}
+              />
+            </Grid>
+            <Grid item xs={4} sm={2}>
+              <TextField
+                label="Min Reps"
+                value={minReps}
+                onChange={(e) => handleChange(e, setMinReps)}
+              />
+            </Grid>
+            <Grid item xs={4} sm={2}>
+              <TextField
+                label="Max Reps"
+                value={maxReps}
+                onChange={(e) => handleChange(e, setMaxReps)}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={2} sm={1}>
-            <TextField
-              label="Sets"
-              value={sets}
-              onChange={(e) => handleChange(e, setSets)}
-            />
-          </Grid>
-          <Grid item xs={2} sm={1}>
-            <TextField
-              label="Min Reps"
-              value={minReps}
-              onChange={(e) => handleChange(e, setMinReps)}
-            />
-          </Grid>
-          <Grid item xs={2} sm={1}>
-            <TextField
-              label="Max Reps"
-              value={maxReps}
-              onChange={(e) => handleChange(e, setMaxReps)}
-            />
-          </Grid>
-          <Grid container item xs={2} sm={1} style={{justifyContent:"center"}} >
-            <IconButton
-              onClick={() =>
-                props.removeExercise(props.setIndex, props.exerciseIndex)
-              }
-            >
-              <RemoveCircle />
-            </IconButton>
-          </Grid>
-          <Grid container item xs={2} sm={1} style={{justifyContent:"center"}} >
-            <IconButton
-              onClick={() =>
-                props.saveExercise(props.setIndex, props.exerciseIndex, {
-                  title,
-                  sets,
-                  minReps,
-                  maxReps,
-                  reps: props.exercise.achieved.reps,
-                })
-              }
-            >
-              <CheckCircle />
-            </IconButton>
+          <Grid container item xs={2}style={{ alignContent: "center" }} spacing={1} >
+            <Grid container item xs={12} sm={6} style={{ justifyContent: 'center', alignContent: "center" }}>
+              <Grid item>
+                <IconButton
+                  onClick={() =>
+                    props.removeExercise(props.setIndex, props.exerciseIndex)
+                  }
+                >
+                  <RemoveCircle />
+                </IconButton>
+              </Grid>
+            </Grid>
+            <Grid container item xs={12} sm={6} style={{ justifyContent: 'center', alignContent: "center" }}>
+              <Grid item>
+                <IconButton
+                  onClick={() =>
+                    props.saveExercise(props.setIndex, props.exerciseIndex, {
+                      title,
+                      sets,
+                      minReps,
+                      maxReps,
+                      reps: props.exercise.achieved.reps,
+                    })
+                  }
+                >
+                  <CheckCircle />
+                </IconButton>
+              </Grid>
+            </Grid>
           </Grid>
         </>
       ) : (
         <>
-          <Grid item xs={3}>
-            <Typography variant="h6">
+          <Grid item xs={12} sm={3}>
+            <Typography variant="h6" style={{ textAlign: 'center' }}>
               {title || "Enter an exercise"}:
             </Typography>
           </Grid>
@@ -464,7 +478,7 @@ export default function Training(props) {
   }, [props.selectedDate]);
 
   return (
-    <Accordion>
+    <Accordion defaultExpanded >
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Grid container alignItems="center">
           <Grid item xs={3}>
@@ -486,17 +500,7 @@ export default function Training(props) {
             container
             className={classes.TrainingCategoryInputContainer}
           >
-            <Grid container alignContent="center" item xs={1}>
-              <Grid container alignContent="center" item xs={12}>
-                <IconButton
-                  variant="contained"
-                  onClick={() => setEditMode(!editMode)}
-                >
-                  {editMode ? <ListAlt /> : <Edit />}
-                </IconButton>
-              </Grid>
-            </Grid>
-            <Grid item xs={10} container alignContent="center">
+            <Grid item xs={11} container alignContent="center">
               <TextField
                 label="Training Category"
                 onChange={handleTrainingCategoryChange}
@@ -505,17 +509,18 @@ export default function Training(props) {
                 disabled={!editMode}
               />
             </Grid>
-            <Grid container alignContent="center" item xs={1}>
-              <Grid container alignContent="center" item xs={12}>
+            <Grid container style={{ alignContent: "center" }} item xs={1}>
+              <Grid container style={{ justifyContent: "center" }} item xs={12}>
                 <IconButton
                   variant="contained"
                   onClick={() => setEditMode(!editMode)}
                 >
-                  {editMode ? <ListAlt /> : <Edit />}
+                  {editMode ? <FactCheck /> : <Edit />}
                 </IconButton>
               </Grid>
             </Grid>
           </Grid>
+          <Grid item xs={12}><Divider style={{ margin: "25px 0px" }} /></Grid>
           {today.dailyTraining.training.length > 0 ? (
             <Set
               today={today}
