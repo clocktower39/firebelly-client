@@ -84,6 +84,7 @@ const NutritionStat = (props) => {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         type="number"
+        inputProps={{ type: 'number', pattern: '\\d*', }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="start">
@@ -104,12 +105,12 @@ export default function Nutrition(props) {
 
   let dailyNutritionAchieved = 0;
   let dailyNutritionGoal = 1;
-  if(today.dailyNutrition.length > 0){
-    dailyNutritionAchieved = today.dailyNutrition.reduce((a, b) => ({
-      achieved: a.stats.achieved + b.stats.achieved,
+  if(today.dailyNutrition.stats && Object.keys(today.dailyNutrition.stats).length > 0){
+    dailyNutritionAchieved = Object.keys(today.dailyNutrition.stats).map(item=>today.dailyNutrition.stats[item]).reduce((a, b) => ({
+      achieved: a.achieved + b.achieved,
     })).achieved;
-    dailyNutritionGoal = today.dailyNutrition.reduce((a, b) => ({
-      goal: a.stats.goal + b.stats.goal,
+    dailyNutritionGoal = Object.keys(today.dailyNutrition.stats).map(item=>today.dailyNutrition.stats[item]).reduce((a, b) => ({
+      goal: a.goal + b.goal,
     })).goal;
   }
 
