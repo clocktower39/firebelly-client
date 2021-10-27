@@ -123,6 +123,8 @@ const ExerciseSet = (props) => {
             label="Reps"
             value={reps[i]}
             onChange={(e) => handleChange(e, setReps, i)}
+            type="number"
+            inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
           />
         </Grid>
         <Grid item xs={6}>
@@ -130,6 +132,8 @@ const ExerciseSet = (props) => {
             label="Weight"
             value={weight[i]}
             onChange={(e) => handleChange(e, setWeight, i)}
+            type="number"
+            inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
           />
         </Grid>
       </Grid>
@@ -194,6 +198,8 @@ const Exercise = (props) => {
                 label="Sets"
                 value={sets}
                 onChange={(e) => handleChange(e, setSets)}
+                type="number"
+                inputProps={{ type: 'number', pattern: '\\d*', }}
               />
             </Grid>
             <Grid item xs={4} sm={2}>
@@ -201,6 +207,8 @@ const Exercise = (props) => {
                 label="Min Reps"
                 value={minReps}
                 onChange={(e) => handleChange(e, setMinReps)}
+                type="number"
+                inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
               />
             </Grid>
             <Grid item xs={4} sm={2}>
@@ -208,10 +216,12 @@ const Exercise = (props) => {
                 label="Max Reps"
                 value={maxReps}
                 onChange={(e) => handleChange(e, setMaxReps)}
+                type="number"
+                inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
               />
             </Grid>
           </Grid>
-          <Grid container item xs={2}style={{ alignContent: "center" }} spacing={1} >
+          <Grid container item xs={2} style={{ alignContent: "center" }} spacing={1} >
             <Grid container item xs={12} sm={6} style={{ justifyContent: 'center', alignContent: "center" }}>
               <Grid item>
                 <IconButton
