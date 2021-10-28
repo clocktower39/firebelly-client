@@ -63,7 +63,7 @@ export default function Navbar() {
     return (
         <AppBar position='fixed' >
             <Toolbar className={classes.Toolbar} >
-                <IconButton color="inherit" component={Link} to="/"><Avatar src={FireBellyLogo} alt="Logo" /></IconButton>
+                <IconButton color="inherit" component={Link} to="/"><Avatar src={FireBellyLogo} alt="Logo" sx={{width: '75px', height: '75px'}} /></IconButton>
                 <div style={pageWidth < 800 ? { display: 'none' } : { display: 'block' }}>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
