@@ -170,14 +170,6 @@ export let dailyNote = {
     // note: 'loading',
 }
 
-export let weeklyTasks = [dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks,dailyTasks];
-export let weeklyTraining = [dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining,dailyTraining];
-export let weeklyNutrition = [dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition,dailyNutrition];
-
-export let monthlyTasks = [weeklyTasks,weeklyTasks,weeklyTasks,weeklyTasks];
-export let monthlyTraining = [weeklyTraining,weeklyTraining,weeklyTraining,weeklyTraining];
-export let monthlyNutrition = [weeklyNutrition,weeklyNutrition,weeklyNutrition,weeklyNutrition];
-
 export let calander = {
     dailyView:{
         dailyTasks,
@@ -186,13 +178,7 @@ export let calander = {
         dailyNote,
     },
     weeklyView:{
-        weeklyTasks,
-        weeklyTraining,
-        weeklyNutrition,
     },
     monthlyView:{
-        monthlyTasks,
-        monthlyTraining,
-        monthlyNutrition,
     },
 }

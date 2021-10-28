@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Set = (props) => {
-  return props.today.dailyTraining.training.map((group, index) =>
+  return props.localTraining.map((group, index) =>
     props.editMode ? (
       <Grid item xs={12} key={index}>
         <Grid container item xs={12}>
@@ -61,6 +61,8 @@ const Set = (props) => {
             exerciseIndex={exerciseIndex}
             removeExercise={props.removeExercise}
             saveExercise={props.saveExercise}
+            localTraining={props.localTraining}
+            setLocalTraining={props.setLocalTraining}
           />
         ))}
         <Grid container item xs={12}>
@@ -168,7 +170,33 @@ const Exercise = (props) => {
   const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
 
-  const handleChange = (e, setter) => setter(e.target.value);
+  const handleChange = (e, setter) => {
+    setter(e.target.value)
+    props.setLocalTraining(prev => {
+      return prev.map((set, setIndex) => {
+        if(setIndex === props.setIndex){
+          set.map((exercise, exerciseIndex)=>{
+            if(exerciseIndex === props.exerciseIndex){
+              exercise.exercise = title;
+              exercise.goals = {
+                sets,
+                minReps,
+                maxReps,
+              }
+              while(Number(exercise.achieved.reps.length) !== Number(sets)){
+                Number(exercise.achieved.reps.length) > Number(sets)?exercise.achieved.reps.pop():exercise.achieved.reps.push(0);
+              }
+              while(Number(exercise.achieved.weight.length) !== Number(sets)){
+                Number(exercise.achieved.weight.length) > Number(sets)?exercise.achieved.weight.pop():exercise.achieved.weight.push(0);
+              }
+            }
+            return exercise;
+          })
+        }
+        return set;
+      })
+    })
+  };
 
   return (
     <Grid
@@ -233,23 +261,6 @@ const Exercise = (props) => {
                 </IconButton>
               </Grid>
             </Grid>
-            <Grid container item xs={12} sm={6} style={{ justifyContent: 'center', alignContent: "center" }}>
-              <Grid item>
-                <IconButton
-                  onClick={() =>
-                    props.saveExercise(props.setIndex, props.exerciseIndex, {
-                      title,
-                      sets,
-                      minReps,
-                      maxReps,
-                      reps: props.exercise.achieved.reps,
-                    })
-                  }
-                >
-                  <CheckCircle />
-                </IconButton>
-              </Grid>
-            </Grid>
           </Grid>
         </>
       ) : (
@@ -281,8 +292,9 @@ export default function Training(props) {
   const [editMode, setEditMode] = useState(false);
 
   const [trainingCategory, setTrainingCategory] = useState("");
-  const handleTrainingCategoryChange = (e) =>
-    setTrainingCategory(e.target.value);
+  const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
+
+  const [localTraining, setLocalTraining] = useState([])
 
   let allTraining = [];
 
@@ -478,8 +490,18 @@ export default function Training(props) {
     );
   };
 
+  const save = () => {
+    dispatch(
+      updateDailyTraining(today.dailyTraining._id, {
+        ...today.dailyTraining,
+        training: localTraining,
+      })
+    );
+  };
+
   useEffect(() => {
     setTrainingCategory(today.dailyTraining.category || "");
+    setLocalTraining(today.dailyTraining.training || []);
   }, [today]);
 
   useEffect(() => {
@@ -540,14 +562,19 @@ export default function Training(props) {
               removeExercise={removeExercise}
               saveExercise={saveExercise}
               saveExerciseSet={saveExerciseSet}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
           ) : (
             <></>
           )}
           {editMode ? (
             <Grid item xs={12}>
-              <Button variant="contained" onClick={newSet}>
-                New Set
+            <Button variant="contained" onClick={newSet}>
+              New Set
+            </Button>
+              <Button variant="contained" onClick={save}>
+                Save
               </Button>
             </Grid>
           ) : (
