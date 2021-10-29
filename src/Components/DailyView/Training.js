@@ -170,6 +170,39 @@ const Exercise = (props) => {
   const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
 
+  const handleSetChange = (e) => {
+    setSets(e.target.value)
+    props.setLocalTraining(prev => {
+      return prev.map((set, setIndex) => {
+        if(setIndex === props.setIndex){
+          set.map((exercise, exerciseIndex)=>{
+            if(exerciseIndex === props.exerciseIndex){
+              exercise.exercise = title;
+              exercise.goals = {
+                sets: e.target.value,
+                minReps,
+                maxReps,
+              }
+              while(Number(exercise.achieved.reps.length) !== Number(e.target.value)){
+                if(Number(exercise.achieved.reps.length) > Number(e.target.value)){
+                  exercise.achieved.reps.pop()
+                }
+                else if(Number(exercise.achieved.reps.length) < Number(e.target.value)){
+                  exercise.achieved.reps.push(0);
+                }
+              }
+              while(Number(exercise.achieved.weight.length) !== Number(e.target.value)){
+                Number(exercise.achieved.weight.length) > Number(e.target.value)?exercise.achieved.weight.pop():exercise.achieved.weight.push(0);
+              }
+            }
+            return exercise;
+          })
+        }
+        return set;
+      })
+    })
+  }
+
   const handleChange = (e, setter) => {
     setter(e.target.value)
     props.setLocalTraining(prev => {
@@ -184,7 +217,12 @@ const Exercise = (props) => {
                 maxReps,
               }
               while(Number(exercise.achieved.reps.length) !== Number(sets)){
-                Number(exercise.achieved.reps.length) > Number(sets)?exercise.achieved.reps.pop():exercise.achieved.reps.push(0);
+                if(Number(exercise.achieved.reps.length) > Number(sets)){
+                  exercise.achieved.reps.pop()
+                }
+                else if(Number(exercise.achieved.reps.length) < Number(sets)){
+                  exercise.achieved.reps.push(0);
+                }
               }
               while(Number(exercise.achieved.weight.length) !== Number(sets)){
                 Number(exercise.achieved.weight.length) > Number(sets)?exercise.achieved.weight.pop():exercise.achieved.weight.push(0);
@@ -225,7 +263,7 @@ const Exercise = (props) => {
               <TextField
                 label="Sets"
                 value={sets}
-                onChange={(e) => handleChange(e, setSets)}
+                onChange={(e) => handleSetChange(e)}
                 type="number"
                 inputProps={{ type: 'number', pattern: '\\d*', }}
               />
