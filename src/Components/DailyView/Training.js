@@ -12,14 +12,10 @@ import {
   Typography,
   Button,
 } from "@mui/material";
-import { makeStyles } from '@mui/styles';
-import {
-  ExpandMore,
-  Edit,
-  FactCheck,
-} from "@mui/icons-material";
+import { makeStyles } from "@mui/styles";
+import { ExpandMore, Edit, FactCheck } from "@mui/icons-material";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
-import Set from './TrainingSections/Set'
+import Set from "./TrainingSections/Set";
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -45,9 +41,10 @@ export default function Training(props) {
   const [editMode, setEditMode] = useState(false);
 
   const [trainingCategory, setTrainingCategory] = useState("");
-  const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
+  const handleTrainingCategoryChange = (e) =>
+    setTrainingCategory(e.target.value);
 
-  const [localTraining, setLocalTraining] = useState([])
+  const [localTraining, setLocalTraining] = useState([]);
 
   let allTraining = [];
 
@@ -263,7 +260,7 @@ export default function Training(props) {
   }, [props.selectedDate]);
 
   return (
-    <Accordion defaultExpanded >
+    <Accordion defaultExpanded>
       <AccordionSummary expandIcon={<ExpandMore />}>
         <Grid container alignItems="center">
           <Grid item xs={3}>
@@ -305,27 +302,25 @@ export default function Training(props) {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12}><Divider style={{ margin: "25px 0px" }} /></Grid>
-          {today.dailyTraining.training.length > 0 ? (
-            <Set
-              today={today}
-              editMode={editMode}
-              newExercise={newExercise}
-              removeSet={removeSet}
-              removeExercise={removeExercise}
-              saveExercise={saveExercise}
-              saveExerciseSet={saveExerciseSet}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          ) : (
-            <></>
-          )}
+          <Grid item xs={12}>
+            <Divider style={{ margin: "25px 0px" }} />
+          </Grid>
+          <Set
+            today={today}
+            editMode={editMode}
+            newExercise={newExercise}
+            removeSet={removeSet}
+            removeExercise={removeExercise}
+            saveExercise={saveExercise}
+            saveExerciseSet={saveExerciseSet}
+            localTraining={localTraining}
+            setLocalTraining={setLocalTraining}
+          />
           {editMode ? (
             <Grid item xs={12}>
-            <Button variant="contained" onClick={newSet}>
-              New Set
-            </Button>
+              <Button variant="contained" onClick={newSet}>
+                New Set
+              </Button>
               <Button variant="contained" onClick={save}>
                 Save
               </Button>

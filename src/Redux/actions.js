@@ -370,7 +370,6 @@ export function requestDailyNutrition(accountId, date) {
 
 export function updateDailyNutrition(updatedNutrition) {
     return async (dispatch) => {
-        console.log(updatedNutrition)
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
         const data = await fetch(`${serverURL}/updateNutrition`, {
