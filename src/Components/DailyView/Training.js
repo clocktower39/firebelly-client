@@ -41,8 +41,7 @@ export default function Training(props) {
   const [editMode, setEditMode] = useState(false);
 
   const [trainingCategory, setTrainingCategory] = useState("");
-  const handleTrainingCategoryChange = (e) =>
-    setTrainingCategory(e.target.value);
+  const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
 
   const [localTraining, setLocalTraining] = useState([]);
 
@@ -126,9 +125,7 @@ export default function Training(props) {
   };
 
   const removeSet = (setIndex) => {
-    const newTraining = today.dailyTraining.training.filter(
-      (item, index) => index !== setIndex
-    );
+    const newTraining = today.dailyTraining.training.filter((item, index) => index !== setIndex);
 
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
@@ -159,9 +156,7 @@ export default function Training(props) {
       if (index === setIndex) {
         set = set.map((item, index) => {
           if (index === exerciseIndex) {
-            while (
-              Number(newExercise.reps.length) !== Number(newExercise.sets)
-            ) {
+            while (Number(newExercise.reps.length) !== Number(newExercise.sets)) {
               if (Number(newExercise.reps.length) > Number(newExercise.sets)) {
                 newExercise.reps.pop();
               } else {
@@ -171,12 +166,8 @@ export default function Training(props) {
             if (!newExercise.weight) {
               newExercise.weight = [0];
             }
-            while (
-              Number(newExercise.weight.length) !== Number(newExercise.sets)
-            ) {
-              if (
-                Number(newExercise.weight.length) > Number(newExercise.sets)
-              ) {
+            while (Number(newExercise.weight.length) !== Number(newExercise.sets)) {
+              if (Number(newExercise.weight.length) > Number(newExercise.sets)) {
                 newExercise.weight.pop();
               } else {
                 newExercise.weight.push(0);
@@ -276,12 +267,7 @@ export default function Training(props) {
       </AccordionSummary>
       <AccordionDetails>
         <Grid container>
-          <Grid
-            item
-            xs={12}
-            container
-            className={classes.TrainingCategoryInputContainer}
-          >
+          <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
             <Grid item xs={11} container alignContent="center">
               <TextField
                 label="Training Category"
@@ -293,10 +279,7 @@ export default function Training(props) {
             </Grid>
             <Grid container style={{ alignContent: "center" }} item xs={1}>
               <Grid container style={{ justifyContent: "center" }} item xs={12}>
-                <IconButton
-                  variant="contained"
-                  onClick={() => setEditMode(!editMode)}
-                >
+                <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
                   {editMode ? <FactCheck /> : <Edit />}
                 </IconButton>
               </Grid>

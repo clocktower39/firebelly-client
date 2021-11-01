@@ -1,14 +1,7 @@
 import React, { useState } from "react";
-import {
-  Grid,
-  IconButton,
-  TextField,
-  Typography,
-  } from "@mui/material";
-import {
-  RemoveCircle,
-} from "@mui/icons-material";
-import ExerciseSet from './ExerciseSet'
+import { Grid, IconButton, TextField, Typography } from "@mui/material";
+import { RemoveCircle } from "@mui/icons-material";
+import ExerciseSet from "./ExerciseSet";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise);
@@ -17,77 +10,75 @@ export default function Exercise(props) {
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
 
   const handleSetChange = (e) => {
-    setSets(e.target.value)
-    props.setLocalTraining(prev => {
+    setSets(e.target.value);
+    props.setLocalTraining((prev) => {
       return prev.map((set, setIndex) => {
-        if(setIndex === props.setIndex){
-          set.map((exercise, exerciseIndex)=>{
-            if(exerciseIndex === props.exerciseIndex){
+        if (setIndex === props.setIndex) {
+          set.map((exercise, exerciseIndex) => {
+            if (exerciseIndex === props.exerciseIndex) {
               exercise.exercise = title;
               exercise.goals = {
                 sets: e.target.value,
                 minReps,
                 maxReps,
-              }
-              while(Number(exercise.achieved.reps.length) !== Number(e.target.value)){
-                if(Number(exercise.achieved.reps.length) > Number(e.target.value)){
-                  exercise.achieved.reps.pop()
-                }
-                else if(Number(exercise.achieved.reps.length) < Number(e.target.value)){
+              };
+              while (Number(exercise.achieved.reps.length) !== Number(e.target.value)) {
+                if (Number(exercise.achieved.reps.length) > Number(e.target.value)) {
+                  exercise.achieved.reps.pop();
+                } else if (Number(exercise.achieved.reps.length) < Number(e.target.value)) {
                   exercise.achieved.reps.push(0);
                 }
               }
-              while(Number(exercise.achieved.weight.length) !== Number(e.target.value)){
-                Number(exercise.achieved.weight.length) > Number(e.target.value)?exercise.achieved.weight.pop():exercise.achieved.weight.push(0);
+              while (Number(exercise.achieved.weight.length) !== Number(e.target.value)) {
+                Number(exercise.achieved.weight.length) > Number(e.target.value)
+                  ? exercise.achieved.weight.pop()
+                  : exercise.achieved.weight.push(0);
               }
             }
             return exercise;
-          })
+          });
         }
         return set;
-      })
-    })
-  }
+      });
+    });
+  };
 
   const handleChange = (e, setter) => {
-    setter(e.target.value)
-    props.setLocalTraining(prev => {
+    setter(e.target.value);
+    props.setLocalTraining((prev) => {
       return prev.map((set, setIndex) => {
-        if(setIndex === props.setIndex){
-          set.map((exercise, exerciseIndex)=>{
-            if(exerciseIndex === props.exerciseIndex){
+        if (setIndex === props.setIndex) {
+          set.map((exercise, exerciseIndex) => {
+            if (exerciseIndex === props.exerciseIndex) {
               exercise.exercise = title;
               exercise.goals = {
                 sets,
                 minReps,
                 maxReps,
-              }
-              while(Number(exercise.achieved.reps.length) !== Number(sets)){
-                if(Number(exercise.achieved.reps.length) > Number(sets)){
-                  exercise.achieved.reps.pop()
-                }
-                else if(Number(exercise.achieved.reps.length) < Number(sets)){
+              };
+              while (Number(exercise.achieved.reps.length) !== Number(sets)) {
+                if (Number(exercise.achieved.reps.length) > Number(sets)) {
+                  exercise.achieved.reps.pop();
+                } else if (Number(exercise.achieved.reps.length) < Number(sets)) {
                   exercise.achieved.reps.push(0);
                 }
               }
-              while(Number(exercise.achieved.weight.length) !== Number(sets)){
-                Number(exercise.achieved.weight.length) > Number(sets)?exercise.achieved.weight.pop():exercise.achieved.weight.push(0);
+              while (Number(exercise.achieved.weight.length) !== Number(sets)) {
+                Number(exercise.achieved.weight.length) > Number(sets)
+                  ? exercise.achieved.weight.pop()
+                  : exercise.achieved.weight.push(0);
               }
             }
             return exercise;
-          })
+          });
         }
         return set;
-      })
-    })
+      });
+    });
   };
 
   return (
-    <Grid
-      container
-      spacing={2}
-      style={{ marginBottom: "25px", justifyContent: "center" }}
-    >
+    <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {props.editMode ? (
         <>
           <Grid container item xs={10} spacing={1}>
@@ -100,10 +91,7 @@ export default function Exercise(props) {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                label="Type"
-                fullWidth
-              />
+              <TextField label="Type" fullWidth />
             </Grid>
             <Grid item xs={4} sm={2}>
               <TextField
@@ -111,7 +99,7 @@ export default function Exercise(props) {
                 value={sets}
                 onChange={(e) => handleSetChange(e)}
                 type="number"
-                inputProps={{ type: 'number', pattern: '\\d*', }}
+                inputProps={{ type: "number", pattern: "\\d*" }}
               />
             </Grid>
             <Grid item xs={4} sm={2}>
@@ -120,7 +108,7 @@ export default function Exercise(props) {
                 value={minReps}
                 onChange={(e) => handleChange(e, setMinReps)}
                 type="number"
-                inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
+                inputProps={{ type: "number", inputMode: "decimal", pattern: "[0-9]*" }}
               />
             </Grid>
             <Grid item xs={4} sm={2}>
@@ -129,17 +117,21 @@ export default function Exercise(props) {
                 value={maxReps}
                 onChange={(e) => handleChange(e, setMaxReps)}
                 type="number"
-                inputProps={{ type: 'number', inputMode: 'decimal', pattern: '[0-9]*', }}
+                inputProps={{ type: "number", inputMode: "decimal", pattern: "[0-9]*" }}
               />
             </Grid>
           </Grid>
-          <Grid container item xs={2} style={{ alignContent: "center" }} spacing={1} >
-            <Grid container item xs={12} sm={6} style={{ justifyContent: 'center', alignContent: "center" }}>
+          <Grid container item xs={2} style={{ alignContent: "center" }} spacing={1}>
+            <Grid
+              container
+              item
+              xs={12}
+              sm={6}
+              style={{ justifyContent: "center", alignContent: "center" }}
+            >
               <Grid item>
                 <IconButton
-                  onClick={() =>
-                    props.removeExercise(props.setIndex, props.exerciseIndex)
-                  }
+                  onClick={() => props.removeExercise(props.setIndex, props.exerciseIndex)}
                 >
                   <RemoveCircle />
                 </IconButton>
@@ -150,7 +142,7 @@ export default function Exercise(props) {
       ) : (
         <>
           <Grid item xs={12} sm={3}>
-            <Typography variant="h6" style={{ textAlign: 'center' }}>
+            <Typography variant="h6" style={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
             </Typography>
           </Grid>
@@ -167,4 +159,4 @@ export default function Exercise(props) {
       )}
     </Grid>
   );
-};
+}

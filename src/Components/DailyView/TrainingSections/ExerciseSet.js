@@ -14,7 +14,7 @@ export default function ExerciseSet(props) {
         }
         return item;
       });
-      props.setLocalTraining(prev => {
+      props.setLocalTraining((prev) => {
         return prev.map((set, index) => {
           if (index === props.setIndex) {
             set = set.map((item, index) => {
@@ -23,8 +23,8 @@ export default function ExerciseSet(props) {
                   ...item,
                   achieved: {
                     ...item.achieved,
-                    reps: type==="reps"?newState:reps,
-                    weight: type==="weight"?newState:weight,
+                    reps: type === "reps" ? newState : reps,
+                    weight: type === "weight" ? newState : weight,
                   },
                 };
               }
@@ -33,7 +33,7 @@ export default function ExerciseSet(props) {
           }
           return set;
         });
-      })
+      });
       return newState;
     });
   };
@@ -43,7 +43,7 @@ export default function ExerciseSet(props) {
       <Grid container item xs={8} spacing={1}>
         {reps.map((rep, i) => {
           return (
-            <Grid container item xs={12}>
+            <Grid container item xs={12} key={i}>
               <Grid item xs={6}>
                 <TextField
                   label="Reps"

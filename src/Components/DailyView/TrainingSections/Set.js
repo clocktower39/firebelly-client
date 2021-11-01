@@ -38,6 +38,13 @@ export default function Set(props) {
               </IconButton>
             </Grid>
           </Grid>
+          {index + 1 !== props.localTraining.length ? (
+            <Grid item xs={12}>
+              <Divider style={{ margin: "25px 0px" }} />
+            </Grid>
+          ) : (
+            <></>
+          )}
         </Grid>
       ) : (
         <Grid item xs={12} key={index}>
@@ -61,9 +68,13 @@ export default function Set(props) {
               setLocalTraining={props.setLocalTraining}
             />
           ))}
-          <Grid item xs={12}>
-            <Divider style={{ margin: "25px 0px" }} />
-          </Grid>
+          {index + 1 !== props.localTraining.length ? (
+            <Grid item xs={12}>
+              <Divider style={{ margin: "25px 0px" }} />
+            </Grid>
+          ) : (
+            <></>
+          )}
         </Grid>
       )
     )
