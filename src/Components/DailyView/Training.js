@@ -300,7 +300,7 @@ export default function Training(props) {
             setLocalTraining={setLocalTraining}
           />
           {editMode ? (
-            <Grid item xs={12}>
+            <Grid item xs={12} container style={{justifyContent: "space-between"}}>
               <Button variant="contained" onClick={newSet}>
                 New Set
               </Button>
@@ -309,7 +309,7 @@ export default function Training(props) {
               </Button>
             </Grid>
           ) : (
-            <Grid item xs={12}>
+            <Grid item xs={12} container style={{justifyContent: "flex-end"}}>
               <Button variant="contained" onClick={save}>
                 Save
               </Button>

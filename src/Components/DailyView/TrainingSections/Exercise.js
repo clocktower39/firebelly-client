@@ -10,78 +10,70 @@ export default function Exercise(props) {
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
 
   const handleSetChange = (e) => {
-    setSets(e.target.value);
-    props.setLocalTraining((prev) => {
-      return prev.map((set, setIndex) => {
-        if (setIndex === props.setIndex) {
-          set.map((exercise, exerciseIndex) => {
-            if (exerciseIndex === props.exerciseIndex) {
-              exercise.exercise = title;
-              exercise.goals = {
-                sets: e.target.value,
-                minReps,
-                maxReps,
-              };
-              while (Number(exercise.achieved.reps.length) !== Number(e.target.value)) {
-                if (Number(exercise.achieved.reps.length) > Number(e.target.value)) {
-                  exercise.achieved.reps.pop();
-                } else if (Number(exercise.achieved.reps.length) < Number(e.target.value)) {
-                  exercise.achieved.reps.push(0);
+    if(Number(e.target.value) > 0){
+      setSets(Number(e.target.value));
+      props.setLocalTraining((prev) => {
+        return prev.map((set, setIndex) => {
+          if (setIndex === props.setIndex) {
+            set.map((exercise, exerciseIndex) => {
+              if (exerciseIndex === props.exerciseIndex) {
+                exercise.exercise = title;
+                exercise.goals = {
+                  sets: e.target.value,
+                  minReps,
+                  maxReps,
+                };
+                while (Number(exercise.achieved.reps.length) !== Number(e.target.value)) {
+                  if (Number(exercise.achieved.reps.length) > Number(e.target.value)) {
+                    exercise.achieved.reps.pop();
+                  } else if (Number(exercise.achieved.reps.length) < Number(e.target.value)) {
+                    exercise.achieved.reps.push(0);
+                  }
+                }
+                while (Number(exercise.achieved.weight.length) !== Number(e.target.value)) {
+                  Number(exercise.achieved.weight.length) > Number(e.target.value)
+                    ? exercise.achieved.weight.pop()
+                    : exercise.achieved.weight.push(0);
                 }
               }
-              while (Number(exercise.achieved.weight.length) !== Number(e.target.value)) {
-                Number(exercise.achieved.weight.length) > Number(e.target.value)
-                  ? exercise.achieved.weight.pop()
-                  : exercise.achieved.weight.push(0);
-              }
-            }
-            return exercise;
-          });
-        }
-        return set;
+              return exercise;
+            });
+          }
+          return set;
+        });
       });
-    });
+    }
   };
 
   const handleChange = (e, setter) => {
-    setter(e.target.value);
-    props.setLocalTraining((prev) => {
-      return prev.map((set, setIndex) => {
-        if (setIndex === props.setIndex) {
-          set.map((exercise, exerciseIndex) => {
-            if (exerciseIndex === props.exerciseIndex) {
-              exercise.exercise = title;
-              exercise.goals = {
-                sets,
-                minReps,
-                maxReps,
-              };
-              while (Number(exercise.achieved.reps.length) !== Number(sets)) {
-                if (Number(exercise.achieved.reps.length) > Number(sets)) {
-                  exercise.achieved.reps.pop();
-                } else if (Number(exercise.achieved.reps.length) < Number(sets)) {
-                  exercise.achieved.reps.push(0);
-                }
+    if(Number(e.target.value) >= 0){
+      setter(Number(e.target.value));
+      props.setLocalTraining((prev) => {
+        return prev.map((set, setIndex) => {
+          if (setIndex === props.setIndex) {
+            set.map((exercise, exerciseIndex) => {
+              if (exerciseIndex === props.exerciseIndex) {
+                exercise.exercise = title;
+                exercise.goals = {
+                  sets,
+                  minReps,
+                  maxReps,
+                };
               }
-              while (Number(exercise.achieved.weight.length) !== Number(sets)) {
-                Number(exercise.achieved.weight.length) > Number(sets)
-                  ? exercise.achieved.weight.pop()
-                  : exercise.achieved.weight.push(0);
-              }
-            }
-            return exercise;
-          });
-        }
-        return set;
+              return exercise;
+            });
+          }
+          return set;
+        });
       });
-    });
+    }
   };
 
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {props.editMode ? (
         <>
-          <Grid container item xs={10} spacing={1}>
+          <Grid container item xs={11} spacing={1}>
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Exercise Title"
@@ -121,7 +113,7 @@ export default function Exercise(props) {
               />
             </Grid>
           </Grid>
-          <Grid container item xs={2} style={{ alignContent: "center" }} spacing={1}>
+          <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
             <Grid
               container
               item

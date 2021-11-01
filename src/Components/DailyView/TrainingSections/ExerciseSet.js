@@ -1,45 +1,46 @@
 import React, { useState } from "react";
-import { Grid, IconButton, TextField } from "@mui/material";
-import { CheckCircle } from "@mui/icons-material";
+import { Grid, TextField } from "@mui/material";
 
 export default function ExerciseSet(props) {
   const [reps, setReps] = useState(props.exercise.achieved.reps);
   const [weight, setWeight] = useState(props.exercise.achieved.weight);
 
   const handleChange = (e, setter, index, type) => {
-    setter((prev) => {
-      const newState = prev.map((item, i) => {
-        if (index === i) {
-          item = Number(e.target.value) || 0;
-        }
-        return item;
-      });
-      props.setLocalTraining((prev) => {
-        return prev.map((set, index) => {
-          if (index === props.setIndex) {
-            set = set.map((item, index) => {
-              if (index === props.exerciseIndex) {
-                item = {
-                  ...item,
-                  achieved: {
-                    ...item.achieved,
-                    reps: type === "reps" ? newState : reps,
-                    weight: type === "weight" ? newState : weight,
-                  },
-                };
-              }
-              return item;
-            });
+    if(Number(e.target.value) >= 0){
+        
+      setter((prev) => {
+        const newState = prev.map((item, i) => {
+          if (index === i) {
+            item = Number(e.target.value) || 0;
           }
-          return set;
+          return item;
         });
+        props.setLocalTraining((prev) => {
+          return prev.map((set, index) => {
+            if (index === props.setIndex) {
+              set = set.map((item, index) => {
+                if (index === props.exerciseIndex) {
+                  item = {
+                    ...item,
+                    achieved: {
+                      ...item.achieved,
+                      reps: type === "reps" ? newState : reps,
+                      weight: type === "weight" ? newState : weight,
+                    },
+                  };
+                }
+                return item;
+              });
+            }
+            return set;
+          });
+        });
+        return newState;
       });
-      return newState;
-    });
+    }
   };
 
-  return (
-    <>
+  return (                                                   
       <Grid container item xs={8} spacing={1}>
         {reps.map((rep, i) => {
           return (
@@ -74,20 +75,5 @@ export default function ExerciseSet(props) {
           );
         })}
       </Grid>
-      <Grid container item xs={1} alignContent="center">
-        <Grid item xs={12}>
-          <IconButton
-            onClick={() =>
-              props.saveExerciseSet(props.setIndex, props.exerciseIndex, {
-                reps,
-                weight,
-              })
-            }
-          >
-            <CheckCircle />
-          </IconButton>
-        </Grid>
-      </Grid>
-    </>
   );
 }
