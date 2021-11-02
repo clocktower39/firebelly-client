@@ -83,7 +83,12 @@ export default function Exercise(props) {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="Type" fullWidth />
+              <TextField label="Type" select SelectProps={{ native: true }} fullWidth >
+              <option value="Rep Range">Rep Range</option>
+              <option value="Reps">Reps</option>
+              <option value="Reps with %">Reps with %</option>
+              <option value="Time">Time</option>
+              </TextField>
             </Grid>
             <Grid item xs={4} sm={2}>
               <TextField
