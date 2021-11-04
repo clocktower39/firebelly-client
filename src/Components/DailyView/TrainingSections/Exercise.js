@@ -6,15 +6,15 @@ import ExerciseSet from "./ExerciseSet";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise);
-  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType||"Rep Range");
+  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Rep Range");
   const [sets, setSets] = useState(props.exercise.goals.sets);
 
   const handleTypeChange = (e) => {
     setExerciseType(e.target.value);
-  }
+  };
 
   const handleSetChange = (e) => {
-    if(Number(e.target.value) > 0){
+    if (Number(e.target.value) > 0) {
       setSets(Number(e.target.value));
       props.setLocalTraining((prev) => {
         return prev.map((set, setIndex) => {
@@ -63,7 +63,7 @@ export default function Exercise(props) {
       {props.editMode ? (
         <>
           <Grid container item xs={11} spacing={1}>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 label="Exercise Title"
                 value={title}
@@ -71,24 +71,45 @@ export default function Exercise(props) {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Type" select SelectProps={{ native: true }} fullWidth value={exerciseType} onChange={handleTypeChange}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Type"
+                select
+                SelectProps={{ native: true }}
+                fullWidth
+                value={exerciseType}
+                onChange={handleTypeChange}
+              >
                 <option value="Rep Range">Rep Range</option>
                 <option value="Reps">Reps</option>
                 <option value="Reps with %">Reps with %</option>
                 <option value="Time">Time</option>
               </TextField>
             </Grid>
-            <Grid item xs={4} sm={2}>
+            <Grid item xs={12} sm={4}>
               <TextField
                 label="Sets"
                 value={sets}
                 onChange={(e) => handleSetChange(e)}
                 type="number"
                 inputProps={{ type: "number", pattern: "\\d*" }}
+                fullWidth
               />
             </Grid>
-            {props.exercise.goals.minReps.map((exerciseSet, index) => <EditRepRange exercise={props.exercise} setIndex={props.setIndex} exerciseIndex={props.exerciseIndex} index={index} localTraining={props.localTraining} setLocalTraining={props.setLocalTraining} />)}
+            {props.exercise.goals.minReps.length > 0 ? (
+              props.exercise.goals.minReps.map((exerciseSet, index) => (
+                <EditRepRange
+                  exercise={props.exercise}
+                  setIndex={props.setIndex}
+                  exerciseIndex={props.exerciseIndex}
+                  index={index}
+                  localTraining={props.localTraining}
+                  setLocalTraining={props.setLocalTraining}
+                />
+              ))
+            ) : (
+              <></>
+            )}
           </Grid>
           <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
             <Grid

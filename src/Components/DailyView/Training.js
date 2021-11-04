@@ -41,7 +41,6 @@ export default function Training(props) {
   const [editMode, setEditMode] = useState(true);
 
   const [trainingCategory, setTrainingCategory] = useState("");
-  const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
 
   const [localTraining, setLocalTraining] = useState([]);
 
@@ -62,7 +61,7 @@ export default function Training(props) {
       });
     });
 
-    if (today.dailyTraining.training.length > 0) {
+    if (today.dailyTraining.training.length > 0 && allTraining.length > 0) {
       dailyTrainingAchieved = allTraining.reduce((a, b) => ({
         achieved: a.achieved + b.achieved,
       })).achieved;
@@ -79,8 +78,8 @@ export default function Training(props) {
           exercise: "",
           goals: {
             sets: 1,
-            minReps: 0,
-            maxReps: 0,
+            minReps: [0],
+            maxReps: [0],
           },
           achieved: {
             sets: 1,
@@ -94,6 +93,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -106,8 +106,8 @@ export default function Training(props) {
         exercise: "",
         goals: {
           sets: 1,
-          minReps: 0,
-          maxReps: 0,
+          minReps: [0],
+          maxReps: [0],
         },
         achieved: {
           sets: 0,
@@ -119,6 +119,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -130,6 +131,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -146,6 +148,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -226,6 +229,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: [...newTraining],
       })
     );
@@ -235,6 +239,7 @@ export default function Training(props) {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
         ...today.dailyTraining,
+        category: trainingCategory,
         training: localTraining,
       })
     );
@@ -271,7 +276,7 @@ export default function Training(props) {
             <Grid item xs={11} container alignContent="center">
               <TextField
                 label="Training Category"
-                onChange={handleTrainingCategoryChange}
+                onChange={(e)=>setTrainingCategory(e.target.value)}
                 value={trainingCategory}
                 fullWidth
                 disabled={!editMode}
