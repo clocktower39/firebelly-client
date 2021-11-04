@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
 import { RemoveCircle } from "@mui/icons-material";
+import EditRepRange from "./EditRepRange";
 import ExerciseSet from "./ExerciseSet";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise);
+  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType||"Rep Range");
   const [sets, setSets] = useState(props.exercise.goals.sets);
-  const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
-  const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
+
+  const handleTypeChange = (e) => {
+    setExerciseType(e.target.value);
+  }
 
   const handleSetChange = (e) => {
     if(Number(e.target.value) > 0){
@@ -19,9 +23,8 @@ export default function Exercise(props) {
               if (exerciseIndex === props.exerciseIndex) {
                 exercise.exercise = title;
                 exercise.goals = {
+                  ...exercise.goals,
                   sets: e.target.value,
-                  minReps,
-                  maxReps,
                 };
                 while (Number(exercise.achieved.reps.length) !== Number(e.target.value)) {
                   if (Number(exercise.achieved.reps.length) > Number(e.target.value)) {
@@ -35,30 +38,16 @@ export default function Exercise(props) {
                     ? exercise.achieved.weight.pop()
                     : exercise.achieved.weight.push(0);
                 }
-              }
-              return exercise;
-            });
-          }
-          return set;
-        });
-      });
-    }
-  };
-
-  const handleChange = (e, setter) => {
-    if(Number(e.target.value) >= 0){
-      setter(Number(e.target.value));
-      props.setLocalTraining((prev) => {
-        return prev.map((set, setIndex) => {
-          if (setIndex === props.setIndex) {
-            set.map((exercise, exerciseIndex) => {
-              if (exerciseIndex === props.exerciseIndex) {
-                exercise.exercise = title;
-                exercise.goals = {
-                  sets,
-                  minReps,
-                  maxReps,
-                };
+                while (Number(exercise.goals.minReps.length) !== Number(e.target.value)) {
+                  Number(exercise.goals.minReps.length) > Number(e.target.value)
+                    ? exercise.goals.minReps.pop()
+                    : exercise.goals.minReps.push(0);
+                }
+                while (Number(exercise.goals.maxReps.length) !== Number(e.target.value)) {
+                  Number(exercise.goals.maxReps.length) > Number(e.target.value)
+                    ? exercise.goals.maxReps.pop()
+                    : exercise.goals.maxReps.push(0);
+                }
               }
               return exercise;
             });
@@ -78,16 +67,16 @@ export default function Exercise(props) {
               <TextField
                 label="Exercise Title"
                 value={title}
-                onChange={(e) => handleChange(e, setTitle)}
+                onChange={(e) => setTitle(e.target.value)}
                 fullWidth
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="Type" select SelectProps={{ native: true }} fullWidth >
-              <option value="Rep Range">Rep Range</option>
-              <option value="Reps">Reps</option>
-              <option value="Reps with %">Reps with %</option>
-              <option value="Time">Time</option>
+              <TextField label="Type" select SelectProps={{ native: true }} fullWidth value={exerciseType} onChange={handleTypeChange}>
+                <option value="Rep Range">Rep Range</option>
+                <option value="Reps">Reps</option>
+                <option value="Reps with %">Reps with %</option>
+                <option value="Time">Time</option>
               </TextField>
             </Grid>
             <Grid item xs={4} sm={2}>
@@ -99,24 +88,7 @@ export default function Exercise(props) {
                 inputProps={{ type: "number", pattern: "\\d*" }}
               />
             </Grid>
-            <Grid item xs={4} sm={2}>
-              <TextField
-                label="Min Reps"
-                value={minReps}
-                onChange={(e) => handleChange(e, setMinReps)}
-                type="number"
-                inputProps={{ type: "number", inputMode: "decimal", pattern: "[0-9]*" }}
-              />
-            </Grid>
-            <Grid item xs={4} sm={2}>
-              <TextField
-                label="Max Reps"
-                value={maxReps}
-                onChange={(e) => handleChange(e, setMaxReps)}
-                type="number"
-                inputProps={{ type: "number", inputMode: "decimal", pattern: "[0-9]*" }}
-              />
-            </Grid>
+            {props.exercise.goals.minReps.map((exerciseSet, index) => <EditRepRange exercise={props.exercise} setIndex={props.setIndex} exerciseIndex={props.exerciseIndex} index={index} localTraining={props.localTraining} setLocalTraining={props.setLocalTraining} />)}
           </Grid>
           <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
             <Grid

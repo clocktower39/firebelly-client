@@ -38,7 +38,7 @@ export default function Training(props) {
   const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(true);
 
   const [trainingCategory, setTrainingCategory] = useState("");
   const handleTrainingCategoryChange = (e) => setTrainingCategory(e.target.value);
