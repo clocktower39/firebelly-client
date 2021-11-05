@@ -4,6 +4,7 @@ import { Grid, TextField } from "@mui/material";
 export default function EditRepRange(props) {
   const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
+  const { setLocalTraining, setIndex, exerciseIndex } = props;
 
   const handleChange = (e, setter, index, type) => {
     if (Number(e.target.value) >= 0) {
@@ -20,11 +21,11 @@ export default function EditRepRange(props) {
   };
 
   useEffect(()=>{
-    props.setLocalTraining((prev) => {
+    setLocalTraining((prev) => {
       return prev.map((set, index) => {
-        if (index === props.setIndex) {
+        if (index === setIndex) {
           set = set.map((item, index) => {
-            if (index === props.exerciseIndex) {
+            if (index === exerciseIndex) {
               item = {
                 ...item,
                 goals: {
@@ -40,7 +41,7 @@ export default function EditRepRange(props) {
         return set;
       });
     });
-  },[props, minReps, maxReps])
+  },[ setLocalTraining, setIndex, exerciseIndex, minReps, maxReps])
 
   
   useEffect(()=>{

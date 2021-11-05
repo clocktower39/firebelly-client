@@ -5,13 +5,12 @@ import EditRepRange from "./EditRepRange";
 import ExerciseSet from "./ExerciseSet";
 
 export default function Exercise(props) {
-  const [title, setTitle] = useState(props.exercise.exercise);
+  const [title, setTitle] = useState(props.exercise.exercise||"");
   const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Rep Range");
   const [sets, setSets] = useState(props.exercise.goals.sets);
+  const { setLocalTraining, exerciseIndex, setIndex } = props; 
 
-  const handleTypeChange = (e) => {
-    setExerciseType(e.target.value);
-  };
+  const handleTypeChange = (e) => setExerciseType(e.target.value);
 
   const handleSetChange = (e) => {
     if (Number(e.target.value) > 0) {
@@ -20,11 +19,11 @@ export default function Exercise(props) {
   };
 
   useEffect(()=>{
-    props.setLocalTraining(prev => {
-      return prev.map((set, setIndex) => {
-        if (setIndex === props.setIndex) {
-          set.map((exercise, exerciseIndex) => {
-            if (exerciseIndex === props.exerciseIndex) {
+    setLocalTraining(prev => {
+      return prev.map((set, sIndex) => {
+        if (setIndex === sIndex) {
+          set.map((exercise, eIndex) => {
+            if (eIndex === exerciseIndex) {
               exercise.exercise = title;
               exercise.goals = {
                 ...exercise.goals,
@@ -59,7 +58,7 @@ export default function Exercise(props) {
         return set;
       });
     })
-  },[props, sets, title, exerciseType])
+  },[setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType])
 
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
