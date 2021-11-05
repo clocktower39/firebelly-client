@@ -63,7 +63,6 @@ export default function Set(props) {
               setIndex={index}
               exerciseIndex={exerciseIndex}
               removeExercise={props.removeExercise}
-              saveExerciseSet={props.saveExerciseSet}
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />

@@ -13,11 +13,11 @@ export default function Exercise(props) {
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
   const handleSetChange = (e) => {
-    if (Number(e.target.value) > 0 && Number(e.target.value) <= Number(50)) {
+    if (Number(e.target.value) > 0 && Number(e.target.value) <= Number(8)) {
       setSets(Number(e.target.value));
     }
-    else if(Number(e.target.value) > Number(50)){
-      setSets(Number(50));
+    else if(Number(e.target.value) > Number(8)){
+      setSets(Number(8));
     }
     else if(e.target.value===""){
       setSets(e.target.value);
@@ -147,7 +147,6 @@ export default function Exercise(props) {
           <ExerciseSet
             exercise={props.exercise}
             sets={sets}
-            saveExerciseSet={props.saveExerciseSet}
             setIndex={props.setIndex}
             exerciseIndex={props.exerciseIndex}
             localTraining={props.localTraining}

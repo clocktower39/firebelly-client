@@ -72,7 +72,7 @@ export default function Training(props) {
   }
 
   const newExercise = (index) => {
-    const newTraining = today.dailyTraining.training.map((group, i) => {
+    const newTraining = localTraining.map((group, i) => {
       if (index === i) {
         group.push({
           exercise: "",
@@ -100,7 +100,7 @@ export default function Training(props) {
   };
 
   const newSet = () => {
-    let newTraining = [...today.dailyTraining.training];
+    let newTraining = [...localTraining];
     newTraining.push([
       {
         exercise: "",
@@ -126,7 +126,7 @@ export default function Training(props) {
   };
 
   const removeSet = (setIndex) => {
-    const newTraining = today.dailyTraining.training.filter((item, index) => index !== setIndex);
+    const newTraining = localTraining.filter((item, index) => index !== setIndex);
 
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
@@ -138,7 +138,7 @@ export default function Training(props) {
   };
 
   const removeExercise = (setIndex, exerciseIndex) => {
-    const newTraining = today.dailyTraining.training.map((set, index) => {
+    const newTraining = localTraining.map((set, index) => {
       if (index === setIndex) {
         set = set.filter((item, index) => index !== exerciseIndex);
       }
@@ -188,35 +188,6 @@ export default function Training(props) {
                 ...item.achieved,
                 reps: [...newExercise.reps],
                 weight: [...newExercise.weight],
-              },
-            };
-          }
-          return item;
-        });
-      }
-      return set;
-    });
-
-    dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
-        category: trainingCategory,
-        training: [...newTraining],
-      })
-    );
-  };
-
-  const saveExerciseSet = (setIndex, exerciseIndex, newAchieved) => {
-    const newTraining = today.dailyTraining.training.map((set, index) => {
-      if (index === setIndex) {
-        set = set.map((item, index) => {
-          if (index === exerciseIndex) {
-            item = {
-              ...item,
-              achieved: {
-                ...item.achieved,
-                reps: [...newAchieved.reps],
-                weight: [...newAchieved.weight],
               },
             };
           }
@@ -300,7 +271,6 @@ export default function Training(props) {
             removeSet={removeSet}
             removeExercise={removeExercise}
             saveExercise={saveExercise}
-            saveExerciseSet={saveExerciseSet}
             localTraining={localTraining}
             setLocalTraining={setLocalTraining}
           />
