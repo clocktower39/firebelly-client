@@ -40,7 +40,7 @@ export default function EditRepRange(props) {
         return set;
       });
     });
-  },[minReps, maxReps])
+  },[props, minReps, maxReps])
 
   
   useEffect(()=>{

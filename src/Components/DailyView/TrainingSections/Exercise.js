@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
 import { RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
@@ -16,47 +16,50 @@ export default function Exercise(props) {
   const handleSetChange = (e) => {
     if (Number(e.target.value) > 0) {
       setSets(Number(e.target.value));
-      props.setLocalTraining((prev) => {
-        return prev.map((set, setIndex) => {
-          if (setIndex === props.setIndex) {
-            set.map((exercise, exerciseIndex) => {
-              if (exerciseIndex === props.exerciseIndex) {
-                exercise.exercise = title;
-                exercise.goals = {
-                  ...exercise.goals,
-                  sets: e.target.value,
-                };
-                while (Number(exercise.achieved.reps.length) !== Number(e.target.value)) {
-                  if (Number(exercise.achieved.reps.length) > Number(e.target.value)) {
-                    exercise.achieved.reps.pop();
-                  } else if (Number(exercise.achieved.reps.length) < Number(e.target.value)) {
-                    exercise.achieved.reps.push(0);
-                  }
-                }
-                while (Number(exercise.achieved.weight.length) !== Number(e.target.value)) {
-                  Number(exercise.achieved.weight.length) > Number(e.target.value)
-                    ? exercise.achieved.weight.pop()
-                    : exercise.achieved.weight.push(0);
-                }
-                while (Number(exercise.goals.minReps.length) !== Number(e.target.value)) {
-                  Number(exercise.goals.minReps.length) > Number(e.target.value)
-                    ? exercise.goals.minReps.pop()
-                    : exercise.goals.minReps.push(0);
-                }
-                while (Number(exercise.goals.maxReps.length) !== Number(e.target.value)) {
-                  Number(exercise.goals.maxReps.length) > Number(e.target.value)
-                    ? exercise.goals.maxReps.pop()
-                    : exercise.goals.maxReps.push(0);
-                }
-              }
-              return exercise;
-            });
-          }
-          return set;
-        });
-      });
     }
   };
+
+  useEffect(()=>{
+    props.setLocalTraining(prev => {
+      return prev.map((set, setIndex) => {
+        if (setIndex === props.setIndex) {
+          set.map((exercise, exerciseIndex) => {
+            if (exerciseIndex === props.exerciseIndex) {
+              exercise.exercise = title;
+              exercise.goals = {
+                ...exercise.goals,
+                sets: sets,
+              };
+              while (Number(exercise.achieved.reps.length) !== Number(sets)) {
+                if (Number(exercise.achieved.reps.length) > Number(sets)) {
+                  exercise.achieved.reps.pop();
+                } else if (Number(exercise.achieved.reps.length) < Number(sets)) {
+                  exercise.achieved.reps.push(0);
+                }
+              }
+              while (Number(exercise.achieved.weight.length) !== Number(sets)) {
+                Number(exercise.achieved.weight.length) > Number(sets)
+                  ? exercise.achieved.weight.pop()
+                  : exercise.achieved.weight.push(0);
+              }
+              while (Number(exercise.goals.minReps.length) !== Number(sets)) {
+                Number(exercise.goals.minReps.length) > Number(sets)
+                  ? exercise.goals.minReps.pop()
+                  : exercise.goals.minReps.push(0);
+              }
+              while (Number(exercise.goals.maxReps.length) !== Number(sets)) {
+                Number(exercise.goals.maxReps.length) > Number(sets)
+                  ? exercise.goals.maxReps.pop()
+                  : exercise.goals.maxReps.push(0);
+              }
+            }
+            return exercise;
+          });
+        }
+        return set;
+      });
+    })
+  },[props, sets, title, exerciseType])
 
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
