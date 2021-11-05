@@ -82,7 +82,7 @@ export default function Training(props) {
             maxReps: [0],
           },
           achieved: {
-            sets: 1,
+            sets: 0,
             reps: [0],
             weight: [0],
           },
