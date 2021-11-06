@@ -71,7 +71,7 @@ export default function Exercise(props) {
       {props.editMode ? (
         <>
           <Grid container item xs={11} spacing={1}>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12}>
               <TextField
                 label="Exercise Title"
                 value={title}
@@ -79,7 +79,7 @@ export default function Exercise(props) {
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Type"
                 select
@@ -94,7 +94,7 @@ export default function Exercise(props) {
                 <option value="Time">Time</option>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 label="Sets"
                 value={sets}
@@ -107,6 +107,7 @@ export default function Exercise(props) {
             {props.exercise.goals.minReps.length > 0 ? (
               props.exercise.goals.minReps.map((exerciseSet, index) => (
                 <EditRepRange
+                  key={`${exerciseSet}-${index}`}
                   exercise={props.exercise}
                   setIndex={props.setIndex}
                   exerciseIndex={props.exerciseIndex}
@@ -139,7 +140,7 @@ export default function Exercise(props) {
         </>
       ) : (
         <>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12}>
             <Typography variant="h6" style={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
             </Typography>

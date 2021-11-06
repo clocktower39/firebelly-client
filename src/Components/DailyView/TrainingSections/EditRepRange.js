@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Grid, TextField } from "@mui/material";
+import { Grid, TextField, Typography } from "@mui/material";
 
 export default function EditRepRange(props) {
   const [minReps, setMinReps] = useState(props.exercise.goals.minReps);
@@ -51,7 +51,10 @@ export default function EditRepRange(props) {
 
   return (
     <Grid container item xs={12} spacing={1}>
-      <Grid item xs={6}>
+    <Grid item xs={2} container style={{justifyContent: 'flex-end', alignContent: 'center'}} >
+      <Typography >Set {props.index + 1}:</Typography>
+    </Grid>
+      <Grid item xs={5}>
         <TextField
           label="Min Reps"
           value={minReps[props.index]}
@@ -65,7 +68,7 @@ export default function EditRepRange(props) {
           fullWidth
         />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={5}>
         <TextField
           label="Max Reps"
           value={maxReps[props.index]}
