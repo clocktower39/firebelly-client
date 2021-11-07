@@ -80,11 +80,17 @@ export default function Training(props) {
             sets: 1,
             minReps: [0],
             maxReps: [0],
+            exactReps: [0],
+            weight: [0],
+            percent: [0],
+            seconds: [0],
           },
           achieved: {
             sets: 0,
             reps: [0],
             weight: [0],
+            percent: [0],
+            seconds: [0],
           },
         });
       }

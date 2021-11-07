@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Grid, TextField } from "@mui/material";
+import { Grid, TextField, Typography } from "@mui/material";
 
 export default function ExerciseSet(props) {
   const [reps, setReps] = useState(props.exercise.achieved.reps);
@@ -45,7 +45,10 @@ export default function ExerciseSet(props) {
         {reps.map((rep, i) => {
           return (
             <Grid container item xs={12} key={i}>
-              <Grid item xs={6}>
+            <Grid item xs={2} container style={{justifyContent: 'flex-end', alignContent: 'center'}} >
+              <Typography >Set {i + 1}:</Typography>
+            </Grid>
+              <Grid item xs={5}>
                 <TextField
                   label="Reps"
                   value={reps[i]}
@@ -58,7 +61,7 @@ export default function ExerciseSet(props) {
                   }}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={5}>
                 <TextField
                   label="Weight"
                   value={weight[i]}
