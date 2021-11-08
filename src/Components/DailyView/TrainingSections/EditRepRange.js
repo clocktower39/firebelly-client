@@ -6,7 +6,7 @@ export default function EditRepRange(props) {
   const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps);
   const { setLocalTraining, setIndex, exerciseIndex } = props;
 
-  const handleChange = (e, setter, index, type) => {
+  const handleChange = (e, setter, index) => {
     if (Number(e.target.value) >= 0) {
       setter((prev) => {
         const newState = prev.map((item, i) => {
@@ -58,7 +58,7 @@ export default function EditRepRange(props) {
         <TextField
           label="Min Reps"
           value={minReps[props.index]}
-          onChange={(e) => handleChange(e, setMinReps, props.index, "minReps")}
+          onChange={(e) => handleChange(e, setMinReps, props.index)}
           type="number"
           inputProps={{
             type: "number",
@@ -72,7 +72,7 @@ export default function EditRepRange(props) {
         <TextField
           label="Max Reps"
           value={maxReps[props.index]}
-          onChange={(e) => handleChange(e, setMaxReps, props.index, "maxReps")}
+          onChange={(e) => handleChange(e, setMaxReps, props.index)}
           type="number"
           inputProps={{
             type: "number",

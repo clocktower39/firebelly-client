@@ -24,7 +24,15 @@ export default function Exercise(props) {
     }
   };
 
+
   useEffect(()=>{
+  const setPropertyCheck = (property) => {
+    while (Number(property.length) !== Number(sets)) {
+      Number(property.length) > Number(sets)
+        ? property.pop()
+        : property.push(0);
+    }}
+
     setLocalTraining(prev => {
       return prev.map((set, sIndex) => {
         if (setIndex === sIndex) {
@@ -35,28 +43,16 @@ export default function Exercise(props) {
                 ...exercise.goals,
                 sets: sets,
               };
-              while (Number(exercise.achieved.reps.length) !== Number(sets)) {
-                if (Number(exercise.achieved.reps.length) > Number(sets)) {
-                  exercise.achieved.reps.pop();
-                } else if (Number(exercise.achieved.reps.length) < Number(sets)) {
-                  exercise.achieved.reps.push(0);
-                }
-              }
-              while (Number(exercise.achieved.weight.length) !== Number(sets)) {
-                Number(exercise.achieved.weight.length) > Number(sets)
-                  ? exercise.achieved.weight.pop()
-                  : exercise.achieved.weight.push(0);
-              }
-              while (Number(exercise.goals.minReps.length) !== Number(sets)) {
-                Number(exercise.goals.minReps.length) > Number(sets)
-                  ? exercise.goals.minReps.pop()
-                  : exercise.goals.minReps.push(0);
-              }
-              while (Number(exercise.goals.maxReps.length) !== Number(sets)) {
-                Number(exercise.goals.maxReps.length) > Number(sets)
-                  ? exercise.goals.maxReps.pop()
-                  : exercise.goals.maxReps.push(0);
-              }
+              setPropertyCheck(exercise.achieved.reps);
+              setPropertyCheck(exercise.achieved.weight);
+              setPropertyCheck(exercise.achieved.percent);
+              setPropertyCheck(exercise.achieved.seconds);
+              setPropertyCheck(exercise.goals.minReps);
+              setPropertyCheck(exercise.goals.maxReps);
+              setPropertyCheck(exercise.goals.exactReps);
+              setPropertyCheck(exercise.goals.weight);
+              setPropertyCheck(exercise.goals.percent);
+              setPropertyCheck(exercise.goals.seconds);
             }
             return exercise;
           });
