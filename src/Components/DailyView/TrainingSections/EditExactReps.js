@@ -29,7 +29,7 @@ export default function EditExactReps(props) {
                 ...item,
                 goals: {
                   ...item.goals,
-                  exactReps,
+                  exactReps: reps,
                 },
               };
             }

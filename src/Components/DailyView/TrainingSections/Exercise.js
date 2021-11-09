@@ -2,38 +2,35 @@ import React, { useState, useEffect } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
 import { RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
+import EditExactReps from "./EditExactReps";
 import ExerciseSet from "./ExerciseSet";
 
 export default function Exercise(props) {
-  const [title, setTitle] = useState(props.exercise.exercise||"");
+  const [title, setTitle] = useState(props.exercise.exercise || "");
   const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Rep Range");
   const [sets, setSets] = useState(props.exercise.goals.sets);
-  const { setLocalTraining, exerciseIndex, setIndex } = props; 
+  const { setLocalTraining, exerciseIndex, setIndex } = props;
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
   const handleSetChange = (e) => {
     if (Number(e.target.value) > 0 && Number(e.target.value) <= Number(8)) {
       setSets(Number(e.target.value));
-    }
-    else if(Number(e.target.value) > Number(8)){
+    } else if (Number(e.target.value) > Number(8)) {
       setSets(Number(8));
-    }
-    else if(e.target.value===""){
+    } else if (e.target.value === "") {
       setSets(e.target.value);
     }
   };
 
+  useEffect(() => {
+    const setPropertyCheck = (property) => {
+      while (Number(property.length) !== Number(sets)) {
+        Number(property.length) > Number(sets) ? property.pop() : property.push(0);
+      }
+    };
 
-  useEffect(()=>{
-  const setPropertyCheck = (property) => {
-    while (Number(property.length) !== Number(sets)) {
-      Number(property.length) > Number(sets)
-        ? property.pop()
-        : property.push(0);
-    }}
-
-    setLocalTraining(prev => {
+    setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
@@ -59,8 +56,51 @@ export default function Exercise(props) {
         }
         return set;
       });
-    })
-  },[setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType])
+    });
+  }, [setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType]);
+
+  const renderSwitch = () => {
+    switch (exerciseType) {
+      case "Rep Range":
+        return props.exercise.goals.exactReps.length > 0 ? (
+          props.exercise.goals.exactReps.map((exerciseSet, index) => (
+            <EditRepRange
+              key={`${exerciseSet}-${index}`}
+              exercise={props.exercise}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              index={index}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      case "Reps":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <EditExactReps
+              key={`${exerciseSet}-${index}`}
+              exercise={props.exercise}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              index={index}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+        case "Reps with %":
+          return <></>
+        case "Time":
+          return <></>
+      default:
+        return <Typography>Type Error</Typography>;
+    }
+  };
 
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
@@ -100,21 +140,7 @@ export default function Exercise(props) {
                 fullWidth
               />
             </Grid>
-            {props.exercise.goals.minReps.length > 0 ? (
-              props.exercise.goals.minReps.map((exerciseSet, index) => (
-                <EditRepRange
-                  key={`${exerciseSet}-${index}`}
-                  exercise={props.exercise}
-                  setIndex={props.setIndex}
-                  exerciseIndex={props.exerciseIndex}
-                  index={index}
-                  localTraining={props.localTraining}
-                  setLocalTraining={props.setLocalTraining}
-                />
-              ))
-            ) : (
-              <></>
-            )}
+            {renderSwitch()}
           </Grid>
           <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
             <Grid
