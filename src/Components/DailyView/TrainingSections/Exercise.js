@@ -4,6 +4,8 @@ import { RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import ExerciseSet from "./ExerciseSet";
+import EditRepsWithPercent from "./EditRepsWithPercent";
+import EditTime from "./EditTime";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise || "");
@@ -94,9 +96,37 @@ export default function Exercise(props) {
           <></>
         );
         case "Reps with %":
-          return <></>
+          return props.exercise.goals.minReps.length > 0 ? (
+            props.exercise.goals.minReps.map((exerciseSet, index) => (
+              <EditRepsWithPercent
+                key={`${exerciseSet}-${index}`}
+                exercise={props.exercise}
+                setIndex={props.setIndex}
+                exerciseIndex={props.exerciseIndex}
+                index={index}
+                localTraining={props.localTraining}
+                setLocalTraining={props.setLocalTraining}
+              />
+            ))
+          ) : (
+            <></>
+          );
         case "Time":
-          return <></>
+          return props.exercise.goals.minReps.length > 0 ? (
+            props.exercise.goals.minReps.map((exerciseSet, index) => (
+              <EditTime
+                key={`${exerciseSet}-${index}`}
+                exercise={props.exercise}
+                setIndex={props.setIndex}
+                exerciseIndex={props.exerciseIndex}
+                index={index}
+                localTraining={props.localTraining}
+                setLocalTraining={props.setLocalTraining}
+              />
+            ))
+          ) : (
+            <></>
+          );
       default:
         return <Typography>Type Error</Typography>;
     }
