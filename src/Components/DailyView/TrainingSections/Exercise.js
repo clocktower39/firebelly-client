@@ -38,6 +38,7 @@ export default function Exercise(props) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
               exercise.exercise = title;
+              exercise.exerciseType = exerciseType;
               exercise.goals = {
                 ...exercise.goals,
                 sets: sets,
