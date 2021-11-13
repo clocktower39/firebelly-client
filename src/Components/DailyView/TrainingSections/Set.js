@@ -1,5 +1,5 @@
 import React from "react";
-import { Divider, Grid, IconButton, Typography } from "@mui/material";
+import { Button, Divider, Grid, IconButton, Typography } from "@mui/material";
 import { AddCircle, RemoveCircle } from "@mui/icons-material";
 import Exercise from "./Exercise";
 
@@ -68,8 +68,15 @@ export default function Set(props) {
             />
           )):<></>}
           {index + 1 !== props.localTraining.length ? (
-            <Grid item xs={12}>
-              <Divider style={{ margin: "25px 0px" }} />
+            <Grid container style={{alignContent: "center"}}>
+              <Grid item xs={10}>
+                <Divider style={{ margin: "25px 0px" }} />
+              </Grid>
+              <Grid item xs={2}>
+                <Button variant="contained" onClick={props.save}>
+                  Save
+                </Button>
+              </Grid>
             </Grid>
           ) : (
             <></>

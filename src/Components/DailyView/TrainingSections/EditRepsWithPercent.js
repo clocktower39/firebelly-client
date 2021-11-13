@@ -6,18 +6,17 @@ export default function EditRepsWithPercent(props) {
   const [percent, setPercent] = useState(props.exercise.goals.percent);
   const { setLocalTraining, setIndex, exerciseIndex } = props;
 
+  // input accepts an empty string or a number above zero
   const handleChange = (e, setter, index) => {
-    if (Number(e.target.value) >= 0) {
-      setter((prev) => {
-        const newState = prev.map((item, i) => {
-          if (index === i) {
-            item = Number(e.target.value) || 0;
-          }
-          return item;
-        });
-        return newState;
+    setter((prev) => {
+      const newState = prev.map((item, i) => {
+        if (index === i) {
+          item = Number(e.target.value) > 0 ? Number(e.target.value) : "";
+        }
+        return item;
       });
-    }
+      return newState;
+    });
   };
 
   useEffect(()=>{
@@ -65,6 +64,7 @@ export default function EditRepsWithPercent(props) {
             inputMode: "decimal",
             pattern: "[0-9]*",
           }}
+          size="small"
           fullWidth
         />
       </Grid>
@@ -79,6 +79,7 @@ export default function EditRepsWithPercent(props) {
             inputMode: "decimal",
             pattern: "[0-9]*",
           }}
+          size="small"
           fullWidth
         />
       </Grid>

@@ -279,6 +279,7 @@ export default function Training(props) {
             saveExercise={saveExercise}
             localTraining={localTraining}
             setLocalTraining={setLocalTraining}
+            save={save}
           />
           {editMode ? (
             <Grid item xs={12} container style={{justifyContent: "space-between"}}>

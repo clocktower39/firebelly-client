@@ -6,8 +6,7 @@ export default function ExerciseSet(props) {
   const [weight, setWeight] = useState(props.exercise.achieved.weight);
 
   const handleChange = (e, setter, index, type) => {
-    if(Number(e.target.value) >= 0){
-        
+    if (Number(e.target.value) >= 0) {
       setter((prev) => {
         const newState = prev.map((item, i) => {
           if (index === i) {
@@ -40,43 +39,50 @@ export default function ExerciseSet(props) {
     }
   };
 
-  return (                                                   
-      <Grid container item xs={8} spacing={1}>
-        {reps.map((rep, i) => {
-          return (
-            <Grid container item xs={12} key={i}>
-            <Grid item xs={2} container style={{justifyContent: 'flex-end', alignContent: 'center'}} >
-              <Typography >Set {i + 1}:</Typography>
+  return (
+    <Grid container item xs={8} spacing={1}>
+      {reps.map((rep, i) => {
+        return (
+          <Grid container item xs={12} spacing={2} key={i}>
+            <Grid
+              item
+              xs={2}
+              container
+              style={{ justifyContent: "flex-end", alignContent: "center" }}
+            >
+              <Typography>Set {i + 1}:</Typography>
             </Grid>
-              <Grid item xs={5}>
-                <TextField
-                  label="Reps"
-                  value={reps[i]}
-                  onChange={(e) => handleChange(e, setReps, i, "reps")}
-                  type="number"
-                  inputProps={{
-                    type: "number",
-                    inputMode: "decimal",
-                    pattern: "[0-9]*",
-                  }}
-                />
-              </Grid>
-              <Grid item xs={5}>
-                <TextField
-                  label="Weight"
-                  value={weight[i]}
-                  onChange={(e) => handleChange(e, setWeight, i, "weight")}
-                  type="number"
-                  inputProps={{
-                    type: "number",
-                    inputMode: "decimal",
-                    pattern: "[0-9]*",
-                  }}
-                />
-              </Grid>
+            <Grid item xs={5}>
+              <TextField
+                label="Reps"
+                value={reps[i]}
+                onChange={(e) => handleChange(e, setReps, i, "reps")}
+                type="number"
+                inputProps={{
+                  type: "number",
+                  inputMode: "decimal",
+                  pattern: "[0-9]*",
+                }}
+                size="small"
+              />
             </Grid>
-          );
-        })}
-      </Grid>
+            <Grid item xs={5}>
+              <TextField
+                label="Weight"
+                value={weight[i]}
+                onChange={(e) => handleChange(e, setWeight, i, "weight")}
+                type="number"
+                inputProps={{
+                  type: "number",
+                  inputMode: "decimal",
+                  pattern: "[0-9]*",
+                }}
+                size="small"
+              />
+            </Grid>
+          </Grid>
+        );
+      })}
+    </Grid>
   );
 }
