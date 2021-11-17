@@ -67,7 +67,7 @@ export default function Navbar() {
                 <div style={pageWidth < 800 ? { display: 'none' } : { display: 'block' }}>
                     <Button className={classes.NavLink} >About</Button>
                     <Button className={classes.NavLink} >Fitness</Button>
-                    <Button className={classes.NavLink} >Nutrition</Button>
+                    <Button className={classes.NavLink} component={Link} to="/nutrition">Nutrition</Button>
                     <Button className={classes.NavLink} >Workshops</Button>
                     <Button className={classes.NavLink} >Training</Button>
                 </div>

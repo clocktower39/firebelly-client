@@ -5,6 +5,7 @@ import { theme } from './theme';
 import AuthRoute from './Components/AuthRoute';
 import Navbar from './Components/Navbar';
 import Home from './Components/Home';
+import Nutrition from './Components/Nutrition';
 import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import Dashboard from './Components/Dashboard';
@@ -21,6 +22,7 @@ function App() {
         <div style={{ marginTop: '150px' }}></div>
         <Switch>
           <Route exact path='/' component={Home} />
+          <Route exact path='/nutrition' component={Nutrition} />
           <Route exact path='/login' component={Login} />
           <Route exact path='/signup' component={SignUp} />
           <AuthRoute exact path='/dashboard' component={Dashboard} />

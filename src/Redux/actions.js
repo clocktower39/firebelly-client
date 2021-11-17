@@ -518,7 +518,7 @@ export function requestDailyTraining(accountId, date) {
                         [
                             {
                                 exercise: "",
-                                exerciseType: "Rep",
+                                exerciseType: "Rep Range",
                                 goals: {
                                     sets: 1,
                                     minReps: [0],
