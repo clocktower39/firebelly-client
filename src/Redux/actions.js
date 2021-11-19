@@ -41,6 +41,7 @@ export function signupUser(user) {
     }
 }
 
+// Retrieves new JWT Token from username and password post request
 export function loginUser(user) {
     return async (dispatch, getState) => {
         const response = await fetch(`${serverURL}/login`, {
@@ -69,6 +70,7 @@ export function loginUser(user) {
     }
 }
 
+// Logs into account with JWT token
 export const loginJWT = (token) => {
     return async (dispatch, getState) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -88,6 +90,7 @@ export const loginJWT = (token) => {
             });
         }
         else {
+            // removes JWT token if invalid or expired
             localStorage.removeItem('JWT_AUTH_TOKEN');
             return dispatch({
                 type: LOGOUT_USER
@@ -118,6 +121,8 @@ export function editUser(user) {
 export function checkToggleDailyTask(id) {
     return async (dispatch, getState) => {
         const state = getState();
+
+        // Find the correct task and toggle if the task was achieved
         const dailyTasks = state.calander.dailyView.dailyTasks.map(task => {
             if (task._id === id) {
                 task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
@@ -155,6 +160,7 @@ export function checkToggleDailyTask(id) {
     }
 }
 
+// Add a one time daily task
 export function addDailyTask(newTask) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -195,6 +201,7 @@ export function addDailyTask(newTask) {
     }
 }
 
+// Pushes updates to daily tasks for the selected date
 export function editDailyTask(newTask) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -207,11 +214,13 @@ export function editDailyTask(newTask) {
     }
 }
 
+// Fetches or creates daily tasks
 export function requestDailyTasks(accountId, date) {
     return async (dispatch, getState) => {
         const state = getState();
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
 
+        // Check if the daily tasks for the selected date has already been created
         const response = await fetch(`${serverURL}/tasks`, {
             method: 'post',
             dataType: 'json',
@@ -226,8 +235,8 @@ export function requestDailyTasks(accountId, date) {
         })
         let data = await response.json();
 
-        // return default tasks if array is empty
         if (data.length < 1) {
+            // create and return default tasks if array is empty
             let newTaskList = [];
 
             state.user.defaultTasks.forEach(task => {
@@ -272,6 +281,7 @@ export function requestDailyTasks(accountId, date) {
     }
 }
 
+// Pushes updates to default daily tasks
 export function editDefaultDailyTask(defaultTasks) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -298,6 +308,7 @@ export function editDefaultDailyTask(defaultTasks) {
     }
 }
 
+// Removes the task provided from the default taks
 export function removeDefaultDailyTask(removeTask) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -311,6 +322,7 @@ export function removeDefaultDailyTask(removeTask) {
     }
 }
 
+// Fetches or creates daily nutrition stats
 export function requestDailyNutrition(accountId, date) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -368,6 +380,7 @@ export function requestDailyNutrition(accountId, date) {
     }
 }
 
+// Pushes updates to nutrition stats
 export function updateDailyNutrition(updatedNutrition) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -401,6 +414,7 @@ export function updateDailyNutrition(updatedNutrition) {
     }
 }
 
+// Fetches or creates daily note
 export function requestDailyNote(accountId, date) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -455,6 +469,7 @@ export function requestDailyNote(accountId, date) {
     }
 }
 
+// Pushes updates to daily note
 export function updateDailyNote(udpatedNote) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -488,6 +503,7 @@ export function updateDailyNote(udpatedNote) {
     }
 }
 
+// Fetches or creates daily training information
 export function requestDailyTraining(accountId, date) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
@@ -576,6 +592,7 @@ export function requestDailyTraining(accountId, date) {
     }
 }
 
+// Pushes updates to daily training information
 export function updateDailyTraining(trainingId, updatedTraining) {
     return async (dispatch) => {
         const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;

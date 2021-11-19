@@ -38,6 +38,7 @@ export default function Training(props) {
   const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
+  // toggle edit mode
   const [editMode, setEditMode] = useState(true);
 
   const [trainingCategory, setTrainingCategory] = useState("");
@@ -50,17 +51,6 @@ export default function Training(props) {
   let dailyTrainingGoal = 1;
 
   if (today.dailyTraining) {
-    today.dailyTraining.training.forEach((set) => {
-      set.forEach((task) => {
-        if (task.goals) {
-          allTraining.push({
-            goal: task.goals.sets,
-            achieved: task.achieved.sets,
-          });
-        }
-      });
-    });
-
     if (today.dailyTraining.training.length > 0 && allTraining.length > 0) {
       dailyTrainingAchieved = allTraining.reduce((a, b) => ({
         achieved: a.achieved + b.achieved,
@@ -71,11 +61,13 @@ export default function Training(props) {
     }
   }
 
+  // Create a new exercise on the current set
   const newExercise = (index) => {
     const newTraining = localTraining.map((group, i) => {
       if (index === i) {
         group.push({
           exercise: "",
+          exerciseType: "Rep Range",
           goals: {
             sets: 1,
             minReps: [0],
@@ -105,20 +97,28 @@ export default function Training(props) {
     );
   };
 
+  // Create a new set on the current day
   const newSet = () => {
     let newTraining = [...localTraining];
     newTraining.push([
       {
         exercise: "",
+        exerciseType: "Rep Range",
         goals: {
           sets: 1,
           minReps: [0],
           maxReps: [0],
+          exactReps: [0],
+          weight: [0],
+          percent: [0],
+          seconds: [0],
         },
         achieved: {
           sets: 0,
           reps: [0],
           weight: [0],
+          percent: [0],
+          seconds: [0],
         },
       },
     ]);
@@ -131,6 +131,7 @@ export default function Training(props) {
     );
   };
 
+  // Remove the current set
   const removeSet = (setIndex) => {
     const newTraining = localTraining.filter((item, index) => index !== setIndex);
 
@@ -143,6 +144,7 @@ export default function Training(props) {
     );
   };
 
+  // Remove the current exercise
   const removeExercise = (setIndex, exerciseIndex) => {
     const newTraining = localTraining.map((set, index) => {
       if (index === setIndex) {
@@ -160,58 +162,7 @@ export default function Training(props) {
     );
   };
 
-  const saveExercise = (setIndex, exerciseIndex, newExercise) => {
-    const newTraining = today.dailyTraining.training.map((set, index) => {
-      if (index === setIndex) {
-        set = set.map((item, index) => {
-          if (index === exerciseIndex) {
-            while (Number(newExercise.reps.length) !== Number(newExercise.sets)) {
-              if (Number(newExercise.reps.length) > Number(newExercise.sets)) {
-                newExercise.reps.pop();
-              } else {
-                newExercise.reps.push(0);
-              }
-            }
-            if (!newExercise.weight) {
-              newExercise.weight = [0];
-            }
-            while (Number(newExercise.weight.length) !== Number(newExercise.sets)) {
-              if (Number(newExercise.weight.length) > Number(newExercise.sets)) {
-                newExercise.weight.pop();
-              } else {
-                newExercise.weight.push(0);
-              }
-            }
-            item = {
-              ...item,
-              exercise: newExercise.title,
-              goals: {
-                sets: newExercise.sets,
-                minReps: newExercise.minReps,
-                maxReps: newExercise.maxReps,
-              },
-              achieved: {
-                ...item.achieved,
-                reps: [...newExercise.reps],
-                weight: [...newExercise.weight],
-              },
-            };
-          }
-          return item;
-        });
-      }
-      return set;
-    });
-
-    dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
-        category: trainingCategory,
-        training: [...newTraining],
-      })
-    );
-  };
-
+  // Save all changes to training
   const save = () => {
     dispatch(
       updateDailyTraining(today.dailyTraining._id, {
@@ -276,7 +227,6 @@ export default function Training(props) {
             newExercise={newExercise}
             removeSet={removeSet}
             removeExercise={removeExercise}
-            saveExercise={saveExercise}
             localTraining={localTraining}
             setLocalTraining={setLocalTraining}
             save={save}

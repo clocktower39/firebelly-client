@@ -8,10 +8,11 @@ export default function EditRepRange(props) {
 
   // input accepts an empty string or a number above zero
   const handleChange = (e, setter, index) => {
-    if(Number(e.target.value) > 0){
+    const re = /^[0-9\b]+$/;
+    if (e.target.value === '' || re.test(e.target.value)) {
       setter((prev) => prev.map((item, i) => {
           if (index === i) {
-            item = Number(e.target.value);
+            item = e.target.value.match(re);
           }
           return item;
         })

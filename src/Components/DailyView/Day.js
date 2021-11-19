@@ -57,11 +57,14 @@ export default function Day() {
       setSelectedDate(new Date(newDate).toISOString().substr(0, 10));
     }
 
-
     return (
         <Container maxWidth="md" style={{ height: '100%', }}>
             <Grid item xs={12} container style={{justifyContent:"center"}} >
+
+                {/* Go back one day */}
                 <Button onClick={() => changeDate(-1)} className={classes.ArrowButton} ><ArrowBack className={classes.ArrowIcons} /></Button>
+                
+                {/* Select a date from a calander input */}
                 <TextField
                 focused 
                     id="date"
@@ -75,14 +78,18 @@ export default function Day() {
                         shrink: true,
                     }}
                 />
+
+                {/* Go forward one day */}
                 <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward className={classes.ArrowIcons} /></Button>
             </Grid>
             <Divider style={{margin: "15px"}} />
-            {/* <Typography variant="h5" gutterBottom style={{color: '#fff'}}>Today: {new Date().toString().substr(0,15)}</Typography> */}
+
+            {/* Separate accordian  */}
             <Tasks selectedDate={selectedDate} />
             <Training selectedDate={selectedDate} />
             <Nutrition selectedDate={selectedDate} />
             <Notes selectedDate={selectedDate} />
+
         </Container>
     )
 }

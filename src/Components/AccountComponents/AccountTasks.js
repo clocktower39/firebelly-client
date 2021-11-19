@@ -62,7 +62,7 @@ export default function AccountTasks() {
           return (
             <>
               <Grid item xs={10}>
-                <TaskTextField key={task.title} task={task} index={index} />
+                <TaskTextField task={task} index={index} />
               </Grid>
               <Grid item xs={2}>
                 <IconButton onClick={()=>removeTask(task)}>

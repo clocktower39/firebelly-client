@@ -21,10 +21,13 @@ function App() {
         <Navbar />
         <div style={{ marginTop: '150px' }}></div>
         <Switch>
+          {/* Default website pages, anyone can access */}
           <Route exact path='/' component={Home} />
           <Route exact path='/nutrition' component={Nutrition} />
           <Route exact path='/login' component={Login} />
           <Route exact path='/signup' component={SignUp} />
+          
+          {/* Must be logged in and have JWT token to authenticate */}
           <AuthRoute exact path='/dashboard' component={Dashboard} />
           <AuthRoute exact path='/day' component={Day} />
           <AuthRoute exact path='/week' component={Week} />

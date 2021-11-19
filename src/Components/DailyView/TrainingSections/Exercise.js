@@ -26,6 +26,7 @@ export default function Exercise(props) {
   };
 
   useEffect(() => {
+    // Ensures each proptery array length matches the amount of sets 
     const setPropertyCheck = (property) => {
       while (Number(property.length) !== Number(sets)) {
         Number(property.length) > Number(sets) ? property.pop() : property.push(0);
@@ -65,10 +66,10 @@ export default function Exercise(props) {
   const renderSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return props.exercise.goals.exactReps.length > 0 ? (
-          props.exercise.goals.exactReps.map((exerciseSet, index) => (
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepRange
-              key={`${exerciseSet}-${index}`}
+              key={`exerciseSet-${index}`}
               exercise={props.exercise}
               setIndex={props.setIndex}
               exerciseIndex={props.exerciseIndex}
@@ -84,7 +85,7 @@ export default function Exercise(props) {
         return props.exercise.goals.minReps.length > 0 ? (
           props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditExactReps
-              key={`${exerciseSet}-${index}`}
+              key={`exerciseSet-${index}`}
               exercise={props.exercise}
               setIndex={props.setIndex}
               exerciseIndex={props.exerciseIndex}
@@ -96,38 +97,38 @@ export default function Exercise(props) {
         ) : (
           <></>
         );
-        case "Reps with %":
-          return props.exercise.goals.minReps.length > 0 ? (
-            props.exercise.goals.minReps.map((exerciseSet, index) => (
-              <EditRepsWithPercent
-                key={`${exerciseSet}-${index}`}
-                exercise={props.exercise}
-                setIndex={props.setIndex}
-                exerciseIndex={props.exerciseIndex}
-                index={index}
-                localTraining={props.localTraining}
-                setLocalTraining={props.setLocalTraining}
-              />
-            ))
-          ) : (
-            <></>
-          );
-        case "Time":
-          return props.exercise.goals.minReps.length > 0 ? (
-            props.exercise.goals.minReps.map((exerciseSet, index) => (
-              <EditTime
-                key={`${exerciseSet}-${index}`}
-                exercise={props.exercise}
-                setIndex={props.setIndex}
-                exerciseIndex={props.exerciseIndex}
-                index={index}
-                localTraining={props.localTraining}
-                setLocalTraining={props.setLocalTraining}
-              />
-            ))
-          ) : (
-            <></>
-          );
+      case "Reps with %":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <EditRepsWithPercent
+              key={`exerciseSet-${index}`}
+              exercise={props.exercise}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              index={index}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      case "Time":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <EditTime
+              key={`exerciseSet-${index}`}
+              exercise={props.exercise}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              index={index}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
       default:
         return <Typography>Type Error</Typography>;
     }
