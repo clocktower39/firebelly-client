@@ -3,9 +3,12 @@ import { Grid, IconButton, TextField, Typography } from "@mui/material";
 import { RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
-import ExerciseSet from "./ExerciseSet";
 import EditRepsWithPercent from "./EditRepsWithPercent";
 import EditTime from "./EditTime";
+import RepRangeLog from "./RepRangeLog";
+import ExactRepsLog from "./ExactRepsLog";
+import RepsWithPercentLog from "./RepsWithPercentLog";
+import TimeLog from "./TimeLog";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise || "");
@@ -63,7 +66,7 @@ export default function Exercise(props) {
     });
   }, [setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType]);
 
-  const renderSwitch = () => {
+  const renderEditSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
         return props.exercise.goals.minReps.length > 0 ? (
@@ -134,6 +137,73 @@ export default function Exercise(props) {
     }
   };
 
+  const renderLogSwitch = () => {
+    switch (exerciseType) {
+      case "Rep Range":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <RepRangeLog
+              exercise={props.exercise}
+              sets={sets}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      case "Reps":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <ExactRepsLog
+              exercise={props.exercise}
+              sets={sets}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      case "Reps with %":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <RepsWithPercentLog
+              exercise={props.exercise}
+              sets={sets}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      case "Time":
+        return props.exercise.goals.minReps.length > 0 ? (
+          props.exercise.goals.minReps.map((exerciseSet, index) => (
+            <TimeLog
+              exercise={props.exercise}
+              sets={sets}
+              setIndex={props.setIndex}
+              exerciseIndex={props.exerciseIndex}
+              localTraining={props.localTraining}
+              setLocalTraining={props.setLocalTraining}
+            />
+          ))
+        ) : (
+          <></>
+        );
+      default:
+        return <Typography>Type Error</Typography>;
+    }
+  };
+
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {props.editMode ? (
@@ -172,7 +242,7 @@ export default function Exercise(props) {
                 fullWidth
               />
             </Grid>
-            {renderSwitch()}
+            {renderEditSwitch()}
           </Grid>
           <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
             <Grid
@@ -199,14 +269,7 @@ export default function Exercise(props) {
               {title || "Enter an exercise"}:
             </Typography>
           </Grid>
-          <ExerciseSet
-            exercise={props.exercise}
-            sets={sets}
-            setIndex={props.setIndex}
-            exerciseIndex={props.exerciseIndex}
-            localTraining={props.localTraining}
-            setLocalTraining={props.setLocalTraining}
-          />
+          {renderLogSwitch()}
         </>
       )}
     </Grid>
