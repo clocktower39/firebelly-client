@@ -140,9 +140,7 @@ export default function Exercise(props) {
   const renderLogSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return props.exercise.goals.minReps.length > 0 ? (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
-            <RepRangeLog
+        return <RepRangeLog
               exercise={props.exercise}
               sets={sets}
               setIndex={props.setIndex}
@@ -150,14 +148,8 @@ export default function Exercise(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          ))
-        ) : (
-          <></>
-        );
       case "Reps":
-        return props.exercise.goals.minReps.length > 0 ? (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
-            <ExactRepsLog
+        return <ExactRepsLog
               exercise={props.exercise}
               sets={sets}
               setIndex={props.setIndex}
@@ -165,14 +157,8 @@ export default function Exercise(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          ))
-        ) : (
-          <></>
-        );
       case "Reps with %":
-        return props.exercise.goals.minReps.length > 0 ? (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
-            <RepsWithPercentLog
+        return <RepsWithPercentLog
               exercise={props.exercise}
               sets={sets}
               setIndex={props.setIndex}
@@ -180,14 +166,8 @@ export default function Exercise(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          ))
-        ) : (
-          <></>
-        );
       case "Time":
-        return props.exercise.goals.minReps.length > 0 ? (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
-            <TimeLog
+        return <TimeLog
               exercise={props.exercise}
               sets={sets}
               setIndex={props.setIndex}
@@ -195,10 +175,6 @@ export default function Exercise(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          ))
-        ) : (
-          <></>
-        );
       default:
         return <Typography>Type Error</Typography>;
     }

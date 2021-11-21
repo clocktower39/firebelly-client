@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Grid, TextField, Typography } from "@mui/material";
+import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 export default function TimeLog(props) {
   const [seconds, setSeconds] = useState(props.exercise.achieved.seconds);
@@ -62,6 +62,13 @@ export default function TimeLog(props) {
                   pattern: "[0-9]*",
                 }}
                 size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start">
+                      /{props.exercise.goals.seconds[i]} seconds
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
           </Grid>

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Grid, TextField, Typography } from "@mui/material";
+import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 export default function RepsWithPercentLog(props) {
   const [reps, setReps] = useState(props.exercise.achieved.reps);
   const [weight, setWeight] = useState(props.exercise.achieved.weight);
-  const [maxWeight, setMaxWeight] = useState(0);
+  const [oneRepMax, setOneRepMax] = useState(0);
 
   const handleChange = (e, setter, index, type) => {
     if (Number(e.target.value) >= 0) {
@@ -44,9 +44,9 @@ export default function RepsWithPercentLog(props) {
     <Grid container item xs={8} spacing={1}>
       <Grid item xs={12}>
         <TextField
-          label="Max Weight"
-          value={maxWeight}
-          onChange={(e) => setMaxWeight(e.target.value)}
+          label="One Rep Max Weight"
+          value={oneRepMax}
+          onChange={(e) => setOneRepMax(e.target.value)}
           type="number"
           inputProps={{
             type: "number",
@@ -79,6 +79,13 @@ export default function RepsWithPercentLog(props) {
                   pattern: "[0-9]*",
                 }}
                 size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start">
+                      /{props.exercise.goals.exactReps[i]} reps
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
             <Grid item xs={5}>
@@ -93,6 +100,13 @@ export default function RepsWithPercentLog(props) {
                   pattern: "[0-9]*",
                 }}
                 size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start">
+                      /{(oneRepMax / 100) * props.exercise.goals.percent[i]} lbs
+                    </InputAdornment>
+                  ),
+                }}
               />
             </Grid>
           </Grid>
