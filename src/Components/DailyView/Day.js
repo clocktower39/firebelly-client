@@ -58,7 +58,7 @@ export default function Day() {
     }
 
     return (
-        <Container maxWidth="md" style={{ height: '100%', }}>
+        <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
             <Grid item xs={12} container style={{justifyContent:"center"}} >
 
                 {/* Go back one day */}

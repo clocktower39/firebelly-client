@@ -27,22 +27,22 @@ export default function Home() {
         </Container>
       </div>
       <Container maxWidth="xl">
-        <Grid container style={{ justifyContent: "center" }}>
-          <Grid item xs={6} >
-            <Assessment sx={{ fontSize: "150px"}}/> 
-             <Typography variant="h4" >Fitness</Typography>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} style={{color: "#008080"}}>
+            <Grid item xs={12} container style={{ justifyContent: "center" }}><Assessment sx={{ fontSize: "125px"}}/> </Grid>
+             <Grid item xs={12} container style={{ justifyContent: "center" }}><Typography variant="h4" >Fitness</Typography></Grid>
           </Grid>
-          <Grid item xs={6} >
-            <Restaurant sx={{ fontSize: "150px"}}/> 
-             <Typography variant="h4" >Nutrition</Typography>
+          <Grid item xs={12} sm={6} style={{color: "#00AA00"}}>
+            <Grid item xs={12} container style={{ justifyContent: "center" }}><Restaurant sx={{ fontSize: "125px"}}/> </Grid>
+             <Grid item xs={12} container style={{ justifyContent: "center" }}><Typography variant="h4" >Nutrition</Typography></Grid>
           </Grid>
-          <Grid item xs={6} >
-            <Workspaces sx={{ fontSize: "150px"}}/> 
-             <Typography variant="h4" >Workshops</Typography>
+          <Grid item xs={12} sm={6} style={{color: "#D56100"}}>
+            <Grid item xs={12} container style={{ justifyContent: "center" }}><Workspaces sx={{ fontSize: "125px"}}/> </Grid>
+             <Grid item xs={12} container style={{ justifyContent: "center" }}><Typography variant="h4" >Workshops</Typography></Grid>
           </Grid>
-          <Grid item xs={6} >
-            <FitnessCenter sx={{ fontSize: "150px"}}/> 
-             <Typography variant="h4" >Training</Typography>
+          <Grid item xs={12} sm={6} style={{color: "#d50000"}}>
+            <Grid item xs={12} container style={{ justifyContent: "center" }}><FitnessCenter sx={{ fontSize: "125px"}}/> </Grid>
+             <Grid item xs={12} container style={{ justifyContent: "center" }}><Typography variant="h4" >Training</Typography></Grid>
           </Grid>
         </Grid>
       </Container>

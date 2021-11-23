@@ -19,7 +19,6 @@ function App() {
     <ThemeProvider theme={theme}>
       <Router>
         <Navbar />
-        <div style={{ marginTop: '90px' }}></div>
         <Switch>
           {/* Default website pages, anyone can access */}
           <Route exact path='/' component={Home} />

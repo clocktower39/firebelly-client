@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../Redux/actions";
 import { Link } from "react-router-dom";
@@ -6,17 +6,19 @@ import {
   AppBar,
   Avatar,
   Button,
-  Grid,
+  Divider,
   IconButton,
   List,
   ListItem,
   ListItemText,
   Collapse,
+  Stack,
   Toolbar,
 } from "@mui/material";
 import { Assessment, FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import useWindowWidth from "../Hooks/WindowWidth"
 import FireBellyLogo from "../img/fireBellyLogo.jpg";
 
 const useStyles = makeStyles((theme) => ({
@@ -59,80 +61,69 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
 export default function Navbar() {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [pageWidth, setPageWidth] = useState(window.innerWidth);
+  const wide = useWindowWidth(775);
   const user = useSelector((state) => state.user);
   const [isListOpen, setIsListOpen] = useState(false);
 
   const toggleList = () => setIsListOpen(!isListOpen);
 
-  useEffect(() => {
-    window.addEventListener("resize", setPageWidth(window.innerWidth));
-  }, []);
   return (
-    <AppBar position="fixed">
+    <AppBar position="sticky">
       <Toolbar className={classes.Toolbar}>
         <IconButton color="inherit" component={Link} to="/">
           <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
         </IconButton>
-        <div style={pageWidth < 800 ? { display: "none" } : { display: "block" }}>
-          <Button className={classes.NavLink} component={Link} to="/">
-            <Grid container>
-              <Grid item xs={12} style={{ textAlign: "center" }}>
-                Home
-              </Grid>
-              <Grid item xs={12} container style={{ justifyContent: "center" }}>
+        {wide ? (
+          <Stack
+            direction="row"
+            divider={
+              <Divider
+                orientation="vertical"
+                flexItem
+                variant="middle"
+                sx={{ borderColor: "white", margin: "12.5px" }}
+              />
+            }
+          >
+            <Button className={classes.NavLink} component={Link} to="/">
+              <Stack justifyContent="center" alignItems="center">
+                <div>Home</div>
                 <Home />
-              </Grid>
-            </Grid>
-          </Button>
-          |
-          <Button className={classes.NavLink}>
-            <Grid container>
-              <Grid item xs={12} style={{ textAlign: "center" }}>
-                Fitness
-              </Grid>
-              <Grid item xs={12} container style={{ justifyContent: "center" }}>
+              </Stack>
+            </Button>
+            <Button className={classes.NavLink}>
+              <Stack justifyContent="center" alignItems="center">
+                <div>Fitness</div>
                 <Assessment />
-              </Grid>
-            </Grid>
-          </Button>
-          |
-          <Button className={classes.NavLink} component={Link} to="/nutrition">
-            <Grid container>
-              <Grid item xs={12} style={{ textAlign: "center" }}>
-                Nutrition
-              </Grid>
-              <Grid item xs={12} container style={{ justifyContent: "center" }}>
+              </Stack>
+            </Button>
+            <Button className={classes.NavLink} component={Link} to="/nutrition">
+              <Stack justifyContent="center" alignItems="center">
+                <div>Nutrition</div>
                 <Restaurant />
-              </Grid>
-            </Grid>
-          </Button>
-          |
-          <Button className={classes.NavLink}>
-            <Grid container>
-              <Grid item xs={12} style={{ textAlign: "center" }}>
-                Workshops
-              </Grid>
-              <Grid item xs={12} container style={{ justifyContent: "center" }}>
+              </Stack>
+            </Button>
+            <Button className={classes.NavLink}>
+              <Stack justifyContent="center" alignItems="center">
+                <div>Workshops</div>
                 <Workspaces />
-              </Grid>
-            </Grid>
-          </Button>
-          |
-          <Button className={classes.NavLink}>
-            <Grid container>
-              <Grid item xs={12} style={{ textAlign: "center" }}>
-                Training
-              </Grid>
-              <Grid item xs={12} container style={{ justifyContent: "center" }}>
+              </Stack>
+            </Button>
+            <Button className={classes.NavLink}>
+              <Stack justifyContent="center" alignItems="center">
+                <div>Training</div>
                 <FitnessCenter />
-              </Grid>
-            </Grid>
-          </Button>
-        </div>
+              </Stack>
+            </Button>
+          </Stack>
+        ) : (
+          <></>
+        )}
+
         <div className={classes.NavAccountContainer}>
           {user.email ? (
             <List component="nav" aria-labelledby="nested-list-subheader">

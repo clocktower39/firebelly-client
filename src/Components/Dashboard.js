@@ -4,6 +4,9 @@ import { Container, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles(theme => ({
+    root: {
+        paddingTop: '25px', 
+    },
     PageLink: {
         color: 'white',
         textDecoration: 'none',
@@ -13,7 +16,7 @@ const useStyles = makeStyles(theme => ({
 export default function Dashboard() {
     const classes = useStyles();
     return (
-        <Container maxWidth="md">
+        <Container maxWidth="md" className={classes.root}>
                     <Typography variant="h4" display="block" align="center">Dashboard</Typography>
                     <Typography variant="h5" component={Link} to="/day" display="block" className={classes.PageLink}>Daily</Typography>
                     <Typography variant="h5" component={Link} to="/week" display="block" className={classes.PageLink}>Weekly View</Typography>

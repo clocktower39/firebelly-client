@@ -40,7 +40,7 @@ export default function Week() {
     }
 
     return (
-        <Container maxWidth="md" style={{ height: '100%', }}>
+        <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
             <Typography variant="h5" gutterBottom style={{ color: '#fff' }}>Weekly View</Typography>
             {weeklyView.weeklyTraining.map((day, index) => {
                 let allTraining = [];
