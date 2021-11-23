@@ -33,16 +33,6 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: "139px",
   },
   NavLink: {
-    color: "#FEFFFF",
-    padding: "20px",
-    fontFamily: "Cabin",
-    fontWeight: 500,
-    fontSize: "12px",
-    letterSpacing: "0.143em",
-    textTransform: "uppercase",
-    "& .MuiButton-root": {
-      color: "#FEFFFF",
-    },
   },
   NavAccountContainer: {
     display: "flex",
@@ -77,7 +67,6 @@ export default function Navbar() {
         <IconButton color="inherit" component={Link} to="/">
           <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
         </IconButton>
-        {wide ? (
           <Stack
             direction="row"
             divider={
@@ -85,44 +74,41 @@ export default function Navbar() {
                 orientation="vertical"
                 flexItem
                 variant="middle"
-                sx={{ borderColor: "white", margin: "12.5px" }}
+                sx={{ borderColor: "#fff", margin: wide?"12.5px":"4px" }}
               />
             }
           >
-            <Button className={classes.NavLink} component={Link} to="/">
+            <Button className={classes.NavLink} component={Link} to="/" sx={{ minWidth: '32px', padding: '0px 8px'}} >
               <Stack justifyContent="center" alignItems="center">
-                <div>Home</div>
-                <Home />
+                <div style={{display: wide?"block":"none", color: '#fff', }}>Home</div>
+                <Home sx={{color: "#FFF",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink}>
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
               <Stack justifyContent="center" alignItems="center">
-                <div>Fitness</div>
-                <Assessment />
+                <div style={{display: wide?"block":"none", color: '#fff', }}>Fitness</div>
+                <Assessment  sx={{color: "#D56100",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink} component={Link} to="/nutrition">
+            <Button className={classes.NavLink} component={Link} to="/nutrition" sx={{ minWidth: '32px', padding: '0px 8px'}} >
               <Stack justifyContent="center" alignItems="center">
-                <div>Nutrition</div>
-                <Restaurant />
+                <div style={{display: wide?"block":"none", color: '#fff', }}>Nutrition</div>
+                <Restaurant sx={{color: "#00AA00",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink}>
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
               <Stack justifyContent="center" alignItems="center">
-                <div>Workshops</div>
-                <Workspaces />
+                <div style={{display: wide?"block":"none", color: '#fff', }}>Workshops</div>
+                <Workspaces sx={{color: "#008080",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink}>
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
               <Stack justifyContent="center" alignItems="center">
-                <div>Training</div>
-                <FitnessCenter />
+                <div style={{display: wide?"block":"none", color: '#fff', }}>Training</div>
+                <FitnessCenter sx={{color: "#d50000",}} />
               </Stack>
             </Button>
           </Stack>
-        ) : (
-          <></>
-        )}
 
         <div className={classes.NavAccountContainer}>
           {user.email ? (
