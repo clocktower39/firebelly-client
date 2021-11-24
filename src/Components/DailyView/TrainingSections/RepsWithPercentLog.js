@@ -41,7 +41,7 @@ export default function RepsWithPercentLog(props) {
   };
 
   return (
-    <Grid container item xs={8} spacing={1}>
+    <Grid container item xs={12} spacing={1}>
       <Grid item xs={12}>
         <TextField
           label="One Rep Max Weight"
@@ -65,7 +65,7 @@ export default function RepsWithPercentLog(props) {
               container
               style={{ justifyContent: "flex-end", alignContent: "center" }}
             >
-              <Typography>Set {i + 1}:</Typography>
+              <Typography noWrap>Set {i + 1}:</Typography>
             </Grid>
             <Grid item xs={5}>
               <TextField
@@ -81,8 +81,8 @@ export default function RepsWithPercentLog(props) {
                 size="small"
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      /{props.exercise.goals.exactReps[i]} reps
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{props.exercise.goals.exactReps[i]}
                     </InputAdornment>
                   ),
                 }}
@@ -102,8 +102,8 @@ export default function RepsWithPercentLog(props) {
                 size="small"
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      /{(oneRepMax / 100) * props.exercise.goals.percent[i]} lbs
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{(oneRepMax / 100) * props.exercise.goals.percent[i]}
                     </InputAdornment>
                   ),
                 }}

@@ -184,7 +184,7 @@ export default function Exercise(props) {
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {props.editMode ? (
         <>
-          <Grid container item xs={11} spacing={1}>
+          <Grid container item xs={12} spacing={1}>
             <Grid item xs={12}>
               <TextField
                 label="Exercise Title"

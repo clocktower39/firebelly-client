@@ -78,31 +78,31 @@ export default function Navbar() {
               />
             }
           >
-            <Button className={classes.NavLink} component={Link} to="/" sx={{ minWidth: '32px', padding: '0px 8px'}} >
+            <Button className={classes.NavLink} component={Link} to="/" sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
               <Stack justifyContent="center" alignItems="center">
                 <div style={{display: wide?"block":"none", color: '#fff', }}>Home</div>
                 <Home sx={{color: "#FFF",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
               <Stack justifyContent="center" alignItems="center">
                 <div style={{display: wide?"block":"none", color: '#fff', }}>Fitness</div>
                 <Assessment  sx={{color: "#D56100",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink} component={Link} to="/nutrition" sx={{ minWidth: '32px', padding: '0px 8px'}} >
+            <Button className={classes.NavLink} component={Link} to="/nutrition" sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
               <Stack justifyContent="center" alignItems="center">
                 <div style={{display: wide?"block":"none", color: '#fff', }}>Nutrition</div>
                 <Restaurant sx={{color: "#00AA00",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
               <Stack justifyContent="center" alignItems="center">
                 <div style={{display: wide?"block":"none", color: '#fff', }}>Workshops</div>
                 <Workspaces sx={{color: "#008080",}} />
               </Stack>
             </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px'}} >
+            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
               <Stack justifyContent="center" alignItems="center">
                 <div style={{display: wide?"block":"none", color: '#fff', }}>Training</div>
                 <FitnessCenter sx={{color: "#d50000",}} />

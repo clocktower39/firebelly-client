@@ -38,7 +38,7 @@ export default function TimeLog(props) {
   };
 
   return (
-    <Grid container item xs={8} spacing={1}>
+    <Grid container item xs={12} spacing={1}>
       {seconds.map((second, i) => {
         return (
           <Grid container item xs={12} spacing={2} key={i}>
@@ -52,6 +52,7 @@ export default function TimeLog(props) {
             </Grid>
             <Grid item xs={5}>
               <TextField
+                style={{ padding: 0, }}
                 label="Seconds"
                 value={seconds[i]}
                 onChange={(e) => handleChange(e, setSeconds, i, "seconds")}
@@ -64,8 +65,8 @@ export default function TimeLog(props) {
                 size="small"
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      /{props.exercise.goals.seconds[i]} seconds
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', paddingRight: 0, }} >
+                      /{props.exercise.goals.seconds[i]}
                     </InputAdornment>
                   ),
                 }}

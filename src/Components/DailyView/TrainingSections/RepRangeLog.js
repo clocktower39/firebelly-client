@@ -40,7 +40,7 @@ export default function RepRangeLog(props) {
   };
 
   return (
-    <Grid container item xs={8} spacing={1}>
+    <Grid container item xs={12} spacing={1}>
       {reps.map((rep, i) => {
         return (
           <Grid container item xs={12} spacing={2} key={i}>
@@ -66,8 +66,8 @@ export default function RepRangeLog(props) {
                 size="small"
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      /{props.exercise.goals.exactReps[i]} reps
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{props.exercise.goals.exactReps[i]}
                     </InputAdornment>
                   ),
                 }}
@@ -87,8 +87,8 @@ export default function RepRangeLog(props) {
                 size="small"
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      /{props.exercise.goals.weight[i]} lbs
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{props.exercise.goals.weight[i]}
                     </InputAdornment>
                   ),
                 }}
