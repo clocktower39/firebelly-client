@@ -11,6 +11,7 @@ export const EDIT_DEFAULT_TASK = 'EDIT_DEFAULT_TASK';
 export const EDIT_MYACCOUNT = 'EDIT_MYACCOUNT';
 export const EDIT_DAILY_NOTE = 'EDIT_DAILY_NOTE';
 export const EDIT_DAILY_TRAINING = 'EDIT_DAILY_TRAINING';
+export const EDIT_WEEKLY_VIEW = 'EDIT_WEEKLY_VIEW';
 
 // dev server
 // const currentIP = window.location.href.split(":")[1];
