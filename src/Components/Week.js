@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   Accordion,
   AccordionDetails,
@@ -13,6 +13,9 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { ExpandMore } from "@mui/icons-material";
+import {
+  requestNutritionWeek,
+} from "../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
   heading: {
@@ -22,6 +25,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Week() {
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
   const weeklyView = useSelector((state) => state.calander.weeklyView);
   const [note, setNote] = useState("");
 
@@ -82,9 +87,9 @@ export default function Week() {
   }
 
   useEffect(() => {
-
-  },
-    [selectedStartDate, selectedEndDate])
+    dispatch(requestNutritionWeek(user["_id"], selectedStartDate, selectedEndDate));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStartDate, selectedEndDate]);
 
   return (
     <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>

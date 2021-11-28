@@ -14,11 +14,11 @@ export const EDIT_DAILY_TRAINING = 'EDIT_DAILY_TRAINING';
 export const EDIT_WEEKLY_VIEW = 'EDIT_WEEKLY_VIEW';
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
     return async (dispatch, getState) => {
@@ -624,5 +624,32 @@ export function updateDailyTraining(trainingId, updatedTraining) {
                 dailyTraining: updatedTraining,
             })
         }
+    }
+}
+
+// Fetches or creates daily nutrition stats
+export function requestNutritionWeek(accountId, startDate, endDate) {
+    return async (dispatch) => {
+        const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+        const response = await fetch(`${serverURL}/nutritionWeek`, {
+            method: 'post',
+            dataType: 'json',
+            body: JSON.stringify({
+                accountId,
+                startDate,
+                endDate,
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
+            }
+        })
+        let data = await response.json();
+
+        return dispatch({
+            type: EDIT_WEEKLY_VIEW,
+            weeklyView: data,
+        })
     }
 }

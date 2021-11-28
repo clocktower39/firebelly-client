@@ -97,7 +97,7 @@ export let reducer = (state = { user, calander }, action) => {
                 ...state,
                 calander:{
                     dailyView:{ ...state.calander.dailyView,},
-                    weeklyView:{...action.weeklyView},
+                    weeklyView:[...action.weeklyView],
                     monthlyView:{...state.calander.monthlyView},
                 },
             }
