@@ -20,36 +20,33 @@ export let reducer = (state = { user, calander }, action) => {
             return {
                 ...state,
                 calander:{
+                    ...state.calander,
                     dailyView:{ 
                         ...state.calander.dailyView,
                         dailyTasks: [...action.dailyTasks],
                     },
-                    weeklyView:{...calander.weeklyView},
-                    monthlyView:{...calander.monthlyView},
                 },
             }
         case FETCH_DAILY_TASK:
             return {
                 ...state,
                 calander:{
+                    ...state.calander,
                     dailyView:{ 
                         ...state.calander.dailyView,
                         dailyTasks: [...action.dailyTasks],
                     },
-                    weeklyView:{...calander.weeklyView},
-                    monthlyView:{...calander.monthlyView},
                 },
             }
         case EDIT_DAILY_TRAINING:
             return {
                 ...state,
                 calander:{
+                    ...state.calander,
                     dailyView:{ 
                         ...state.calander.dailyView,
                         dailyTraining: {...action.dailyTraining},
                     },
-                    weeklyView:{...calander.weeklyView},
-                    monthlyView:{...calander.monthlyView},
                 },
             }
         case EDIT_DAILY_NUTRITION:
@@ -61,20 +58,17 @@ export let reducer = (state = { user, calander }, action) => {
                         ...state.calander.dailyView,
                         dailyNutrition: action.dailyNutrition,
                     },
-                    weeklyView:{...calander.weeklyView},
-                    monthlyView:{...calander.monthlyView},
                 },
             }
         case EDIT_DAILY_NOTE:
             return {
                 ...state,
                 calander:{
+                    ...state.calander,
                     dailyView:{ 
                         ...state.calander.dailyView,
                         dailyNote: action.dailyNote,
                     },
-                    weeklyView:{...calander.weeklyView},
-                    monthlyView:{...calander.monthlyView},
                 },
             }
         case EDIT_MYACCOUNT:
@@ -96,9 +90,8 @@ export let reducer = (state = { user, calander }, action) => {
             return {
                 ...state,
                 calander:{
-                    dailyView:{ ...state.calander.dailyView,},
+                    ...state.calander,
                     weeklyView:[...action.weeklyView],
-                    monthlyView:{...state.calander.monthlyView},
                 },
             }
         case ERROR:

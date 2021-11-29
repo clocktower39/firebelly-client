@@ -617,7 +617,7 @@ export function updateDailyTraining(trainingId, updatedTraining) {
   };
 }
 
-// Fetches or creates daily nutrition stats
+// Fetches nutrition stats from a range
 export function requestNutritionWeek(accountId, startDate, endDate) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -639,7 +639,11 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
     let data = await response.json();
 
     const newWeeklyView = state.calander.weeklyView.map((day, index) => {
-      if (data[index] ? new Date(data[index].date).getDay() === index : false) day.nutrition = data[index];
+        data.forEach((dataDay, dataIndex) => {
+            if(new Date(dataDay.date).getDay() === index ){
+                day.nutrition = dataDay;
+            }
+        })
       return day;
     });
 
@@ -649,3 +653,41 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
     });
   };
 }
+
+// Fetches training stats from a range
+export function requestTrainingWeek(accountId, startDate, endDate) {
+    return async (dispatch, getState) => {
+      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const state = getState();
+  
+      const response = await fetch(`${serverURL}/trainingWeek`, {
+        method: "post",
+        dataType: "json",
+        body: JSON.stringify({
+          accountId,
+          startDate,
+          endDate,
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+      let data = await response.json();
+  
+      const newWeeklyView = state.calander.weeklyView.map((day, index) => {
+          data.forEach((dataDay, dataIndex) => {
+              if(new Date(dataDay.date).getDay() === index ){
+                  day.training = dataDay;
+              }
+          })
+        return day;
+      });
+  
+      return dispatch({
+        type: EDIT_WEEKLY_VIEW,
+        weeklyView: newWeeklyView,
+      });
+    };
+  }
+  

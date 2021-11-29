@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { ExpandMore } from "@mui/icons-material";
-import { requestNutritionWeek } from "../Redux/actions";
+import { requestNutritionWeek, requestTrainingWeek } from "../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
   heading: {
@@ -25,7 +25,7 @@ export default function Week() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const weeklyView = useSelector((state) => state.calander.weeklyView);
-  
+
   const dayOfWeek = (index) => {
     switch (index) {
       case 0:
@@ -85,6 +85,7 @@ export default function Week() {
 
   useEffect(() => {
     dispatch(requestNutritionWeek(user["_id"], selectedStartDate, selectedEndDate));
+    dispatch(requestTrainingWeek(user["_id"], selectedStartDate, selectedEndDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStartDate, selectedEndDate]);
 
@@ -153,6 +154,9 @@ export default function Week() {
                       <Typography variant="h5" className={classes.heading}>
                         {dayOfWeek(index)}
                       </Typography>
+                      <Typography variant="h6" display="inline">
+                        {new Date(day.training.date).getMonth() + 1}/{new Date(day.training.date).getDate() + 1}
+                      </Typography>
                     </Grid>
                     <Grid item xs={9}>
                       <LinearProgress variant="determinate" value={(0 / 1) * 100} />
@@ -160,27 +164,22 @@ export default function Week() {
                   </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
+                  <Typography variant="h6">Training</Typography><Typography variant="body1">{day.training ? `Category: ${day.training.category}, Sets: ${day.training.training.length}` || "No Category Entered" : "No Data"}</Typography>
+                </AccordionDetails>
+                <AccordionDetails>
                   <Typography variant="h6">
-                    Training Category:{" "}
-                    <Typography variant="body1" display="inline">
-                      day.trainingCategory{0}/{1}
-                    </Typography>
+                    Daily Tasks
+                  </Typography>
+                  <Typography variant="body1">
+                    {day.tasks ? `` : "No Data"}
                   </Typography>
                 </AccordionDetails>
                 <AccordionDetails>
                   <Typography variant="h6">
-                    Daily Tasks Status:
-                    <Typography variant="body1" display="inline">
-                      {0}/{1}
-                    </Typography>
+                    Nutrition
                   </Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                  <Typography variant="h6">
-                    Nutrition:
-                    <Typography variant="body1" display="inline">
-                      {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : 0 / 1}
-                    </Typography>
+                  <Typography variant="body1">
+                    {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : "No Data"}
                   </Typography>
                 </AccordionDetails>
               </Accordion>
