@@ -177,8 +177,15 @@ export let calander = {
         dailyNutrition,
         dailyNote,
     },
-    weeklyView:{
-    },
+    weeklyView:[
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+    ],
     monthlyView:{
     },
 }

@@ -4,7 +4,6 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
-  Button,
   Container,
   Grid,
   LinearProgress,
@@ -13,9 +12,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { ExpandMore } from "@mui/icons-material";
-import {
-  requestNutritionWeek,
-} from "../Redux/actions";
+import { requestNutritionWeek } from "../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
   heading: {
@@ -28,11 +25,7 @@ export default function Week() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const weeklyView = useSelector((state) => state.calander.weeklyView);
-  const [note, setNote] = useState("");
-
-  const handleChange = (e) => {
-    setNote(e.value);
-  };
+  
   const dayOfWeek = (index) => {
     switch (index) {
       case 0:
@@ -75,16 +68,20 @@ export default function Week() {
     if (type === "start") {
       setSelectedStartDate(e.target.value);
       setSelectedEndDate(
-        dateToISOLikeButLocal(new Date(new Date(e.target.value).getTime() + 7 * (24 * 60 * 60 * 1000))).substr(0, 10)
-      )
+        dateToISOLikeButLocal(
+          new Date(new Date(e.target.value).getTime() + 7 * (24 * 60 * 60 * 1000))
+        ).substr(0, 10)
+      );
     }
     if (type === "end") {
       setSelectedEndDate(e.target.value);
       setSelectedStartDate(
-        dateToISOLikeButLocal(new Date(new Date(e.target.value).getTime() - 5 * (24 * 60 * 60 * 1000))).substr(0, 10)
+        dateToISOLikeButLocal(
+          new Date(new Date(e.target.value).getTime() - 5 * (24 * 60 * 60 * 1000))
+        ).substr(0, 10)
       );
     }
-  }
+  };
 
   useEffect(() => {
     dispatch(requestNutritionWeek(user["_id"], selectedStartDate, selectedEndDate));
@@ -96,7 +93,7 @@ export default function Week() {
       <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
         Weekly View
       </Typography>
-      <Grid container xs={12} style={{ justifyContent: 'center', }}>
+      <Grid container xs={12} style={{ justifyContent: "center", marginBottom: '25px', }}>
         {/* Select start and end dates from a calander input */}
         <Grid container xs={3}>
           <TextField
@@ -129,79 +126,69 @@ export default function Week() {
           />
         </Grid>
       </Grid>
-      {Array.isArray(weeklyView) ? weeklyView.map(day => (
-        <Accordion>
-        <AccordionSummary expandIcon={<ExpandMore />}>
-          <Grid container alignItems="center">
-            <Grid item xs={3}>
-              <Typography variant="h5" className={classes.heading}>
-                {dayOfWeek(new Date(day.date).getDay())}
-              </Typography>
-            </Grid>
-            <Grid item xs={9}>
-              <LinearProgress
-                variant="determinate"
-                value={(0 / 1) * 100}
-              />
-            </Grid>
-          </Grid>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="h6">
-            Training Category:{" "}
-            <Typography variant="body1" display="inline">
-              day.trainingCategory{0}/{1}
-            </Typography>
-          </Typography>
-        </AccordionDetails>
-        <AccordionDetails>
-          <Typography variant="h6">
-            Daily Tasks Status:
-            <Typography variant="body1" display="inline">
-              {0}/{1}
-            </Typography>
-          </Typography>
-        </AccordionDetails>
-        <AccordionDetails>
-          <Typography variant="h6">
-            Nutrition:
-            <Typography variant="body1" display="inline">
-              {0}/{1}
-            </Typography>
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      )) : <></>}
-      
+      {Array.isArray(weeklyView) ? (
+        weeklyView
+          .sort((a, b) => a.date - b.date)
+          .map((day, index) => {
+            let NutritionAchieved = () => {
+              let total = 0;
+              for (const stat in day.nutrition.stats) {
+                total += Number(day.nutrition.stats[stat].achieved);
+              }
+              return total;
+            };
+            let NutritionGoal = () => {
+              let total = 0;
+              for (const stat in day.nutrition.stats) {
+                total += Number(day.nutrition.stats[stat].goal);
+              }
+              return total;
+            };
 
-
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMore />}>
-          <Grid container alignItems="center">
-            <Grid item xs={3}>
-              <Typography variant="h5" className={classes.heading}>
-                Notes
-              </Typography>
-            </Grid>
-          </Grid>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                value={note}
-                onChange={(e) => handleChange(e)}
-                label="Please provide feedback on your day; what was difficult and what went well?"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button variant="outlined">Save</Button>
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
+            return (
+              <Accordion key={`sorted-weeklyview-${index}`} >
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Grid container alignItems="center">
+                    <Grid item xs={3}>
+                      <Typography variant="h5" className={classes.heading}>
+                        {dayOfWeek(index)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={9}>
+                      <LinearProgress variant="determinate" value={(0 / 1) * 100} />
+                    </Grid>
+                  </Grid>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography variant="h6">
+                    Training Category:{" "}
+                    <Typography variant="body1" display="inline">
+                      day.trainingCategory{0}/{1}
+                    </Typography>
+                  </Typography>
+                </AccordionDetails>
+                <AccordionDetails>
+                  <Typography variant="h6">
+                    Daily Tasks Status:
+                    <Typography variant="body1" display="inline">
+                      {0}/{1}
+                    </Typography>
+                  </Typography>
+                </AccordionDetails>
+                <AccordionDetails>
+                  <Typography variant="h6">
+                    Nutrition:
+                    <Typography variant="body1" display="inline">
+                      {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : 0 / 1}
+                    </Typography>
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })
+      ) : (
+        <></>
+      )}
     </Container>
   );
 }
