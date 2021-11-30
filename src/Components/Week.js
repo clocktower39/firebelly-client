@@ -94,9 +94,9 @@ export default function Week() {
       <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
         Weekly View
       </Typography>
-      <Grid container xs={12} style={{ justifyContent: "center", marginBottom: '25px', }}>
+      <Grid container item xs={12} style={{ justifyContent: "center", marginBottom: "25px" }}>
         {/* Select start and end dates from a calander input */}
-        <Grid container xs={3}>
+        <Grid container item xs={3}>
           <TextField
             focused
             id="startDate"
@@ -111,7 +111,7 @@ export default function Week() {
             }}
           />
         </Grid>
-        <Grid container xs={3}>
+        <Grid container item xs={3}>
           <TextField
             focused
             id="endDate"
@@ -129,7 +129,7 @@ export default function Week() {
       </Grid>
       {Array.isArray(weeklyView) ? (
         weeklyView
-          .sort((a, b) => a.date - b.date)
+          .sort((a, b) => (a.training)? a.training.date > b.training.date: a<b)
           .map((day, index) => {
             let NutritionAchieved = () => {
               let total = 0;
@@ -147,15 +147,19 @@ export default function Week() {
             };
 
             return (
-              <Accordion key={`sorted-weeklyview-${index}`} >
+              <Accordion key={`sorted-weeklyview-${index}`}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Grid container alignItems="center">
                     <Grid item xs={3}>
                       <Typography variant="h5" className={classes.heading}>
-                        {dayOfWeek(index)}
+                        {day.training?dayOfWeek(new Date(day.training.date).getDay()):"No Data"}
                       </Typography>
                       <Typography variant="h6" display="inline">
-                        {new Date(day.training.date).getMonth() + 1}/{new Date(day.training.date).getDate() + 1}
+                        {day.training
+                          ? `${new Date(day.training.date).getMonth() + 1}/${
+                              new Date(day.training.date).getDate() + 1
+                            }`
+                          : "No Data"}
                       </Typography>
                     </Grid>
                     <Grid item xs={9}>
@@ -164,20 +168,20 @@ export default function Week() {
                   </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography variant="h6">Training</Typography><Typography variant="body1">{day.training ? `Category: ${day.training.category}, Sets: ${day.training.training.length}` || "No Category Entered" : "No Data"}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                  <Typography variant="h6">
-                    Daily Tasks
-                  </Typography>
+                  <Typography variant="h6">Training</Typography>
                   <Typography variant="body1">
-                    {day.tasks ? `` : "No Data"}
+                    {day.training
+                      ? `Category: ${day.training.category}, Sets: ${day.training.training.length}` ||
+                        "No Category Entered"
+                      : "No Data"}
                   </Typography>
                 </AccordionDetails>
                 <AccordionDetails>
-                  <Typography variant="h6">
-                    Nutrition
-                  </Typography>
+                  <Typography variant="h6">Daily Tasks</Typography>
+                  <Typography variant="body1">{day.tasks ? `` : "No Data"}</Typography>
+                </AccordionDetails>
+                <AccordionDetails>
+                  <Typography variant="h6">Nutrition</Typography>
                   <Typography variant="body1">
                     {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : "No Data"}
                   </Typography>
