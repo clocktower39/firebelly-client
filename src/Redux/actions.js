@@ -639,11 +639,11 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
     let data = await response.json();
 
     const newWeeklyView = state.calander.weeklyView.map((day, index) => {
-        data.forEach((dataDay, dataIndex) => {
-            if(new Date(dataDay.date).getDay() === index ){
-                day.nutrition = dataDay;
-            }
-        })
+      data.forEach((dataDay, dataIndex) => {
+        if (new Date(dataDay.date).getDay() === index) {
+          day.nutrition = dataDay;
+        }
+      });
       return day;
     });
 
@@ -656,38 +656,37 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
 
 // Fetches training stats from a range
 export function requestTrainingWeek(accountId, startDate, endDate) {
-    return async (dispatch, getState) => {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-      const state = getState();
-  
-      const response = await fetch(`${serverURL}/trainingWeek`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          accountId,
-          startDate,
-          endDate,
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
+
+    const response = await fetch(`${serverURL}/trainingWeek`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        accountId,
+        startDate,
+        endDate,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let data = await response.json();
+
+    const newWeeklyView = state.calander.weeklyView.map((day, index) => {
+      data.forEach((dataDay, dataIndex) => {
+        if (new Date(dataDay.date).getDay() === index) {
+          day.training = dataDay;
+        }
       });
-      let data = await response.json();
-  
-      const newWeeklyView = state.calander.weeklyView.map((day, index) => {
-          data.forEach((dataDay, dataIndex) => {
-              if(new Date(dataDay.date).getDay() === index ){
-                  day.training = dataDay;
-              }
-          })
-        return day;
-      });
-  
-      return dispatch({
-        type: EDIT_WEEKLY_VIEW,
-        weeklyView: newWeeklyView,
-      });
-    };
-  }
-  
+      return day;
+    });
+
+    return dispatch({
+      type: EDIT_WEEKLY_VIEW,
+      weeklyView: newWeeklyView,
+    });
+  };
+}

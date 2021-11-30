@@ -129,7 +129,7 @@ export default function Week() {
       </Grid>
       {Array.isArray(weeklyView) ? (
         weeklyView
-          .sort((a, b) => (a.training)? a.training.date > b.training.date: a<b)
+          .sort((a, b) => (a.training ? a.training.date > b.training.date : a < b))
           .map((day, index) => {
             let NutritionAchieved = () => {
               let total = 0;
@@ -152,13 +152,23 @@ export default function Week() {
                   <Grid container alignItems="center">
                     <Grid item xs={3}>
                       <Typography variant="h5" className={classes.heading}>
-                        {day.training?dayOfWeek(new Date(day.training.date).getDay()):"No Data"}
+                        {day.training
+                          ? dayOfWeek(
+                              new Date(
+                                day.training.date.split("-").join("/").substr(0, 10)
+                              ).getDay()
+                            )
+                          : "No Data"}
                       </Typography>
                       <Typography variant="h6" display="inline">
                         {day.training
-                          ? `${new Date(day.training.date).getMonth() + 1}/${
-                              new Date(day.training.date).getDate() + 1
-                            }`
+                          ? `${
+                              new Date(
+                                day.training.date.split("-").join("/").substr(0, 10)
+                              ).getMonth() + 1
+                            }/${new Date(
+                              day.training.date.split("-").join("/").substr(0, 10)
+                            ).getDate()}`
                           : "No Data"}
                       </Typography>
                     </Grid>
