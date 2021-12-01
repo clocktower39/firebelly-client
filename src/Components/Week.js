@@ -160,18 +160,7 @@ export default function Week() {
                   <Grid container alignItems="center">
                     <Grid container item xs={12}>
                       <Grid item xs={6}>
-                        <Typography variant="h5" className={classes.heading}>
-                          {day.training
-                            ? dayOfWeek(
-                                new Date(
-                                  day.training.date.split("-").join("/").substr(0, 10)
-                                ).getDay()
-                              )
-                            : "No Data"}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={6} container >
-                        <Typography variant="h6" display="inline">
+                        <Typography variant="h6" textAlign="center" >
                           {day.training
                             ? `${
                                 new Date(
@@ -183,16 +172,36 @@ export default function Week() {
                             : "No Data"}
                         </Typography>
                       </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="h5" className={classes.heading} textAlign="center" >
+                          {day.training
+                            ? dayOfWeek(
+                                new Date(
+                                  day.training.date.split("-").join("/").substr(0, 10)
+                                ).getDay()
+                              )
+                            : "No Data"}
+                        </Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </AccordionSummary>
+                <Grid container style={{ justifyContent: "center" }}>
+                  <Grid item xs={8}>
+                    <Divider />
+                  </Grid>
+                </Grid>
                 <Grid container style={{ textAlign: "center" }}>
                   <Grid item xs={12} sm={4}>
                     <AccordionDetails>
                       <Typography variant="h5">Daily Tasks</Typography>
                       <Typography variant="body1">{day.tasks ? `` : "No Data"}</Typography>
                     </AccordionDetails>
-                    <Divider />
+                    <Grid container style={{ justifyContent: "center" }}>
+                      <Grid item xs={8}>
+                        <Divider />
+                      </Grid>
+                    </Grid>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <AccordionDetails>
@@ -204,7 +213,11 @@ export default function Week() {
                           : "No Data"}
                       </Typography>
                     </AccordionDetails>
-                    <Divider />
+                    <Grid container style={{ justifyContent: "center" }}>
+                      <Grid item xs={8}>
+                        <Divider />
+                      </Grid>
+                    </Grid>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <AccordionDetails>

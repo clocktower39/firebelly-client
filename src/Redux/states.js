@@ -2,7 +2,8 @@ export let user = {
     isTrainer: false,
 }
 
-export let dailyTasks = [
+export let dailyTasks = {
+    tasks: [],
     // {
     //     title: 'Handstand',
     //     goal: 1,
@@ -33,7 +34,7 @@ export let dailyTasks = [
     //     goal: 1,
     //     achieved: 1,
     // },
-];
+};
 
 export let dailyTraining = {
     trainingCategory: "",

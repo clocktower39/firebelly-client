@@ -5,7 +5,6 @@ export const LOGOUT_USER = "LOGOUT_USER";
 export const SIGNUP_USER = "SIGNUP_USER";
 export const ERROR = "ERROR";
 export const EDIT_DAILY_TASK = "EDIT_DAILY_TASK";
-export const FETCH_DAILY_TASK = "FETCH_DAILY_TASK";
 export const EDIT_DAILY_NUTRITION = "EDIT_DAILY_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
@@ -14,11 +13,11 @@ export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch, getState) => {
@@ -117,64 +116,16 @@ export function editUser(user) {
   };
 }
 
-export function checkToggleDailyTask(id) {
-  return async (dispatch, getState) => {
-    const state = getState();
-
-    // Find the correct task and toggle if the task was achieved
-    const dailyTasks = state.calander.dailyView.dailyTasks.map((task) => {
-      if (task._id === id) {
-        task.achieved === 0 ? (task.achieved = 1) : (task.achieved = 0);
-        const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-        fetch(`${serverURL}/updateTask`, {
-          method: "post",
-          dataType: "json",
-          body: JSON.stringify({
-            _id: id,
-            achieved: task.achieved,
-          }),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              return dispatch({
-                type: ERROR,
-                error: data.error,
-              });
-            }
-          });
-      }
-      return task;
-    });
-
-    return dispatch({
-      type: EDIT_DAILY_TASK,
-      dailyTasks,
-    });
-  };
-}
-
-// Add a one time daily task
-export function addDailyTask(newTask) {
-  return async (dispatch, getState) => {
-    const state = getState();
-
+export function checkToggleDailyTask(id, newDailyTask) {
+  return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const dbTask = await fetch(`${serverURL}/createTask`, {
+    fetch(`${serverURL}/updateTask`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId: newTask.accountId,
-        date: newTask.date,
-        title: newTask.title,
-        goal: 1,
-        achieved: 0,
+        _id: id,
+        newDailyTask,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -189,31 +140,16 @@ export function addDailyTask(newTask) {
             error: data.error,
           });
         }
-        return data.task;
       });
-    const dailyTasks = [...state.calander.dailyView.dailyTasks, dbTask];
 
     return dispatch({
       type: EDIT_DAILY_TASK,
-      dailyTasks,
+      dailyTasks: newDailyTask,
     });
   };
 }
 
-// Pushes updates to daily tasks for the selected date
-export function editDailyTask(newTask) {
-  return async (dispatch, getState) => {
-    const state = getState();
-    const dailyTasks = [...state.calander.dailyView.dailyTasks, newTask];
-
-    return dispatch({
-      type: EDIT_DAILY_TASK,
-      dailyTasks,
-    });
-  };
-}
-
-// Fetches or creates daily tasks
+// // Fetches or creates daily tasks
 export function requestDailyTasks(accountId, date) {
   return async (dispatch, getState) => {
     const state = getState();
@@ -235,48 +171,46 @@ export function requestDailyTasks(accountId, date) {
     let data = await response.json();
 
     if (data.length < 1) {
-      // create and return default tasks if array is empty
-      let newTaskList = [];
+      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-      state.user.defaultTasks.forEach((task) => {
-        const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-        fetch(`${serverURL}/createTask`, {
-          method: "post",
-          dataType: "json",
-          body: JSON.stringify({
-            accountId,
-            date,
-            title: task.title,
-            goal: 1,
-            achieved: 0,
+      fetch(`${serverURL}/createTask`, {
+        method: "post",
+        dataType: "json",
+        body: JSON.stringify({
+          accountId,
+          date,
+          tasks: state.user.defaultTasks.map((task) => {
+            return {
+              title: task.title,
+              goal: 1,
+              achieved: 0,
+            };
           }),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              return dispatch({
-                type: ERROR,
-                error: data.error,
-              });
-            }
-            newTaskList.push(data.task);
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
             return dispatch({
-              type: EDIT_DAILY_TASK,
-              dailyTasks: newTaskList,
+              type: ERROR,
+              error: data.error,
             });
+          }
+          return dispatch({
+            type: EDIT_DAILY_TASK,
+            dailyTasks: data.task,
           });
+        });
+    } else {
+      return dispatch({
+        type: EDIT_DAILY_TASK,
+        dailyTasks: data[0],
       });
     }
-
-    return dispatch({
-      type: FETCH_DAILY_TASK,
-      dailyTasks: data,
-    });
   };
 }
 

@@ -22,7 +22,6 @@ import { AddCircle, ExpandMore } from "@mui/icons-material";
 import {
   requestDailyTasks,
   checkToggleDailyTask,
-  addDailyTask,
 } from "../../Redux/actions";
 
 const useStyles = makeStyles((theme) => ({
@@ -50,34 +49,34 @@ export default function Tasks(props) {
   const handleModalToggle = () => setIsModalOpen(!isModalOpen);
 
   const [modalNewTaskTitle, setModalNewTaskTitle] = useState("");
-  const submitDailyTask = () => {
-    if (modalNewTaskTitle !== "") {
-      dispatch(
-        addDailyTask({
-          title: modalNewTaskTitle,
-          goal: 1,
-          achieved: 0,
-          date: props.selectedDate,
-          accountId: user._id,
-        })
-      )
-        .then(() => handleModalToggle())
-        .then(() => setModalNewTaskTitle(""));
-    }
-  };
+  // const submitDailyTask = () => {
+  //   if (modalNewTaskTitle !== "") {
+  //     dispatch(
+  //       addDailyTask({
+  //         title: modalNewTaskTitle,
+  //         goal: 1,
+  //         achieved: 0,
+  //         date: props.selectedDate,
+  //         accountId: user._id,
+  //       })
+  //     )
+  //       .then(() => handleModalToggle())
+  //       .then(() => setModalNewTaskTitle(""));
+  //   }
+  // };
   const cancelNewTask = () => {
     setIsModalOpen(false);
     setModalNewTaskTitle("");
   };
 
   const dailyTasksAchieved =
-    dailyTasks.length > 0
-      ? dailyTasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }))
+    dailyTasks.tasks.length > 0
+      ? dailyTasks.tasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }))
           .achieved
       : 0;
   const dailyTasksGoal =
-    dailyTasks.length > 0
-      ? dailyTasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
+    dailyTasks.tasks.length > 0
+      ? dailyTasks.tasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
       : 1;
 
   useEffect(() => {
@@ -106,7 +105,7 @@ export default function Tasks(props) {
               <Button variant="outlined" onClick={cancelNewTask}>
                 Cancel
               </Button>
-              <Button variant="outlined" onClick={submitDailyTask}>
+              <Button variant="outlined" >
                 Submit
               </Button>
             </Grid>
@@ -129,10 +128,20 @@ export default function Tasks(props) {
         </AccordionSummary>
         <AccordionDetails>
           <Grid container spacing={2} style={{justifyContent:"center"}} >
-            {dailyTasks.sort((a,b) => a.title > b.title ).map((task) => {
-              const handleCheckChange = (e) => {
-                dispatch(checkToggleDailyTask(task._id));
-              };
+            {dailyTasks.tasks.sort((a,b) => a.title > b.title ).map((task) => {
+              const handleCheckChange = (e, title) => {
+                const newTasks = dailyTasks.tasks.map(task => {
+                  if(task.title === title){
+                    task.achieved === 0 ? task.achieved = 1: task.achieved = 0;
+                  }
+                  return task;
+                });
+                const newDailyTask = {
+                  ...dailyTasks,
+                  tasks: newTasks
+                }
+                dispatch(checkToggleDailyTask(dailyTasks._id, newDailyTask));
+              }
 
               return (
                 <FormControl component="fieldset" key={task._id}>
@@ -142,7 +151,7 @@ export default function Tasks(props) {
                       control={<Checkbox color="primary" />}
                       label={task.title}
                       labelPlacement="top"
-                      onChange={handleCheckChange}
+                      onClick={(e)=>handleCheckChange(e, task.title)}
                       checked={task.achieved > 0 ? true : false}
                     />
                   </FormGroup>
