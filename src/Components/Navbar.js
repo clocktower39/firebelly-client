@@ -18,7 +18,7 @@ import {
 import { Assessment, FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import useWindowWidth from "../Hooks/WindowWidth"
+import useWindowWidth from "../Hooks/WindowWidth";
 import FireBellyLogo from "../img/fireBellyLogo.jpg";
 
 const useStyles = makeStyles((theme) => ({
@@ -32,8 +32,7 @@ const useStyles = makeStyles((theme) => ({
     minHeight: "58px",
     maxHeight: "139px",
   },
-  NavLink: {
-  },
+  NavLink: {},
   NavAccountContainer: {
     display: "flex",
     flexDirection: "column",
@@ -51,7 +50,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-
 export default function Navbar() {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -67,48 +65,67 @@ export default function Navbar() {
         <IconButton color="inherit" component={Link} to="/">
           <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
         </IconButton>
-          <Stack
-            direction="row"
-            divider={
-              <Divider
-                orientation="vertical"
-                flexItem
-                variant="middle"
-                sx={{ borderColor: "#fff", margin: wide?"12.5px":"4px" }}
-              />
-            }
+        <Stack
+          direction="row"
+          divider={
+            <Divider
+              orientation="vertical"
+              flexItem
+              variant="middle"
+              sx={{ borderColor: "#fff", margin: wide ? "12.5px" : "4px" }}
+            />
+          }
+        >
+          <Button
+            className={classes.NavLink}
+            component={Link}
+            to="/"
+            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
-            <Button className={classes.NavLink} component={Link} to="/" sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
-              <Stack justifyContent="center" alignItems="center">
-                <div style={{display: wide?"block":"none", color: '#fff', }}>Home</div>
-                <Home sx={{color: "#FFF",}} />
-              </Stack>
-            </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
-              <Stack justifyContent="center" alignItems="center">
-                <div style={{display: wide?"block":"none", color: '#fff', }}>Fitness</div>
-                <Assessment  sx={{color: "#D56100",}} />
-              </Stack>
-            </Button>
-            <Button className={classes.NavLink} component={Link} to="/nutrition" sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
-              <Stack justifyContent="center" alignItems="center">
-                <div style={{display: wide?"block":"none", color: '#fff', }}>Nutrition</div>
-                <Restaurant sx={{color: "#00AA00",}} />
-              </Stack>
-            </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
-              <Stack justifyContent="center" alignItems="center">
-                <div style={{display: wide?"block":"none", color: '#fff', }}>Workshops</div>
-                <Workspaces sx={{color: "#008080",}} />
-              </Stack>
-            </Button>
-            <Button className={classes.NavLink} sx={{ minWidth: '32px', padding: '0px 8px', color: "white", }} >
-              <Stack justifyContent="center" alignItems="center">
-                <div style={{display: wide?"block":"none", color: '#fff', }}>Training</div>
-                <FitnessCenter sx={{color: "#d50000",}} />
-              </Stack>
-            </Button>
-          </Stack>
+            <Stack justifyContent="center" alignItems="center">
+              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Home</div>
+              <Home sx={{ color: "#FFF" }} />
+            </Stack>
+          </Button>
+          <Button
+            className={classes.NavLink}
+            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
+          >
+            <Stack justifyContent="center" alignItems="center">
+              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Fitness</div>
+              <Assessment sx={{ color: "#D56100" }} />
+            </Stack>
+          </Button>
+          <Button
+            className={classes.NavLink}
+            component={Link}
+            to="/nutrition"
+            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
+          >
+            <Stack justifyContent="center" alignItems="center">
+              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Nutrition</div>
+              <Restaurant sx={{ color: "#00AA00" }} />
+            </Stack>
+          </Button>
+          <Button
+            className={classes.NavLink}
+            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
+          >
+            <Stack justifyContent="center" alignItems="center">
+              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Workshops</div>
+              <Workspaces sx={{ color: "#008080" }} />
+            </Stack>
+          </Button>
+          <Button
+            className={classes.NavLink}
+            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
+          >
+            <Stack justifyContent="center" alignItems="center">
+              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Training</div>
+              <FitnessCenter sx={{ color: "#d50000" }} />
+            </Stack>
+          </Button>
+        </Stack>
 
         <div className={classes.NavAccountContainer}>
           {user.email ? (
@@ -171,6 +188,20 @@ export default function Navbar() {
                   >
                     <ListItemText>Monthly</ListItemText>
                   </ListItem>
+                  {user.isTrainer ? (
+                    <ListItem
+                      button
+                      component={Link}
+                      to="/clients"
+                      onClick={toggleList}
+                      className={classes.nested}
+                    >
+                      <ListItemText>Clients</ListItemText>
+                    </ListItem>
+                  ) : (
+                    <></>
+                  )}
+
                   <ListItem
                     button
                     onClick={() => dispatch(logoutUser())}

@@ -6,7 +6,7 @@ import {
   AccordionSummary,
   Container,
   Grid,
-  LinearProgress,
+  Divider,
   TextField,
   Typography,
 } from "@mui/material";
@@ -17,6 +17,14 @@ import { requestNutritionWeek, requestTrainingWeek } from "../Redux/actions";
 const useStyles = makeStyles((theme) => ({
   heading: {
     fontWeight: 600,
+  },
+  TextField: {
+    "& .css-1d3z3hw-MuiOutlinedInput-notchedOutline": {
+      borderColor: theme.palette.primary.dark,
+    },
+    "& .MuiOutlinedInput-input": {
+      color: "#ffffff",
+    },
   },
 }));
 
@@ -91,12 +99,12 @@ export default function Week() {
 
   return (
     <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-      <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
+      <Typography variant="h5" gutterBottom textAlign="center" style={{ color: "#fff" }}>
         Weekly View
       </Typography>
       <Grid container item xs={12} style={{ justifyContent: "center", marginBottom: "25px" }}>
         {/* Select start and end dates from a calander input */}
-        <Grid container item xs={3}>
+        <Grid container item xs={6} sm={6} style={{ justifyContent: "center" }}>
           <TextField
             focused
             id="startDate"
@@ -111,7 +119,7 @@ export default function Week() {
             }}
           />
         </Grid>
-        <Grid container item xs={3}>
+        <Grid container item xs={6} sm={6} style={{ justifyContent: "center" }}>
           <TextField
             focused
             id="endDate"
@@ -150,52 +158,63 @@ export default function Week() {
               <Accordion key={`sorted-weeklyview-${index}`}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Grid container alignItems="center">
-                    <Grid item xs={3}>
-                      <Typography variant="h5" className={classes.heading}>
-                        {day.training
-                          ? dayOfWeek(
-                              new Date(
+                    <Grid container item xs={12}>
+                      <Grid item xs={6}>
+                        <Typography variant="h5" className={classes.heading}>
+                          {day.training
+                            ? dayOfWeek(
+                                new Date(
+                                  day.training.date.split("-").join("/").substr(0, 10)
+                                ).getDay()
+                              )
+                            : "No Data"}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} container >
+                        <Typography variant="h6" display="inline">
+                          {day.training
+                            ? `${
+                                new Date(
+                                  day.training.date.split("-").join("/").substr(0, 10)
+                                ).getMonth() + 1
+                              }/${new Date(
                                 day.training.date.split("-").join("/").substr(0, 10)
-                              ).getDay()
-                            )
-                          : "No Data"}
-                      </Typography>
-                      <Typography variant="h6" display="inline">
-                        {day.training
-                          ? `${
-                              new Date(
-                                day.training.date.split("-").join("/").substr(0, 10)
-                              ).getMonth() + 1
-                            }/${new Date(
-                              day.training.date.split("-").join("/").substr(0, 10)
-                            ).getDate()}`
-                          : "No Data"}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <LinearProgress variant="determinate" value={(0 / 1) * 100} />
+                              ).getDate()}`
+                            : "No Data"}
+                        </Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
                 </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="h6">Training</Typography>
-                  <Typography variant="body1">
-                    {day.training
-                      ? `Category: ${day.training.category}, Sets: ${day.training.training.length}` ||
-                        "No Category Entered"
-                      : "No Data"}
-                  </Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                  <Typography variant="h6">Daily Tasks</Typography>
-                  <Typography variant="body1">{day.tasks ? `` : "No Data"}</Typography>
-                </AccordionDetails>
-                <AccordionDetails>
-                  <Typography variant="h6">Nutrition</Typography>
-                  <Typography variant="body1">
-                    {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : "No Data"}
-                  </Typography>
-                </AccordionDetails>
+                <Grid container style={{ textAlign: "center" }}>
+                  <Grid item xs={12} sm={4}>
+                    <AccordionDetails>
+                      <Typography variant="h5">Daily Tasks</Typography>
+                      <Typography variant="body1">{day.tasks ? `` : "No Data"}</Typography>
+                    </AccordionDetails>
+                    <Divider />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <AccordionDetails>
+                      <Typography variant="h5">Training</Typography>
+                      <Typography variant="body1">
+                        {day.training
+                          ? `Category: ${day.training.category}, Sets: ${day.training.training.length}` ||
+                            "No Category Entered"
+                          : "No Data"}
+                      </Typography>
+                    </AccordionDetails>
+                    <Divider />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <AccordionDetails>
+                      <Typography variant="h5">Nutrition</Typography>
+                      <Typography variant="body1">
+                        {day.nutrition ? `${NutritionAchieved()}/${NutritionGoal()}` : "No Data"}
+                      </Typography>
+                    </AccordionDetails>
+                  </Grid>
+                </Grid>
               </Accordion>
             );
           })

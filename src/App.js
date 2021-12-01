@@ -12,6 +12,7 @@ import Dashboard from './Components/Dashboard';
 import Day from './Components/DailyView/Day';
 import Week from './Components/Week';
 import Account from './Components/AccountComponents/Account';
+import Clients from './Components/Clients';
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
           <AuthRoute exact path='/day' component={Day} />
           <AuthRoute exact path='/week' component={Week} />
           <AuthRoute path='/account' component={Account} />
+          <AuthRoute path='/clients' component={Clients} />
         </Switch>
       </Router>
     </ThemeProvider>

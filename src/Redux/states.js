@@ -1,4 +1,5 @@
 export let user = {
+    isTrainer: false,
 }
 
 export let dailyTasks = [

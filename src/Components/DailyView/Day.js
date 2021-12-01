@@ -4,6 +4,7 @@ import {
     Container,
     Grid,
     TextField,
+    Typography,
     Divider,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
@@ -59,6 +60,9 @@ export default function Day() {
 
     return (
         <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
+        <Typography variant="h5" gutterBottom textAlign="center" style={{ color: "#fff" }}>
+          Daily View
+        </Typography>
             <Grid item xs={12} container style={{justifyContent:"center"}} >
 
                 {/* Go back one day */}
