@@ -13,11 +13,11 @@ export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch, getState) => {

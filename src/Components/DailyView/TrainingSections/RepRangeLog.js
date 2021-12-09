@@ -5,38 +5,58 @@ export default function RepRangeLog(props) {
   const [reps, setReps] = useState(props.exercise.achieved.reps);
   const [weight, setWeight] = useState(props.exercise.achieved.weight);
 
+
   const handleChange = (e, setter, index, type) => {
-    if (Number(e.target.value) >= 0) {
-      setter((prev) => {
-        const newState = prev.map((item, i) => {
-          if (index === i) {
-            item = Number(e.target.value) || 0;
+    // initialize answer to be used at the end of the conditional
+    let answer = 0;
+    setter((prev) => {
+      const newState = prev.map((item, i) => {
+        if (index === i) {
+          if (e.target.value === "" && e.target.value.length === 0) {
+            item = answer;
           }
-          return item;
-        });
-        props.setLocalTraining((prev) => {
-          return prev.map((set, index) => {
-            if (index === props.setIndex) {
-              set = set.map((item, index) => {
-                if (index === props.exerciseIndex) {
-                  item = {
-                    ...item,
-                    achieved: {
-                      ...item.achieved,
-                      reps: type === "reps" ? newState : reps,
-                      weight: type === "weight" ? newState : weight,
-                    },
-                  };
-                }
-                return item;
-              });
+          // remove extra zeros from the front
+          else if (Number(e.target.value) || e.target.value === "0") {
+            if (e.target.value.length > 1 && e.target.value[0] === "0") {
+              answer = e.target.value.split("");
+              while (answer[0] === "0") {
+                answer.shift();
+              }
+              item = answer.join("");
+            } else {
+              // update the local state variable
+              answer = e.target.value;
+              item = answer;
             }
-            return set;
-          });
-        });
-        return newState;
+          }
+          else {
+            item = Number(e.target.value);
+          }
+        }
+        return item;
       });
-    }
+      props.setLocalTraining((prev) => {
+        return prev.map((set, index) => {
+          if (index === props.setIndex) {
+            set = set.map((item, index) => {
+              if (index === props.exerciseIndex) {
+                item = {
+                  ...item,
+                  achieved: {
+                    ...item.achieved,
+                    reps: type === "reps" ? newState : reps,
+                    weight: type === "weight" ? newState : weight,
+                  },
+                };
+              }
+              return item;
+            });
+          }
+          return set;
+        });
+      });
+      return newState;
+    });
   };
 
   return (
