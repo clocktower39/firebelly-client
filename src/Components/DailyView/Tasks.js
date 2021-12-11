@@ -40,7 +40,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Tasks(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const dailyTasks = useSelector(
     (state) => state.calander.dailyView.dailyTasks
   );
@@ -82,7 +81,6 @@ export default function Tasks(props) {
   useEffect(() => {
     dispatch(
       requestDailyTasks(
-        user["_id"],
         props.selectedDate
       )
     );

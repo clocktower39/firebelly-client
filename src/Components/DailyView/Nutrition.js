@@ -100,7 +100,6 @@ const NutritionStat = (props) => {
 export default function Nutrition(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
   let dailyNutritionAchieved = 0;
@@ -126,7 +125,6 @@ export default function Nutrition(props) {
   useEffect(() => {
     dispatch(
         requestDailyNutrition(
-        user["_id"],
         props.selectedDate
       )
     );

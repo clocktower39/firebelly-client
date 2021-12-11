@@ -31,7 +31,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Week() {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const weeklyView = useSelector((state) => state.calander.weeklyView);
 
   const dayOfWeek = (index) => {
@@ -92,8 +91,8 @@ export default function Week() {
   };
 
   useEffect(() => {
-    dispatch(requestNutritionWeek(user["_id"], selectedStartDate, selectedEndDate));
-    dispatch(requestTrainingWeek(user["_id"], selectedStartDate, selectedEndDate));
+    dispatch(requestNutritionWeek(selectedStartDate, selectedEndDate));
+    dispatch(requestTrainingWeek(selectedStartDate, selectedEndDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStartDate, selectedEndDate]);
 

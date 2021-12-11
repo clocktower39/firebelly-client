@@ -20,7 +20,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Note(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
   const [note, setNote] = useState("");
@@ -39,7 +38,7 @@ export default function Note(props) {
 
   useEffect(() => {
     setNote("");
-    dispatch(requestDailyNote(user._id, props.selectedDate));
+    dispatch(requestDailyNote(props.selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedDate]);
 

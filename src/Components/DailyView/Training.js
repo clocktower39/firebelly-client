@@ -35,7 +35,6 @@ const useStyles = makeStyles((theme) => ({
 export default function Training(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const today = useSelector((state) => state.calander.dailyView);
 
   // toggle edit mode
@@ -179,7 +178,7 @@ export default function Training(props) {
   }, [today]);
 
   useEffect(() => {
-    dispatch(requestDailyTraining(user["_id"], props.selectedDate));
+    dispatch(requestDailyTraining(props.selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectedDate]);
 

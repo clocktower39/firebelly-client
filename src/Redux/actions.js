@@ -20,7 +20,7 @@ export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     const response = await fetch(`${serverURL}/signup`, {
       method: "post",
       dataType: "json",
@@ -43,7 +43,7 @@ export function signupUser(user) {
 
 // Retrieves new JWT Token from username and password post request
 export function loginUser(user) {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     const response = await fetch(`${serverURL}/login`, {
       method: "post",
       dataType: "json",
@@ -72,7 +72,7 @@ export function loginUser(user) {
 
 // Logs into account with JWT token
 export const loginJWT = (token) => {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/checkAuthToken`, {
@@ -99,7 +99,7 @@ export const loginJWT = (token) => {
 };
 
 export function logoutUser() {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     localStorage.removeItem("JWT_AUTH_TOKEN");
     return dispatch({
       type: LOGOUT_USER,
@@ -108,7 +108,7 @@ export function logoutUser() {
 }
 
 export function editUser(user) {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     return dispatch({
       type: EDIT_MYACCOUNT,
       user,
@@ -150,7 +150,7 @@ export function checkToggleDailyTask(id, newDailyTask) {
 }
 
 // // Fetches or creates daily tasks
-export function requestDailyTasks(accountId, date) {
+export function requestDailyTasks(date) {
   return async (dispatch, getState) => {
     const state = getState();
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -160,7 +160,6 @@ export function requestDailyTasks(accountId, date) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         date,
       }),
       headers: {
@@ -177,7 +176,6 @@ export function requestDailyTasks(accountId, date) {
         method: "post",
         dataType: "json",
         body: JSON.stringify({
-          accountId,
           date,
           tasks: state.user.defaultTasks.map((task) => {
             return {
@@ -256,7 +254,7 @@ export function removeDefaultDailyTask(removeTask) {
 }
 
 // Fetches or creates daily nutrition stats
-export function requestDailyNutrition(accountId, date) {
+export function requestDailyNutrition(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -264,7 +262,6 @@ export function requestDailyNutrition(accountId, date) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         date,
       }),
       headers: {
@@ -282,7 +279,6 @@ export function requestDailyNutrition(accountId, date) {
         method: "post",
         dataType: "json",
         body: JSON.stringify({
-          accountId,
           date,
         }),
         headers: {
@@ -345,7 +341,7 @@ export function updateDailyNutrition(updatedNutrition) {
 }
 
 // Fetches or creates daily note
-export function requestDailyNote(accountId, date) {
+export function requestDailyNote(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -353,7 +349,6 @@ export function requestDailyNote(accountId, date) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         date,
       }),
       headers: {
@@ -368,7 +363,6 @@ export function requestDailyNote(accountId, date) {
         method: "post",
         dataType: "json",
         body: JSON.stringify({
-          accountId,
           date,
           note: "",
         }),
@@ -432,7 +426,7 @@ export function updateDailyNote(udpatedNote) {
 }
 
 // Fetches or creates daily training information
-export function requestDailyTraining(accountId, date) {
+export function requestDailyTraining(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -440,7 +434,6 @@ export function requestDailyTraining(accountId, date) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         date,
       }),
       headers: {
@@ -455,7 +448,6 @@ export function requestDailyTraining(accountId, date) {
         method: "post",
         dataType: "json",
         body: JSON.stringify({
-          accountId,
           date,
           category: "",
           training: [
@@ -552,7 +544,7 @@ export function updateDailyTraining(trainingId, updatedTraining) {
 }
 
 // Fetches nutrition stats from a range
-export function requestNutritionWeek(accountId, startDate, endDate) {
+export function requestNutritionWeek(startDate, endDate) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -561,7 +553,6 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         startDate,
         endDate,
       }),
@@ -589,7 +580,7 @@ export function requestNutritionWeek(accountId, startDate, endDate) {
 }
 
 // Fetches training stats from a range
-export function requestTrainingWeek(accountId, startDate, endDate) {
+export function requestTrainingWeek(startDate, endDate) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -598,7 +589,6 @@ export function requestTrainingWeek(accountId, startDate, endDate) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        accountId,
         startDate,
         endDate,
       }),
