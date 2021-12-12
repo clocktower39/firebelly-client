@@ -65,10 +65,10 @@ export default function Week() {
   };
 
   const [selectedStartDate, setSelectedStartDate] = useState(
-    dateToISOLikeButLocal(new Date(new Date().getTime() - 6 * (24 * 60 * 60 * 1000))).substr(0, 10)
+    dateToISOLikeButLocal(new Date(new Date().getTime() - 5 * (24 * 60 * 60 * 1000))).substr(0, 10)
   );
   const [selectedEndDate, setSelectedEndDate] = useState(
-    dateToISOLikeButLocal(new Date()).substr(0, 10)
+    dateToISOLikeButLocal(new Date(new Date().getTime() + 1 * (24 * 60 * 60 * 1000))).substr(0, 10)
   );
 
   const handleDatePick = (e, type) => {

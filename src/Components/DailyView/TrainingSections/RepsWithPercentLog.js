@@ -89,27 +89,6 @@ export default function RepsWithPercentLog(props) {
             </Grid>
             <Grid item xs={5}>
               <TextField
-                label="Reps"
-                value={reps[i]}
-                onChange={(e) => handleChange(e, setReps, i, "reps")}
-                type="number"
-                inputProps={{
-                  type: "number",
-                  inputMode: "decimal",
-                  pattern: "[0-9]*",
-                }}
-                size="small"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
-                      /{props.exercise.goals.exactReps[i]}
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={5}>
-              <TextField
                 label="Weight"
                 value={weight[i]}
                 onChange={(e) => handleChange(e, setWeight, i, "weight")}
@@ -124,6 +103,27 @@ export default function RepsWithPercentLog(props) {
                   endAdornment: (
                     <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
                       /{(oneRepMax / 100) * props.exercise.goals.percent[i]}
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={5}>
+              <TextField
+                label="Reps"
+                value={reps[i]}
+                onChange={(e) => handleChange(e, setReps, i, "reps")}
+                type="number"
+                inputProps={{
+                  type: "number",
+                  inputMode: "decimal",
+                  pattern: "[0-9]*",
+                }}
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{props.exercise.goals.exactReps[i]}
                     </InputAdornment>
                   ),
                 }}

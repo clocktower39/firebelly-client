@@ -12,7 +12,7 @@ import TimeLog from "./TimeLog";
 
 export default function Exercise(props) {
   const [title, setTitle] = useState(props.exercise.exercise || "");
-  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Rep Range");
+  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Reps");
   const [sets, setSets] = useState(props.exercise.goals.sets);
   const { setLocalTraining, exerciseIndex, setIndex } = props;
 

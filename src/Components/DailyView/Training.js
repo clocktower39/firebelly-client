@@ -66,7 +66,7 @@ export default function Training(props) {
       if (index === i) {
         group.push({
           exercise: "",
-          exerciseType: "Rep Range",
+          exerciseType: "Reps",
           goals: {
             sets: 1,
             minReps: [0],
@@ -102,7 +102,7 @@ export default function Training(props) {
     newTraining.push([
       {
         exercise: "",
-        exerciseType: "Rep Range",
+        exerciseType: "Reps",
         goals: {
           sets: 1,
           minReps: [0],

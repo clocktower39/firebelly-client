@@ -73,6 +73,27 @@ export default function ExactRepsLog(props) {
             </Grid>
             <Grid item xs={5}>
               <TextField
+                label="Weight"
+                value={weight[i]}
+                onChange={(e) => handleChange(e, setWeight, i, "weight")}
+                type="number"
+                inputProps={{
+                  type: "number",
+                  inputMode: "decimal",
+                  pattern: "[0-9]*",
+                }}
+                size="small"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
+                      /{props.exercise.goals.weight[i]}
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={5}>
+              <TextField
                 label="Reps"
                 value={reps[i]}
                 onChange={(e) => handleChange(e, setReps, i, "reps")}
@@ -92,27 +113,6 @@ export default function ExactRepsLog(props) {
                 }}
                 InputBase={{
                   padding: 0,
-                }}
-              />
-            </Grid>
-            <Grid item xs={5}>
-              <TextField
-                label="Weight"
-                value={weight[i]}
-                onChange={(e) => handleChange(e, setWeight, i, "weight")}
-                type="number"
-                inputProps={{
-                  type: "number",
-                  inputMode: "decimal",
-                  pattern: "[0-9]*",
-                }}
-                size="small"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
-                      /{props.exercise.goals.weight[i]}
-                    </InputAdornment>
-                  ),
                 }}
               />
             </Grid>
