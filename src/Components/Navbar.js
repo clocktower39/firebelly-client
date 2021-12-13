@@ -188,6 +188,15 @@ export default function Navbar() {
                   >
                     <ListItemText>Monthly</ListItemText>
                   </ListItem>
+                  <ListItem
+                    button
+                    component={Link}
+                    to="/progress"
+                    onClick={toggleList}
+                    className={classes.nested}
+                  >
+                    <ListItemText>Progress</ListItemText>
+                  </ListItem>
                   {user.isTrainer ? (
                     <ListItem
                       button
