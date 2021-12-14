@@ -191,3 +191,7 @@ export let calander = {
     monthlyView:{
     },
 }
+
+export let progress = {
+    exerciseList: [],
+}

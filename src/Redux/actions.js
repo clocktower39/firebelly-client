@@ -11,13 +11,14 @@ export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_DAILY_NOTE = "EDIT_DAILY_NOTE";
 export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
+export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -611,6 +612,26 @@ export function requestTrainingWeek(startDate, endDate) {
     return dispatch({
       type: EDIT_WEEKLY_VIEW,
       weeklyView: newWeeklyView,
+    });
+  };
+}
+
+// Fetches entire exercise list for the user
+export function requestExerciseList() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/exerciseList`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let exerciseList = await response.json();
+
+    return dispatch({
+      type: EDIT_PROGRESS_EXERCISE_LIST,
+      exerciseList,
     });
   };
 }
