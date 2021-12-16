@@ -1,13 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Container, Grid, Paper, TextField, Typography } from '@mui/material';
+import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { requestExerciseList } from "../Redux/actions";
+import { requestExerciseList, requestExerciseProgess } from "../Redux/actions";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+  } from "recharts";
+
+const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
+const renderLineChart = (targetExerciseHistory) => (
+  <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={targetExerciseHistory}>
+    <Bar dataKey="weight" fill="#8884d8" />
+    <XAxis dataKey="date" />
+    <YAxis />
+  </BarChart>
+);
 
 export default function Progress() {
     const dispatch = useDispatch();
     const [searchValue, setSearchValue] = useState('');
     const exerciseList = useSelector(state => state.progress.exerciseList);
+    const targetExerciseHistory = useSelector(state => state.progress.targetExerciseHistory);
     
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const loadExerciseProgress = (exercise) => {
+    dispatch(requestExerciseProgess(exercise))
+    handleOpen(true);
+  }
+
     useEffect(()=>{
         dispatch(requestExerciseList())
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -15,6 +51,17 @@ export default function Progress() {
 
     return (
         <Container maxWidth="lg">
+            <Modal
+            keepMounted
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="keep-mounted-modal-title"
+            aria-describedby="keep-mounted-modal-description"
+            >
+            <Box sx={modalStyle}>
+                {renderLineChart(targetExerciseHistory)}
+            </Box>
+            </Modal>
             <Grid container component={Paper} style={{justifyContent: "center", marginTop: '25px', padding: '7.5px', }} >
                 <Grid item xs={12} sm={8} container >
                     <TextField
@@ -26,7 +73,7 @@ export default function Progress() {
                 </Grid>
                 {/* Remove empty strings and sort alphabetically from exercise list then filter by turning searchValue into a case-insensitive RegExp test */}
                 {exerciseList.filter(x=>x!=="").sort((a,b)=>a>b).map(exercise => new RegExp(searchValue,'i').test(exercise)?
-                <Grid component={Button} item xs={12} container key={exercise}>
+                <Grid component={Button} item xs={12} container key={exercise} onClick={(e) => loadExerciseProgress(exercise)}>
                     <Typography variant="p" >{exercise}</Typography>
                 </Grid>:
                 null)}

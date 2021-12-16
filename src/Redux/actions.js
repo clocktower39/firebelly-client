@@ -12,13 +12,14 @@ export const EDIT_DAILY_NOTE = "EDIT_DAILY_NOTE";
 export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
+export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -632,6 +633,31 @@ export function requestExerciseList() {
     return dispatch({
       type: EDIT_PROGRESS_EXERCISE_LIST,
       exerciseList,
+    });
+  };
+}
+
+// Fetches entire history of a specific exercise
+export function requestExerciseProgess(targetExercise) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/exerciseHistory`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        targetExercise
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let targetExerciseHistory = await response.json();
+
+    return dispatch({
+      type: EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
+      targetExerciseHistory,
     });
   };
 }

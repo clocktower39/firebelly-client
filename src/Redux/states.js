@@ -194,4 +194,5 @@ export let calander = {
 
 export let progress = {
     exerciseList: [],
+    targetExerciseHistory: []
 }
