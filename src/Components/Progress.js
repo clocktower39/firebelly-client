@@ -21,13 +21,53 @@ const modalStyle = {
     p: 4,
   };
 
-const renderLineChart = (targetExerciseHistory) => (
-  <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={targetExerciseHistory}>
+const renderLineChart = (targetExerciseHistory) => {
+  let totalMaxWeight = 0;
+  let totalMaxReps = 0;
+  let exerciseTitle = '';
+
+  let exercise = targetExerciseHistory.map(e => {
+    const sortedReps = e.achieved.reps.sort((a,b)=>a-b);
+    const sortedWeight = e.achieved.weight.sort((a,b)=>a-b);
+
+    let minReps = parseInt(sortedReps[0]);
+    let maxReps = parseInt(sortedReps[sortedReps.length-1]);
+    let minWeight = parseInt(sortedWeight[0]);
+    let maxWeight = parseInt(sortedWeight[sortedWeight.length-1]);
+
+    if(totalMaxWeight < maxWeight){
+      totalMaxWeight = maxWeight;
+    }
+    if(totalMaxReps < maxReps) {
+      totalMaxReps = maxReps;
+    }
+    if(exerciseTitle === ""){
+      exerciseTitle = e.exercise;
+    }
+
+    let newE = {
+      date: e.date,
+      reps: [minReps, maxReps],
+      weight: [minWeight, maxWeight],
+    }
+    return newE;
+  })
+  
+return (
+  <>
+  <Typography variant="h4" style={{ textAlign: 'center', }} >{exerciseTitle}</Typography>
+  <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
     <Bar dataKey="weight" fill="#8884d8" />
     <XAxis dataKey="date" />
-    <YAxis />
+    <YAxis domain={[0, totalMaxWeight]} label={{ value: 'Weight', angle: -90, position: 'insideLeft' }} />
   </BarChart>
-);
+  <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
+    <Bar dataKey="reps" fill="#4d8888" />
+    <XAxis dataKey="date" />
+    <YAxis domain={[0, totalMaxReps]} label={{ value: 'Reps', angle: -90, position: 'insideLeft' }} />
+  </BarChart>
+  </>
+)};
 
 export default function Progress() {
     const dispatch = useDispatch();
