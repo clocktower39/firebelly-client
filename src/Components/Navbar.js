@@ -57,7 +57,7 @@ export default function Navbar() {
   const user = useSelector((state) => state.user);
   const [isListOpen, setIsListOpen] = useState(false);
 
-  const toggleList = () => setIsListOpen(!isListOpen);
+  const toggleList = () => setIsListOpen(prev => !prev);
 
   return (
     <AppBar position="sticky">
@@ -197,7 +197,7 @@ export default function Navbar() {
                   >
                     <ListItemText>Progress</ListItemText>
                   </ListItem>
-                  {user.isTrainer ? (
+                  {user.isTrainer && (
                     <ListItem
                       button
                       component={Link}
@@ -207,8 +207,6 @@ export default function Navbar() {
                     >
                       <ListItemText>Clients</ListItemText>
                     </ListItem>
-                  ) : (
-                    <></>
                   )}
 
                   <ListItem

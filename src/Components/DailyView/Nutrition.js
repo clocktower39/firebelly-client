@@ -153,9 +153,9 @@ export default function Nutrition(props) {
       </AccordionSummary>
       <AccordionDetails>
         <Grid container spacing={2}>
-          {localNutrition.stats?Object.keys(today.dailyNutrition.stats).map((task) => (
+          {localNutrition.stats && Object.keys(today.dailyNutrition.stats).map((task) => (
             <NutritionStat key={task} nutritionObjectProperty={task} task={localNutrition.stats[task]} setLocalNutrition={setLocalNutrition}/>
-          )):<></>}
+          ))}
           <Grid xs={12} item container style={{justifyContent:"center"}} >
             <Button variant="outlined" onClick={saveChanges}>Save</Button>
           </Grid>

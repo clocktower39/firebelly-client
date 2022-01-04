@@ -69,7 +69,7 @@ export default function Exercise(props) {
   const renderEditSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return props.exercise.goals.minReps.length > 0 ? (
+        return props.exercise.goals.minReps.length > 0 && (
           props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepRange
               key={`exerciseSet-${index}`}
@@ -81,11 +81,9 @@ export default function Exercise(props) {
               setLocalTraining={props.setLocalTraining}
             />
           ))
-        ) : (
-          <></>
         );
       case "Reps":
-        return props.exercise.goals.minReps.length > 0 ? (
+        return props.exercise.goals.minReps.length > 0 && (
           props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditExactReps
               key={`exerciseSet-${index}`}
@@ -97,11 +95,9 @@ export default function Exercise(props) {
               setLocalTraining={props.setLocalTraining}
             />
           ))
-        ) : (
-          <></>
         );
       case "Reps with %":
-        return props.exercise.goals.minReps.length > 0 ? (
+        return props.exercise.goals.minReps.length > 0 && (
           props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepsWithPercent
               key={`exerciseSet-${index}`}
@@ -113,11 +109,9 @@ export default function Exercise(props) {
               setLocalTraining={props.setLocalTraining}
             />
           ))
-        ) : (
-          <></>
         );
       case "Time":
-        return props.exercise.goals.minReps.length > 0 ? (
+        return props.exercise.goals.minReps.length > 0 && (
           props.exercise.goals.minReps.map((exerciseSet, index) => (
             <EditTime
               key={`exerciseSet-${index}`}
@@ -129,8 +123,6 @@ export default function Exercise(props) {
               setLocalTraining={props.setLocalTraining}
             />
           ))
-        ) : (
-          <></>
         );
       default:
         return <Typography>Type Error</Typography>;

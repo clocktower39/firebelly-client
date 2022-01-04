@@ -4,7 +4,7 @@ import { AddCircle, RemoveCircle } from "@mui/icons-material";
 import Exercise from "./Exercise";
 
 export default function Set(props) {
-  return props.localTraining.length > 0 ? (
+  return props.localTraining.length > 0 && (
     props.localTraining.map((group, index) =>
       props.editMode ? (
         <Grid item xs={12} key={index}>
@@ -18,7 +18,7 @@ export default function Set(props) {
               </Typography>
             </Grid>
           </Grid>
-          {group.length > 0 ? group.map((exercise, exerciseIndex) => (
+          {group.length > 0 && group.map((exercise, exerciseIndex) => (
             <Exercise
               key={exercise._id}
               editMode={props.editMode}
@@ -29,7 +29,7 @@ export default function Set(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          )):<></>}
+          ))}
           <Grid container item xs={12}>
             <Grid container item xs={12} style={{ justifyContent: "center" }}>
               <IconButton onClick={() => props.newExercise(index)}>
@@ -37,12 +37,10 @@ export default function Set(props) {
               </IconButton>
             </Grid>
           </Grid>
-          {index + 1 !== props.localTraining.length ? (
+          {index + 1 !== props.localTraining.length && (
             <Grid item xs={12}>
               <Divider style={{ margin: "25px 0px" }} />
             </Grid>
-          ) : (
-            <></>
           )}
         </Grid>
       ) : (
@@ -54,7 +52,7 @@ export default function Set(props) {
               </Typography>
             </Grid>
           </Grid>
-          {group.length > 0 ? group.map((exercise, exerciseIndex) => (
+          {group.length > 0 && group.map((exercise, exerciseIndex) => (
             <Exercise
               key={exercise._id}
               editMode={props.editMode}
@@ -65,8 +63,8 @@ export default function Set(props) {
               localTraining={props.localTraining}
               setLocalTraining={props.setLocalTraining}
             />
-          )):<></>}
-          {index + 1 !== props.localTraining.length ? (
+          ))}
+          {index + 1 !== props.localTraining.length && (
             <Grid container style={{alignContent: "center"}}>
               <Grid item xs={10}>
                 <Divider style={{ margin: "25px 0px" }} />
@@ -77,13 +75,9 @@ export default function Set(props) {
                 </Button>
               </Grid>
             </Grid>
-          ) : (
-            <></>
           )}
         </Grid>
       )
     )
-  ) : (
-    <></>
   );
 }

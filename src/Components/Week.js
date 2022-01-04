@@ -134,7 +134,7 @@ export default function Week() {
           />
         </Grid>
       </Grid>
-      {Array.isArray(weeklyView) ? (
+      {Array.isArray(weeklyView) && (
         weeklyView
           .sort((a, b) => (a.training ? a.training.date > b.training.date : a < b))
           .map((day, index) => {
@@ -230,8 +230,6 @@ export default function Week() {
               </Accordion>
             );
           })
-      ) : (
-        <></>
       )}
     </Container>
   );

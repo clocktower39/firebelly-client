@@ -5,10 +5,9 @@ import { Container, Typography } from '@mui/material';
 export default function Clients() {
   const user = useSelector(state => state.user);
   
-  return user.isTrainer? (
+  return user.isTrainer && (
     <Container>
       <Typography variant="h5" textAlign="center" >Training Clients</Typography>
     </Container>
   )
-  :<></>
 }
