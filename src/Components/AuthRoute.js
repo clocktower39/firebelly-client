@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Redirect } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { loginJWT } from '../Redux/actions';
 import Loading from './Loading';
 
 export const AuthRoute = (props) => {
 
     const dispatch = useDispatch();
-    const Component = props.component;
     const user = useSelector(state => state.user);
     const [loading, setLoading] = useState(true);
 
@@ -26,7 +25,7 @@ export const AuthRoute = (props) => {
         // eslint-disable-next-line
     },[])
 
-    return loading?<Loading />:user.email?<Component socket={props.socket} />:<Redirect to={{ pathname: '/login'}} />;
+    return loading?<Loading />:user.email?<Outlet socket={props.socket} />:<Navigate to={{ pathname: '/login'}} />;
 }
 
 export default AuthRoute

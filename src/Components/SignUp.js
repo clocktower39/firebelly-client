@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { useDispatch, useSelector } from "react-redux";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { signupUser } from "../Redux/actions";
 
 const useStyles = makeStyles({
@@ -41,7 +41,7 @@ export const SignUp = (props) => {
     }
   };
   if (user.email) {
-    return <Redirect to={{ pathname: "/" }} />;
+    return <Navigate to={{ pathname: "/" }} />;
   }
 
   return (

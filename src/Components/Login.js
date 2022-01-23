@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { loginUser } from "../Redux/actions";
@@ -49,7 +49,7 @@ export const Login = (props) => {
   };
 
   if (user.email) {
-    return <Redirect to={{ pathname: "/" }} />;
+    return <Navigate to={{ pathname: "/" }} />;
   }
   return (
     <Container maxWidth="sm">

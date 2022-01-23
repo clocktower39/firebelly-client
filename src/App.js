@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material';
 import { theme } from './theme';
 import AuthRoute from './Components/AuthRoute';
@@ -14,6 +14,9 @@ import Week from './Components/Week';
 import Account from './Components/AccountComponents/Account';
 import Clients from './Components/Clients';
 import Progress from './Components/Progress';
+import MyAccount from "./Components/AccountComponents/MyAccount";
+import AccountTasks from "./Components/AccountComponents/AccountTasks";
+import Biometrics from "./Components/AccountComponents/Biometrics";
 import './App.css';
 
 function App() {
@@ -21,21 +24,43 @@ function App() {
     <ThemeProvider theme={theme}>
       <Router>
         <Navbar />
-        <Switch>
+        <Routes>
           {/* Default website pages, anyone can access */}
-          <Route exact path='/' component={Home} />
-          <Route exact path='/nutrition' component={Nutrition} />
-          <Route exact path='/login' component={Login} />
-          <Route exact path='/signup' component={SignUp} />
-          
+          <Route exact path='/' element={<Home />} />
+          <Route exact path='/nutrition' element={<Nutrition />} />
+          <Route exact path='/login' element={<Login />} />
+          <Route exact path='/signup' element={<SignUp />} />
+
           {/* Must be logged in and have JWT token to authenticate */}
-          <AuthRoute exact path='/dashboard' component={Dashboard} />
-          <AuthRoute exact path='/day' component={Day} />
-          <AuthRoute exact path='/week' component={Week} />
-          <AuthRoute path='/account' component={Account} />
-          <AuthRoute path='/clients' component={Clients} />
-          <AuthRoute path='/progress' component={Progress} />
-        </Switch>
+          <Route exact path="/dashboard" element={<AuthRoute />} >
+            <Route exact path="/dashboard" element={<Dashboard />} />
+          </Route>
+
+          <Route exact path="/day" element={<AuthRoute />} >
+            <Route exact path="/day" element={<Day />} />
+          </Route>
+
+          <Route exact path="/week" element={<AuthRoute />} >
+            <Route exact path="/week" element={<Week />} />
+          </Route>
+
+          <Route exact path="/account/*" element={<AuthRoute />} >
+            <Route exact path="/account/*/*" element={<Account />}>
+            <Route index={true} exact path="" element={<MyAccount />} />
+            <Route index={false} exact path="tasks" element={<AccountTasks />} />
+            <Route index={false} exact path="biometrics" element={<Biometrics />} />
+            </Route>
+          </Route>
+
+          <Route exact path="/clients" element={<AuthRoute />} >
+            <Route exact path="/clients" element={<Clients />} />
+          </Route>
+
+          <Route exact path="/progress" element={<AuthRoute />} >
+            <Route exact path="/progress" element={<Progress />} />
+          </Route>
+
+        </Routes>
       </Router>
     </ThemeProvider>
   );
