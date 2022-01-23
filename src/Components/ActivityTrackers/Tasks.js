@@ -6,6 +6,7 @@ import {
   AccordionSummary,
   Button,
   Checkbox,
+  Container,
   FormGroup,
   FormControlLabel,
   FormControl,
@@ -23,6 +24,7 @@ import {
   requestDailyTasks,
   checkToggleDailyTask,
 } from "../../Redux/actions";
+import SelectedDate from "./SelectedDate";
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -43,6 +45,7 @@ export default function Tasks(props) {
   const dailyTasks = useSelector(
     (state) => state.calander.dailyView.dailyTasks
   );
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalToggle = () => setIsModalOpen(!isModalOpen);
@@ -55,7 +58,7 @@ export default function Tasks(props) {
   //         title: modalNewTaskTitle,
   //         goal: 1,
   //         achieved: 0,
-  //         date: props.selectedDate,
+  //         date: selectedDate,
   //         accountId: user._id,
   //       })
   //     )
@@ -79,16 +82,18 @@ export default function Tasks(props) {
       : 1;
 
   useEffect(() => {
-    dispatch(
-      requestDailyTasks(
-        props.selectedDate
-      )
-    );
+    if(selectedDate !== null){
+      dispatch(
+        requestDailyTasks(
+          selectedDate
+        )
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedDate]);
+  }, [selectedDate]);
 
   return (
-    <>
+    <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
       <Modal open={isModalOpen}>
         <Paper className={classes.ModalPaper}>
           <Grid container spacing={3} alignContent="center" style={{height: '100%'}}>
@@ -110,6 +115,7 @@ export default function Tasks(props) {
           </Grid>
         </Paper>
       </Modal>
+      <SelectedDate setParentSelectedDate={setSelectedDate} />
       <Accordion defaultExpanded >
         <AccordionSummary expandIcon={<ExpandMore />}>
           <Grid container alignItems="center">
@@ -142,18 +148,20 @@ export default function Tasks(props) {
               }
 
               return (
-                <FormControl component="fieldset" key={task._id}>
+                <Grid key={task._id} container item xs={12} sx={{ justifyContent: 'center', }}>
+                <FormControl component="fieldset" >
                   <FormGroup aria-label="position" row>
                     <FormControlLabel
                       value={task.achieved}
                       control={<Checkbox color="primary" />}
                       label={task.title}
-                      labelPlacement="top"
+                      labelPlacement="end"
                       onClick={(e)=>handleCheckChange(e, task.title)}
                       checked={task.achieved > 0 ? true : false}
                     />
                   </FormGroup>
                 </FormControl>
+                </Grid>
               );
             })}
             <FormControl component="fieldset">
@@ -165,13 +173,13 @@ export default function Tasks(props) {
                     </IconButton>
                   }
                   label="Add Task"
-                  labelPlacement="top"
+                  labelPlacement="end"
                 />
               </FormGroup>
             </FormControl>
           </Grid>
         </AccordionDetails>
       </Accordion>
-    </>
+    </Container>
   );
 }

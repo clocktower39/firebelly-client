@@ -4,6 +4,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Container,
   Divider,
   Grid,
   IconButton,
@@ -16,6 +17,7 @@ import { makeStyles } from "@mui/styles";
 import { ExpandMore, Edit, FactCheck } from "@mui/icons-material";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
 import Set from "./TrainingSections/Set";
+import SelectedDate from "./SelectedDate";
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -38,6 +40,8 @@ export default function Training(props) {
   const today = useSelector((state) => state.calander.dailyView);
 
   // toggle edit mode
+  const [selectedDate, setSelectedDate] = useState(null);
+
   const [editMode, setEditMode] = useState(false);
 
   const [trainingCategory, setTrainingCategory] = useState("");
@@ -178,76 +182,79 @@ export default function Training(props) {
   }, [today]);
 
   useEffect(() => {
-    dispatch(requestDailyTraining(props.selectedDate));
+    dispatch(requestDailyTraining(selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.selectedDate]);
+  }, [selectedDate]);
 
   return (
-    <Accordion defaultExpanded>
-      <AccordionSummary expandIcon={<ExpandMore />}>
-        <Grid container alignItems="center">
-          <Grid item xs={3}>
-            <Typography className={classes.heading}>Training</Typography>
-          </Grid>
-          <Grid item xs={9}>
-            <LinearProgress
-              variant="determinate"
-              value={(dailyTrainingAchieved / dailyTrainingGoal) * 100}
-            />
-          </Grid>
-        </Grid>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Grid container>
-          <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
-            <Grid item xs={11} container alignContent="center">
-              <TextField
-                label="Training Category"
-                onChange={(e)=>setTrainingCategory(e.target.value)}
-                value={trainingCategory}
-                fullWidth
-                disabled={!editMode}
+    <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
+      <SelectedDate setParentSelectedDate={setSelectedDate} />
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMore />}>
+          <Grid container alignItems="center">
+            <Grid item xs={3}>
+              <Typography className={classes.heading}>Training</Typography>
+            </Grid>
+            <Grid item xs={9}>
+              <LinearProgress
+                variant="determinate"
+                value={(dailyTrainingAchieved / dailyTrainingGoal) * 100}
               />
             </Grid>
-            <Grid container style={{ alignContent: "center" }} item xs={1}>
-              <Grid container style={{ justifyContent: "center" }} item xs={12}>
-                <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
-                  {editMode ? <FactCheck /> : <Edit />}
-                </IconButton>
+          </Grid>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid container>
+            <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
+              <Grid item xs={11} container alignContent="center">
+                <TextField
+                  label="Training Category"
+                  onChange={(e) => setTrainingCategory(e.target.value)}
+                  value={trainingCategory}
+                  fullWidth
+                  disabled={!editMode}
+                />
+              </Grid>
+              <Grid container style={{ alignContent: "center" }} item xs={1}>
+                <Grid container style={{ justifyContent: "center" }} item xs={12}>
+                  <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
+                    {editMode ? <FactCheck /> : <Edit />}
+                  </IconButton>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <Divider style={{ margin: "25px 0px" }} />
-          </Grid>
-          <Set
-            today={today}
-            editMode={editMode}
-            newExercise={newExercise}
-            removeSet={removeSet}
-            removeExercise={removeExercise}
-            localTraining={localTraining}
-            setLocalTraining={setLocalTraining}
-            save={save}
-          />
-          {editMode ? (
-            <Grid item xs={12} container style={{justifyContent: "space-between"}}>
-              <Button variant="contained" onClick={newSet}>
-                New Set
-              </Button>
-              <Button variant="contained" onClick={save}>
-                Save
-              </Button>
+            <Grid item xs={12}>
+              <Divider style={{ margin: "25px 0px" }} />
             </Grid>
-          ) : (
-            <Grid item xs={12} container style={{justifyContent: "flex-end"}}>
-              <Button variant="contained" onClick={save}>
-                Save
-              </Button>
-            </Grid>
-          )}
-        </Grid>
-      </AccordionDetails>
-    </Accordion>
+            <Set
+              today={today}
+              editMode={editMode}
+              newExercise={newExercise}
+              removeSet={removeSet}
+              removeExercise={removeExercise}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
+              save={save}
+            />
+            {editMode ? (
+              <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
+                <Button variant="contained" onClick={newSet}>
+                  New Set
+                </Button>
+                <Button variant="contained" onClick={save}>
+                  Save
+                </Button>
+              </Grid>
+            ) : (
+              <Grid item xs={12} container style={{ justifyContent: "flex-end" }}>
+                <Button variant="contained" onClick={save}>
+                  Save
+                </Button>
+              </Grid>
+            )}
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
+    </Container>
   );
 }

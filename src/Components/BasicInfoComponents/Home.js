@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { loginJWT } from "../Redux/actions";
+import { loginJWT } from "../../Redux/actions";
 import { Container, Grid, Typography } from "@mui/material";
 import { Assessment, FitnessCenter, Restaurant, Workspaces } from "@mui/icons-material";
-import useWindowWidth from "../Hooks/WindowWidth"
-import DeadliftImg from "../img/deadlift.jpg";
+import useWindowWidth from "../../Hooks/WindowWidth"
+import DeadliftImg from "../../img/deadlift.jpg";
 
 export default function Home() {
   const dispatch = useDispatch();

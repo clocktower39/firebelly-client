@@ -57,7 +57,7 @@ export default function Navbar() {
   const user = useSelector((state) => state.user);
   const [isListOpen, setIsListOpen] = useState(false);
 
-  const toggleList = () => setIsListOpen(prev => !prev);
+  const toggleList = () => setIsListOpen((prev) => !prev);
 
   return (
     <AppBar position="sticky">
@@ -99,7 +99,7 @@ export default function Navbar() {
           <Button
             className={classes.NavLink}
             component={Link}
-            to="/nutrition"
+            to="/basicinfo/nutrition"
             sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
@@ -164,29 +164,11 @@ export default function Navbar() {
                   <ListItem
                     button
                     component={Link}
-                    to="/day"
-                    onClick={toggleList}
-                    className={classes.nested}
-                  >
-                    <ListItemText>Daily</ListItemText>
-                  </ListItem>
-                  <ListItem
-                    button
-                    component={Link}
                     to="/week"
                     onClick={toggleList}
                     className={classes.nested}
                   >
                     <ListItemText>Weekly</ListItemText>
-                  </ListItem>
-                  <ListItem
-                    button
-                    component={Link}
-                    to="/month"
-                    onClick={toggleList}
-                    className={classes.nested}
-                  >
-                    <ListItemText>Monthly</ListItemText>
                   </ListItem>
                   <ListItem
                     button

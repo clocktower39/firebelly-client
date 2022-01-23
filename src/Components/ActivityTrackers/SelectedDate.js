@@ -1,18 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Button,
     Container,
     Grid,
     TextField,
-    Typography,
     Divider,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
-import Tasks from './Tasks';
-import Training from './Training';
-import Nutrition from './Nutrition';
-import Notes from './Note';
 
 const useStyles = makeStyles(theme => ({
     heading: {},
@@ -37,8 +32,9 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
-export default function Day() {
+export default function SelectedDate(props) {
     const classes = useStyles();
+    const { setParentSelectedDate } = props;
 
     // format a Date object like ISO
     const dateToISOLikeButLocal = (date) => {
@@ -58,11 +54,13 @@ export default function Day() {
       setSelectedDate(new Date(newDate).toISOString().substr(0, 10));
     }
 
+    useEffect(()=>{
+        setParentSelectedDate(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[selectedDate])
+
     return (
         <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
-        <Typography variant="h5" gutterBottom textAlign="center" style={{ color: "#fff" }}>
-          Daily View
-        </Typography>
             <Grid item xs={12} container style={{justifyContent:"center"}} >
 
                 {/* Go back one day */}
@@ -87,12 +85,6 @@ export default function Day() {
                 <Button onClick={() => changeDate(1)} className={classes.ArrowButton} ><ArrowForward className={classes.ArrowIcons} /></Button>
             </Grid>
             <Divider style={{margin: "15px"}} />
-
-            {/* Separate accordian  */}
-            <Tasks selectedDate={selectedDate} />
-            <Training selectedDate={selectedDate} />
-            <Nutrition selectedDate={selectedDate} />
-            <Notes selectedDate={selectedDate} />
 
         </Container>
     )

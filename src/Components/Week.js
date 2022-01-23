@@ -134,7 +134,7 @@ export default function Week() {
           />
         </Grid>
       </Grid>
-      {Array.isArray(weeklyView) && (
+      {Array.isArray(weeklyView) &&
         weeklyView
           .sort((a, b) => (a.training ? a.training.date > b.training.date : a < b))
           .map((day, index) => {
@@ -159,7 +159,7 @@ export default function Week() {
                   <Grid container alignItems="center">
                     <Grid container item xs={12}>
                       <Grid item xs={6}>
-                        <Typography variant="h6" textAlign="center" >
+                        <Typography variant="h6" textAlign="center">
                           {day.training
                             ? `${
                                 new Date(
@@ -172,7 +172,7 @@ export default function Week() {
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography variant="h5" className={classes.heading} textAlign="center" >
+                        <Typography variant="h5" className={classes.heading} textAlign="center">
                           {day.training
                             ? dayOfWeek(
                                 new Date(
@@ -229,8 +229,7 @@ export default function Week() {
                 </Grid>
               </Accordion>
             );
-          })
-      )}
+          })}
     </Container>
   );
 }
