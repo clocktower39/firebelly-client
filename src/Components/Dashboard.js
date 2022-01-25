@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { theme } from "../theme";
+import AuthNavbar from './AuthNavbar';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -47,95 +47,111 @@ export default function Dashboard() {
       to: "/exerciselibrary",
     },
     {
+      title: "Week View",
+      to: "/week",
+    },
+    {
+      title: "Progress",
+      to: "/progress",
+    },
+    {
+      title: "Website",
+      to: "/",
+    },
+    {
       title: "Account Settings",
       to: "/account",
     },
   ];
 
   return (
-    <Container maxWidth="md" className={classes.root}>
-      <Grid container spacing={1}>
-        <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-          <Typography variant="h4" sx={{ color: "white" }}>
-            Dashboard
-          </Typography>
-        </Grid>
-        {components.map((component) => (
-          <Grid
-            key={`component-${component.title}`}
-            container
-            item
-            md={4}
-            xs={6}
-            sx={{ justifyContent: "center" }}
-          >
-            <div style={{ width: "100%" }}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <CardActionArea
-                  component={Link}
-                  to={component.to}
+    <>
+      <Container maxWidth="md" className={classes.root}>
+        <Grid container spacing={2}>
+          <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+            <Typography variant="h4" sx={{ color: "white" }}>
+              Dashboard
+            </Typography>
+          </Grid>
+          {components.map((component) => (
+            <Grid
+              key={`component-${component.title}`}
+              container
+              item
+              md={4}
+              xs={6}
+              sx={{ justifyContent: "center" }}
+            >
+              <div style={{ width: "100%" }}>
+                <Card
                   sx={{
-                    "&:hover .card-content": {
-                      transform: "translateY(0%)",
-                    },
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <CardMedia
+                  <CardActionArea
+                    component={Link}
+                    to={component.to}
                     sx={{
-                      height: 0,
-                      paddingTop: "56.25%", // 16:9 == '56.25%'
-                    }}
-                  />
-                  <CardContent
-                    className="card-content"
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      padding: "5px 7.5px",
-                      backgroundColor: "rgb(134, 124, 184,.7)",
-                      bottom: "-20%",
-                      height: "100%",
-                      minWidth: "calc(100% - 15px)",
-                      position: "absolute",
-                      transition: "all 1s",
+                      "&:hover .card-content": {
+                        transform: "translateY(0%)",
+                      },
                     }}
                   >
-                    <Typography
-                      gutterBottom
-                      variant="h5"
-                      component="a"
+                    <CardMedia
                       sx={{
-                        width: "100%",
-                        color: "white",
-                        textDecoration: "none",
-                        textAlign: "center",
+                        height: 0,
+                        paddingTop: "56.25%", // 16:9 == '56.25%',
+                        backgroundColor: '#D50000',
+                      }}
+                    />
+                    <CardContent
+                      className="card-content"
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        padding: "5px 7.5px",
+                        backgroundColor: '#232323',
+                        bottom: "-20%",
+                        height: "100%",
+                        minWidth: "calc(100% - 15px)",
+                        position: "absolute",
+                        transition: "all 1s",
                       }}
                     >
-                      {component.title}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      component="a"
-                      sx={{
-                        padding: "7.5px 0",
-                        color: "white",
-                        textDecoration: "none",
-                      }}
-                    ></Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </div>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+                      <Typography
+                        gutterBottom
+                        variant="h5"
+                        component="a"
+                        sx={{
+                          width: "100%",
+                          color: "white",
+                          textDecoration: "none",
+                          textAlign: "center",
+                        }}
+                      >
+                        {component.title}
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        color="textSecondary"
+                        component="a"
+                        sx={{
+                          padding: "7.5px 0",
+                          color: "white",
+                          textDecoration: "none",
+                        }}
+                      ></Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </div>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+      <AuthNavbar />
+    </>
   );
 }

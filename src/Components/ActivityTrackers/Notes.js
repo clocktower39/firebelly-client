@@ -14,6 +14,7 @@ import { makeStyles } from "@mui/styles";
 import { ExpandMore } from "@mui/icons-material";
 import { requestDailyNote, updateDailyNote } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
+import AuthNavbar from '../AuthNavbar';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -46,36 +47,39 @@ export default function Notes(props) {
   }, [selectedDate]);
 
   return (
-    <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-      <SelectedDate setParentSelectedDate={setSelectedDate} />
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMore />}>
-          <Grid container alignItems="center">
-            <Grid item xs={3}>
-              <Typography className={classes.heading}>Notes</Typography>
+    <>
+      <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
+        <SelectedDate setParentSelectedDate={setSelectedDate} />
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <Grid container alignItems="center">
+              <Grid item xs={3}>
+                <Typography className={classes.heading}>Notes</Typography>
+              </Grid>
             </Grid>
-          </Grid>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                variant="outlined"
-                value={note || ""}
-                onChange={(e) => handleChange(e)}
-                label="Please provide feedback on your day; what was difficult and what went well?"
-              />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  variant="outlined"
+                  value={note || ""}
+                  onChange={(e) => handleChange(e)}
+                  label="Please provide feedback on your day; what was difficult and what went well?"
+                />
+              </Grid>
+              <Grid item container style={{ justifyContent: "center" }} xs={12}>
+                <Button variant="outlined" onClick={handleSave}>
+                  Save
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item container style={{ justifyContent: "center" }} xs={12}>
-              <Button variant="outlined" onClick={handleSave}>
-                Save
-              </Button>
-            </Grid>
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
-    </Container>
+          </AccordionDetails>
+        </Accordion>
+      </Container>
+      <AuthNavbar />
+    </>
   );
 }

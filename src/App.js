@@ -3,9 +3,11 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
 import AuthRoute from "./Components/AuthRoute";
-import Navbar from "./Components/Navbar";
 import Home from "./Components/BasicInfoComponents/Home";
+import Fitness from "./Components/BasicInfoComponents/Fitness";
 import NutritionInfo from "./Components/BasicInfoComponents/Nutrition";
+import Workshops from "./Components/BasicInfoComponents/Workshops";
+import TrainingInfo from "./Components/BasicInfoComponents/TrainingInfo";
 import Login from "./Components/Login";
 import SignUp from "./Components/SignUp";
 import Dashboard from "./Components/Dashboard";
@@ -27,11 +29,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
-        <Navbar />
         <Routes>
           {/* Default website pages, anyone can access */}
           <Route exact path="/" element={<Home />} />
+          <Route exact path="basicinfo/fitness" element={<Fitness />} />
           <Route exact path="basicinfo/nutrition" element={<NutritionInfo />} />
+          <Route exact path="basicinfo/workshops" element={<Workshops />} />
+          <Route exact path="basicinfo/training" element={<TrainingInfo />} />
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<SignUp />} />
 

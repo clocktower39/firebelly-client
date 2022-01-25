@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { logoutUser } from "../Redux/actions";
+import { logoutUser } from "../../Redux/actions";
 import { Link } from "react-router-dom";
 import {
   AppBar,
@@ -18,8 +18,8 @@ import {
 import { Assessment, FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import useWindowWidth from "../Hooks/WindowWidth";
-import FireBellyLogo from "../img/fireBellyLogo.jpg";
+import useWindowWidth from "../../Hooks/WindowWidth";
+import FireBellyLogo from "../../img/fireBellyLogo.jpg";
 
 const useStyles = makeStyles((theme) => ({
   Toolbar: {
@@ -89,6 +89,8 @@ export default function Navbar() {
           </Button>
           <Button
             className={classes.NavLink}
+            component={Link}
+            to="/basicinfo/fitness"
             sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
@@ -109,6 +111,8 @@ export default function Navbar() {
           </Button>
           <Button
             className={classes.NavLink}
+            component={Link}
+            to="/basicinfo/workshops"
             sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
@@ -118,6 +122,8 @@ export default function Navbar() {
           </Button>
           <Button
             className={classes.NavLink}
+            component={Link}
+            to="/basicinfo/training"
             sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
@@ -160,24 +166,6 @@ export default function Navbar() {
                     className={classes.nested}
                   >
                     <ListItemText>Account</ListItemText>
-                  </ListItem>
-                  <ListItem
-                    button
-                    component={Link}
-                    to="/week"
-                    onClick={toggleList}
-                    className={classes.nested}
-                  >
-                    <ListItemText>Weekly</ListItemText>
-                  </ListItem>
-                  <ListItem
-                    button
-                    component={Link}
-                    to="/progress"
-                    onClick={toggleList}
-                    className={classes.nested}
-                  >
-                    <ListItemText>Progress</ListItemText>
                   </ListItem>
                   {user.isTrainer && (
                     <ListItem
