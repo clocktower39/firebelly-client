@@ -111,9 +111,6 @@ export default function ExactRepsLog(props) {
                     </InputAdornment>
                   ),
                 }}
-                InputBase={{
-                  padding: 0,
-                }}
               />
             </Grid>
           </Grid>

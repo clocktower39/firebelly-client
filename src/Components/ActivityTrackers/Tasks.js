@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Button,
   Checkbox,
   Container,
@@ -19,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { makeStyles } from '@mui/styles';
-import { AddCircle, ExpandMore } from "@mui/icons-material";
+import { AddCircle } from "@mui/icons-material";
 import {
   requestDailyTasks,
   checkToggleDailyTask,
@@ -117,71 +114,67 @@ export default function Tasks(props) {
             </Grid>
           </Paper>
         </Modal>
-        <Accordion defaultExpanded >
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Grid container alignItems="center">
+        <Paper sx={{ padding: '15px', borderRadius: '15px', }}>
+          <Grid container alignItems="center">
             <SelectedDate setParentSelectedDate={setSelectedDate} />
-              <Grid item xs={3}>
-                <Typography className={classes.heading}>Daily Tasks</Typography>
-              </Grid>
-              <Grid item xs={9}>
-                <LinearProgress
-                  variant="determinate"
-                  value={(dailyTasksAchieved / dailyTasksGoal) * 100}
-                />
-              </Grid>
+            <Grid item xs={3}>
+              <Typography className={classes.heading}>Daily Tasks</Typography>
             </Grid>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container spacing={2} style={{ justifyContent: "center" }} >
-              {dailyTasks.tasks.sort((a, b) => a.title > b.title).map((task) => {
-                const handleCheckChange = (e, title) => {
-                  const newTasks = dailyTasks.tasks.map(task => {
-                    if (task.title === title) {
-                      task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
-                    }
-                    return task;
-                  });
-                  const newDailyTask = {
-                    ...dailyTasks,
-                    tasks: newTasks
+            <Grid item xs={9}>
+              <LinearProgress
+                variant="determinate"
+                value={(dailyTasksAchieved / dailyTasksGoal) * 100}
+              />
+            </Grid>
+          </Grid>
+          <Grid container spacing={2} style={{ justifyContent: "center" }} >
+            {dailyTasks.tasks.sort((a, b) => a.title > b.title).map((task) => {
+              const handleCheckChange = (e, title) => {
+                const newTasks = dailyTasks.tasks.map(task => {
+                  if (task.title === title) {
+                    task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
                   }
-                  dispatch(checkToggleDailyTask(dailyTasks._id, newDailyTask));
+                  return task;
+                });
+                const newDailyTask = {
+                  ...dailyTasks,
+                  tasks: newTasks
                 }
+                dispatch(checkToggleDailyTask(dailyTasks._id, newDailyTask));
+              }
 
-                return (
-                  <Grid key={task._id} container item xs={12} sx={{ justifyContent: 'center', }}>
-                    <FormControl component="fieldset" >
-                      <FormGroup aria-label="position" row>
-                        <FormControlLabel
-                          value={task.achieved}
-                          control={<Checkbox color="primary" />}
-                          label={task.title}
-                          labelPlacement="end"
-                          onClick={(e) => handleCheckChange(e, task.title)}
-                          checked={task.achieved > 0 ? true : false}
-                        />
-                      </FormGroup>
-                    </FormControl>
-                  </Grid>
-                );
-              })}
-              <FormControl component="fieldset">
-                <FormGroup aria-label="position" row>
-                  <FormControlLabel
-                    control={
-                      <IconButton onClick={handleModalToggle}>
-                        <AddCircle />
-                      </IconButton>
-                    }
-                    label="Add Task"
-                    labelPlacement="end"
-                  />
-                </FormGroup>
-              </FormControl>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
+              return (
+                <Grid key={task._id} container item xs={12} sx={{ justifyContent: 'center', }}>
+                  <FormControl component="fieldset" >
+                    <FormGroup aria-label="position" row>
+                      <FormControlLabel
+                        value={task.achieved}
+                        control={<Checkbox color="primary" />}
+                        label={task.title}
+                        labelPlacement="end"
+                        onClick={(e) => handleCheckChange(e, task.title)}
+                        checked={task.achieved > 0 ? true : false}
+                      />
+                    </FormGroup>
+                  </FormControl>
+                </Grid>
+              );
+            })}
+            <FormControl component="fieldset">
+              <FormGroup aria-label="position" row>
+                <FormControlLabel
+                  control={
+                    <IconButton onClick={handleModalToggle}>
+                      <AddCircle />
+                    </IconButton>
+                  }
+                  label="Add Task"
+                  labelPlacement="end"
+                />
+              </FormGroup>
+            </FormControl>
+          </Grid>
+        </Paper>
       </Container>
       <AuthNavbar />
     </>

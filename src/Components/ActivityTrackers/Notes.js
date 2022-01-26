@@ -46,7 +46,7 @@ export default function Notes(props) {
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
-        <Paper sx={{ padding: '7.5px', }}>
+        <Paper sx={{ padding: '15px', borderRadius: '15px', }}>
           <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
             <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid item xs={3}>

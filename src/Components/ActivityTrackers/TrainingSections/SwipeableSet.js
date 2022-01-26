@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Grid, Button, Typography, IconButton, MobileStepper, } from '@mui/material';
 import { KeyboardArrowLeft, KeyboardArrowRight, AddCircle } from '@mui/icons-material';
 import SwipeableViews from 'react-swipeable-views';
 import Exercise from "./Exercise";
 
 function SwipeableSet(props) {
-    const { localTraining,
+    const {
+        localTraining,
         editMode,
         removeExercise,
         setLocalTraining,
         newExercise,
     } = props;
-    const [activeStep, setActiveStep] = React.useState(0);
+    const [activeStep, setActiveStep] = useState(0);
     const maxSteps = localTraining.length;
+    const ref = useRef(null);
 
     const handleNext = () => {
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -26,6 +28,10 @@ function SwipeableSet(props) {
         setActiveStep(step);
     };
 
+    useEffect(() => {
+        ref.current.updateHeight()
+    }, [localTraining, editMode])
+
     return (
         <Box sx={{ maxWidth: '100%', flexGrow: 1 }}>
             <SwipeableViews
@@ -34,10 +40,11 @@ function SwipeableSet(props) {
                 onChangeIndex={handleStepChange}
                 enableMouseEvents
                 animateHeight
+                ref={ref}
             >
                 {localTraining.map((group, index) => (
-                    <>
-                        <Grid item xs={12} key={index}>
+                    <div key={`training-indexes-${index}/${localTraining.length}`}>
+                        <Grid item xs={12} >
                             <Grid container item xs={12}>
                                 <Grid item container xs={12} alignContent="center">
                                     <Typography variant="h5" gutterBottom>
@@ -47,7 +54,7 @@ function SwipeableSet(props) {
                             </Grid>
                             {group.length > 0 && group.map((exercise, exerciseIndex) => (
                                 <Exercise
-                                    key={exercise._id}
+                                    key={`exercise-${exercise._id}-${exerciseIndex}`}
                                     editMode={editMode}
                                     exercise={exercise}
                                     setIndex={index}
@@ -65,7 +72,7 @@ function SwipeableSet(props) {
                                 </Grid>
                             </Grid>
                         </Grid>
-                    </>
+                    </div>
                 ))}
             </SwipeableViews>
             <MobileStepper

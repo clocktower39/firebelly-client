@@ -109,7 +109,7 @@ export default function Progress() {
         <Grid
           container
           component={Paper}
-          style={{ justifyContent: "center", marginTop: "25px", padding: "7.5px" }}
+          style={{ justifyContent: "center", marginTop: "25px", padding: "15px", borderRadius: '15px' }}
         >
           <Grid item xs={12} sm={8} container>
             <TextField
