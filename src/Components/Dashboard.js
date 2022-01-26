@@ -9,21 +9,9 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import AuthNavbar from './AuthNavbar';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    paddingTop: "25px",
-  },
-  PageLink: {
-    color: "white",
-    textDecoration: "none",
-  },
-}));
-
 export default function Dashboard() {
-  const classes = useStyles();
 
   const components = [
     {
@@ -66,7 +54,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <Container maxWidth="md" className={classes.root}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
         <Grid container spacing={2}>
           <Grid container item xs={12} sx={{ justifyContent: "center" }}>
             <Typography variant="h4" sx={{ color: "white" }}>

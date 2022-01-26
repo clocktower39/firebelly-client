@@ -10,7 +10,6 @@ import { makeStyles } from '@mui/styles';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
 const useStyles = makeStyles(theme => ({
-    heading: {},
     ModalPaper: {
         position: 'absolute',
         padding: '17.5px',
@@ -21,14 +20,6 @@ const useStyles = makeStyles(theme => ({
     },
     ArrowIcons: {
         color: theme.palette.primary.dark,
-    },
-    TextField: {
-        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline':{
-            borderColor: theme.palette.primary.dark,
-        },
-        '& .MuiOutlinedInput-input':{
-            color: '#ffffff',
-        },
     },
 }))
 
@@ -78,6 +69,11 @@ export default function SelectedDate(props) {
                     onChange={(e) => setSelectedDate(e.target.value)}
                     InputLabelProps={{
                         shrink: true,
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-input':{
+                            color: 'secondary.contrastText',
+                        },
                     }}
                 />
 

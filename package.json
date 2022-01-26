@@ -20,6 +20,7 @@
     "react-redux": "^7.2.4",
     "react-router-dom": "^6.2.1",
     "react-scripts": "^5.0.0",
+    "react-swipeable-views": "^0.14.0",
     "recharts": "^2.1.8",
     "redux": "^4.1.0",
     "redux-devtools-extension": "^2.13.9",

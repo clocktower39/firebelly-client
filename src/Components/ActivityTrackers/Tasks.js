@@ -95,7 +95,7 @@ export default function Tasks(props) {
 
   return (
     <>
-      <Container maxWidth="md" style={{ height: '100%', paddingTop: '25px', }}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
         <Modal open={isModalOpen}>
           <Paper className={classes.ModalPaper}>
             <Grid container spacing={3} alignContent="center" style={{ height: '100%' }}>
@@ -117,10 +117,10 @@ export default function Tasks(props) {
             </Grid>
           </Paper>
         </Modal>
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
         <Accordion defaultExpanded >
           <AccordionSummary expandIcon={<ExpandMore />}>
             <Grid container alignItems="center">
+            <SelectedDate setParentSelectedDate={setSelectedDate} />
               <Grid item xs={3}>
                 <Typography className={classes.heading}>Daily Tasks</Typography>
               </Grid>

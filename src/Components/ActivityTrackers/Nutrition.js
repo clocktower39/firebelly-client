@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Button,
   Container,
   Grid,
   InputAdornment,
   LinearProgress,
+  Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { ExpandMore } from "@mui/icons-material";
 import { requestDailyNutrition, updateDailyNutrition } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
@@ -137,41 +134,37 @@ export default function Nutrition(props) {
 
   return (
     <>
-      <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Grid container alignItems="center">
-              <Grid item xs={3}>
-                <Typography className={classes.heading}>Nutrition</Typography>
-              </Grid>
-              <Grid item xs={9}>
-                <LinearProgress
-                  variant="determinate"
-                  value={(dailyNutritionAchieved / dailyNutritionGoal) * 100}
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
+        <Paper sx={{ padding: '7.5px', }}>
+          <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
+            <SelectedDate setParentSelectedDate={setSelectedDate} />
+            <Grid item xs={3}>
+              <Typography className={classes.heading}>Nutrition</Typography>
+            </Grid>
+            <Grid item xs={9}>
+              <LinearProgress
+                variant="determinate"
+                value={(dailyNutritionAchieved / dailyNutritionGoal) * 100}
+              />
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            {localNutrition.stats &&
+              Object.keys(today.dailyNutrition.stats).map((task) => (
+                <NutritionStat
+                  key={task}
+                  nutritionObjectProperty={task}
+                  task={localNutrition.stats[task]}
+                  setLocalNutrition={setLocalNutrition}
                 />
-              </Grid>
+              ))}
+            <Grid xs={12} item container style={{ justifyContent: "center" }}>
+              <Button variant="outlined" onClick={saveChanges}>
+                Save
+              </Button>
             </Grid>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container spacing={2}>
-              {localNutrition.stats &&
-                Object.keys(today.dailyNutrition.stats).map((task) => (
-                  <NutritionStat
-                    key={task}
-                    nutritionObjectProperty={task}
-                    task={localNutrition.stats[task]}
-                    setLocalNutrition={setLocalNutrition}
-                  />
-                ))}
-              <Grid xs={12} item container style={{ justifyContent: "center" }}>
-                <Button variant="outlined" onClick={saveChanges}>
-                  Save
-                </Button>
-              </Grid>
-            </Grid>
-          </AccordionDetails>
-        </Accordion>
+          </Grid>
+        </Paper>
       </Container>
       <AuthNavbar />
     </>

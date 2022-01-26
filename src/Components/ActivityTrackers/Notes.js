@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Button,
   Container,
   Grid,
+  Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { ExpandMore } from "@mui/icons-material";
 import { requestDailyNote, updateDailyNote } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
@@ -48,36 +45,32 @@ export default function Notes(props) {
 
   return (
     <>
-      <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Grid container alignItems="center">
-              <Grid item xs={3}>
-                <Typography className={classes.heading}>Notes</Typography>
-              </Grid>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
+        <Paper sx={{ padding: '7.5px', }}>
+          <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
+            <SelectedDate setParentSelectedDate={setSelectedDate} />
+            <Grid item xs={3}>
+              <Typography className={classes.heading}>Notes</Typography>
             </Grid>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  variant="outlined"
-                  value={note || ""}
-                  onChange={(e) => handleChange(e)}
-                  label="Please provide feedback on your day; what was difficult and what went well?"
-                />
-              </Grid>
-              <Grid item container style={{ justifyContent: "center" }} xs={12}>
-                <Button variant="outlined" onClick={handleSave}>
-                  Save
-                </Button>
-              </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                variant="outlined"
+                value={note || ""}
+                onChange={(e) => handleChange(e)}
+                label="Please provide feedback on your day; what was difficult and what went well?"
+              />
             </Grid>
-          </AccordionDetails>
-        </Accordion>
+            <Grid item container style={{ justifyContent: "center" }} xs={12}>
+              <Button variant="outlined" onClick={handleSave}>
+                Save
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
       </Container>
       <AuthNavbar />
     </>

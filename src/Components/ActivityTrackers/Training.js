@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
+  Paper,
   Container,
   Divider,
   Grid,
@@ -14,22 +12,13 @@ import {
   Button,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { ExpandMore, Edit, FactCheck } from "@mui/icons-material";
+import { Edit, FactCheck } from "@mui/icons-material";
 import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
-import Set from "./TrainingSections/Set";
+import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
 
 const useStyles = makeStyles((theme) => ({
-  heading: {},
-  ModalPaper: {
-    position: "absolute",
-    padding: "17.5px",
-    width: "65%",
-    backgroundColor: "#fcfcfc",
-    left: "50%",
-    transform: "translate(-50%, 50%)",
-  },
   TrainingCategoryInputContainer: {
     marginBottom: "20px",
   },
@@ -189,74 +178,80 @@ export default function Training(props) {
 
   return (
     <>
-      <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Grid container alignItems="center">
-              <Grid item xs={3}>
-                <Typography className={classes.heading}>Training</Typography>
-              </Grid>
-              <Grid item xs={9}>
-                <LinearProgress
-                  variant="determinate"
-                  value={(dailyTrainingAchieved / dailyTrainingGoal) * 100}
-                />
-              </Grid>
-            </Grid>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Grid container>
-              <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
-                <Grid item xs={11} container alignContent="center">
-                  <TextField
-                    label="Training Category"
-                    onChange={(e) => setTrainingCategory(e.target.value)}
-                    value={trainingCategory}
-                    fullWidth
-                    disabled={!editMode}
-                  />
-                </Grid>
-                <Grid container style={{ alignContent: "center" }} item xs={1}>
-                  <Grid container style={{ justifyContent: "center" }} item xs={12}>
-                    <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
-                      {editMode ? <FactCheck /> : <Edit />}
-                    </IconButton>
-                  </Grid>
-                </Grid>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider style={{ margin: "25px 0px" }} />
-              </Grid>
-              <Set
-                today={today}
-                editMode={editMode}
-                newExercise={newExercise}
-                removeSet={removeSet}
-                removeExercise={removeExercise}
-                localTraining={localTraining}
-                setLocalTraining={setLocalTraining}
-                save={save}
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
+        <Paper sx={{ padding: '7.5px',}}>
+        <SelectedDate setParentSelectedDate={setSelectedDate} input/>
+        <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
+          <Grid item xs={3}>
+            <Typography className={classes.heading}>Training</Typography>
+          </Grid>
+          <Grid item xs={9}>
+            <LinearProgress
+              variant="determinate"
+              value={(dailyTrainingAchieved / dailyTrainingGoal) * 100}
+            />
+          </Grid>
+        </Grid>
+        <Grid container>
+          <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
+            <Grid item xs={11} container alignContent="center">
+              <TextField
+                label="Training Category"
+                onChange={(e) => setTrainingCategory(e.target.value)}
+                value={trainingCategory}
+                fullWidth
+                disabled={!editMode}
               />
-              {editMode ? (
-                <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
-                  <Button variant="contained" onClick={newSet}>
-                    New Set
-                  </Button>
-                  <Button variant="contained" onClick={save}>
-                    Save
-                  </Button>
-                </Grid>
-              ) : (
-                <Grid item xs={12} container style={{ justifyContent: "flex-end" }}>
-                  <Button variant="contained" onClick={save}>
-                    Save
-                  </Button>
-                </Grid>
-              )}
             </Grid>
-          </AccordionDetails>
-        </Accordion>
+            <Grid container style={{ alignContent: "center" }} item xs={1}>
+              <Grid container style={{ justifyContent: "center" }} item xs={12}>
+                <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
+                  {editMode ? <FactCheck /> : <Edit />}
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid item xs={12}>
+            <Divider style={{ margin: "25px 0px" }} />
+          </Grid>
+          <SwipeableSet
+            today={today}
+            editMode={editMode}
+            newExercise={newExercise}
+            removeSet={removeSet}
+            removeExercise={removeExercise}
+            localTraining={localTraining}
+            setLocalTraining={setLocalTraining}
+            save={save}
+          />
+          {/* <Set
+            today={today}
+            editMode={editMode}
+            newExercise={newExercise}
+            removeSet={removeSet}
+            removeExercise={removeExercise}
+            localTraining={localTraining}
+            setLocalTraining={setLocalTraining}
+            save={save}
+          /> */}
+          {editMode ? (
+            <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
+              <Button variant="contained" onClick={newSet}>
+                New Set
+              </Button>
+              <Button variant="contained" onClick={save}>
+                Save
+              </Button>
+            </Grid>
+          ) : (
+            <Grid item xs={12} container style={{ justifyContent: "flex-end" }}>
+              <Button variant="contained" onClick={save}>
+                Save
+              </Button>
+            </Grid>
+          )}
+        </Grid>
+        </Paper>
       </Container>
       <AuthNavbar />
     </>

@@ -28,10 +28,10 @@ export default function Navbar() {
       backgroundColor: '#232323',
       color: 'white',
     }} >
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Dashboard" value="/dashboard" to='/dashboard' icon={<Home />} component={Link} />
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Tasks" value="/tasks" to='/tasks' icon={<FormatListBulleted />} component={Link} />
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Training" value="/training" to='/training' icon={<FitnessCenter />} component={Link} />
       <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Progress" value="/progress" to='/progress' icon={<Assessment />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Tasks" value="/tasks" to='/tasks' icon={<FormatListBulleted />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Dashboard" value="/dashboard" to='/dashboard' icon={<Home />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Training" value="/training" to='/training' icon={<FitnessCenter />} component={Link} />
       <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Settings" value="/account" to='/account' icon={<Settings />} component={Link} />
     </BottomNavigation>
   );

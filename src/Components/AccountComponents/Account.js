@@ -13,7 +13,7 @@ import AuthNavbar from '../AuthNavbar';
 export default function Account() {
   return (
     <>
-      <Container maxWidth="md" style={{ height: "100%", paddingTop: '25px', }}>
+      <Container maxWidth="md" style={{ height: "100%", paddingTop: '25px', paddingBottom: '75px' }}>
         <Grid container>
           <Grid container item xs={12} sm={4} alignContent="flex-start">
             <Grid item xs={12}>

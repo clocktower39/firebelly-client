@@ -96,7 +96,7 @@ export default function Progress() {
 
   return (
     <>
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ height: "100%", paddingBottom: '75px', }}>
         <Modal
           keepMounted
           open={open}
