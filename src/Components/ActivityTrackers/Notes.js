@@ -8,52 +8,40 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
-import { requestDailyNote, updateDailyNote } from "../../Redux/actions";
-import SelectedDate from "./SelectedDate";
+import { requestNotes, createNote } from "../../Redux/actions";
 import AuthNavbar from '../AuthNavbar';
 
-const useStyles = makeStyles((theme) => ({
-  root: {},
-}));
 
-export default function Notes(props) {
-  const classes = useStyles();
+export default function Notes() {
   const dispatch = useDispatch();
-  const today = useSelector((state) => state.calander.dailyView);
-  const [selectedDate, setSelectedDate] = useState(null);
-
+  const notes = useSelector((state) => state.notes);
   const [note, setNote] = useState("");
   const handleChange = (e) => {
     setNote(e.target.value);
   };
 
   const handleSave = () => {
-    dispatch(updateDailyNote({ _id: today.dailyNote._id, note }));
+    dispatch(createNote(note)).then(() => setNote(""));
   };
 
   useEffect(() => {
-    setNote(today.dailyNote.note);
+    dispatch(requestNotes());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today.dailyNote.note]);
-
-  useEffect(() => {
-    setNote("");
-    dispatch(requestDailyNote(selectedDate));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, []);
 
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
         <Paper sx={{ padding: '15px', borderRadius: '15px', }}>
           <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
-            <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid item xs={3}>
-              <Typography className={classes.heading}>Notes</Typography>
+              <Typography variant="h4" >Notes</Typography>
             </Grid>
           </Grid>
           <Grid container spacing={2}>
+            <Grid container item xs={12} >
+              {notes && notes.map((n, i)=> <Grid key={`note-${n.date}-${i}`} container><Grid item sm={2} xs={4}>{n.date.substr(0,10)}</Grid><Grid item sm={10} xs={8}>{n.note}</Grid></Grid>)}
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -61,12 +49,12 @@ export default function Notes(props) {
                 variant="outlined"
                 value={note || ""}
                 onChange={(e) => handleChange(e)}
-                label="Please provide feedback on your day; what was difficult and what went well?"
+                label="Note"
               />
             </Grid>
             <Grid item container style={{ justifyContent: "center" }} xs={12}>
               <Button variant="outlined" onClick={handleSave}>
-                Save
+                Submit
               </Button>
             </Grid>
           </Grid>

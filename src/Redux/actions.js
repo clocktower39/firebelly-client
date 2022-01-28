@@ -8,18 +8,19 @@ export const EDIT_DAILY_TASK = "EDIT_DAILY_TASK";
 export const EDIT_DAILY_NUTRITION = "EDIT_DAILY_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
-export const EDIT_DAILY_NOTE = "EDIT_DAILY_NOTE";
+export const EDIT_NOTES = "EDIT_NOTES";
+export const ADD_NOTE = "ADD_NOTE";
 export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -343,16 +344,11 @@ export function updateDailyNutrition(updatedNutrition) {
 }
 
 // Fetches or creates daily note
-export function requestDailyNote(date) {
+export function requestNotes() {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const response = await fetch(`${serverURL}/note`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        date,
-      }),
+    const response = await fetch(`${serverURL}/notes`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -360,71 +356,43 @@ export function requestDailyNote(date) {
     });
     let data = await response.json();
 
-    if (data.results === "No Results") {
-      fetch(`${serverURL}/createNote`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          date,
-          note: "",
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            return dispatch({
-              type: ERROR,
-              error: data.error,
-            });
-          }
-          return dispatch({
-            type: EDIT_DAILY_NOTE,
-            dailyNote: data.note,
-          });
-        });
-    }
-
     return dispatch({
-      type: EDIT_DAILY_NOTE,
-      dailyNote: data,
+      type: EDIT_NOTES,
+      notes: data,
     });
   };
 }
 
-// Pushes updates to daily note
-export function updateDailyNote(udpatedNote) {
+// Add a new note
+export function createNote(newNote) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const data = await fetch(`${serverURL}/updateNote`, {
+    await fetch(`${serverURL}/createNote`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        _id: udpatedNote._id,
-        note: udpatedNote.note,
+        note: newNote,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
       },
-    }).then((res) => res.json());
-
-    if (data.error) {
-      return dispatch({
-        type: ERROR,
-        error: data.error,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          return dispatch({
+            type: ERROR,
+            error: data.error,
+          });
+        }
+        return dispatch({
+          type: ADD_NOTE,
+          note: data.note,
+        });
       });
-    } else {
-      return dispatch({
-        type: EDIT_DAILY_NOTE,
-        dailyNote: data.note,
-      });
-    }
-  };
+  }
 }
 
 // Fetches or creates daily training information

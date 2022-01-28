@@ -196,3 +196,11 @@ export let progress = {
     exerciseList: [],
     targetExerciseHistory: []
 }
+
+export let notes = [
+    // {
+    //     date: '',
+    //     accountId: '',
+    //     note: '',
+    // },
+]
