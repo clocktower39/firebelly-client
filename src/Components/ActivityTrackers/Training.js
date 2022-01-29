@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Edit, FactCheck } from "@mui/icons-material";
-import { requestDailyTraining, updateDailyTraining } from "../../Redux/actions";
+import { requestTraining, updateTraining } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Training(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const today = useSelector((state) => state.calander.dailyView);
+  const training = useSelector((state) => state.training);
 
   // toggle edit mode
   const [selectedDate, setSelectedDate] = useState(null);
@@ -40,15 +40,15 @@ export default function Training(props) {
 
   let allTraining = [];
 
-  let dailyTrainingAchieved = 0;
-  let dailyTrainingGoal = 1;
+  let trainingAchieved = 0;
+  let trainingGoal = 1;
 
-  if (today.dailyTraining) {
-    if (today.dailyTraining.training.length > 0 && allTraining.length > 0) {
-      dailyTrainingAchieved = allTraining.reduce((a, b) => ({
+  if (training) {
+    if (training.training.length > 0 && allTraining.length > 0) {
+      trainingAchieved = allTraining.reduce((a, b) => ({
         achieved: a.achieved + b.achieved,
       })).achieved;
-      dailyTrainingGoal = allTraining.reduce((a, b) => ({
+      trainingGoal = allTraining.reduce((a, b) => ({
         goal: a.goal + b.goal,
       })).goal;
     }
@@ -82,8 +82,8 @@ export default function Training(props) {
       return group;
     });
     dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
+      updateTraining(training._id, {
+        ...training,
         category: trainingCategory,
         training: [...newTraining],
       })
@@ -116,8 +116,8 @@ export default function Training(props) {
       },
     ]);
     dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
+      updateTraining(training._id, {
+        ...training,
         category: trainingCategory,
         training: [...newTraining],
       })
@@ -129,8 +129,8 @@ export default function Training(props) {
     const newTraining = localTraining.filter((item, index) => index !== setIndex);
 
     dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
+      updateTraining(training._id, {
+        ...training,
         category: trainingCategory,
         training: [...newTraining],
       })
@@ -147,8 +147,8 @@ export default function Training(props) {
     });
 
     dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
+      updateTraining(training._id, {
+        ...training,
         category: trainingCategory,
         training: [...newTraining],
       })
@@ -158,8 +158,8 @@ export default function Training(props) {
   // Save all changes to training
   const save = () => {
     dispatch(
-      updateDailyTraining(today.dailyTraining._id, {
-        ...today.dailyTraining,
+      updateTraining(training._id, {
+        ...training,
         category: trainingCategory,
         training: localTraining,
       })
@@ -167,12 +167,12 @@ export default function Training(props) {
   };
 
   useEffect(() => {
-    setTrainingCategory(today.dailyTraining.category || "");
-    setLocalTraining(today.dailyTraining.training || []);
-  }, [today]);
+    setTrainingCategory(training.category || "");
+    setLocalTraining(training.training || []);
+  }, [training]);
 
   useEffect(() => {
-    dispatch(requestDailyTraining(selectedDate));
+    dispatch(requestTraining(selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -188,7 +188,7 @@ export default function Training(props) {
           <Grid item xs={9}>
             <LinearProgress
               variant="determinate"
-              value={(dailyTrainingAchieved / dailyTrainingGoal) * 100}
+              value={(trainingAchieved / trainingGoal) * 100}
             />
           </Grid>
         </Grid>
@@ -215,7 +215,6 @@ export default function Training(props) {
             <Divider style={{ margin: "25px 0px" }} />
           </Grid>
           <SwipeableSet
-            today={today}
             editMode={editMode}
             newExercise={newExercise}
             removeSet={removeSet}

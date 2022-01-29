@@ -8,7 +8,7 @@ import {
   EDIT_NUTRITION,
   EDIT_NOTES,
   ADD_NOTE,
-  EDIT_DAILY_TRAINING,
+  EDIT_TRAINING,
   EDIT_WEEKLY_VIEW,
   EDIT_PROGRESS_EXERCISE_LIST,
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
@@ -34,16 +34,10 @@ export let reducer = (state = { user, calander, progress, nutrition, training, n
         ...state,
         tasks: action.tasks
       };
-    case EDIT_DAILY_TRAINING:
+    case EDIT_TRAINING:
       return {
         ...state,
-        calander: {
-          ...state.calander,
-          dailyView: {
-            ...state.calander.dailyView,
-            dailyTraining: { ...action.dailyTraining },
-          },
-        },
+        training: { ...action.training },
       };
     case EDIT_NUTRITION:
       return {

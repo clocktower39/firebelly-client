@@ -10,7 +10,7 @@ export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_NOTES = "EDIT_NOTES";
 export const ADD_NOTE = "ADD_NOTE";
-export const EDIT_DAILY_TRAINING = "EDIT_DAILY_TRAINING";
+export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
@@ -396,7 +396,7 @@ export function createNote(newNote) {
 }
 
 // Fetches or creates daily training information
-export function requestDailyTraining(date) {
+export function requestTraining(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -459,8 +459,8 @@ export function requestDailyTraining(date) {
             });
           }
           return dispatch({
-            type: EDIT_DAILY_TRAINING,
-            dailyTraining: data.training,
+            type: EDIT_TRAINING,
+            training: data.training,
           });
         });
     } else {
@@ -474,15 +474,15 @@ export function requestDailyTraining(date) {
         return set;
       });
       return dispatch({
-        type: EDIT_DAILY_TRAINING,
-        dailyTraining: { ...data[0] },
+        type: EDIT_TRAINING,
+        training: { ...data[0] },
       });
     }
   };
 }
 
 // Pushes updates to daily training information
-export function updateDailyTraining(trainingId, updatedTraining) {
+export function updateTraining(trainingId, updatedTraining) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -506,8 +506,8 @@ export function updateDailyTraining(trainingId, updatedTraining) {
       });
     } else {
       return dispatch({
-        type: EDIT_DAILY_TRAINING,
-        dailyTraining: updatedTraining,
+        type: EDIT_TRAINING,
+        training: updatedTraining,
       });
     }
   };
