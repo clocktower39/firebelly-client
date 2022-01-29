@@ -11,10 +11,11 @@ import RepsWithPercentLog from "./RepsWithPercentLog";
 import TimeLog from "./TimeLog";
 
 export default function Exercise(props) {
-  const [title, setTitle] = useState(props.exercise.exercise || "");
-  const [exerciseType, setExerciseType] = useState(props.exercise.exerciseType || "Reps");
-  const [sets, setSets] = useState(props.exercise.goals.sets);
-  const { setLocalTraining, exerciseIndex, setIndex } = props;
+  const { exercise, setLocalTraining, exerciseIndex, setIndex, localTraining, editMode, removeExercise } = props;
+
+  const [title, setTitle] = useState(exercise.exercise || "");
+  const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
+  const [sets, setSets] = useState(exercise.goals.sets);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
@@ -69,58 +70,58 @@ export default function Exercise(props) {
   const renderEditSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return props.exercise.goals.minReps.length > 0 && (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
+        return exercise.goals.minReps.length > 0 && (
+          exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepRange
               key={`exerciseSet-${index}`}
-              exercise={props.exercise}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
+              exercise={exercise}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
               index={index}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
           ))
         );
       case "Reps":
-        return props.exercise.goals.minReps.length > 0 && (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
+        return exercise.goals.minReps.length > 0 && (
+          exercise.goals.minReps.map((exerciseSet, index) => (
             <EditExactReps
               key={`exerciseSet-${index}`}
-              exercise={props.exercise}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
+              exercise={exercise}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
               index={index}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
           ))
         );
       case "Reps with %":
-        return props.exercise.goals.minReps.length > 0 && (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
+        return exercise.goals.minReps.length > 0 && (
+          exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepsWithPercent
               key={`exerciseSet-${index}`}
-              exercise={props.exercise}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
+              exercise={exercise}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
               index={index}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
           ))
         );
       case "Time":
-        return props.exercise.goals.minReps.length > 0 && (
-          props.exercise.goals.minReps.map((exerciseSet, index) => (
+        return exercise.goals.minReps.length > 0 && (
+          exercise.goals.minReps.map((exerciseSet, index) => (
             <EditTime
               key={`exerciseSet-${index}`}
-              exercise={props.exercise}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
+              exercise={exercise}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
               index={index}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
           ))
         );
@@ -133,39 +134,39 @@ export default function Exercise(props) {
     switch (exerciseType) {
       case "Rep Range":
         return <RepRangeLog
-              exercise={props.exercise}
+              exercise={exercise}
               sets={sets}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
       case "Reps":
         return <ExactRepsLog
-              exercise={props.exercise}
+              exercise={exercise}
               sets={sets}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
       case "Reps with %":
         return <RepsWithPercentLog
-              exercise={props.exercise}
+              exercise={exercise}
               sets={sets}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
       case "Time":
         return <TimeLog
-              exercise={props.exercise}
+              exercise={exercise}
               sets={sets}
-              setIndex={props.setIndex}
-              exerciseIndex={props.exerciseIndex}
-              localTraining={props.localTraining}
-              setLocalTraining={props.setLocalTraining}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
             />
       default:
         return <Typography>Type Error</Typography>;
@@ -174,7 +175,7 @@ export default function Exercise(props) {
 
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
-      {props.editMode ? (
+      {editMode ? (
         <>
           <Grid container item xs={12} spacing={1}>
             <Grid item xs={12}>
@@ -222,7 +223,7 @@ export default function Exercise(props) {
             >
               <Grid item>
                 <IconButton
-                  onClick={() => props.removeExercise(props.setIndex, props.exerciseIndex)}
+                  onClick={() => removeExercise(setIndex, exerciseIndex)}
                 >
                   <RemoveCircle />
                 </IconButton>

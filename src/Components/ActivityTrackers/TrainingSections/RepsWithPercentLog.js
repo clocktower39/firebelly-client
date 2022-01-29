@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 export default function RepsWithPercentLog(props) {
-  const [reps, setReps] = useState(props.exercise.achieved.reps);
-  const [weight, setWeight] = useState(props.exercise.achieved.weight);
+  const { exercise, setLocalTraining, setIndex, exerciseIndex } = props;
+  const [reps, setReps] = useState(exercise.achieved.reps);
+  const [weight, setWeight] = useState(exercise.achieved.weight);
   const [oneRepMax, setOneRepMax] = useState(0);
 
 
@@ -36,11 +37,11 @@ export default function RepsWithPercentLog(props) {
         }
         return item;
       });
-      props.setLocalTraining((prev) => {
+      setLocalTraining((prev) => {
         return prev.map((set, index) => {
-          if (index === props.setIndex) {
+          if (index === setIndex) {
             set = set.map((item, index) => {
-              if (index === props.exerciseIndex) {
+              if (index === exerciseIndex) {
                 item = {
                   ...item,
                   achieved: {
@@ -102,7 +103,7 @@ export default function RepsWithPercentLog(props) {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
-                      /{(oneRepMax / 100) * props.exercise.goals.percent[i]}
+                      /{(oneRepMax / 100) * exercise.goals.percent[i]}
                     </InputAdornment>
                   ),
                 }}
@@ -123,7 +124,7 @@ export default function RepsWithPercentLog(props) {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', }} >
-                      /{props.exercise.goals.exactReps[i]}
+                      /{exercise.goals.exactReps[i]}
                     </InputAdornment>
                   ),
                 }}

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Grid, TextField, Typography } from "@mui/material";
 
 export default function EditRepRange(props) {
-  const [minReps, setMinReps] = useState(props.exercise.goals.minReps || 0);
-  const [maxReps, setMaxReps] = useState(props.exercise.goals.maxReps || 0);
+  const { exercise, index} = props;
+  const [minReps, setMinReps] = useState(exercise.goals.minReps || 0);
+  const [maxReps, setMaxReps] = useState(exercise.goals.maxReps || 0);
   const { setLocalTraining, setIndex, exerciseIndex } = props;
 
   // input accepts an empty string or a number above zero
@@ -45,20 +46,20 @@ export default function EditRepRange(props) {
 
   
   useEffect(()=>{
-    setMinReps(props.exercise.goals.minReps);
-    setMaxReps(props.exercise.goals.maxReps);
-  },[props.exercise.goals.minReps, props.exercise.goals.maxReps])
+    setMinReps(exercise.goals.minReps);
+    setMaxReps(exercise.goals.maxReps);
+  },[exercise.goals.minReps, exercise.goals.maxReps])
 
   return (
     <Grid container item xs={12} spacing={1}>
     <Grid item xs={2} container style={{justifyContent: 'flex-end', alignContent: 'center'}} >
-      <Typography >Set {props.index + 1}:</Typography>
+      <Typography >Set {index + 1}:</Typography>
     </Grid>
       <Grid item xs={5}>
         <TextField
           label="Min Reps"
-          value={minReps[props.index]===0?"":minReps[props.index]}
-          onChange={(e) => handleChange(e, setMinReps, props.index)}
+          value={minReps[index]===0?"":minReps[index]}
+          onChange={(e) => handleChange(e, setMinReps, index)}
           inputProps={{
             type: "number",
             inputMode: "decimal",
@@ -71,8 +72,8 @@ export default function EditRepRange(props) {
       <Grid item xs={5}>
         <TextField
           label="Max Reps"
-          value={maxReps[props.index]===0?"":maxReps[props.index]}
-          onChange={(e) => handleChange(e, setMaxReps, props.index)}
+          value={maxReps[index]===0?"":maxReps[index]}
+          onChange={(e) => handleChange(e, setMaxReps, index)}
           inputProps={{
             type: "number",
             inputMode: "decimal",

@@ -33,12 +33,13 @@ export default function AccountTasks() {
   const saveTasks = () => dispatch(editDefaultDailyTask([...defaultTasks]));
 
   const TaskTextField = (props) => {
-    const [taskTitle, setTaskTitle] = useState(props.task.title);
+    const { task, index, } = props;
+    const [taskTitle, setTaskTitle] = useState(task.title);
 
     return (
       <TextField
         disabled
-        label={`Task ${props.index + 1}`}
+        label={`Task ${index + 1}`}
         value={taskTitle}
         onChange={(e) => handleChange(e.target.value, setTaskTitle)}
         fullWidth

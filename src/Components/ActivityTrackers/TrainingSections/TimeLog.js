@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 export default function TimeLog(props) {
-  const [seconds, setSeconds] = useState(props.exercise.achieved.seconds);
+  const { exercise, setLocalTraining, setIndex, exerciseIndex } = props;
+  const [seconds, setSeconds] = useState(exercise.achieved.seconds);
 
   const handleChange = (e, setter, index, type) => {
     // initialize answer to be used at the end of the conditional
@@ -33,11 +34,11 @@ export default function TimeLog(props) {
         }
         return item;
       });
-      props.setLocalTraining((prev) => {
+      setLocalTraining((prev) => {
         return prev.map((set, index) => {
-          if (index === props.setIndex) {
+          if (index === setIndex) {
             set = set.map((item, index) => {
-              if (index === props.exerciseIndex) {
+              if (index === exerciseIndex) {
                 item = {
                   ...item,
                   achieved: {
@@ -85,7 +86,7 @@ export default function TimeLog(props) {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="start" style={{ fontSize: '10px', textAlign: 'right', paddingRight: 0, }} >
-                      /{props.exercise.goals.seconds[i]}
+                      /{exercise.goals.seconds[i]}
                     </InputAdornment>
                   ),
                 }}
