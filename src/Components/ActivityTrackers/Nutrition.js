@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { requestDailyNutrition, updateDailyNutrition } from "../../Redux/actions";
+import { requestNutrition, updateNutrition } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
 
@@ -96,46 +96,46 @@ const NutritionStat = (props) => {
 export default function Nutrition(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const today = useSelector((state) => state.calander.dailyView);
+  const nutrition = useSelector((state) => state.nutrition);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  let dailyNutritionAchieved = 0;
-  let dailyNutritionGoal = 1;
-  if (today.dailyNutrition.stats && Object.keys(today.dailyNutrition.stats).length > 0) {
-    dailyNutritionAchieved = Object.keys(today.dailyNutrition.stats)
-      .map((item) => today.dailyNutrition.stats[item])
+  let nutritionAchieved = 0;
+  let nutritionGoal = 1;
+  if (nutrition.stats && Object.keys(nutrition.stats).length > 0) {
+    nutritionAchieved = Object.keys(nutrition.stats)
+      .map((item) => nutrition.stats[item])
       .reduce((a, b) => ({
         achieved: a.achieved + b.achieved,
       })).achieved;
-    dailyNutritionGoal = Object.keys(today.dailyNutrition.stats)
-      .map((item) => today.dailyNutrition.stats[item])
+    nutritionGoal = Object.keys(nutrition.stats)
+      .map((item) => nutrition.stats[item])
       .reduce((a, b) => ({
         goal: a.goal + b.goal,
       })).goal;
   }
 
   // stores all nutrition info as a buffer
-  const [localNutrition, setLocalNutrition] = useState(today.dailyNutrition);
+  const [localNutrition, setLocalNutrition] = useState(nutrition);
 
   // Updates DB with local nutrition
   const saveChanges = () => {
-    dispatch(updateDailyNutrition(localNutrition));
+    dispatch(updateNutrition(localNutrition));
   };
 
   useEffect(() => {
-    dispatch(requestDailyNutrition(selectedDate));
+    dispatch(requestNutrition(selectedDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   useEffect(() => {
-    setLocalNutrition(today.dailyNutrition);
+    setLocalNutrition(nutrition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today.dailyNutrition]);
+  }, [nutrition]);
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
-        <Paper sx={{ padding: '7.5px', }}>
+      <Container maxWidth="md" sx={{ minHeight: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
+        <Paper sx={{ padding: '7.5px', minHeight: "100%" }}>
           <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
             <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid item xs={3}>
@@ -144,13 +144,13 @@ export default function Nutrition(props) {
             <Grid item xs={9}>
               <LinearProgress
                 variant="determinate"
-                value={(dailyNutritionAchieved / dailyNutritionGoal) * 100}
+                value={(nutritionAchieved / nutritionGoal) * 100}
               />
             </Grid>
           </Grid>
           <Grid container spacing={2}>
             {localNutrition.stats &&
-              Object.keys(today.dailyNutrition.stats).map((task) => (
+              Object.keys(nutrition.stats).map((task) => (
                 <NutritionStat
                   key={task}
                   nutritionObjectProperty={task}

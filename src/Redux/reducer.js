@@ -5,7 +5,7 @@ import {
   EDIT_DAILY_TASK,
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
-  EDIT_DAILY_NUTRITION,
+  EDIT_NUTRITION,
   EDIT_NOTES,
   ADD_NOTE,
   EDIT_DAILY_TRAINING,
@@ -13,8 +13,8 @@ import {
   EDIT_PROGRESS_EXERCISE_LIST,
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
 } from "./actions";
-import { user, calander, progress } from "./states";
-export let reducer = (state = { user, calander, progress }, action) => {
+import { user, calander, progress, nutrition, training, notes, tasks } from "./states";
+export let reducer = (state = { user, calander, progress, nutrition, training, notes, tasks }, action) => {
   switch (action.type) {
     case LOGIN_USER:
       return {
@@ -51,16 +51,10 @@ export let reducer = (state = { user, calander, progress }, action) => {
           },
         },
       };
-    case EDIT_DAILY_NUTRITION:
+    case EDIT_NUTRITION:
       return {
         ...state,
-        calander: {
-          ...state.calander,
-          dailyView: {
-            ...state.calander.dailyView,
-            dailyNutrition: action.dailyNutrition,
-          },
-        },
+        nutrition: action.nutrition,
       };
     case ADD_NOTE:
       return {

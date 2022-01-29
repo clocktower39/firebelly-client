@@ -5,7 +5,7 @@ export const LOGOUT_USER = "LOGOUT_USER";
 export const SIGNUP_USER = "SIGNUP_USER";
 export const ERROR = "ERROR";
 export const EDIT_DAILY_TASK = "EDIT_DAILY_TASK";
-export const EDIT_DAILY_NUTRITION = "EDIT_DAILY_NUTRITION";
+export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_NOTES = "EDIT_NOTES";
@@ -16,11 +16,11 @@ export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -257,7 +257,7 @@ export function removeDefaultDailyTask(removeTask) {
 }
 
 // Fetches or creates daily nutrition stats
-export function requestDailyNutrition(date) {
+export function requestNutrition(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -298,21 +298,21 @@ export function requestDailyNutrition(date) {
             });
           }
           return dispatch({
-            type: EDIT_DAILY_NUTRITION,
-            dailyNutrition: data.nutrition,
+            type: EDIT_NUTRITION,
+            nutrition: data.nutrition,
           });
         });
     } else {
       return dispatch({
-        type: EDIT_DAILY_NUTRITION,
-        dailyNutrition: data[0],
+        type: EDIT_NUTRITION,
+        nutrition: data[0],
       });
     }
   };
 }
 
 // Pushes updates to nutrition stats
-export function updateDailyNutrition(updatedNutrition) {
+export function updateNutrition(updatedNutrition) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -336,8 +336,8 @@ export function updateDailyNutrition(updatedNutrition) {
       });
     } else {
       return dispatch({
-        type: EDIT_DAILY_NUTRITION,
-        dailyNutrition: data.nutrition,
+        type: EDIT_NUTRITION,
+        nutrition: data.nutrition,
       });
     }
   };
