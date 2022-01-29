@@ -4,7 +4,7 @@ export const LOGIN_USER = "LOGIN_USER";
 export const LOGOUT_USER = "LOGOUT_USER";
 export const SIGNUP_USER = "SIGNUP_USER";
 export const ERROR = "ERROR";
-export const EDIT_DAILY_TASK = "EDIT_DAILY_TASK";
+export const EDIT_TASKS = "EDIT_TASKS";
 export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
@@ -119,7 +119,7 @@ export function editUser(user) {
   };
 }
 
-export function checkToggleDailyTask(id, newDailyTask) {
+export function checkToggleTask(id, newDailyTask) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -146,14 +146,14 @@ export function checkToggleDailyTask(id, newDailyTask) {
       });
 
     return dispatch({
-      type: EDIT_DAILY_TASK,
-      dailyTasks: newDailyTask,
+      type: EDIT_TASKS,
+      tasks: newDailyTask,
     });
   };
 }
 
 // // Fetches or creates daily tasks
-export function requestDailyTasks(date) {
+export function requestTasks(date) {
   return async (dispatch, getState) => {
     const state = getState();
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -202,14 +202,14 @@ export function requestDailyTasks(date) {
             });
           }
           return dispatch({
-            type: EDIT_DAILY_TASK,
-            dailyTasks: data.task,
+            type: EDIT_TASKS,
+            tasks: data.task,
           });
         });
     } else {
       return dispatch({
-        type: EDIT_DAILY_TASK,
-        dailyTasks: data[0],
+        type: EDIT_TASKS,
+        tasks: data[0],
       });
     }
   };

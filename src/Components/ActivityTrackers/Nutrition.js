@@ -28,7 +28,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NutritionStat = (props) => {
-  const [taskAchieved, setTaskAchieved] = useState(props.task.achieved);
+  const { task, setLocalNutrition, nutritionObjectProperty, } = props;
+  const [taskAchieved, setTaskAchieved] = useState(task.achieved);
   const handleChange = (e) => {
     // initialize answer to be used at the end of the conditional
     let answer = 0;
@@ -50,9 +51,9 @@ const NutritionStat = (props) => {
         setTaskAchieved(answer);
       }
     }
-    props.setLocalNutrition((previous) => {
+    setLocalNutrition((previous) => {
       const newLocalNutrition = { ...previous };
-      newLocalNutrition.stats[props.nutritionObjectProperty].achieved = Number(answer);
+      newLocalNutrition.stats[nutritionObjectProperty].achieved = Number(answer);
       return {
         ...newLocalNutrition,
       };
@@ -67,15 +68,15 @@ const NutritionStat = (props) => {
   };
 
   useEffect(() => {
-    setTaskAchieved(props.task.achieved);
-  }, [props.task.achieved]);
+    setTaskAchieved(task.achieved);
+  }, [task.achieved]);
 
   return (
     <Grid item xs={12}>
       <TextField
         fullWidth
         variant="outlined"
-        label={props.task.title}
+        label={task.title}
         value={taskAchieved}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
@@ -84,7 +85,7 @@ const NutritionStat = (props) => {
         InputProps={{
           endAdornment: (
             <InputAdornment position="start">
-              /{props.task.goal} {props.task.unit}
+              /{task.goal} {task.unit}
             </InputAdornment>
           ),
         }}
@@ -93,7 +94,7 @@ const NutritionStat = (props) => {
   );
 };
 
-export default function Nutrition(props) {
+export default function Nutrition() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const nutrition = useSelector((state) => state.nutrition);

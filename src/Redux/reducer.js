@@ -2,7 +2,7 @@ import {
   LOGIN_USER,
   LOGOUT_USER,
   ERROR,
-  EDIT_DAILY_TASK,
+  EDIT_TASKS,
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_NUTRITION,
@@ -29,16 +29,10 @@ export let reducer = (state = { user, calander, progress, nutrition, training, n
         ...state,
         user: {},
       };
-    case EDIT_DAILY_TASK:
+    case EDIT_TASKS:
       return {
         ...state,
-        calander: {
-          ...state.calander,
-          dailyView: {
-            ...state.calander.dailyView,
-            dailyTasks: action.dailyTasks,
-          },
-        },
+        tasks: action.tasks
       };
     case EDIT_DAILY_TRAINING:
       return {

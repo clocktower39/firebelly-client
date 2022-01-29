@@ -156,7 +156,7 @@ export default function Week() {
               };
 
               return (
-                <Accordion key={`sorted-weeklyview-${index}`}>
+                <Accordion defaultExpanded key={`sorted-weeklyview-${index}`}>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     <Grid container alignItems="center">
                       <Grid container item xs={12}>

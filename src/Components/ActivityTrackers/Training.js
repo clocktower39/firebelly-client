@@ -224,16 +224,6 @@ export default function Training(props) {
             setLocalTraining={setLocalTraining}
             save={save}
           />
-          {/* <Set
-            today={today}
-            editMode={editMode}
-            newExercise={newExercise}
-            removeSet={removeSet}
-            removeExercise={removeExercise}
-            localTraining={localTraining}
-            setLocalTraining={setLocalTraining}
-            save={save}
-          /> */}
           {editMode ? (
             <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
               <Button variant="contained" onClick={newSet}>

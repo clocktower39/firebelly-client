@@ -18,8 +18,8 @@ import {
 import { makeStyles } from '@mui/styles';
 import { AddCircle } from "@mui/icons-material";
 import {
-  requestDailyTasks,
-  checkToggleDailyTask,
+  requestTasks,
+  checkToggleTask,
 } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
@@ -40,8 +40,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Tasks(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const dailyTasks = useSelector(
-    (state) => state.calander.dailyView.dailyTasks
+  const tasks = useSelector(
+    (state) => state.tasks
   );
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -70,19 +70,19 @@ export default function Tasks(props) {
   };
 
   const dailyTasksAchieved =
-    dailyTasks.tasks.length > 0
-      ? dailyTasks.tasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }))
+    tasks.tasks && tasks.tasks.length > 0
+      ? tasks.tasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved }))
         .achieved
       : 0;
   const dailyTasksGoal =
-    dailyTasks.tasks.length > 0
-      ? dailyTasks.tasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
+    tasks.tasks && tasks.tasks.length > 0
+      ? tasks.tasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
       : 1;
 
   useEffect(() => {
     if (selectedDate !== null) {
       dispatch(
-        requestDailyTasks(
+        requestTasks(
           selectedDate
         )
       );
@@ -128,19 +128,19 @@ export default function Tasks(props) {
             </Grid>
           </Grid>
           <Grid container spacing={2} style={{ justifyContent: "center" }} >
-            {dailyTasks.tasks.sort((a, b) => a.title > b.title).map((task) => {
+            {tasks.tasks.sort((a, b) => a.title > b.title).map((task) => {
               const handleCheckChange = (e, title) => {
-                const newTasks = dailyTasks.tasks.map(task => {
+                const newTasks = tasks.tasks.map(task => {
                   if (task.title === title) {
                     task.achieved === 0 ? task.achieved = 1 : task.achieved = 0;
                   }
                   return task;
                 });
                 const newDailyTask = {
-                  ...dailyTasks,
+                  ...tasks,
                   tasks: newTasks
                 }
-                dispatch(checkToggleDailyTask(dailyTasks._id, newDailyTask));
+                dispatch(checkToggleTask(tasks._id, newDailyTask));
               }
 
               return (
