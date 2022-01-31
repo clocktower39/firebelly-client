@@ -395,7 +395,7 @@ export function createNote(newNote) {
   }
 }
 
-// Fetches or creates daily training information
+// Fetches daily training information
 export function requestTraining(date) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -414,55 +414,10 @@ export function requestTraining(date) {
     let data = await response.json();
 
     if (!data || data.length < 1) {
-      fetch(`${serverURL}/createTraining`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          date,
-          category: "",
-          training: [
-            [
-              {
-                exercise: "",
-                exerciseType: "Reps",
-                goals: {
-                  sets: 1,
-                  minReps: [0],
-                  maxReps: [0],
-                  exactReps: [0],
-                  weight: [0],
-                  percent: [0],
-                  seconds: [0],
-                },
-                achieved: {
-                  sets: 0,
-                  reps: [0],
-                  weight: [0],
-                  percent: [0],
-                  seconds: [0],
-                },
-              },
-            ],
-          ],
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
+      return dispatch({
+        type: EDIT_TRAINING,
+        training: { training: [] }
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            return dispatch({
-              type: ERROR,
-              error: data.error,
-            });
-          }
-          return dispatch({
-            type: EDIT_TRAINING,
-            training: data.training,
-          });
-        });
     } else {
       data[0].training.map((set) => {
         set.map((exercise) => {
@@ -478,6 +433,63 @@ export function requestTraining(date) {
         training: { ...data[0] },
       });
     }
+  };
+}
+
+// Creates new daily training workouts
+export function createTraining(date) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    await fetch(`${serverURL}/createTraining`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        date,
+        category: "",
+        training: [
+          [
+            {
+              exercise: "",
+              exerciseType: "Reps",
+              goals: {
+                sets: 0,
+                minReps: [0],
+                maxReps: [0],
+                exactReps: [0],
+                weight: [0],
+                percent: [0],
+                seconds: [0],
+              },
+              achieved: {
+                sets: 0,
+                reps: [0],
+                weight: [0],
+                percent: [0],
+                seconds: [0],
+              },
+            },
+          ],
+        ],
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          return dispatch({
+            type: ERROR,
+            error: data.error,
+          });
+        }
+        return dispatch({
+          type: EDIT_TRAINING,
+          training: data.training,
+        });
+      });
   };
 }
 

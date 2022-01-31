@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Edit, FactCheck } from "@mui/icons-material";
-import { requestTraining, updateTraining } from "../../Redux/actions";
+import { createTraining, requestTraining, updateTraining } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from '../AuthNavbar';
@@ -192,6 +192,7 @@ export default function Training(props) {
             />
           </Grid>
         </Grid>
+        {training.training.length > 0 ? (
         <Grid container>
           <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
             <Grid item xs={11} container alignContent="center">
@@ -240,6 +241,11 @@ export default function Training(props) {
             </Grid>
           )}
         </Grid>
+        ):(
+          <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
+            <Button onClick={()=> dispatch(createTraining(selectedDate)) } >Create Workout</Button>
+          </Grid>
+        )}
         </Paper>
       </Container>
       <AuthNavbar />
