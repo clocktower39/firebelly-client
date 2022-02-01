@@ -5,10 +5,7 @@ import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import EditRepsWithPercent from "./EditRepsWithPercent";
 import EditTime from "./EditTime";
-import RepRangeLog from "./RepRangeLog";
-import ExactRepsLog from "./ExactRepsLog";
-import RepsWithPercentLog from "./RepsWithPercentLog";
-import TimeLog from "./TimeLog";
+import LogLoader from "./LogLoader";
 
 export default function Exercise(props) {
   const { exercise, setLocalTraining, exerciseIndex, setIndex, localTraining, editMode, removeExercise } = props;
@@ -130,44 +127,65 @@ export default function Exercise(props) {
     }
   };
 
-  const renderLogSwitch = () => {
+  // <LogLoader
+  //   fields={LoggedFields} 
+  //   exercise={exercise}
+  //   sets={sets}
+  //   setIndex={setIndex}
+  //   exerciseIndex={exerciseIndex}
+  //   localTraining={localTraining}
+  //   setLocalTraining={setLocalTraining}
+  // />
+
+  const LoggedFields = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return <RepRangeLog
-              exercise={exercise}
-              sets={sets}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
+        return [
+          {
+            achievedAttribute: 'weight',
+            goalAttribute: 'weight',
+            label: 'Weight',
+          },
+          {
+            achievedAttribute: 'reps',
+            goalAttribute: 'exactReps',
+            label: 'Reps',
+          },
+        ]
       case "Reps":
-        return <ExactRepsLog
-              exercise={exercise}
-              sets={sets}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
+        return [
+          {
+            achievedAttribute: 'weight',
+            goalAttribute: 'weight',
+            label: 'Weight',
+          },
+          {
+            achievedAttribute: 'reps',
+            goalAttribute: 'exactReps',
+            label: 'Reps',
+          },
+        ]
       case "Reps with %":
-        return <RepsWithPercentLog
-              exercise={exercise}
-              sets={sets}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
+        return [
+          {
+            achievedAttribute: 'weight',
+            goalAttribute: 'weight',
+            label: 'Weight',
+          },
+          {
+            achievedAttribute: 'reps',
+            goalAttribute: 'exactReps',
+            label: 'Reps',
+          },
+        ]
       case "Time":
-        return <TimeLog
-              exercise={exercise}
-              sets={sets}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
+        return [
+          {
+            achievedAttribute: 'seconds',
+            goalAttribute: 'seconds',
+            label: 'Seconds',
+          },
+        ]
       default:
         return <Typography>Type Error</Typography>;
     }
@@ -238,7 +256,15 @@ export default function Exercise(props) {
               {title || "Enter an exercise"}:
             </Typography>
           </Grid>
-          {renderLogSwitch()}
+          <LogLoader
+            fields={LoggedFields()}
+            exercise={exercise}
+            sets={sets}
+            setIndex={setIndex}
+            exerciseIndex={exerciseIndex}
+            localTraining={localTraining}
+            setLocalTraining={setLocalTraining}
+          />
         </>
       )}
     </Grid>
