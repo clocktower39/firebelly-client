@@ -88,7 +88,7 @@ export default function Training(props) {
     dispatch(
       updateTraining(training._id, {
         ...training,
-        category: trainingCategory,
+        category: [...trainingCategory],
         training: [...newTraining],
       })
     );
@@ -122,7 +122,7 @@ export default function Training(props) {
     dispatch(
       updateTraining(training._id, {
         ...training,
-        category: trainingCategory,
+        category: [...trainingCategory],
         training: [...newTraining],
       })
     );
@@ -135,7 +135,7 @@ export default function Training(props) {
     dispatch(
       updateTraining(training._id, {
         ...training,
-        category: trainingCategory,
+        category: [...trainingCategory],
         training: [...newTraining],
       })
     );
@@ -153,7 +153,7 @@ export default function Training(props) {
     dispatch(
       updateTraining(training._id, {
         ...training,
-        category: trainingCategory,
+        category: [...trainingCategory],
         training: [...newTraining],
       })
     );
@@ -164,7 +164,7 @@ export default function Training(props) {
     dispatch(
       updateTraining(training._id, {
         ...training,
-        category: trainingCategory,
+        category: [...trainingCategory],
         training: localTraining,
       })
     );
@@ -175,7 +175,7 @@ export default function Training(props) {
   }
 
   useEffect(() => {
-    setTrainingCategory([training.category] || []);
+    setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setLocalTraining(training.training || []);
   }, [training]);
 
@@ -205,14 +205,15 @@ export default function Training(props) {
               <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
                 <Grid item xs={11} container alignContent="center">
                   <Autocomplete
+                    disableCloseOnSelect
                     value={trainingCategory}
                     fullWidth
                     multiple
                     id="tags-filled"
-                    defaultValue={trainingCategory.map(category=>category)}
+                    defaultValue={trainingCategory.map(category => category)}
                     options={categories.map((option) => option)}
                     freeSolo
-                    onChange={(e, getTagProps)=> handleTrainingCategory(getTagProps)}
+                    onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
                     renderTags={(value, getTagProps) =>
                       value.map((option, index) => (
                         <Chip variant="outlined" label={option} {...getTagProps({ index })} />
@@ -226,13 +227,6 @@ export default function Training(props) {
                       />
                     )}
                   />
-                  {/* <TextField
-                    label="Training Category"
-                    onChange={(e) => setTrainingCategory(e.target.value)}
-                    value={trainingCategory}
-                    fullWidth
-                    disabled={!editMode}
-                  /> */}
                 </Grid>
                 <Grid container style={{ alignContent: "center" }} item xs={1}>
                   <Grid container style={{ justifyContent: "center" }} item xs={12}>

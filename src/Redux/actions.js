@@ -446,7 +446,7 @@ export function createTraining(date) {
       dataType: "json",
       body: JSON.stringify({
         date,
-        category: "",
+        category: [],
         training: [
           [
             {
