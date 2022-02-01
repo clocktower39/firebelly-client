@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  Paper,
+  Autocomplete,
+  Button,
+  Chip,
   Container,
   Divider,
   Grid,
   IconButton,
   LinearProgress,
+  Paper,
   TextField,
   Typography,
-  Button,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { Edit, FactCheck } from "@mui/icons-material";
 import { createTraining, requestTraining, updateTraining } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
-import AuthNavbar from '../AuthNavbar';
+import AuthNavbar from "../AuthNavbar";
 
 const useStyles = makeStyles((theme) => ({
   TrainingCategoryInputContainer: {
@@ -34,9 +36,11 @@ export default function Training(props) {
 
   const [editMode, setEditMode] = useState(false);
 
-  const [trainingCategory, setTrainingCategory] = useState("");
+  const [trainingCategory, setTrainingCategory] = useState([]);
 
   const [localTraining, setLocalTraining] = useState([]);
+
+  const categories = ['Biceps', 'Triceps', 'Chest', 'Back', 'Shoulders', 'Legs'];
 
   let allTraining = [];
 
@@ -166,8 +170,12 @@ export default function Training(props) {
     );
   };
 
+  const handleTrainingCategory = (getTagProps) => {
+    setTrainingCategory(getTagProps)
+  }
+
   useEffect(() => {
-    setTrainingCategory(training.category || "");
+    setTrainingCategory([training.category] || []);
     setLocalTraining(training.training || []);
   }, [training]);
 
@@ -178,74 +186,88 @@ export default function Training(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
-        <Paper sx={{ padding: '15px', borderRadius: '15px', }}>
-        <SelectedDate setParentSelectedDate={setSelectedDate} input/>
-        <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
-          <Grid item xs={3}>
-            <Typography className={classes.heading}>Training</Typography>
-          </Grid>
-          <Grid item xs={9}>
-            <LinearProgress
-              variant="determinate"
-              value={(trainingAchieved / trainingGoal) * 100}
-            />
-          </Grid>
-        </Grid>
-        {training.training.length > 0 ? (
-        <Grid container>
-          <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
-            <Grid item xs={11} container alignContent="center">
-              <TextField
-                label="Training Category"
-                onChange={(e) => setTrainingCategory(e.target.value)}
-                value={trainingCategory}
-                fullWidth
-                disabled={!editMode}
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
+        <Paper sx={{ padding: "15px", borderRadius: "15px" }}>
+          <SelectedDate setParentSelectedDate={setSelectedDate} input />
+          <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
+            <Grid item xs={3}>
+              <Typography className={classes.heading}>Training</Typography>
+            </Grid>
+            <Grid item xs={9}>
+              <LinearProgress
+                variant="determinate"
+                value={(trainingAchieved / trainingGoal) * 100}
               />
             </Grid>
-            <Grid container style={{ alignContent: "center" }} item xs={1}>
-              <Grid container style={{ justifyContent: "center" }} item xs={12}>
-                <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
-                  {editMode ? <FactCheck /> : <Edit />}
-                </IconButton>
+          </Grid>
+          {training.training.length > 0 ? (
+            <Grid container>
+              <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
+                <Grid item xs={11} container alignContent="center">
+                  <Autocomplete
+                    value={trainingCategory}
+                    fullWidth
+                    multiple
+                    id="tags-filled"
+                    defaultValue={trainingCategory.map(category=>category)}
+                    options={categories.map((option) => option)}
+                    freeSolo
+                    onChange={(e, getTagProps)=> handleTrainingCategory(getTagProps)}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                      ))
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Training Category"
+                        placeholder="Categories"
+                      />
+                    )}
+                  />
+                  {/* <TextField
+                    label="Training Category"
+                    onChange={(e) => setTrainingCategory(e.target.value)}
+                    value={trainingCategory}
+                    fullWidth
+                    disabled={!editMode}
+                  /> */}
+                </Grid>
+                <Grid container style={{ alignContent: "center" }} item xs={1}>
+                  <Grid container style={{ justifyContent: "center" }} item xs={12}>
+                    <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
+                      {editMode ? <FactCheck /> : <Edit />}
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider style={{ margin: "25px 0px" }} />
+              </Grid>
+              <SwipeableSet
+                editMode={editMode}
+                newExercise={newExercise}
+                removeSet={removeSet}
+                removeExercise={removeExercise}
+                localTraining={localTraining}
+                setLocalTraining={setLocalTraining}
+                save={save}
+              />
+              <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
+                <Button variant="contained" onClick={newSet}>
+                  New Set
+                </Button>
+                <Button variant="contained" onClick={save}>
+                  Save
+                </Button>
               </Grid>
             </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <Divider style={{ margin: "25px 0px" }} />
-          </Grid>
-          <SwipeableSet
-            editMode={editMode}
-            newExercise={newExercise}
-            removeSet={removeSet}
-            removeExercise={removeExercise}
-            localTraining={localTraining}
-            setLocalTraining={setLocalTraining}
-            save={save}
-          />
-          {editMode ? (
-            <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
-              <Button variant="contained" onClick={newSet}>
-                New Set
-              </Button>
-              <Button variant="contained" onClick={save}>
-                Save
-              </Button>
-            </Grid>
           ) : (
-            <Grid item xs={12} container style={{ justifyContent: "flex-end" }}>
-              <Button variant="contained" onClick={save}>
-                Save
-              </Button>
+            <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Button onClick={() => dispatch(createTraining(selectedDate))}>Create Workout</Button>
             </Grid>
           )}
-        </Grid>
-        ):(
-          <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
-            <Button onClick={()=> dispatch(createTraining(selectedDate)) } >Create Workout</Button>
-          </Grid>
-        )}
         </Paper>
       </Container>
       <AuthNavbar />

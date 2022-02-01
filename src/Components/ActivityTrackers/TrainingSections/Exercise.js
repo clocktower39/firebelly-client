@@ -127,16 +127,6 @@ export default function Exercise(props) {
     }
   };
 
-  // <LogLoader
-  //   fields={LoggedFields} 
-  //   exercise={exercise}
-  //   sets={sets}
-  //   setIndex={setIndex}
-  //   exerciseIndex={exerciseIndex}
-  //   localTraining={localTraining}
-  //   setLocalTraining={setLocalTraining}
-  // />
-
   const LoggedFields = () => {
     switch (exerciseType) {
       case "Rep Range":
