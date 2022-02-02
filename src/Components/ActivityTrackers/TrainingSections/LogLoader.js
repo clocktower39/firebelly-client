@@ -2,36 +2,48 @@ import React from "react";
 import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 const LoggedField = (props) => {
-  const { exercise, exerciseIndex, field, parentProps, setIndex, setLocalTraining } = props;
+  const {
+    exercise,
+    exerciseIndex,
+    field,
+    parentProps,
+    setIndex,
+    exerciseSetIndex,
+    setLocalTraining,
+  } = props;
 
   const handleChange = (e) => {
     let answer = 0;
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
-        set.map((exercise, eIndex) => {
-          if (eIndex === exerciseIndex) {
-            if (e.target.value === "" && e.target.value.length === 0) {
-              exercise.achieved[field.achievedAttribute][setIndex] = answer;
-            }
-            // remove extra zeros from the front
-            else if (Number(e.target.value) || e.target.value === "0") {
-              if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                answer = e.target.value.split("");
-                while (answer[0] === "0") {
-                  answer.shift();
-                }
-                exercise.achieved[field.achievedAttribute][setIndex] = answer.join("");
-              } else {
-                // update the local state variable
-                answer = e.target.value;
-                exercise.achieved[field.achievedAttribute][setIndex] = answer;
+        if (setIndex === sIndex) {
+          set.map((exercise, eIndex) => {
+            if (eIndex === exerciseIndex) {
+              if (e.target.value === "" && e.target.value.length === 0) {
+                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
               }
-            } else {
-              exercise.achieved[field.achievedAttribute][setIndex] = Number(e.target.value);
+              // remove extra zeros from the front
+              else if (Number(e.target.value) || e.target.value === "0") {
+                if (e.target.value.length > 1 && e.target.value[0] === "0") {
+                  answer = e.target.value.split("");
+                  while (answer[0] === "0") {
+                    answer.shift();
+                  }
+                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer.join("");
+                } else {
+                  // update the local state variable
+                  answer = e.target.value;
+                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
+                }
+              } else {
+                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = Number(
+                  e.target.value
+                );
+              }
             }
-          }
-          return exercise;
-        });
+            return exercise;
+          });
+        }
         return set;
       });
     });
@@ -41,7 +53,7 @@ const LoggedField = (props) => {
     <Grid item xs={5}>
       <TextField
         label={field.label}
-        value={exercise.achieved[field.achievedAttribute][setIndex]}
+        value={exercise.achieved[field.achievedAttribute][exerciseSetIndex]}
         type="number"
         inputProps={{
           type: "number",
@@ -53,7 +65,7 @@ const LoggedField = (props) => {
         InputProps={{
           endAdornment: (
             <InputAdornment position="start" style={{ fontSize: "10px", textAlign: "right" }}>
-              /{parentProps.exercise.goals[field.goalAttribute][setIndex]}
+              /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
             </InputAdornment>
           ),
         }}
@@ -63,7 +75,8 @@ const LoggedField = (props) => {
 };
 
 export default function LogLoader(props) {
-  const { fields, exercise, localTraining, sets, setLocalTraining, exerciseIndex } = props;
+  const { fields, exercise, localTraining, sets, setIndex, setLocalTraining, exerciseIndex } =
+    props;
 
   let exerciseSets = [];
   let count = 0;
@@ -74,27 +87,34 @@ export default function LogLoader(props) {
 
   return (
     <Grid container item xs={12} spacing={1}>
-      {exerciseSets.map((count, setIndex) => {
+      {exerciseSets.map((count, exerciseSetIndex) => {
         return (
-          <Grid container item xs={12} spacing={2} key={`exercise-Set-${count}-${setIndex}`}>
+          <Grid
+            container
+            item
+            xs={12}
+            spacing={2}
+            key={`exercise-Set-${count}-${exerciseSetIndex}`}
+          >
             <Grid
               item
               xs={2}
               container
               style={{ justifyContent: "flex-end", alignContent: "center" }}
             >
-              <Typography noWrap>Set {setIndex + 1}:</Typography>
+              <Typography noWrap>Set {exerciseSetIndex + 1}:</Typography>
             </Grid>
 
             {fields.map((field, fieldIndex) => {
               return (
                 <LoggedField
-                  key={`${field.label}-${setIndex}`}
+                  key={`${field.label}-${exerciseSetIndex}`}
                   exercise={exercise}
                   exerciseIndex={exerciseIndex}
                   field={field}
                   localTraining={localTraining}
                   parentProps={props}
+                  exerciseSetIndex={exerciseSetIndex}
                   setIndex={setIndex}
                   setLocalTraining={setLocalTraining}
                 />
