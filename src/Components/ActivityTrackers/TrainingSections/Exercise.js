@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
-import { RemoveCircle } from "@mui/icons-material";
+import { Edit, FactCheck, RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import EditRepsWithPercent from "./EditRepsWithPercent";
@@ -8,11 +8,12 @@ import EditTime from "./EditTime";
 import LogLoader from "./LogLoader";
 
 export default function Exercise(props) {
-  const { exercise, setLocalTraining, exerciseIndex, setIndex, localTraining, editMode, removeExercise } = props;
+  const { exercise, setLocalTraining, exerciseIndex, setIndex, localTraining, removeExercise, setHeightToggle } = props;
 
   const [title, setTitle] = useState(exercise.exercise || "");
   const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
   const [sets, setSets] = useState(exercise.goals.sets);
+  const [editMode, setEditMode] = useState(false);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
@@ -181,18 +182,27 @@ export default function Exercise(props) {
     }
   };
 
+  const handleEditToggle = () => {
+    setEditMode(prev => !prev);
+    setHeightToggle(prev => !prev);
+  }
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {editMode ? (
         <>
           <Grid container item xs={12} spacing={1}>
-            <Grid item xs={12}>
+            <Grid item xs={10}>
               <TextField
                 label="Exercise Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 fullWidth
               />
+            </Grid>
+            <Grid container item xs={2}>
+              <IconButton variant="contained" onClick={handleEditToggle}>
+                {editMode ? <FactCheck /> : <Edit />}
+              </IconButton>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -244,6 +254,9 @@ export default function Exercise(props) {
           <Grid item xs={12}>
             <Typography variant="h6" style={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
+              <IconButton variant="contained" onClick={() => setEditMode(prev => !prev)}>
+                {editMode ? <FactCheck /> : <Edit />}
+              </IconButton>
             </Typography>
           </Grid>
           <LogLoader

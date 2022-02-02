@@ -7,14 +7,12 @@ import {
   Container,
   Divider,
   Grid,
-  IconButton,
   LinearProgress,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { Edit, FactCheck } from "@mui/icons-material";
 import { createTraining, requestTraining, updateTraining } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
@@ -34,11 +32,11 @@ export default function Training(props) {
   // toggle edit mode
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [editMode, setEditMode] = useState(false);
-
   const [trainingCategory, setTrainingCategory] = useState([]);
 
   const [localTraining, setLocalTraining] = useState([]);
+
+  const [toggleNewSet, setToggleNewSet] = useState(false);
 
   const categories = ['Biceps', 'Triceps', 'Chest', 'Back', 'Shoulders', 'Legs'];
 
@@ -126,6 +124,7 @@ export default function Training(props) {
         training: [...newTraining],
       })
     );
+    setToggleNewSet(prev=>!prev);
   };
 
   // Remove the current set
@@ -203,7 +202,7 @@ export default function Training(props) {
           {training.training.length > 0 ? (
             <Grid container>
               <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
-                <Grid item xs={11} container alignContent="center">
+                <Grid item xs={12} container alignContent="center">
                   <Autocomplete
                     disableCloseOnSelect
                     value={trainingCategory}
@@ -228,25 +227,18 @@ export default function Training(props) {
                     )}
                   />
                 </Grid>
-                <Grid container style={{ alignContent: "center" }} item xs={1}>
-                  <Grid container style={{ justifyContent: "center" }} item xs={12}>
-                    <IconButton variant="contained" onClick={() => setEditMode(!editMode)}>
-                      {editMode ? <FactCheck /> : <Edit />}
-                    </IconButton>
-                  </Grid>
-                </Grid>
               </Grid>
               <Grid item xs={12}>
                 <Divider style={{ margin: "25px 0px" }} />
               </Grid>
               <SwipeableSet
-                editMode={editMode}
                 newExercise={newExercise}
                 removeSet={removeSet}
                 removeExercise={removeExercise}
                 localTraining={localTraining}
                 setLocalTraining={setLocalTraining}
                 save={save}
+                toggleNewSet={toggleNewSet}
               />
               <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
                 <Button variant="contained" onClick={newSet}>

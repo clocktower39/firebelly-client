@@ -1,19 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Box, Grid, Button, Typography, IconButton, MobileStepper, } from '@mui/material';
-import { KeyboardArrowLeft, KeyboardArrowRight, AddCircle } from '@mui/icons-material';
+import { KeyboardArrowLeft, KeyboardArrowRight, AddCircle, RemoveCircle } from '@mui/icons-material';
 import SwipeableViews from 'react-swipeable-views';
 import Exercise from "./Exercise";
 
 function SwipeableSet(props) {
     const {
         localTraining,
-        editMode,
+        removeSet,
         removeExercise,
         setLocalTraining,
         newExercise,
+        toggleNewSet,
     } = props;
     const [activeStep, setActiveStep] = useState(0);
     const maxSteps = localTraining.length;
+    const [heightToggle, setHeightToggle] = useState(true);
     const ref = useRef(null);
 
     const handleNext = () => {
@@ -30,7 +32,12 @@ function SwipeableSet(props) {
 
     useEffect(() => {
         ref.current.updateHeight()
-    }, [localTraining, editMode])
+    }, [localTraining, heightToggle])
+
+    useEffect(() => {
+        handleStepChange(maxSteps)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [toggleNewSet])
 
     return (
         <Box sx={{ maxWidth: '100%', flexGrow: 1 }}>
@@ -48,20 +55,23 @@ function SwipeableSet(props) {
                             <Grid container item xs={12}>
                                 <Grid item container xs={12} alignContent="center">
                                     <Typography variant="h5" gutterBottom>
-                                        Set {index + 1}
+                                        Set {index + 1} 
                                     </Typography>
+                                    <IconButton onClick={() => removeSet(index)}>
+                                        <RemoveCircle />
+                                    </IconButton>
                                 </Grid>
                             </Grid>
                             {group.length > 0 && group.map((exercise, exerciseIndex) => (
                                 <Exercise
                                     key={`exercise-${exercise._id}-${exerciseIndex}`}
-                                    editMode={editMode}
                                     exercise={exercise}
                                     setIndex={index}
                                     exerciseIndex={exerciseIndex}
                                     removeExercise={removeExercise}
                                     localTraining={localTraining}
                                     setLocalTraining={setLocalTraining}
+                                    setHeightToggle={setHeightToggle}
                                 />
                             ))}
                             <Grid container item xs={12}>
