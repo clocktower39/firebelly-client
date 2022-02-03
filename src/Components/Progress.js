@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestExerciseList, requestExerciseProgess } from "../Redux/actions";
-import { BarChart, Bar, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import AuthNavbar from './AuthNavbar';
 
 const modalStyle = {
@@ -21,10 +21,15 @@ const renderLineChart = (targetExerciseHistory) => {
   let totalMaxWeight = 0;
   let totalMaxReps = 0;
   let exerciseTitle = "";
+  let exerciseIndex = 0;
 
-  let exercise = targetExerciseHistory.map((e) => {
-    const sortedReps = e.achieved.reps.sort((a, b) => a - b);
-    const sortedWeight = e.achieved.weight.sort((a, b) => a - b);
+  let exercise = targetExerciseHistory.map((e, i) => {
+    const reps = e.achieved.reps;
+    const weight = e.achieved.weight;
+    exerciseIndex = i;
+
+    const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
+    const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
 
     let minReps = parseInt(sortedReps[0]);
     let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
@@ -42,9 +47,11 @@ const renderLineChart = (targetExerciseHistory) => {
     }
 
     let newE = {
-      date: e.date,
-      reps: [minReps, maxReps],
-      weight: [minWeight, maxWeight],
+      date: e.date.substr(0, 10),
+      weightRange: [minWeight, maxWeight],
+      repRange: [minReps, maxReps],
+      weight,
+      reps,
     };
     return newE;
   });
@@ -55,20 +62,23 @@ const renderLineChart = (targetExerciseHistory) => {
         {exerciseTitle}
       </Typography>
       <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
-        <Bar dataKey="weight" fill="#8884d8" />
+        {exercise[exerciseIndex] && exercise[exerciseIndex].weight.map((w, i) => <Bar key={`bar-weight-${exerciseIndex}-${i}`} dataKey={`weight[${i}]`} fill="#8884d8" />)}
         <XAxis dataKey="date" />
         <YAxis
           domain={[0, totalMaxWeight]}
           label={{ value: "Weight", angle: -90, position: "insideLeft" }}
         />
+        <Tooltip cursor={false} />
       </BarChart>
+
       <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
-        <Bar dataKey="reps" fill="#4d8888" />
+        {exercise[exerciseIndex] && exercise[exerciseIndex].reps.map((w, i) => <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill="#8884d8" />)}
         <XAxis dataKey="date" />
         <YAxis
           domain={[0, totalMaxReps]}
           label={{ value: "Reps", angle: -90, position: "insideLeft" }}
         />
+        <Tooltip cursor={false} />
       </BarChart>
     </>
   );

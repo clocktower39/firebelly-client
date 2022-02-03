@@ -201,7 +201,7 @@ export default function Training(props) {
               />
             </Grid>
           </Grid>
-          {training.training.length > 0 ? (
+          {training._id ? (
             <Grid container>
               <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
                 <Grid item xs={12} container alignContent="center">
@@ -233,6 +233,7 @@ export default function Training(props) {
               <Grid item xs={12}>
                 <Divider style={{ margin: "25px 0px" }} />
               </Grid>
+              {training.training.length > 0 && (
               <SwipeableSet
                 newExercise={newExercise}
                 removeSet={removeSet}
@@ -244,6 +245,7 @@ export default function Training(props) {
                 toggleRemoveSet={toggleRemoveSet}
                 maxSteps={localTraining.length}
               />
+              )}
               <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
                 <Button variant="contained" onClick={newSet}>
                   New Set
