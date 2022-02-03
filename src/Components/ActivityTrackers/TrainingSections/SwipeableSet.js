@@ -12,9 +12,10 @@ function SwipeableSet(props) {
         setLocalTraining,
         newExercise,
         toggleNewSet,
+        toggleRemoveSet,
+        maxSteps,
     } = props;
     const [activeStep, setActiveStep] = useState(0);
-    const maxSteps = localTraining.length;
     const [heightToggle, setHeightToggle] = useState(true);
     const ref = useRef(null);
 
@@ -35,9 +36,17 @@ function SwipeableSet(props) {
     }, [localTraining, heightToggle])
 
     useEffect(() => {
+        if(activeStep >= maxSteps -1){
+            handleStepChange(maxSteps -2)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [toggleRemoveSet])
+    
+    useEffect(() => {
         handleStepChange(maxSteps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toggleNewSet])
+
 
     return (
         <Box sx={{ maxWidth: '100%', flexGrow: 1 }}>

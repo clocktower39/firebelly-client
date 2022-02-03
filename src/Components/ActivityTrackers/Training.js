@@ -37,6 +37,7 @@ export default function Training(props) {
   const [localTraining, setLocalTraining] = useState([]);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
+  const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
 
   const categories = ['Biceps', 'Triceps', 'Chest', 'Back', 'Shoulders', 'Legs'];
 
@@ -138,6 +139,7 @@ export default function Training(props) {
         training: [...newTraining],
       })
     );
+    setToggleRemoveSet(prev=>!prev);
   };
 
   // Remove the current exercise
@@ -239,6 +241,8 @@ export default function Training(props) {
                 setLocalTraining={setLocalTraining}
                 save={save}
                 toggleNewSet={toggleNewSet}
+                toggleRemoveSet={toggleRemoveSet}
+                maxSteps={localTraining.length}
               />
               <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
                 <Button variant="contained" onClick={newSet}>
