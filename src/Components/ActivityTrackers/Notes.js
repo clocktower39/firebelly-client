@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  Button,
-  Container,
-  Grid,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { requestNotes, createNote } from "../../Redux/actions";
-import AuthNavbar from '../AuthNavbar';
-
+import AuthNavbar from "../AuthNavbar";
 
 export default function Notes() {
   const dispatch = useDispatch();
@@ -31,16 +23,26 @@ export default function Notes() {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
-        <Paper sx={{ padding: '15px', borderRadius: '15px', }}>
-          <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
+        <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: "100%" }}>
+          <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
-              <Typography variant="h4" >Notes</Typography>
+              <Typography variant="h4">Notes</Typography>
             </Grid>
           </Grid>
           <Grid container spacing={2}>
-            <Grid container item xs={12} >
-              {notes && notes.map((n, i)=> <Grid key={`note-${n.date}-${i}`} container><Grid item sm={2} xs={4}>{n.date.substr(0,10)}</Grid><Grid item sm={10} xs={8}>{n.note}</Grid></Grid>)}
+            <Grid container item xs={12}>
+              {notes &&
+                notes.map((n, i) => (
+                  <Grid key={`note-${n.date}-${i}`} container>
+                    <Grid item sm={2} xs={4}>
+                      {n.date.substr(0, 10)}
+                    </Grid>
+                    <Grid item sm={10} xs={8}>
+                      {n.note}
+                    </Grid>
+                  </Grid>
+                ))}
             </Grid>
             <Grid item xs={12}>
               <TextField

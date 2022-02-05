@@ -135,8 +135,8 @@ export default function Nutrition() {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ minHeight: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
-        <Paper sx={{ padding: '7.5px', minHeight: "100%" }}>
+    <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
+      <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: '100%', }}>
           <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
             <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid item xs={3}>

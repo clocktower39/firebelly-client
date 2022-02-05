@@ -188,7 +188,7 @@ export default function Training(props) {
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
-        <Paper sx={{ padding: "15px", borderRadius: "15px" }}>
+        <Paper sx={{ marginBottom: '75px', padding: "7.5px 15px", borderRadius: "15px", minHeight: '100%', }}>
           <SelectedDate setParentSelectedDate={setSelectedDate} input />
           <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
@@ -257,7 +257,7 @@ export default function Training(props) {
             </Grid>
           ) : (
             <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-              <Button onClick={() => dispatch(createTraining(selectedDate))}>Create Workout</Button>
+              <Button variant="contained" onClick={() => dispatch(createTraining(selectedDate))}>Create Workout</Button>
             </Grid>
           )}
         </Paper>

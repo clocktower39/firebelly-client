@@ -99,7 +99,7 @@ export default function Week() {
 
   return (
     <>
-      <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
+      <Container maxWidth="md" sx={{ minHeight: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
         <Typography variant="h5" gutterBottom textAlign="center" style={{ color: "#fff" }}>
           Weekly View
         </Typography>
