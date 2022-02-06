@@ -49,7 +49,7 @@ function SwipeableSet(props) {
 
 
     return (
-        <Box sx={{ maxWidth: '100%', flexGrow: 1 }}>
+        <Box sx={{ maxWidth: '100%', minHeight: '100%', flexGrow: 1 }}>
             <SwipeableViews
                 axis="x"
                 index={activeStep}

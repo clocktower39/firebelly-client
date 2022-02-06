@@ -188,7 +188,7 @@ export default function Training(props) {
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
-        <Paper sx={{ marginBottom: '75px', padding: "7.5px 15px", borderRadius: "15px", minHeight: '100%', }}>
+        <Paper sx={{ marginBottom: '70px', padding: "0px 15px 5px 15px", borderRadius: "15px", minHeight: '100%', display: 'flex', flexDirection: 'column', }}>
           <SelectedDate setParentSelectedDate={setSelectedDate} input />
           <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
@@ -202,7 +202,7 @@ export default function Training(props) {
             </Grid>
           </Grid>
           {training._id ? (
-            <Grid container>
+            <Grid container sx={{ justifyContent: 'center', minHeight: '100%', flexGrow: 1, }}>
               <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
                 <Grid item xs={12} container alignContent="center">
                   <Autocomplete
@@ -246,7 +246,7 @@ export default function Training(props) {
                 maxSteps={localTraining.length}
               />
               )}
-              <Grid item xs={12} container style={{ justifyContent: "space-between" }}>
+              <Grid container item xs={12} style={{ alignSelf: 'flex-end', justifyContent: "space-between" }}>
                 <Button variant="contained" onClick={newSet}>
                   New Set
                 </Button>
@@ -256,7 +256,7 @@ export default function Training(props) {
               </Grid>
             </Grid>
           ) : (
-            <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+            <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: 'center', flexGrow: 1 }}>
               <Button variant="contained" onClick={() => dispatch(createTraining(selectedDate))}>Create Workout</Button>
             </Grid>
           )}
