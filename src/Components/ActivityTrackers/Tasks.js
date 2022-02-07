@@ -74,11 +74,9 @@ export default function Tasks(props) {
       : 1;
 
   useEffect(() => {
-    if (selectedDate !== null) {
-      dispatch(requestTasks(selectedDate));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+    console.log(selectedDate)
+      dispatch(requestTasks());
+  }, [dispatch,selectedDate]);
 
   return (
     <>
@@ -116,7 +114,12 @@ export default function Tasks(props) {
             </Grid>
           </Grid>
           <Grid container spacing={2} style={{ justifyContent: "center" }}>
-            {tasks.tasks
+            {tasks.history && tasks.history.filter(day => {
+              let dayDate = new Date(day.date).toString().substr(0,15);
+              let compareSelectedDate = new Date(selectedDate);
+              compareSelectedDate = new Date( compareSelectedDate.getTime() + Math.abs(compareSelectedDate.getTimezoneOffset()*60000) ).toString().substr(0,15);
+              return dayDate === compareSelectedDate;
+            }).map(day => day.tasks
               .sort((a, b) => a.title > b.title)
               .map((task) => {
                 const handleCheckChange = (e, title) => {
@@ -149,7 +152,7 @@ export default function Tasks(props) {
                     </FormControl>
                   </Grid>
                 );
-              })}
+              }))}
             <FormControl component="fieldset">
               <FormGroup aria-label="position" row>
                 <FormControlLabel

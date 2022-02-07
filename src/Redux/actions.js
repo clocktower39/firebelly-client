@@ -16,11 +16,11 @@ export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -153,65 +153,24 @@ export function checkToggleTask(id, newDailyTask) {
 }
 
 // // Fetches or creates daily tasks
-export function requestTasks(date) {
+export function requestTasks() {
   return async (dispatch, getState) => {
-    const state = getState();
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     // Check if the daily tasks for the selected date has already been created
     const response = await fetch(`${serverURL}/tasks`, {
-      method: "post",
+      method: "get",
       dataType: "json",
-      body: JSON.stringify({
-        date,
-      }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
       },
     });
     let data = await response.json();
-
-    if (data.length < 1) {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-      fetch(`${serverURL}/createTask`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          date,
-          tasks: state.user.defaultTasks.map((task) => {
-            return {
-              title: task.title,
-              goal: 1,
-              achieved: 0,
-            };
-          }),
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            return dispatch({
-              type: ERROR,
-              error: data.error,
-            });
-          }
-          return dispatch({
-            type: EDIT_TASKS,
-            tasks: data.task,
-          });
-        });
-    } else {
-      return dispatch({
-        type: EDIT_TASKS,
-        tasks: data[0],
-      });
-    }
+    return dispatch({
+      type: EDIT_TASKS,
+      tasks: data[0],
+    });
   };
 }
 
@@ -242,7 +201,7 @@ export function editDefaultDailyTask(defaultTasks) {
   };
 }
 
-// Removes the task provided from the default taks
+// Removes the task provided from the default tasks
 export function removeDefaultDailyTask(removeTask) {
   return async (dispatch, getState) => {
     const state = getState();
@@ -392,7 +351,7 @@ export function createNote(newNote) {
           note: data.note,
         });
       });
-  }
+  };
 }
 
 // Fetches daily training information
@@ -416,8 +375,8 @@ export function requestTraining(date) {
     if (!data || data.length < 1) {
       return dispatch({
         type: EDIT_TRAINING,
-        training: { training: [] }
-      })
+        training: { training: [] },
+      });
     } else {
       data[0].training.map((set) => {
         set.map((exercise) => {
@@ -626,7 +585,7 @@ export function requestExerciseProgess(targetExercise) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        targetExercise
+        targetExercise,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
