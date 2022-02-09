@@ -7,6 +7,7 @@ import Exercise from "./Exercise";
 function SwipeableSet(props) {
     const {
         localTraining,
+        newSet,
         removeSet,
         removeExercise,
         setLocalTraining,
@@ -36,20 +37,41 @@ function SwipeableSet(props) {
     }, [localTraining, heightToggle])
 
     useEffect(() => {
-        if(activeStep >= maxSteps -1){
-            handleStepChange(maxSteps -2)
+        if (activeStep >= maxSteps - 1) {
+            handleStepChange(maxSteps - 2)
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toggleRemoveSet])
-    
+
     useEffect(() => {
         handleStepChange(maxSteps)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toggleNewSet])
 
 
     return (
-        <Box sx={{ maxWidth: '100%', minHeight: '100%', flexGrow: 1 }}>
+        <Box sx={{ maxWidth: '100%', minHeight: '100%', flexGrow: 1, }}>
+        <MobileStepper
+            steps={maxSteps}
+            position="static"
+            activeStep={activeStep}
+            nextButton={
+                <Button
+                    size="small"
+                    onClick={handleNext}
+                    disabled={activeStep === maxSteps - 1}
+                >
+                    Next
+                    <KeyboardArrowRight />
+                </Button>
+            }
+            backButton={
+                <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
+                    <KeyboardArrowLeft />
+                    Back
+                </Button>
+            }
+        />
             <SwipeableViews
                 axis="x"
                 index={activeStep}
@@ -62,13 +84,18 @@ function SwipeableSet(props) {
                     <div key={`training-indexes-${index}/${localTraining.length}`}>
                         <Grid item xs={12} >
                             <Grid container item xs={12}>
-                                <Grid item container xs={12} alignContent="center">
-                                    <Typography variant="h5" gutterBottom>
-                                        Set {index + 1} 
-                                    </Typography>
-                                    <IconButton onClick={() => removeSet(index)}>
-                                        <RemoveCircle />
-                                    </IconButton>
+                                <Grid item container xs={12} sx={{ justifyContent: "center" }} >
+                                    <Box sx={{ display: 'flex', alignItems: "center", justifyContent: "center" }} >
+                                        <IconButton onClick={() => removeSet(index)} title="Remove current set">
+                                            <RemoveCircle />
+                                        </IconButton>
+                                        <Typography variant="h5">
+                                            Set {index + 1}
+                                        </Typography>
+                                        <IconButton onClick={newSet} title="Add a new set">
+                                            <AddCircle />
+                                        </IconButton>
+                                    </Box>
                                 </Grid>
                             </Grid>
                             {group.length > 0 && group.map((exercise, exerciseIndex) => (
@@ -85,7 +112,7 @@ function SwipeableSet(props) {
                             ))}
                             <Grid container item xs={12}>
                                 <Grid container item xs={12} style={{ justifyContent: "center" }}>
-                                    <IconButton onClick={() => newExercise(index)}>
+                                    <IconButton onClick={() => newExercise(index)} title="Add a new exercise to the current set">
                                         <AddCircle />
                                     </IconButton>
                                 </Grid>
@@ -94,28 +121,7 @@ function SwipeableSet(props) {
                     </div>
                 ))}
             </SwipeableViews>
-            <MobileStepper
-                steps={maxSteps}
-                position="static"
-                activeStep={activeStep}
-                nextButton={
-                    <Button
-                        size="small"
-                        onClick={handleNext}
-                        disabled={activeStep === maxSteps - 1}
-                    >
-                        Next
-                        <KeyboardArrowRight />
-                    </Button>
-                }
-                backButton={
-                    <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
-                        <KeyboardArrowLeft />
-                        Back
-                    </Button>
-                }
-            />
-        </Box>
+        </Box >
     );
 }
 
