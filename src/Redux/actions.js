@@ -5,6 +5,8 @@ export const LOGOUT_USER = "LOGOUT_USER";
 export const SIGNUP_USER = "SIGNUP_USER";
 export const ERROR = "ERROR";
 export const EDIT_TASKS = "EDIT_TASKS";
+export const EDIT_TASK_HISTORY = "EDIT_TASK_HISTORY";
+export const ADD_TASK_HISTORY_DAY = "ADD_TASK_HISTORY_DAY";
 export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
@@ -119,35 +121,27 @@ export function editUser(user) {
   };
 }
 
-export function checkToggleTask(id, newDailyTask) {
+export function checkToggleTask(selectedDate, newHistory) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    fetch(`${serverURL}/updateTask`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        _id: id,
-        newDailyTask,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          return dispatch({
-            type: ERROR,
-            error: data.error,
-          });
-        }
-      });
 
     return dispatch({
-      type: EDIT_TASKS,
-      tasks: newDailyTask,
+      type: EDIT_TASK_HISTORY,
+      history: newHistory,
+    });
+  };
+}
+
+export function addTaskDay(date, defaultTasksArray) {
+  return async (dispatch) => {
+
+    const newDay = {
+      date,
+      tasks: defaultTasksArray
+    }
+
+    return dispatch({
+      type: ADD_TASK_HISTORY_DAY,
+      newDay,
     });
   };
 }

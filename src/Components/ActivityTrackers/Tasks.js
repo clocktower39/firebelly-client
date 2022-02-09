@@ -40,6 +40,20 @@ export default function Tasks(props) {
   const tasks = useSelector((state) => state.tasks);
   const [selectedDate, setSelectedDate] = useState(null);
 
+  const compareWithSelectedDate = (date) => {
+    let dayDate = new Date(date).toString().substr(0, 15);
+    let compareSelectedDate = new Date(selectedDate);
+    compareSelectedDate = new Date(
+      compareSelectedDate.getTime() + Math.abs(compareSelectedDate.getTimezoneOffset() * 60000)
+    )
+      .toString()
+      .substr(0, 15);
+
+    return dayDate === compareSelectedDate;
+  };
+
+  const filteredHistory = useSelector(state => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalToggle = () => setIsModalOpen(!isModalOpen);
 
@@ -74,9 +88,8 @@ export default function Tasks(props) {
       : 1;
 
   useEffect(() => {
-    console.log(selectedDate)
-      dispatch(requestTasks());
-  }, [dispatch,selectedDate]);
+    dispatch(requestTasks());
+  }, [dispatch]);
 
   return (
     <>
@@ -114,30 +127,58 @@ export default function Tasks(props) {
             </Grid>
           </Grid>
           <Grid container spacing={2} style={{ justifyContent: "center" }}>
-            {tasks.history && tasks.history.filter(day => {
-              let dayDate = new Date(day.date).toString().substr(0,15);
-              let compareSelectedDate = new Date(selectedDate);
-              compareSelectedDate = new Date( compareSelectedDate.getTime() + Math.abs(compareSelectedDate.getTimezoneOffset()*60000) ).toString().substr(0,15);
-              return dayDate === compareSelectedDate;
-            }).map(day => day.tasks
-              .sort((a, b) => a.title > b.title)
-              .map((task) => {
-                const handleCheckChange = (e, title) => {
-                  const newTasks = tasks.tasks.map((task) => {
-                    if (task.title === title) {
-                      task.achieved === 0 ? (task.achieved = 1) : (task.achieved = 0);
-                    }
-                    return task;
-                  });
-                  const newDailyTask = {
-                    ...tasks,
-                    tasks: newTasks,
-                  };
-                  dispatch(checkToggleTask(tasks._id, newDailyTask));
-                };
+            {tasks.history && filteredHistory.length > 0 ? 
+              filteredHistory.map((day, dayIndex, dayArray) => (
+                day.tasks
+                  .sort((a, b) => a.title > b.title)
+                  .map((task, taskIndex, taskArray) => {
+                    const handleCheckChange = (e, title) => {
+                      const newHistory = tasks.history.map((day) => {
+                        if (compareWithSelectedDate(day.date)) {
+                          day.tasks.map((item) => {
+                            if (item.title === title) {
+                              item.achieved === 0 ? (item.achieved = 1) : (item.achieved = 0);
+                            }
+                            return item;
+                          });
+                        }
+                        return day;
+                      });
+                      dispatch(checkToggleTask(selectedDate, newHistory));
+                    };
 
-                return (
-                  <Grid key={task._id} container item xs={12} sx={{ justifyContent: "center" }}>
+                    return (
+                      <Grid
+                        key={`historyItem-${dayIndex}-${task.title}`}
+                        container
+                        item
+                        xs={12}
+                        sx={{ justifyContent: "center" }}
+                      >
+                        <FormControl component="fieldset">
+                          <FormGroup aria-label="position" row>
+                            <FormControlLabel
+                              value={task.achieved}
+                              control={<Checkbox color="primary" />}
+                              label={task.title}
+                              labelPlacement="end"
+                              onClick={(e) => handleCheckChange(e, task.title)}
+                              checked={task.achieved > 0 ? true : false}
+                            />
+                          </FormGroup>
+                        </FormControl>
+                      </Grid>
+                    );
+                  })
+              )) : (
+                tasks.defaultTasks.map((task, taskIndex) => (
+                  <Grid
+                    key={`defaultTask-${taskIndex}-${task.title}`}
+                    container
+                    item
+                    xs={12}
+                    sx={{ justifyContent: "center" }}
+                  >
                     <FormControl component="fieldset">
                       <FormGroup aria-label="position" row>
                         <FormControlLabel
@@ -145,14 +186,14 @@ export default function Tasks(props) {
                           control={<Checkbox color="primary" />}
                           label={task.title}
                           labelPlacement="end"
-                          onClick={(e) => handleCheckChange(e, task.title)}
                           checked={task.achieved > 0 ? true : false}
                         />
                       </FormGroup>
                     </FormControl>
                   </Grid>
-                );
-              }))}
+                ))
+              )
+            }
             <FormControl component="fieldset">
               <FormGroup aria-label="position" row>
                 <FormControlLabel

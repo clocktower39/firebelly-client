@@ -3,6 +3,8 @@ import {
   LOGOUT_USER,
   ERROR,
   EDIT_TASKS,
+  EDIT_TASK_HISTORY,
+  ADD_TASK_HISTORY_DAY,
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_NUTRITION,
@@ -14,7 +16,10 @@ import {
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
 } from "./actions";
 import { user, calander, progress, nutrition, training, notes, tasks } from "./states";
-export let reducer = (state = { user, calander, progress, nutrition, training, notes, tasks }, action) => {
+export let reducer = (
+  state = { user, calander, progress, nutrition, training, notes, tasks },
+  action
+) => {
   switch (action.type) {
     case LOGIN_USER:
       return {
@@ -32,7 +37,23 @@ export let reducer = (state = { user, calander, progress, nutrition, training, n
     case EDIT_TASKS:
       return {
         ...state,
-        tasks: action.tasks
+        tasks: action.tasks,
+      };
+    case EDIT_TASK_HISTORY:
+      return {
+        ...state,
+        tasks: {
+          ...state.tasks,
+          history: action.history,
+        },
+      };
+    case ADD_TASK_HISTORY_DAY:
+      return {
+        ...state,
+        tasks: {
+          ...state.tasks,
+          history: [...state,tasks.history, action.newDay],
+        },
       };
     case EDIT_TRAINING:
       return {

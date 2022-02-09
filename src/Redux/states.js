@@ -3,8 +3,10 @@ export let user = {
 }
 
 export let tasks = {
-    tasks: [],
-};
+    date: '',
+    history: [],
+    defaultTasks: [],
+}
 
 export let training = {
     trainingCategory: "",
