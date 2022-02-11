@@ -11,10 +11,10 @@ import TrainingInfo from "./Components/BasicInfoComponents/TrainingInfo";
 import Login from "./Components/Login";
 import SignUp from "./Components/SignUp";
 import Dashboard from "./Components/Dashboard";
-import Tasks from './Components/ActivityTrackers/Tasks';
-import Training from './Components/ActivityTrackers/Training'
-import Notes from './Components/ActivityTrackers/Notes';
-import Nutrition from './Components/ActivityTrackers/Nutrition';
+import Tasks from "./Components/ActivityTrackers/Tasks";
+import Training from "./Components/ActivityTrackers/Training";
+import Notes from "./Components/ActivityTrackers/Notes";
+import Nutrition from "./Components/ActivityTrackers/Nutrition";
 import Week from "./Components/Week";
 import Account from "./Components/AccountComponents/Account";
 import Clients from "./Components/Clients";
@@ -26,16 +26,40 @@ import ExerciseLibrary from "./Components/ExerciseLibrary";
 import "./App.css";
 
 function App() {
+  const checkSubDomain = () => {
+    let host = window.location.host;
+    let parts = host.split(".");
+    let subdomain = "";
+    // If we get more than 3 parts, then we have a subdomain
+    // INFO: This could be 4, if you have a co.uk TLD or something like that.
+    if (parts.length >= 3) {
+      subdomain = parts[0];
+      // Remove the subdomain from the parts list
+      parts.splice(0, 1);
+      // Set the location to the new url
+    }
+    console.log(subdomain)
+    return subdomain === "app" ? false : true;
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Router>
         <Routes>
           {/* Default website pages, anyone can access */}
-          <Route exact path="/" element={<Home />} />
-          <Route exact path="basicinfo/fitness" element={<Fitness />} />
-          <Route exact path="basicinfo/nutrition" element={<NutritionInfo />} />
-          <Route exact path="basicinfo/workshops" element={<Workshops />} />
-          <Route exact path="basicinfo/training" element={<TrainingInfo />} />
+          {checkSubDomain() ? (
+            <>
+              <Route exact path="/" element={<Home />} />
+              <Route exact path="basicinfo/fitness" element={<Fitness />} />
+              <Route exact path="basicinfo/nutrition" element={<NutritionInfo />} />
+              <Route exact path="basicinfo/workshops" element={<Workshops />} />
+              <Route exact path="basicinfo/training" element={<TrainingInfo />} />
+            </>
+          ) : (
+            <Route exact path="/" element={<AuthRoute />}>
+              <Route exact path="/" element={<Dashboard />} />
+            </Route>
+          )}
           <Route exact path="/login" element={<Login />} />
           <Route exact path="/signup" element={<SignUp />} />
 
