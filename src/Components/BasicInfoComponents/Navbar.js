@@ -158,26 +158,6 @@ export default function Navbar() {
                   >
                     <ListItemText>Dashboard</ListItemText>
                   </ListItem>
-                  <ListItem
-                    button
-                    component={Link}
-                    to="/account"
-                    onClick={toggleList}
-                    className={classes.nested}
-                  >
-                    <ListItemText>Account</ListItemText>
-                  </ListItem>
-                  {user.isTrainer && (
-                    <ListItem
-                      button
-                      component={Link}
-                      to="/clients"
-                      onClick={toggleList}
-                      className={classes.nested}
-                    >
-                      <ListItemText>Clients</ListItemText>
-                    </ListItem>
-                  )}
 
                   <ListItem
                     button
@@ -194,16 +174,14 @@ export default function Navbar() {
               <Button
                 className={classes.NavAccountOptions}
                 style={{ color: "#ee2726" }}
-                component={Link}
-                to="/login"
+                href="https://app.firebellyfitness.com/login"
               >
                 Login
               </Button>
               <Button
                 className={classes.NavAccountOptions}
                 style={{ color: "#ffffff" }}
-                component={Link}
-                to="/signup"
+                href="https://app.firebellyfitness.com/signup"
               >
                 Sign up
               </Button>

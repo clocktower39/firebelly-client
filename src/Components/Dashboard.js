@@ -43,10 +43,6 @@ export default function Dashboard() {
       to: "/progress",
     },
     {
-      title: "Website",
-      to: "/",
-    },
-    {
       title: "Account Settings",
       to: "/account",
     },

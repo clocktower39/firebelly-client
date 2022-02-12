@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
-import { Edit, FactCheck, RemoveCircle } from "@mui/icons-material";
+import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import EditRepsWithPercent from "./EditRepsWithPercent";
@@ -254,6 +254,7 @@ export default function Exercise(props) {
           <Grid item xs={12}>
             <Typography variant="h6" style={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
+              <IconButton variant="contained" ><Info /></IconButton>
               <IconButton variant="contained" onClick={() => setEditMode(prev => !prev)}>
                 {editMode ? <FactCheck /> : <Edit />}
               </IconButton>
