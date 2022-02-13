@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { Grid, IconButton, TextField, Typography } from "@mui/material";
 import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
+import { useSelector, useDispatch } from "react-redux";
+import { requestExerciseProgess } from "../../../Redux/actions";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import EditRepsWithPercent from "./EditRepsWithPercent";
 import EditTime from "./EditTime";
 import LogLoader from "./LogLoader";
+import { RenderLineChart } from "../../Progress";
 
 export default function Exercise(props) {
-  const { exercise, setLocalTraining, exerciseIndex, setIndex, localTraining, removeExercise, setHeightToggle } = props;
+  const {
+    exercise,
+    setLocalTraining,
+    exerciseIndex,
+    setIndex,
+    localTraining,
+    removeExercise,
+    setHeightToggle,
+  } = props;
+  const dispatch = useDispatch();
 
   const [title, setTitle] = useState(exercise.exercise || "");
   const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
   const [sets, setSets] = useState(exercise.goals.sets);
   const [editMode, setEditMode] = useState(false);
+  const [open, setOpen] = useState(false);
+  const handleClose = () => setOpen(false);
+  const handleModalToggle = () => setOpen((prev) => !prev);
+  const handleModalExercise = () => {
+    dispatch(requestExerciseProgess(title)).then(()=>handleModalToggle());
+  }
+  const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
@@ -28,7 +47,7 @@ export default function Exercise(props) {
   };
 
   useEffect(() => {
-    // Ensures each proptery array length matches the amount of sets 
+    // Ensures each proptery array length matches the amount of sets
     const setPropertyCheck = (property) => {
       while (Number(property.length) !== Number(sets)) {
         Number(property.length) > Number(sets) ? property.pop() : property.push(0);
@@ -68,7 +87,8 @@ export default function Exercise(props) {
   const renderEditSwitch = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return exercise.goals.minReps.length > 0 && (
+        return (
+          exercise.goals.minReps.length > 0 &&
           exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepRange
               key={`exerciseSet-${index}`}
@@ -82,7 +102,8 @@ export default function Exercise(props) {
           ))
         );
       case "Reps":
-        return exercise.goals.minReps.length > 0 && (
+        return (
+          exercise.goals.minReps.length > 0 &&
           exercise.goals.minReps.map((exerciseSet, index) => (
             <EditExactReps
               key={`exerciseSet-${index}`}
@@ -96,7 +117,8 @@ export default function Exercise(props) {
           ))
         );
       case "Reps with %":
-        return exercise.goals.minReps.length > 0 && (
+        return (
+          exercise.goals.minReps.length > 0 &&
           exercise.goals.minReps.map((exerciseSet, index) => (
             <EditRepsWithPercent
               key={`exerciseSet-${index}`}
@@ -110,7 +132,8 @@ export default function Exercise(props) {
           ))
         );
       case "Time":
-        return exercise.goals.minReps.length > 0 && (
+        return (
+          exercise.goals.minReps.length > 0 &&
           exercise.goals.minReps.map((exerciseSet, index) => (
             <EditTime
               key={`exerciseSet-${index}`}
@@ -133,59 +156,59 @@ export default function Exercise(props) {
       case "Rep Range":
         return [
           {
-            achievedAttribute: 'weight',
-            goalAttribute: 'weight',
-            label: 'Weight',
+            achievedAttribute: "weight",
+            goalAttribute: "weight",
+            label: "Weight",
           },
           {
-            achievedAttribute: 'reps',
-            goalAttribute: 'exactReps',
-            label: 'Reps',
+            achievedAttribute: "reps",
+            goalAttribute: "exactReps",
+            label: "Reps",
           },
-        ]
+        ];
       case "Reps":
         return [
           {
-            achievedAttribute: 'weight',
-            goalAttribute: 'weight',
-            label: 'Weight',
+            achievedAttribute: "weight",
+            goalAttribute: "weight",
+            label: "Weight",
           },
           {
-            achievedAttribute: 'reps',
-            goalAttribute: 'exactReps',
-            label: 'Reps',
+            achievedAttribute: "reps",
+            goalAttribute: "exactReps",
+            label: "Reps",
           },
-        ]
+        ];
       case "Reps with %":
         return [
           {
-            achievedAttribute: 'weight',
-            goalAttribute: 'weight',
-            label: 'Weight',
+            achievedAttribute: "weight",
+            goalAttribute: "weight",
+            label: "Weight",
           },
           {
-            achievedAttribute: 'reps',
-            goalAttribute: 'exactReps',
-            label: 'Reps',
+            achievedAttribute: "reps",
+            goalAttribute: "exactReps",
+            label: "Reps",
           },
-        ]
+        ];
       case "Time":
         return [
           {
-            achievedAttribute: 'seconds',
-            goalAttribute: 'seconds',
-            label: 'Seconds',
+            achievedAttribute: "seconds",
+            goalAttribute: "seconds",
+            label: "Seconds",
           },
-        ]
+        ];
       default:
         return <Typography>Type Error</Typography>;
     }
   };
 
   const handleEditToggle = () => {
-    setEditMode(prev => !prev);
-    setHeightToggle(prev => !prev);
-  }
+    setEditMode((prev) => !prev);
+    setHeightToggle((prev) => !prev);
+  };
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {editMode ? (
@@ -240,9 +263,7 @@ export default function Exercise(props) {
               style={{ justifyContent: "center", alignContent: "center" }}
             >
               <Grid item>
-                <IconButton
-                  onClick={() => removeExercise(setIndex, exerciseIndex)}
-                >
+                <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
                   <RemoveCircle />
                 </IconButton>
               </Grid>
@@ -254,8 +275,10 @@ export default function Exercise(props) {
           <Grid item xs={12}>
             <Typography variant="h6" style={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
-              <IconButton variant="contained" ><Info /></IconButton>
-              <IconButton variant="contained" onClick={() => setEditMode(prev => !prev)}>
+              <IconButton variant="contained" onClick={handleModalExercise}>
+                <Info />
+              </IconButton>
+              <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
                 {editMode ? <FactCheck /> : <Edit />}
               </IconButton>
             </Typography>
@@ -269,6 +292,12 @@ export default function Exercise(props) {
             localTraining={localTraining}
             setLocalTraining={setLocalTraining}
           />
+          <RenderLineChart
+            targetExerciseHistory={targetExerciseHistory}
+            open={open}
+            handleClose={handleClose}
+          />
+          \
         </>
       )}
     </Grid>

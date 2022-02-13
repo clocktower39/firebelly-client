@@ -3,7 +3,7 @@ import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } fro
 import { useSelector, useDispatch } from "react-redux";
 import { requestExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import AuthNavbar from './AuthNavbar';
+import AuthNavbar from "./AuthNavbar";
 
 const modalStyle = {
   position: "absolute",
@@ -17,76 +17,106 @@ const modalStyle = {
   p: 4,
 };
 
-const renderLineChart = (targetExerciseHistory) => {
+export const RenderLineChart = (props) => {
+  const { targetExerciseHistory, open, handleClose } = props;
   let totalMaxWeight = 0;
   let totalMaxReps = 0;
   let exerciseTitle = "";
   let exerciseIndex = 0;
+  let exercise = [];
 
-  let exercise = targetExerciseHistory.map((e, i) => {
-    const reps = e.achieved.reps;
-    const weight = e.achieved.weight;
-    exerciseIndex = i;
+  if (targetExerciseHistory) {
+    exercise = targetExerciseHistory.map((e, i) => {
+      const reps = e.achieved.reps;
+      const weight = e.achieved.weight;
+      exerciseIndex = i;
 
-    const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
-    const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
+      const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
+      const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
 
-    let minReps = parseInt(sortedReps[0]);
-    let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
-    let minWeight = parseInt(sortedWeight[0]);
-    let maxWeight = parseInt(sortedWeight[sortedWeight.length - 1]);
+      let minReps = parseInt(sortedReps[0]);
+      let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
+      let minWeight = parseInt(sortedWeight[0]);
+      let maxWeight = parseInt(sortedWeight[sortedWeight.length - 1]);
 
-    if (totalMaxWeight < maxWeight) {
-      totalMaxWeight = maxWeight;
-    }
-    if (totalMaxReps < maxReps) {
-      totalMaxReps = maxReps;
-    }
-    if (exerciseTitle === "") {
-      exerciseTitle = e.exercise;
-    }
+      if (totalMaxWeight < maxWeight) {
+        totalMaxWeight = maxWeight;
+      }
+      if (totalMaxReps < maxReps) {
+        totalMaxReps = maxReps;
+      }
+      if (exerciseTitle === "") {
+        exerciseTitle = e.exercise;
+      }
 
-    let newE = {
-      date: e.date.substr(0, 10),
-      weightRange: [minWeight, maxWeight],
-      repRange: [minReps, maxReps],
-      weight,
-      reps,
-    };
-    return newE;
-  });
+      let newE = {
+        date: e.date.substr(0, 10),
+        weightRange: [minWeight, maxWeight],
+        repRange: [minReps, maxReps],
+        weight,
+        reps,
+      };
+      return newE;
+    });
+  }
 
   return (
-    <>
-      <Typography variant="h4" style={{ textAlign: "center" }}>
-        {exerciseTitle}
-      </Typography>
-      <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
-        {exercise[exerciseIndex] && exercise[exerciseIndex].weight.map((w, i) => <Bar key={`bar-weight-${exerciseIndex}-${i}`} dataKey={`weight[${i}]`} fill="#8884d8" />)}
-        <XAxis dataKey="date" />
-        <YAxis
-          domain={[0, totalMaxWeight]}
-          label={{ value: "Weight", angle: -90, position: "insideLeft" }}
-        />
-        <Tooltip cursor={false} />
-      </BarChart>
+    <Modal
+      keepMounted
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="keep-mounted-modal-title"
+      aria-describedby="keep-mounted-modal-description"
+    >
+      <Box sx={modalStyle}>
+        <Typography variant="h4" style={{ textAlign: "center" }}>
+          {exerciseTitle}
+        </Typography>
+        <BarChart
+          width={window.innerWidth * 0.75}
+          height={window.innerWidth * 0.25}
+          data={exercise}
+        >
+          {exercise[exerciseIndex] &&
+            exercise[exerciseIndex].weight.map((w, i) => (
+              <Bar
+                key={`bar-weight-${exerciseIndex}-${i}`}
+                dataKey={`weight[${i}]`}
+                fill="#8884d8"
+              />
+            ))}
+          <XAxis dataKey="date" />
+          <YAxis
+            domain={[0, totalMaxWeight]}
+            label={{ value: "Weight", angle: -90, position: "insideLeft" }}
+          />
+          <Tooltip cursor={false} />
+        </BarChart>
 
-      <BarChart width={window.innerWidth * 0.75} height={window.innerWidth * 0.25} data={exercise}>
-        {exercise[exerciseIndex] && exercise[exerciseIndex].reps.map((w, i) => <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill="#8884d8" />)}
-        <XAxis dataKey="date" />
-        <YAxis
-          domain={[0, totalMaxReps]}
-          label={{ value: "Reps", angle: -90, position: "insideLeft" }}
-        />
-        <Tooltip cursor={false} />
-      </BarChart>
-    </>
+        <BarChart
+          width={window.innerWidth * 0.75}
+          height={window.innerWidth * 0.25}
+          data={exercise}
+        >
+          {exercise[exerciseIndex] &&
+            exercise[exerciseIndex].reps.map((w, i) => (
+              <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill="#8884d8" />
+            ))}
+          <XAxis dataKey="date" />
+          <YAxis
+            domain={[0, totalMaxReps]}
+            label={{ value: "Reps", angle: -90, position: "insideLeft" }}
+          />
+          <Tooltip cursor={false} />
+        </BarChart>
+      </Box>
+    </Modal>
   );
 };
 
-export default function Progress() {
+export default function Progress(props) {
   const dispatch = useDispatch();
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState(props.searchExercise || "");
   const exerciseList = useSelector((state) => state.progress.exerciseList);
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
 
@@ -101,25 +131,30 @@ export default function Progress() {
 
   useEffect(() => {
     dispatch(requestExerciseList());
+    if (props.searchExercise) {
+      loadExerciseProgress(props.searchExercise);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ minHeight: "100%", paddingBottom: '75px', }}>
-        <Modal
-          keepMounted
+      <Container maxWidth="lg" sx={{ minHeight: "100%", paddingBottom: "75px" }}>
+        <RenderLineChart
+          targetExerciseHistory={targetExerciseHistory}
           open={open}
-          onClose={handleClose}
-          aria-labelledby="keep-mounted-modal-title"
-          aria-describedby="keep-mounted-modal-description"
-        >
-          <Box sx={modalStyle}>{renderLineChart(targetExerciseHistory)}</Box>
-        </Modal>
+          handleClose={handleClose}
+        />
         <Grid
           container
           component={Paper}
-          style={{ minHeight: '100%', justifyContent: "center", marginTop: "25px", padding: "15px", borderRadius: '15px' }}
+          style={{
+            minHeight: "100%",
+            justifyContent: "center",
+            marginTop: "25px",
+            padding: "15px",
+            borderRadius: "15px",
+          }}
         >
           <Grid item xs={12} sm={8} container>
             <TextField
