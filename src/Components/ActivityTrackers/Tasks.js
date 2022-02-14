@@ -8,7 +8,6 @@ import {
   FormControlLabel,
   FormControl,
   Grid,
-  IconButton,
   LinearProgress,
   Modal,
   Paper,
@@ -16,8 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import { AddCircle } from "@mui/icons-material";
-import { requestTasks, checkToggleTask } from "../../Redux/actions";
+import { requestTasks, checkToggleTask, addDateToTaskHistory } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from "../AuthNavbar";
 
@@ -39,6 +37,13 @@ export default function Tasks(props) {
   const dispatch = useDispatch();
   const tasks = useSelector((state) => state.tasks);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [modalNewTaskTitle, setModalNewTaskTitle] = useState("");
+  const cancelNewTask = () => {
+    setIsModalOpen(false);
+    setModalNewTaskTitle("");
+  };
 
   const compareWithSelectedDate = (date) => {
     let dayDate = new Date(date).toString().substr(0, 15);
@@ -52,31 +57,9 @@ export default function Tasks(props) {
     return dayDate === compareSelectedDate;
   };
 
-  const filteredHistory = useSelector(state => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleModalToggle = () => setIsModalOpen(!isModalOpen);
-
-  const [modalNewTaskTitle, setModalNewTaskTitle] = useState("");
-  // const submitDailyTask = () => {
-  //   if (modalNewTaskTitle !== "") {
-  //     dispatch(
-  //       addDailyTask({
-  //         title: modalNewTaskTitle,
-  //         goal: 1,
-  //         achieved: 0,
-  //         date: selectedDate,
-  //         accountId: user._id,
-  //       })
-  //     )
-  //       .then(() => handleModalToggle())
-  //       .then(() => setModalNewTaskTitle(""));
-  //   }
-  // };
-  const cancelNewTask = () => {
-    setIsModalOpen(false);
-    setModalNewTaskTitle("");
-  };
+  const filteredHistory = useSelector(
+    (state) => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []
+  );
 
   const dailyTasksAchieved =
     tasks.tasks && tasks.tasks.length > 0
@@ -127,8 +110,8 @@ export default function Tasks(props) {
             </Grid>
           </Grid>
           <Grid container spacing={2} style={{ justifyContent: "center" }}>
-            {tasks.history && filteredHistory.length > 0 ? 
-              filteredHistory.map((day, dayIndex, dayArray) => (
+            {tasks.history && filteredHistory.length > 0 ? (
+              filteredHistory.map((day, dayIndex, dayArray) =>
                 day.tasks
                   .sort((a, b) => a.title > b.title)
                   .map((task, taskIndex, taskArray) => {
@@ -170,43 +153,25 @@ export default function Tasks(props) {
                       </Grid>
                     );
                   })
-              )) : (
-                tasks.defaultTasks.map((task, taskIndex) => (
-                  <Grid
-                    key={`defaultTask-${taskIndex}-${task.title}`}
-                    container
-                    item
-                    xs={12}
-                    sx={{ justifyContent: "center" }}
-                  >
-                    <FormControl component="fieldset">
-                      <FormGroup aria-label="position" row>
-                        <FormControlLabel
-                          value={task.achieved}
-                          control={<Checkbox color="primary" />}
-                          label={task.title}
-                          labelPlacement="end"
-                          checked={task.achieved > 0 ? true : false}
-                        />
-                      </FormGroup>
-                    </FormControl>
-                  </Grid>
-                ))
               )
-            }
-            <FormControl component="fieldset">
-              <FormGroup aria-label="position" row>
-                <FormControlLabel
-                  control={
-                    <IconButton onClick={handleModalToggle}>
-                      <AddCircle />
-                    </IconButton>
-                  }
-                  label="Add Task"
-                  labelPlacement="end"
-                />
-              </FormGroup>
-            </FormControl>
+            ) : (
+              <Grid container item xs={12} sx={{ justifyContent: 'center'}}>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    let formattedDate = new Date(selectedDate);
+                    formattedDate = new Date(
+                      formattedDate.getTime() + Math.abs(formattedDate.getTimezoneOffset() * 60000)
+                    ).toString();
+                    dispatch(
+                      addDateToTaskHistory({ date: formattedDate, tasks: [...tasks.defaultTasks] })
+                    );
+                  }}
+                >
+                  Start Tracking Today
+                </Button>
+              </Grid>
+            )}
           </Grid>
         </Paper>
       </Container>

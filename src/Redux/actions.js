@@ -131,6 +131,18 @@ export function checkToggleTask(selectedDate, newHistory) {
   };
 }
 
+export function addDateToTaskHistory(taskDateObject) {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const newHistory = [...state.tasks.history];
+    newHistory.push(taskDateObject)
+    return dispatch({
+      type: EDIT_TASK_HISTORY,
+      history: newHistory,
+    })
+  }
+}
+
 export function addTaskDay(date, defaultTasksArray) {
   return async (dispatch) => {
 
