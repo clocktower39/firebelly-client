@@ -116,6 +116,7 @@ export default function Tasks(props) {
                   .sort((a, b) => a.title > b.title)
                   .map((task, taskIndex, taskArray) => {
                     const handleCheckChange = (e, title) => {
+                      let taskHistoryDateObject = { tasks: [...tasks.defaultTasks] };
                       const newHistory = tasks.history.map((day) => {
                         if (compareWithSelectedDate(day.date)) {
                           day.tasks.map((item) => {
@@ -124,10 +125,11 @@ export default function Tasks(props) {
                             }
                             return item;
                           });
+                          taskHistoryDateObject.tasks = day.tasks;
                         }
                         return day;
                       });
-                      dispatch(checkToggleTask(selectedDate, newHistory));
+                      dispatch(checkToggleTask(selectedDate, taskHistoryDateObject, newHistory));
                     };
 
                     return (

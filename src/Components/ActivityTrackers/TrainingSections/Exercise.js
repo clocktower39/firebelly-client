@@ -297,7 +297,6 @@ export default function Exercise(props) {
             open={open}
             handleClose={handleClose}
           />
-          \
         </>
       )}
     </Grid>

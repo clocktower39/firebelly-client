@@ -37,8 +37,6 @@ function App() {
       parts.splice(0, 1);
       // Set the location to the new url
     }
-    console.log(host);
-    console.log(subdomain);
     return subdomain === "app" || host === "localhost:3000" ? false : true;
   };
 
