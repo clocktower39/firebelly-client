@@ -45,17 +45,7 @@ export default function Tasks(props) {
     setModalNewTaskTitle("");
   };
 
-  const compareWithSelectedDate = (date) => {
-    let dayDate = new Date(date).toString().substr(0, 15);
-    let compareSelectedDate = new Date(selectedDate);
-    compareSelectedDate = new Date(
-      compareSelectedDate.getTime() + Math.abs(compareSelectedDate.getTimezoneOffset() * 60000)
-    )
-      .toString()
-      .substr(0, 15);
-
-    return dayDate === compareSelectedDate;
-  };
+  const compareWithSelectedDate = (date) => date.substr(0, 10) === selectedDate;
 
   const filteredHistory = useSelector(
     (state) => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []
@@ -157,18 +147,14 @@ export default function Tasks(props) {
                   })
               )
             ) : (
-              <Grid container item xs={12} sx={{ justifyContent: 'center'}}>
+              <Grid container item xs={12} sx={{ justifyContent: "center" }}>
                 <Button
                   variant="contained"
-                  onClick={() => {
-                    let formattedDate = new Date(selectedDate);
-                    formattedDate = new Date(
-                      formattedDate.getTime() + Math.abs(formattedDate.getTimezoneOffset() * 60000)
-                    ).toString();
+                  onClick={() =>
                     dispatch(
-                      addDateToTaskHistory({ date: formattedDate, tasks: [...tasks.defaultTasks] })
-                    );
-                  }}
+                      addDateToTaskHistory({ date: selectedDate, tasks: [...tasks.defaultTasks] })
+                    )
+                  }
                 >
                   Start Tracking Today
                 </Button>
