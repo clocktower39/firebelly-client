@@ -39,7 +39,7 @@ export default function Training(props) {
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
 
-  const categories = ['Biceps', 'Triceps', 'Chest', 'Back', 'Shoulders', 'Legs'];
+  const categories = ["Biceps", "Triceps", "Chest", "Back", "Shoulders", "Legs"];
 
   let allTraining = [];
 
@@ -125,7 +125,7 @@ export default function Training(props) {
         training: [...newTraining],
       })
     );
-    setToggleNewSet(prev=>!prev);
+    setToggleNewSet((prev) => !prev);
   };
 
   // Remove the current set
@@ -139,7 +139,7 @@ export default function Training(props) {
         training: [...newTraining],
       })
     );
-    setToggleRemoveSet(prev=>!prev);
+    setToggleRemoveSet((prev) => !prev);
   };
 
   // Remove the current exercise
@@ -172,8 +172,8 @@ export default function Training(props) {
   };
 
   const handleTrainingCategory = (getTagProps) => {
-    setTrainingCategory(getTagProps)
-  }
+    setTrainingCategory(getTagProps);
+  };
 
   useEffect(() => {
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
@@ -187,8 +187,16 @@ export default function Training(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", }}>
-        <Paper sx={{ marginBottom: '56px', padding: "0px 15px 5px 15px", borderRadius: "15px", minHeight: '100%', }}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
+        <Paper
+          sx={{
+            padding: "0px 15px 0px 15px",
+            borderRadius: "15px",
+            minHeight: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <SelectedDate setParentSelectedDate={setSelectedDate} input />
           <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
@@ -202,60 +210,70 @@ export default function Training(props) {
             </Grid>
           </Grid>
           {training._id ? (
-            <Grid container sx={{ justifyContent: 'center', minHeight: '100%', }}>
-              <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
-                <Grid item xs={12} container alignContent="center">
-                  <Autocomplete
-                    disableCloseOnSelect
-                    value={trainingCategory}
-                    fullWidth
-                    multiple
-                    id="tags-filled"
-                    defaultValue={trainingCategory.map(category => category)}
-                    options={categories.map((option) => option)}
-                    freeSolo
-                    onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                      ))
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Training Category"
-                        placeholder="Categories"
-                      />
-                    )}
-                  />
+            <>
+              <Grid container sx={{ justifyContent: "flex-start", minHeight: "100%" }}>
+                <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
+                  <Grid item xs={12} container alignContent="center">
+                    <Autocomplete
+                      disableCloseOnSelect
+                      value={trainingCategory}
+                      fullWidth
+                      multiple
+                      id="tags-filled"
+                      defaultValue={trainingCategory.map((category) => category)}
+                      options={categories.map((option) => option)}
+                      freeSolo
+                      onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
+                      renderTags={(value, getTagProps) =>
+                        value.map((option, index) => (
+                          <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                        ))
+                      }
+                      renderInput={(params) => (
+                        <TextField {...params} label="Training Category" placeholder="Categories" />
+                      )}
+                    />
+                  </Grid>
                 </Grid>
+                <Grid item xs={12}>
+                  <Divider style={{ margin: "25px 0px" }} />
+                </Grid>
+                {training.training.length > 0 && (
+                  <SwipeableSet
+                    newExercise={newExercise}
+                    newSet={newSet}
+                    removeSet={removeSet}
+                    removeExercise={removeExercise}
+                    localTraining={localTraining}
+                    setLocalTraining={setLocalTraining}
+                    save={save}
+                    toggleNewSet={toggleNewSet}
+                    toggleRemoveSet={toggleRemoveSet}
+                    maxSteps={localTraining.length}
+                  />
+                )}
               </Grid>
-              <Grid item xs={12}>
-                <Divider style={{ margin: "25px 0px" }} />
-              </Grid>
-              {training.training.length > 0 && (
-              <SwipeableSet
-                newExercise={newExercise}
-                newSet={newSet}
-                removeSet={removeSet}
-                removeExercise={removeExercise}
-                localTraining={localTraining}
-                setLocalTraining={setLocalTraining}
-                save={save}
-                toggleNewSet={toggleNewSet}
-                toggleRemoveSet={toggleRemoveSet}
-                maxSteps={localTraining.length}
-              />
-              )}
-              <Grid container item xs={12} style={{ alignSelf: 'flex-end', justifyContent: "space-between", marginBottom: '5px' }}>
+              <Grid
+                container
+                item
+                xs={12}
+                sx={{ alignContent: "flex-end", flexGrow: 1, paddingBottom: "5px", }}
+              >
                 <Button variant="contained" onClick={save} fullWidth>
                   Save
                 </Button>
               </Grid>
-            </Grid>
+            </>
           ) : (
-            <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: 'center', flexGrow: 1 }}>
-              <Button variant="contained" onClick={() => dispatch(createTraining(selectedDate))}>Create Workout</Button>
+            <Grid
+              container
+              item
+              xs={12}
+              sx={{ justifyContent: "center", alignContent: "center", flexGrow: 1 }}
+            >
+              <Button variant="contained" onClick={() => dispatch(createTraining(selectedDate))}>
+                Create Workout
+              </Button>
             </Grid>
           )}
         </Paper>

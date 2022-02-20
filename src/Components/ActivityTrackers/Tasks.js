@@ -66,7 +66,7 @@ export default function Tasks(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
         <Modal open={isModalOpen}>
           <Paper className={classes.ModalPaper}>
             <Grid container spacing={3} alignContent="center" style={{ height: "100%" }}>
@@ -86,7 +86,7 @@ export default function Tasks(props) {
             </Grid>
           </Paper>
         </Modal>
-        <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: "100%" }}>
+        <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: "100%", }}>
           <Grid container alignItems="center">
             <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid item xs={3}>
@@ -147,7 +147,12 @@ export default function Tasks(props) {
                   })
               )
             ) : (
-              <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Grid
+                container
+                item
+                xs={12}
+                sx={{ justifyContent: "center", alignContent: "center", flexGrow: 1, height: '100%' }}
+              >
                 <Button
                   variant="contained"
                   onClick={() =>
