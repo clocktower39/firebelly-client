@@ -114,10 +114,35 @@ export function logoutUser() {
 
 export function editUser(user) {
   return async (dispatch) => {
-    return dispatch({
-      type: EDIT_MYACCOUNT,
-      user,
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/updateUser`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        ...user
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
     });
+    const data = await response.json();
+
+    if(data.status === 'error'){
+        return dispatch({
+          type: ERROR,
+          error: 'User not updated',
+        });
+    }
+    else {
+      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
+      const decodedAccessToken = jwt(data.accessToken);
+      return dispatch({
+        type: LOGIN_USER,
+        user: decodedAccessToken,
+      });
+    }
   };
 }
 

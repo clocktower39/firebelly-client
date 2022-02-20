@@ -3,13 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
   Container,
-  InputAdornment,
   MenuItem,
   Paper,
   TextField,
   Typography,
   Grid,
 } from "@mui/material";
+import InputMask from 'react-input-mask'
 import { editUser } from "../../Redux/actions";
 
 export default function MyAccount() {
@@ -19,7 +19,7 @@ export default function MyAccount() {
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber);
-  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth);
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth.substr(0,10));
   const [height, setHeight] = useState(user.height);
   const [sex, setSex] = useState(user.sex);
 
@@ -29,20 +29,26 @@ export default function MyAccount() {
     setLastName(user.lastName);
     setEmail(user.email);
     setPhoneNumber(user.phoneNumber);
+    setDateOfBirth(user.dateOfBirth.substr(0,10));
     setHeight(user.height);
     setSex(user.sex);
   };
 
   const saveChanges = () => {
-    dispatch(
-      editUser({
-        ...user,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-      })
-    );
+    if(firstName !== "" && lastName !== "" && email !== ""){
+      dispatch(
+        editUser({
+          ...user,
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          dateOfBirth,
+          height,
+          sex,
+        })
+      );
+    }
   };
 
   return (
@@ -79,12 +85,21 @@ export default function MyAccount() {
             />
           </Grid>
           <Grid container item xs={12}>
-            <TextField
-              label="Phone Number"
+            <InputMask
+              mask="+1 (999) 999-9999"
               value={phoneNumber}
               onChange={(e) => handleChange(e.target.value, setPhoneNumber)}
-              fullWidth
-            />
+              disabled={false}
+              maskChar=" "
+            >
+              {() => (
+                <TextField
+                  label="Phone Number"
+                  fullWidth
+                  type="tel"
+                />
+              )}
+            </InputMask>
           </Grid>
           <Grid container item xs={12}>
             <TextField
@@ -99,28 +114,22 @@ export default function MyAccount() {
             />
           </Grid>
           <Grid container item xs={12}>
-            <TextField
-              label="Height"
+            <InputMask
+              mask={`9' ?9"`}
+              formatChars={{ "9": "[0-9]", "?": "[0-9 ]" }}
               value={height}
               onChange={(e) => handleChange(e.target.value, setHeight)}
-              fullWidth
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <TextField
-                      variant="standard"
-                      select
-                      fullWidth
-                      SelectProps={{ native: true }}
-                      value={"ft"}
-                    >
-                      <option value="ft">ft</option>
-                      <option value="cm">cm</option>
-                    </TextField>
-                  </InputAdornment>
-                ),
-              }}
-            />
+              disabled={false}
+              maskChar=" "
+            >
+              {() => (
+                <TextField
+                  label="Height"
+                  fullWidth
+                  type="tel"
+                />
+              )}
+            </InputMask>
           </Grid>
           <Grid container item xs={12}>
             <TextField
@@ -132,6 +141,7 @@ export default function MyAccount() {
             >
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>
+              <MenuItem value="N/A">Prefer not to answer</MenuItem>
             </TextField>
           </Grid>
           <Grid container style={{ justifyContent: "center" }} item xs={12} spacing={2}>
