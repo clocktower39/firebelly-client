@@ -20,7 +20,6 @@ import Account from "./Components/AccountComponents/Account";
 import Clients from "./Components/Clients";
 import Progress from "./Components/Progress";
 import MyAccount from "./Components/AccountComponents/MyAccount";
-import Biometrics from "./Components/AccountComponents/Biometrics";
 import ExerciseLibrary from "./Components/ExerciseLibrary";
 import "./App.css";
 
@@ -37,7 +36,7 @@ function App() {
       parts.splice(0, 1);
       // Set the location to the new url
     }
-    return subdomain === "app" || host === "localhost:3000" ? false : true;
+    return subdomain === "app" || host === "localhost:3000" || subdomain === "172" ? false : true;
   };
 
   return (
@@ -88,7 +87,6 @@ function App() {
               <Route exact path="/account/*" element={<AuthRoute />}>
                 <Route exact path="/account/*/*" element={<Account />}>
                   <Route index={true} exact path="" element={<MyAccount />} />
-                  <Route index={false} exact path="biometrics" element={<Biometrics />} />
                 </Route>
               </Route>
 
