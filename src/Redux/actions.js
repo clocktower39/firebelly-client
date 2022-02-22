@@ -120,7 +120,7 @@ export function editUser(user) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        ...user
+        ...user,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -129,13 +129,12 @@ export function editUser(user) {
     });
     const data = await response.json();
 
-    if(data.status === 'error'){
-        return dispatch({
-          type: ERROR,
-          error: 'User not updated',
-        });
-    }
-    else {
+    if (data.status === "error") {
+      return dispatch({
+        type: ERROR,
+        error: "User not updated",
+      });
+    } else {
       localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
       const decodedAccessToken = jwt(data.accessToken);
       return dispatch({
@@ -170,7 +169,7 @@ export function checkToggleTask(selectedDate, taskHistoryDateObject, newHistory)
         error: data.error,
       });
     }
-    
+
     return dispatch({
       type: EDIT_TASK_HISTORY,
       history: newHistory,
@@ -182,21 +181,20 @@ export function addDateToTaskHistory(taskDateObject) {
   return async (dispatch, getState) => {
     const state = getState();
     const newHistory = [...state.tasks.history];
-    newHistory.push(taskDateObject)
+    newHistory.push(taskDateObject);
     return dispatch({
       type: EDIT_TASK_HISTORY,
       history: newHistory,
-    })
-  }
+    });
+  };
 }
 
 export function addTaskDay(date, defaultTasksArray) {
   return async (dispatch) => {
-
     const newDay = {
       date,
-      tasks: defaultTasksArray
-    }
+      tasks: defaultTasksArray,
+    };
 
     return dispatch({
       type: ADD_TASK_HISTORY_DAY,
@@ -230,41 +228,24 @@ export function requestTasks() {
 // Pushes updates to default daily tasks
 export function editDefaultDailyTask(defaultTasks) {
   return async (dispatch, getState) => {
-    const state = getState();
-    // send update to DB
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/updateDefaultTasks`, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({ _id: state.user._id, defaultTasks }),
+      body: JSON.stringify({ defaultTasks }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
       },
     });
     const data = await response.json();
-
-    localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
-
-    return dispatch({
-      type: EDIT_MYACCOUNT,
-      user: data.user,
-    });
-  };
-}
-
-// Removes the task provided from the default tasks
-export function removeDefaultDailyTask(removeTask) {
-  return async (dispatch, getState) => {
-    const state = getState();
-    const currentDefaultTasks = [...state.user.defaultTasks];
-    const defaultTasks = currentDefaultTasks.filter((item) => item !== removeTask);
-
-    return dispatch({
-      type: EDIT_DEFAULT_TASK,
-      defaultTasks,
-    });
+    if (data.status === "Successful") {
+      return dispatch({
+        type: EDIT_DEFAULT_TASK,
+        defaultTasks,
+      });
+    }
   };
 }
 

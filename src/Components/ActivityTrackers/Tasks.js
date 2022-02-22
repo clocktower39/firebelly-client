@@ -57,13 +57,14 @@ export default function Tasks(props) {
     (state) => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []
   );
 
+
   const dailyTasksAchieved =
-    tasks.tasks && tasks.tasks.length > 0
-      ? tasks.tasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved })).achieved
+    filteredHistory[0] && filteredHistory[0].tasks.length > 0
+      ? filteredHistory[0].tasks.reduce((a, b) => ({ achieved: a.achieved + b.achieved })).achieved
       : 0;
   const dailyTasksGoal =
-    tasks.tasks && tasks.tasks.length > 0
-      ? tasks.tasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
+  filteredHistory[0] && filteredHistory[0].tasks.length > 0
+      ? filteredHistory[0].tasks.reduce((a, b) => ({ goal: a.goal + b.goal })).goal
       : 1;
 
   useEffect(() => {

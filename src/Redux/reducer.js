@@ -85,8 +85,8 @@ export let reducer = (
     case EDIT_DEFAULT_TASK:
       return {
         ...state,
-        user: {
-          ...state.user,
+        tasks: {
+          ...state.tasks,
           defaultTasks: [...action.defaultTasks],
         },
       };
