@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Button,
   Checkbox,
   Container,
@@ -14,10 +17,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { ExpandMore } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { requestTasks, checkToggleTask, addDateToTaskHistory } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from "../AuthNavbar";
+import DefaultTasks from "./DefaultTasks";
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -36,6 +41,7 @@ export default function Tasks(props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const tasks = useSelector((state) => state.tasks);
+  const defaultTasks = tasks.defaultTasks;
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -86,10 +92,39 @@ export default function Tasks(props) {
             </Grid>
           </Paper>
         </Modal>
-        <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: "100%", }}>
+        <Paper
+          sx={{
+            padding: "0px 15px",
+            borderRadius: "15px",
+            minHeight: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <Grid container alignItems="center">
             <SelectedDate setParentSelectedDate={setSelectedDate} />
-            <Grid item xs={3}>
+            <Grid container item xs={12} sx={{padding: '7.5px 0px'}}>
+              <Accordion sx={{ width: "100%", boxShadow: "none", backgroundColor: (theme) => `#282828`, }}>
+                <AccordionSummary
+                  expandIcon={<ExpandMore sx={{ color: (theme) => `${theme.palette.primary.contrastText}`, }} />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                  sx={{ padding: '0px', justifyContent: "center",
+                  backgroundColor: (theme) => `${theme.palette.primary.main}`,
+                  color: (theme) => `${theme.palette.primary.contrastText}`,
+                  '& .MuiAccordionSummary-content': {
+                    flexGrow: 0,
+                  },
+                }}
+                >
+                  <Typography sx={{justifyContent: "center"}}>Default Tasks</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <DefaultTasks defaultTasks={defaultTasks} />
+                </AccordionDetails>
+              </Accordion>
+            </Grid>
+            <Grid container item xs={3}>
               <Typography className={classes.heading}>Daily Tasks</Typography>
             </Grid>
             <Grid item xs={9}>
@@ -99,7 +134,11 @@ export default function Tasks(props) {
               />
             </Grid>
           </Grid>
-          <Grid container spacing={2} style={{ justifyContent: "center" }}>
+          <Grid
+            container
+            spacing={2}
+            sx={{ justifyContent: "center", alignContent: "center", flexGrow: 1 }}
+          >
             {tasks.history && filteredHistory.length > 0 ? (
               filteredHistory.map((day, dayIndex, dayArray) =>
                 day.tasks
@@ -151,7 +190,12 @@ export default function Tasks(props) {
                 container
                 item
                 xs={12}
-                sx={{ justifyContent: "center", alignContent: "center", flexGrow: 1, height: '100%' }}
+                sx={{
+                  justifyContent: "center",
+                  alignContent: "center",
+                  flexGrow: 1,
+                  height: "100%",
+                }}
               >
                 <Button
                   variant="contained"
@@ -161,7 +205,7 @@ export default function Tasks(props) {
                     )
                   }
                 >
-                  Start Tracking Today
+                  Create Daily Tracking List
                 </Button>
               </Grid>
             )}

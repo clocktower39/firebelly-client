@@ -18,10 +18,10 @@ export default function MyAccount() {
   const [firstName, setFirstName] = useState(user.firstName);
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
-  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber);
-  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth.substr(0,10));
-  const [height, setHeight] = useState(user.height);
-  const [sex, setSex] = useState(user.sex);
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth.substr(0,10) || "");
+  const [height, setHeight] = useState(user.height || "");
+  const [sex, setSex] = useState(user.sex || "");
 
   const handleChange = (value, setter) => setter(value);
   const handleCancel = () => {
@@ -29,7 +29,7 @@ export default function MyAccount() {
     setLastName(user.lastName);
     setEmail(user.email);
     setPhoneNumber(user.phoneNumber);
-    setDateOfBirth(user.dateOfBirth.substr(0,10));
+    setDateOfBirth(user.dateOfBirth.substr(0,10) || "");
     setHeight(user.height);
     setSex(user.sex);
   };
