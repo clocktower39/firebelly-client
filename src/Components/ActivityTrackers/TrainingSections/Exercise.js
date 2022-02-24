@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Grid, IconButton, TextField, Typography } from "@mui/material";
+import { Autocomplete, Chip, Grid, IconButton, TextField, Typography } from "@mui/material";
 import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestExerciseProgess } from "../../../Redux/actions";
+import { requestExerciseList, requestExerciseProgess } from "../../../Redux/actions";
 import EditRepRange from "./EditRepRange";
 import EditExactReps from "./EditExactReps";
 import EditRepsWithPercent from "./EditRepsWithPercent";
@@ -33,6 +33,7 @@ export default function Exercise(props) {
     dispatch(requestExerciseProgess(title)).then(()=>handleModalToggle());
   }
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
+  const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
@@ -45,6 +46,11 @@ export default function Exercise(props) {
       setSets(e.target.value);
     }
   };
+
+  useEffect(() => {
+    dispatch(requestExerciseList());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // Ensures each proptery array length matches the amount of sets
@@ -215,12 +221,30 @@ export default function Exercise(props) {
         <>
           <Grid container item xs={12} spacing={1}>
             <Grid item xs={10}>
-              <TextField
+                    <Autocomplete
+                      id="tags-filled"
+                      disableCloseOnSelect
+                      fullWidth
+                      freeSolo
+                      value={title}
+                      defaultValue={title}
+                      options={exerciseList.map((option) => option)}
+                      onChange={(e, getTagProps) => setTitle(getTagProps)}
+                      renderTags={(value, getTagProps) =>
+                        value.map((option, index) => (
+                          <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                        ))
+                      }
+                      renderInput={(params) => (
+                        <TextField {...params} label="Exercise Title" placeholder="Exercises" />
+                      )}
+                    />
+              {/* <TextField
                 label="Exercise Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 fullWidth
-              />
+              /> */}
             </Grid>
             <Grid container item xs={2}>
               <IconButton variant="contained" onClick={handleEditToggle}>
