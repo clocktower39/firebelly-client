@@ -30,22 +30,14 @@ export default function Exercise(props) {
   const handleClose = () => setOpen(false);
   const handleModalToggle = () => setOpen((prev) => !prev);
   const handleModalExercise = () => {
-    dispatch(requestExerciseProgess(title)).then(()=>handleModalToggle());
-  }
+    dispatch(requestExerciseProgess(title)).then(() => handleModalToggle());
+  };
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
-  const handleSetChange = (e) => {
-    if (Number(e.target.value) > 0 && Number(e.target.value) <= Number(8)) {
-      setSets(Number(e.target.value));
-    } else if (Number(e.target.value) > Number(8)) {
-      setSets(Number(8));
-    } else if (e.target.value === "") {
-      setSets(e.target.value);
-    }
-  };
+  const handleSetChange = (e) => setSets(Number(e.target.value));
 
   useEffect(() => {
     dispatch(requestExerciseList());
@@ -221,30 +213,27 @@ export default function Exercise(props) {
         <>
           <Grid container item xs={12} spacing={1}>
             <Grid item xs={10}>
-                    <Autocomplete
-                      id="tags-filled"
-                      disableCloseOnSelect
-                      fullWidth
-                      freeSolo
-                      value={title}
-                      defaultValue={title}
-                      options={exerciseList.map((option) => option)}
-                      onChange={(e, getTagProps) => setTitle(getTagProps)}
-                      renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                          <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                        ))
-                      }
-                      renderInput={(params) => (
-                        <TextField {...params} label="Exercise Title" placeholder="Exercises" />
-                      )}
-                    />
-              {/* <TextField
-                label="Exercise Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              <Autocomplete
+                id="tags-filled"
+                disableCloseOnSelect
                 fullWidth
-              /> */}
+                freeSolo
+                value={title}
+                defaultValue={title}
+                options={exerciseList
+                  .filter((a) => a !== "")
+                  .sort((a, b) => a > b)
+                  .map((option) => option)}
+                onChange={(e, getTagProps) => setTitle(getTagProps)}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField {...params} label="Exercise Title" placeholder="Exercises" />
+                )}
+              />
             </Grid>
             <Grid container item xs={2}>
               <IconButton variant="contained" onClick={handleEditToggle}>
@@ -269,21 +258,30 @@ export default function Exercise(props) {
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Sets"
-                value={sets}
-                onChange={(e) => handleSetChange(e)}
-                type="number"
-                inputProps={{ type: "number", pattern: "\\d*" }}
+                select
+                SelectProps={{ native: true }}
                 fullWidth
-              />
+                value={sets}
+                onChange={handleSetChange}
+              >
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+              </TextField>
             </Grid>
             {renderEditSwitch()}
           </Grid>
-          <Grid container item xs={1} style={{ alignContent: "center" }} spacing={1}>
+          <Grid container item xs={12} style={{ alignContent: "center" }} >
             <Grid
               container
               item
               xs={12}
-              sm={6}
               style={{ justifyContent: "center", alignContent: "center" }}
             >
               <Grid item>

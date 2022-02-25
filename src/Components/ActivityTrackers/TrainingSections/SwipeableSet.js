@@ -15,6 +15,7 @@ function SwipeableSet(props) {
         toggleNewSet,
         toggleRemoveSet,
         maxSteps,
+        selectedDate,
     } = props;
     const [activeStep, setActiveStep] = useState(0);
     const [heightToggle, setHeightToggle] = useState(true);
@@ -38,15 +39,19 @@ function SwipeableSet(props) {
 
     useEffect(() => {
         if (activeStep >= maxSteps - 1) {
-            handleStepChange(maxSteps - 2)
+            handleStepChange(maxSteps - 1)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toggleRemoveSet])
 
     useEffect(() => {
-        handleStepChange(maxSteps)
+        handleStepChange(maxSteps - 1)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [toggleNewSet])
+
+    useEffect(() => {
+        handleStepChange(0);
+    }, [selectedDate])
 
 
     return (

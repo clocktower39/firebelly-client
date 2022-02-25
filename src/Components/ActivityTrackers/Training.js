@@ -95,51 +95,40 @@ export default function Training(props) {
 
   // Create a new set on the current day
   const newSet = () => {
-    let newTraining = [...localTraining];
-    newTraining.push([
-      {
-        exercise: "",
-        exerciseType: "Reps",
-        goals: {
-          sets: 1,
-          minReps: [0],
-          maxReps: [0],
-          exactReps: [0],
-          weight: [0],
-          percent: [0],
-          seconds: [0],
+    setLocalTraining((prev) => {
+      prev.push([
+        {
+          exercise: "",
+          exerciseType: "Reps",
+          goals: {
+            sets: 1,
+            minReps: [0],
+            maxReps: [0],
+            exactReps: [0],
+            weight: [0],
+            percent: [0],
+            seconds: [0],
+          },
+          achieved: {
+            sets: 0,
+            reps: [0],
+            weight: [0],
+            percent: [0],
+            seconds: [0],
+          },
         },
-        achieved: {
-          sets: 0,
-          reps: [0],
-          weight: [0],
-          percent: [0],
-          seconds: [0],
-        },
-      },
-    ]);
-    dispatch(
-      updateTraining(training._id, {
-        ...training,
-        category: [...trainingCategory],
-        training: [...newTraining],
-      })
-    );
+      ])
+      return prev;
+    });
     setToggleNewSet((prev) => !prev);
   };
 
   // Remove the current set
   const removeSet = (setIndex) => {
-    const newTraining = localTraining.filter((item, index) => index !== setIndex);
-
-    dispatch(
-      updateTraining(training._id, {
-        ...training,
-        category: [...trainingCategory],
-        training: [...newTraining],
-      })
-    );
-    setToggleRemoveSet((prev) => !prev);
+    if (localTraining.length > 1) {
+      setLocalTraining((prev) => prev.filter((item, index) => index !== setIndex));
+      setToggleRemoveSet((prev) => !prev);
+    }
   };
 
   // Remove the current exercise
@@ -250,6 +239,7 @@ export default function Training(props) {
                     toggleNewSet={toggleNewSet}
                     toggleRemoveSet={toggleRemoveSet}
                     maxSteps={localTraining.length}
+                    selectedDate={selectedDate}
                   />
                 )}
               </Grid>
@@ -257,7 +247,7 @@ export default function Training(props) {
                 container
                 item
                 xs={12}
-                sx={{ alignContent: "flex-end", flexGrow: 1, paddingBottom: "5px", }}
+                sx={{ alignContent: "flex-end", flexGrow: 1, paddingBottom: "5px" }}
               >
                 <Button variant="contained" onClick={save} fullWidth>
                   Save
