@@ -7,11 +7,13 @@ import {
   Container,
   Divider,
   Grid,
+  IconButton,
   LinearProgress,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
+import { DoubleArrow } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { createTraining, requestTraining, updateTraining } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
@@ -117,7 +119,7 @@ export default function Training(props) {
             seconds: [0],
           },
         },
-      ])
+      ]);
       return prev;
     });
     setToggleNewSet((prev) => !prev);
@@ -219,7 +221,22 @@ export default function Training(props) {
                         ))
                       }
                       renderInput={(params) => (
-                        <TextField {...params} label="Training Category" placeholder="Categories" />
+                        <TextField
+                          {...params}
+                          label="Training Category"
+                          placeholder="Categories"
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                <IconButton variant="contained" title="Move workout to another date" onClick={null}>
+                                  <DoubleArrow />
+                                </IconButton>
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                        />
                       )}
                     />
                   </Grid>

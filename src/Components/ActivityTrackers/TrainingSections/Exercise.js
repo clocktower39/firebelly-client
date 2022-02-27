@@ -207,12 +207,33 @@ export default function Exercise(props) {
     setEditMode((prev) => !prev);
     setHeightToggle((prev) => !prev);
   };
+
+  const classes = {
+    textFieldRoot: {
+      "& .MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']": {
+        // default paddingRight was 39px since clear icon was positioned absolute
+        paddingRight: "9px",
+
+        // Search icon
+        "& button": {
+          order: 3, // order 3 means the search icon will appear after the clear icon which has an order of 2
+        },
+
+        // Clear icon
+        "& .MuiAutocomplete-endAdornment": {
+          position: "relative", // default was absolute. we make it relative so that it is now within the flow of the other two elements
+          order: 2,
+        },
+      },
+    },
+  };
+
   return (
     <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
       {editMode ? (
         <>
           <Grid container item xs={12} spacing={1}>
-            <Grid item xs={10}>
+            <Grid item xs={12}>
               <Autocomplete
                 id="tags-filled"
                 disableCloseOnSelect
@@ -231,14 +252,28 @@ export default function Exercise(props) {
                   ))
                 }
                 renderInput={(params) => (
-                  <TextField {...params} label="Exercise Title" placeholder="Exercises" />
+                  <TextField
+                    {...params}
+                    label="Exercise Title"
+                    placeholder="Exercises"
+                    sx={classes.textFieldRoot}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          <IconButton variant="contained" onClick={handleModalExercise}>
+                            <Info />
+                          </IconButton>
+                          <IconButton variant="contained" onClick={handleEditToggle}>
+                            <FactCheck />
+                          </IconButton>
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
                 )}
               />
-            </Grid>
-            <Grid container item xs={2}>
-              <IconButton variant="contained" onClick={handleEditToggle}>
-                {editMode ? <FactCheck /> : <Edit />}
-              </IconButton>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -277,7 +312,7 @@ export default function Exercise(props) {
             </Grid>
             {renderEditSwitch()}
           </Grid>
-          <Grid container item xs={12} style={{ alignContent: "center" }} >
+          <Grid container item xs={12} style={{ alignContent: "center" }}>
             <Grid
               container
               item
@@ -301,7 +336,7 @@ export default function Exercise(props) {
                 <Info />
               </IconButton>
               <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
-                {editMode ? <FactCheck /> : <Edit />}
+                <Edit />
               </IconButton>
             </Typography>
           </Grid>
@@ -314,13 +349,13 @@ export default function Exercise(props) {
             localTraining={localTraining}
             setLocalTraining={setLocalTraining}
           />
-          <RenderLineChart
-            targetExerciseHistory={targetExerciseHistory}
-            open={open}
-            handleClose={handleClose}
-          />
         </>
       )}
+      <RenderLineChart
+        targetExerciseHistory={targetExerciseHistory}
+        open={open}
+        handleClose={handleClose}
+      />
     </Grid>
   );
 }
