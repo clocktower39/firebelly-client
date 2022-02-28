@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Autocomplete,
+  Box,
   Button,
   Chip,
   Container,
@@ -9,13 +10,14 @@ import {
   Grid,
   IconButton,
   LinearProgress,
+  Modal,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import { DoubleArrow } from "@mui/icons-material";
+import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { createTraining, requestTraining, updateTraining } from "../../Redux/actions";
+import { createTraining, requestTraining, updateTraining, updateWorkoutDate, } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from "../AuthNavbar";
@@ -25,6 +27,27 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: "20px",
   },
 }));
+
+export function ModalAction(props) {
+  const { actionType, selectedDate } = props;
+  const dispatch = useDispatch();
+  const [newDate, setNewDate] = useState(null);
+  
+  const handleMove = () => {
+    dispatch(updateWorkoutDate(selectedDate, newDate))
+  }
+
+  switch (actionType) {
+    case 'move':
+      return (
+        <>
+          <SelectedDate setParentSelectedDate={setNewDate} />
+          <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleMove} >Move</Button></Grid>
+        </>);
+    default:
+      return (<></>);
+  }
+}
 
 export default function Training(props) {
   const classes = useStyles();
@@ -40,6 +63,15 @@ export default function Training(props) {
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleModalToggle = () => {
+    setModalOpen(prev => !prev);
+    setModalActionType('');
+  }
+
+  const [modalActionType, setModalActionType] = useState('');
+  const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
   const categories = ["Biceps", "Triceps", "Chest", "Back", "Shoulders", "Legs"];
 
@@ -166,6 +198,36 @@ export default function Training(props) {
     setTrainingCategory(getTagProps);
   };
 
+  const modalStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
+  const textFieldRoot = {
+    "& .MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']": {
+      // default paddingRight was 39px since clear icon was positioned absolute
+      paddingRight: "9px",
+
+      // Search icon
+      "& button": {
+        order: 3, // order 3 means the search icon will appear after the clear icon which has an order of 2
+      },
+
+      // Clear icon
+      "& .MuiAutocomplete-endAdornment": {
+        position: "relative", // default was absolute. we make it relative so that it is now within the flow of the other two elements
+        order: 2,
+      },
+    },
+  }
+
   useEffect(() => {
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setLocalTraining(training.training || []);
@@ -179,6 +241,18 @@ export default function Training(props) {
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
+        <Modal open={modalOpen} onClose={handleModalToggle} >
+          <Box sx={modalStyle}>
+            <Typography variant="h5" textAlign="center" gutterBottom >Workout Settings</Typography>
+            <Grid container sx={{ justifyContent: 'center', }}>
+              <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
+              <IconButton title="Copy Workout" disabled ><ContentCopy /></IconButton>
+              <IconButton title="Import Workout" disabled ><Download /></IconButton>
+              <IconButton title="Delete Workout" disabled ><Delete /></IconButton>
+            </Grid>
+            <ModalAction actionType={modalActionType} selectedDate={selectedDate} />
+          </Box>
+        </Modal>
         <Paper
           sx={{
             padding: "0px 15px 0px 15px",
@@ -225,12 +299,13 @@ export default function Training(props) {
                           {...params}
                           label="Training Category"
                           placeholder="Categories"
+                          sx={textFieldRoot}
                           InputProps={{
                             ...params.InputProps,
                             endAdornment: (
                               <>
-                                <IconButton variant="contained" title="Move workout to another date" onClick={null}>
-                                  <DoubleArrow />
+                                <IconButton variant="contained" title="Workout Settings" onClick={handleModalToggle}>
+                                  <Settings />
                                 </IconButton>
                                 {params.InputProps.endAdornment}
                               </>
