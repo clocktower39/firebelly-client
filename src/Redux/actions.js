@@ -18,11 +18,11 @@ export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -529,6 +529,37 @@ export function updateWorkoutDate(selectedDate, newDate) {
       body: JSON.stringify({
         originalDate: selectedDate,
         newDate,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    }).then((res) => res.json());
+
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    } else {
+      return dispatch({
+        type: EDIT_TRAINING,
+        training: { training: [] },
+      });
+    }
+  };
+}
+
+// Delete a training record
+export function deleteWorkoutDate(selectedDate) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const data = await fetch(`${serverURL}/deleteWorkoutDate`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        date: selectedDate,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

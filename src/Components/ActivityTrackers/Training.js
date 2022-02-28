@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
-import { createTraining, requestTraining, updateTraining, updateWorkoutDate, } from "../../Redux/actions";
+import { createTraining, requestTraining, updateTraining, updateWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from "../AuthNavbar";
@@ -29,12 +29,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function ModalAction(props) {
-  const { actionType, selectedDate } = props;
+  const { actionType, selectedDate, handleModalToggle } = props;
   const dispatch = useDispatch();
   const [newDate, setNewDate] = useState(null);
   
   const handleMove = () => {
-    dispatch(updateWorkoutDate(selectedDate, newDate))
+    dispatch(updateWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
+  }
+
+  const handleDelete = () => {
+    dispatch(deleteWorkoutDate(selectedDate)).then(()=> handleModalToggle());
   }
 
   switch (actionType) {
@@ -43,6 +47,16 @@ export function ModalAction(props) {
         <>
           <SelectedDate setParentSelectedDate={setNewDate} />
           <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleMove} >Move</Button></Grid>
+        </>);
+    case 'delete':
+      return (
+        <>
+        <Grid container>
+          <Grid container><Typography variant="" >Are you sure you would like the delete the training from {selectedDate}</Typography></Grid>
+          <Grid container sx={{ justifyContent: 'center', }}>
+            <Button variant="contained" onClick={handleDelete} >Confrim</Button>
+          </Grid>
+        </Grid>
         </>);
     default:
       return (<></>);
@@ -248,9 +262,9 @@ export default function Training(props) {
               <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
               <IconButton title="Copy Workout" disabled ><ContentCopy /></IconButton>
               <IconButton title="Import Workout" disabled ><Download /></IconButton>
-              <IconButton title="Delete Workout" disabled ><Delete /></IconButton>
+              <IconButton title="Delete Workout" onClick={() => handleSetModalAction('delete')} ><Delete /></IconButton>
             </Grid>
-            <ModalAction actionType={modalActionType} selectedDate={selectedDate} />
+            <ModalAction actionType={modalActionType} selectedDate={selectedDate} handleModalToggle={handleModalToggle}/>
           </Box>
         </Modal>
         <Paper
