@@ -10,7 +10,7 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "80%",
+  maxWidth: '1220px',
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -60,6 +60,20 @@ export const RenderLineChart = (props) => {
     });
   }
 
+  const [dimensions, setDimensions] = useState({ width: (document.body.clientWidth * 0.75), height: (document.body.clientWidth * 0.25) });
+
+  useEffect(()=> {
+    const updateWindowDimensions = () => {
+      const newWidth = () => document.body.clientWidth > 1280 ? 1280 : document.body.clientWidth;
+      setDimensions({ width: (newWidth() * 0.75), height: (newWidth() * 0.25) });
+    };
+
+    window.addEventListener("resize", updateWindowDimensions);
+
+    return () => window.removeEventListener("resize", updateWindowDimensions) 
+
+  }, []);
+  
   return (
     <Modal
       keepMounted
@@ -73,8 +87,8 @@ export const RenderLineChart = (props) => {
           {exerciseTitle}
         </Typography>
         <BarChart
-          width={window.innerWidth * 0.75}
-          height={window.innerWidth * 0.25}
+          width={dimensions.width}
+          height={dimensions.height}
           data={exercise}
         >
           {exercise[exerciseIndex] &&
@@ -94,8 +108,8 @@ export const RenderLineChart = (props) => {
         </BarChart>
 
         <BarChart
-          width={window.innerWidth * 0.75}
-          height={window.innerWidth * 0.25}
+          width={dimensions.width}
+          height={dimensions.height}
           data={exercise}
         >
           {exercise[exerciseIndex] &&
