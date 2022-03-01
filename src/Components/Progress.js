@@ -5,17 +5,17 @@ import { requestExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import AuthNavbar from "./AuthNavbar";
 
-const modalStyle = {
+const modalStyle = (scrollbarWidth) => ({
   position: "absolute",
   top: "50%",
   left: "50%",
-  transform: "translate(-50%, -50%)",
+  transform: `translate(calc(-50% - ${scrollbarWidth/2}px), -50%)`,
   maxWidth: '1220px',
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
   p: 4,
-};
+});
 
 export const RenderLineChart = (props) => {
   const { targetExerciseHistory, open, handleClose } = props;
@@ -60,6 +60,7 @@ export const RenderLineChart = (props) => {
     });
   }
 
+  const scrollbarWidth = document.getElementById("root").offsetWidth - document.getElementById("root").clientWidth;
   const [dimensions, setDimensions] = useState({ width: (document.body.clientWidth * 0.75), height: (document.body.clientWidth * 0.25) });
 
   useEffect(()=> {
@@ -82,7 +83,7 @@ export const RenderLineChart = (props) => {
       aria-labelledby="keep-mounted-modal-title"
       aria-describedby="keep-mounted-modal-description"
     >
-      <Box sx={modalStyle}>
+      <Box sx={modalStyle(scrollbarWidth)} >
         <Typography variant="h4" style={{ textAlign: "center" }}>
           {exerciseTitle}
         </Typography>
@@ -153,7 +154,7 @@ export default function Progress(props) {
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ minHeight: "100%", paddingBottom: "75px" }}>
+      <Container maxWidth="md" sx={{ minHeight: "100%", paddingBottom: "15px" }}>
         <RenderLineChart
           targetExerciseHistory={targetExerciseHistory}
           open={open}
