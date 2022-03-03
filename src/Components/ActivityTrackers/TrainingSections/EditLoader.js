@@ -9,6 +9,7 @@ const LoggedField = (props) => {
     setIndex,
     exerciseSetIndex,
     setLocalTraining,
+    amountOfFields,
   } = props;
 
   const handleChange = (e) => {
@@ -49,7 +50,7 @@ const LoggedField = (props) => {
   };
 
   return (
-    <Grid item xs={4}>
+    <Grid item xs={(amountOfFields % 2 === 0) ? 6 : (amountOfFields === 1) ? 12 : 4}>
       <TextField
         label={field.label}
         value={exercise.goals[field.goalAttribute][exerciseSetIndex]}
@@ -110,6 +111,7 @@ export default function EditLoader(props) {
                     setIndex={setIndex}
                     exerciseSetIndex={exerciseSetIndex}
                     setLocalTraining={setLocalTraining}
+                    amountOfFields={fields.repeating.length}
                   />
                 );
               })}
