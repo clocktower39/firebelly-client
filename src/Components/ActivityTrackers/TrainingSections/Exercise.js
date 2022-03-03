@@ -202,8 +202,11 @@ export default function Exercise(props) {
 
   const handleEditToggle = () => {
     setEditMode((prev) => !prev);
-    setHeightToggle((prev) => !prev);
   };
+
+  useEffect(() => {
+    setHeightToggle((prev) => !prev);
+  }, [editMode, setHeightToggle])
 
   const classes = {
     textFieldRoot: {
@@ -307,15 +310,15 @@ export default function Exercise(props) {
                 <option value="8">8</option>
               </TextField>
             </Grid>
-          <EditLoader
-            fields={EditFields()}
-            exercise={exercise}
-            sets={sets}
-            setIndex={setIndex}
-            exerciseIndex={exerciseIndex}
-            localTraining={localTraining}
-            setLocalTraining={setLocalTraining}
-          />
+            <EditLoader
+              fields={EditFields()}
+              exercise={exercise}
+              sets={sets}
+              setIndex={setIndex}
+              exerciseIndex={exerciseIndex}
+              localTraining={localTraining}
+              setLocalTraining={setLocalTraining}
+            />
           </Grid>
           <Grid container item xs={12} style={{ alignContent: "center" }}>
             <Grid

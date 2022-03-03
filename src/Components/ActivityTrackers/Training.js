@@ -68,7 +68,6 @@ export default function Training(props) {
   const dispatch = useDispatch();
   const training = useSelector((state) => state.training);
 
-  // toggle edit mode
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [trainingCategory, setTrainingCategory] = useState([]);
