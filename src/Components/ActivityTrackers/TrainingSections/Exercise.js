@@ -3,11 +3,8 @@ import { Autocomplete, Chip, Grid, IconButton, TextField, Typography } from "@mu
 import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestExerciseList, requestExerciseProgess } from "../../../Redux/actions";
-import EditRepRange from "./EditRepRange";
-import EditExactReps from "./EditExactReps";
-import EditRepsWithPercent from "./EditRepsWithPercent";
-import EditTime from "./EditTime";
 import LogLoader from "./LogLoader";
+import EditLoader from "./EditLoader";
 import { RenderLineChart } from "../../Progress";
 
 export default function Exercise(props) {
@@ -82,68 +79,68 @@ export default function Exercise(props) {
     });
   }, [setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType]);
 
-  const renderEditSwitch = () => {
+  const EditFields = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return (
-          exercise.goals.minReps.length > 0 &&
-          exercise.goals.minReps.map((exerciseSet, index) => (
-            <EditRepRange
-              key={`exerciseSet-${index}`}
-              exercise={exercise}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              index={index}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          ))
-        );
+        return ({
+          repeating: [
+            {
+              goalAttribute: "weight",
+              label: "Weight",
+            },
+            {
+              goalAttribute: "minReps",
+              label: "Min Reps",
+            },
+            {
+              goalAttribute: "maxReps",
+              label: "Max Reps",
+            },
+          ],
+          nonRepeating: [],
+        });
       case "Reps":
-        return (
-          exercise.goals.minReps.length > 0 &&
-          exercise.goals.minReps.map((exerciseSet, index) => (
-            <EditExactReps
-              key={`exerciseSet-${index}`}
-              exercise={exercise}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              index={index}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          ))
-        );
+        return ({
+          repeating: [
+            {
+              goalAttribute: "weight",
+              label: "Weight",
+            },
+            {
+              goalAttribute: "exactReps",
+              label: "Reps",
+            },
+          ],
+          nonRepeating: [],
+        });
       case "Reps with %":
-        return (
-          exercise.goals.minReps.length > 0 &&
-          exercise.goals.minReps.map((exerciseSet, index) => (
-            <EditRepsWithPercent
-              key={`exerciseSet-${index}`}
-              exercise={exercise}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              index={index}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          ))
-        );
+        return ({
+          repeating: [
+            {
+              goalAttribute: "percent",
+              label: "Percent",
+            },
+            {
+              goalAttribute: "exactReps",
+              label: "Reps",
+            },
+          ],
+          nonRepeating: [
+            {
+              goalAttribute: "maxWeight",
+              label: "One Rep Max",
+            },],
+        });
       case "Time":
-        return (
-          exercise.goals.minReps.length > 0 &&
-          exercise.goals.minReps.map((exerciseSet, index) => (
-            <EditTime
-              key={`exerciseSet-${index}`}
-              exercise={exercise}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              index={index}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          ))
-        );
+        return ({
+          repeating: [
+            {
+              goalAttribute: "seconds",
+              label: "Seconds",
+            },
+          ],
+          nonRepeating: [],
+        });
       default:
         return <Typography>Type Error</Typography>;
     }
@@ -310,7 +307,15 @@ export default function Exercise(props) {
                 <option value="8">8</option>
               </TextField>
             </Grid>
-            {renderEditSwitch()}
+          <EditLoader
+            fields={EditFields()}
+            exercise={exercise}
+            sets={sets}
+            setIndex={setIndex}
+            exerciseIndex={exerciseIndex}
+            localTraining={localTraining}
+            setLocalTraining={setLocalTraining}
+          />
           </Grid>
           <Grid container item xs={12} style={{ alignContent: "center" }}>
             <Grid
