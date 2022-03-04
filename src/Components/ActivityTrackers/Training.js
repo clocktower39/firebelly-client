@@ -16,17 +16,11 @@ import {
   Typography,
 } from "@mui/material";
 import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
-import { makeStyles } from "@mui/styles";
 import { createTraining, requestTraining, updateTraining, updateWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import AuthNavbar from "../AuthNavbar";
-
-const useStyles = makeStyles((theme) => ({
-  TrainingCategoryInputContainer: {
-    marginBottom: "20px",
-  },
-}));
+import Loading from "../Loading";
 
 export function ModalAction(props) {
   const { actionType, selectedDate, handleModalToggle } = props;
@@ -64,7 +58,6 @@ export function ModalAction(props) {
 }
 
 export default function Training(props) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const training = useSelector((state) => state.training);
 
@@ -73,6 +66,8 @@ export default function Training(props) {
   const [trainingCategory, setTrainingCategory] = useState([]);
 
   const [localTraining, setLocalTraining] = useState([]);
+
+  const [loading, setLoading] = useState(true);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
@@ -211,51 +206,61 @@ export default function Training(props) {
     setTrainingCategory(getTagProps);
   };
 
-  const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-  };
-
-  const textFieldRoot = {
-    "& .MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']": {
-      // default paddingRight was 39px since clear icon was positioned absolute
-      paddingRight: "9px",
-
-      // Search icon
-      "& button": {
-        order: 3, // order 3 means the search icon will appear after the clear icon which has an order of 2
-      },
-
-      // Clear icon
-      "& .MuiAutocomplete-endAdornment": {
-        position: "relative", // default was absolute. we make it relative so that it is now within the flow of the other two elements
-        order: 2,
-      },
-    },
-  }
-
   useEffect(() => {
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setLocalTraining(training.training || []);
   }, [training]);
 
   useEffect(() => {
-    dispatch(requestTraining(selectedDate));
+    if(selectedDate !== null){
+      setLoading(true);
+      dispatch(requestTraining(selectedDate))
+      .then(()=>{
+        setLoading(false);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
+  const classes = {
+    modalStyle: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: 400,
+      bgcolor: 'background.paper',
+      border: '2px solid #000',
+      boxShadow: 24,
+      p: 4,
+    },
+    TrainingCategoryInputContainer: {
+      marginBottom: "20px",
+    },
+    textFieldRoot: {
+      "& .MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']": {
+        // default paddingRight was 39px since clear icon was positioned absolute
+        paddingRight: "9px",
+  
+        // Search icon
+        "& button": {
+          order: 3, // order 3 means the search icon will appear after the clear icon which has an order of 2
+        },
+  
+        // Clear icon
+        "& .MuiAutocomplete-endAdornment": {
+          position: "relative", // default was absolute. we make it relative so that it is now within the flow of the other two elements
+          order: 2,
+        },
+      },
+    }
+  };
+  
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
         <Modal open={modalOpen} onClose={handleModalToggle} >
-          <Box sx={modalStyle}>
+          <Box sx={classes.modalStyle}>
             <Typography variant="h5" textAlign="center" gutterBottom >Workout Settings</Typography>
             <Grid container sx={{ justifyContent: 'center', }}>
               <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
@@ -278,7 +283,7 @@ export default function Training(props) {
           <SelectedDate setParentSelectedDate={setSelectedDate} input />
           <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
-              <Typography className={classes.heading}>Training</Typography>
+              <Typography sx={classes.heading}>Training</Typography>
             </Grid>
             <Grid item xs={9}>
               <LinearProgress
@@ -287,10 +292,10 @@ export default function Training(props) {
               />
             </Grid>
           </Grid>
-          {training._id ? (
+          {loading ? <Loading /> : training._id ? (
             <>
               <Grid container sx={{ justifyContent: "flex-start", minHeight: "100%" }}>
-                <Grid item xs={12} container className={classes.TrainingCategoryInputContainer}>
+                <Grid item xs={12} container sx={classes.TrainingCategoryInputContainer}>
                   <Grid item xs={12} container alignContent="center">
                     <Autocomplete
                       disableCloseOnSelect
@@ -312,7 +317,7 @@ export default function Training(props) {
                           {...params}
                           label="Training Category"
                           placeholder="Categories"
-                          sx={textFieldRoot}
+                          sx={classes.textFieldRoot}
                           InputProps={{
                             ...params.InputProps,
                             endAdornment: (

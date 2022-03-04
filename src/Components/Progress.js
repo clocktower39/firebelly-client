@@ -60,12 +60,13 @@ export const RenderLineChart = (props) => {
     });
   }
 
-  const scrollbarWidth = document.getElementById("root").offsetWidth - document.getElementById("root").clientWidth;
-  const [dimensions, setDimensions] = useState({ width: (document.body.clientWidth * 0.75), height: (document.body.clientWidth * 0.25) });
+  const scrollbarWidth = document.body.offsetWidth - document.body.clientWidth;
+  const isMaxWidth = () => document.body.clientWidth > 1280;
+  const [dimensions, setDimensions] = useState({ width: (isMaxWidth ? 1280 * 0.75 : document.body.clientWidth * 0.75), height: (isMaxWidth ? 1280 * 0.25 : document.body.clientWidth * 0.25) });
 
   useEffect(()=> {
     const updateWindowDimensions = () => {
-      const newWidth = () => document.body.clientWidth > 1280 ? 1280 : document.body.clientWidth;
+      const newWidth = () => isMaxWidth ? 1280 : document.body.clientWidth;
       setDimensions({ width: (newWidth() * 0.75), height: (newWidth() * 0.25) });
     };
 
