@@ -8,6 +8,8 @@ export let tasks = {
     defaultTasks: [],
 }
 
+export let exerciseLibrary = [];
+
 export let training = {
     trainingCategory: "",
     training:[

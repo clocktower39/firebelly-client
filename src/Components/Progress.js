@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestExerciseList, requestExerciseProgess } from "../Redux/actions";
+import { requestMyExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import AuthNavbar from "./AuthNavbar";
 
@@ -146,7 +146,7 @@ export default function Progress(props) {
   };
 
   useEffect(() => {
-    dispatch(requestExerciseList());
+    dispatch(requestMyExerciseList());
     if (props.searchExercise) {
       loadExerciseProgress(props.searchExercise);
     }

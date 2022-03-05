@@ -14,15 +14,16 @@ export const EDIT_NOTES = "EDIT_NOTES";
 export const ADD_NOTE = "ADD_NOTE";
 export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
+export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -654,11 +655,11 @@ export function requestTrainingWeek(startDate, endDate) {
 }
 
 // Fetches entire exercise list for the user
-export function requestExerciseList() {
+export function requestMyExerciseList() {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const response = await fetch(`${serverURL}/exerciseList`, {
+    const response = await fetch(`${serverURL}/myExerciseList`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -694,6 +695,25 @@ export function requestExerciseProgess(targetExercise) {
     return dispatch({
       type: EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
       targetExerciseHistory,
+    });
+  };
+}
+
+export function requestExerciseLibrary() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/exerciseLibrary`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let exerciseLibrary = await response.json();
+
+    return dispatch({
+      type: EDIT_EXERCISE_LIBRARY,
+      exerciseLibrary,
     });
   };
 }

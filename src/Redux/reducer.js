@@ -12,12 +12,13 @@ import {
   ADD_NOTE,
   EDIT_TRAINING,
   EDIT_WEEKLY_VIEW,
+  EDIT_EXERCISE_LIBRARY,
   EDIT_PROGRESS_EXERCISE_LIST,
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
 } from "./actions";
-import { user, calander, progress, nutrition, training, notes, tasks } from "./states";
+import { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks } from "./states";
 export let reducer = (
-  state = { user, calander, progress, nutrition, training, notes, tasks },
+  state = { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks },
   action
 ) => {
   switch (action.type) {
@@ -97,6 +98,11 @@ export let reducer = (
           ...state.calander,
           weeklyView: [...action.weeklyView],
         },
+      };
+    case EDIT_EXERCISE_LIBRARY:
+      return {
+        ...state,
+        exerciseLibrary: [...action.exerciseLibrary]
       };
     case EDIT_PROGRESS_EXERCISE_LIST:
       return {
