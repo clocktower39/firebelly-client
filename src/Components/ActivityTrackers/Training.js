@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Autocomplete,
@@ -59,6 +59,7 @@ export function ModalAction(props) {
 
 export default function Training(props) {
   const dispatch = useDispatch();
+  const trainingContainerRef = useRef(null);
   const training = useSelector((state) => state.training);
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -258,7 +259,7 @@ export default function Training(props) {
   
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
+      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px", }} ref={trainingContainerRef} >
         <Modal open={modalOpen} onClose={handleModalToggle} >
           <Box sx={classes.modalStyle}>
             <Typography variant="h5" textAlign="center" gutterBottom >Workout Settings</Typography>
@@ -350,6 +351,7 @@ export default function Training(props) {
                     toggleRemoveSet={toggleRemoveSet}
                     maxSteps={localTraining.length}
                     selectedDate={selectedDate}
+                    trainingContainerRef={trainingContainerRef}
                   />
                 )}
               </Grid>

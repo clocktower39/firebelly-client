@@ -5,4 +5,5 @@ html, body, #root {
 }
 #root {
     height: calc(100% - 56px);
+    scrollbar-width: none;
 }

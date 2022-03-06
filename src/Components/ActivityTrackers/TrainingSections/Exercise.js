@@ -16,6 +16,7 @@ export default function Exercise(props) {
     localTraining,
     removeExercise,
     setHeightToggle,
+    trainingContainerRef,
   } = props;
   const dispatch = useDispatch();
 
@@ -363,6 +364,7 @@ export default function Exercise(props) {
         targetExerciseHistory={targetExerciseHistory}
         open={open}
         handleClose={handleClose}
+        containerRef={trainingContainerRef}
       />
     </Grid>
   );

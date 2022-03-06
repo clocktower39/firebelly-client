@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import AuthNavbar from "./AuthNavbar";
 
-const modalStyle = (scrollbarWidth) => ({
+const modalStyle = () => ({
   position: "absolute",
   top: "50%",
   left: "50%",
-  transform: `translate(calc(-50% - ${scrollbarWidth/2}px), -50%)`,
+  transform: `translate(-50%, -50%)`,
   maxWidth: '1220px',
   bgcolor: "background.paper",
   border: "2px solid #000",
@@ -18,7 +18,7 @@ const modalStyle = (scrollbarWidth) => ({
 });
 
 export const RenderLineChart = (props) => {
-  const { targetExerciseHistory, open, handleClose } = props;
+  const { targetExerciseHistory, open, handleClose, containerRef } = props;
   let totalMaxWeight = 0;
   let totalMaxReps = 0;
   let exerciseTitle = "";
@@ -60,21 +60,18 @@ export const RenderLineChart = (props) => {
     });
   }
 
-  const scrollbarWidth = document.body.offsetWidth - document.body.clientWidth;
-  const isMaxWidth = () => document.body.clientWidth > 1280;
-  const [dimensions, setDimensions] = useState({ width: (isMaxWidth ? 1280 * 0.75 : document.body.clientWidth * 0.75), height: (isMaxWidth ? 1280 * 0.25 : document.body.clientWidth * 0.25) });
+  const [dimensions, setDimensions] = useState({ width: containerRef.current.offsetWidth * 0.75 , height: containerRef.current.offsetWidth * 0.25 });
 
   useEffect(()=> {
     const updateWindowDimensions = () => {
-      const newWidth = () => isMaxWidth ? 1280 : document.body.clientWidth;
-      setDimensions({ width: (newWidth() * 0.75), height: (newWidth() * 0.25) });
+      setDimensions({ width: (containerRef.current.offsetWidth * 0.75), height: (containerRef.current.offsetWidth * 0.25) });
     };
 
     window.addEventListener("resize", updateWindowDimensions);
 
     return () => window.removeEventListener("resize", updateWindowDimensions) 
 
-  }, []);
+  }, [containerRef]);
   
   return (
     <Modal
@@ -84,7 +81,7 @@ export const RenderLineChart = (props) => {
       aria-labelledby="keep-mounted-modal-title"
       aria-describedby="keep-mounted-modal-description"
     >
-      <Box sx={modalStyle(scrollbarWidth)} >
+      <Box sx={modalStyle()} >
         <Typography variant="h4" style={{ textAlign: "center" }}>
           {exerciseTitle}
         </Typography>
@@ -132,6 +129,7 @@ export const RenderLineChart = (props) => {
 
 export default function Progress(props) {
   const dispatch = useDispatch();
+  const containerRef = useRef(null);
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
   const exerciseList = useSelector((state) => state.progress.exerciseList);
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
@@ -155,12 +153,14 @@ export default function Progress(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ minHeight: "100%", paddingBottom: "15px" }}>
+      <Container maxWidth="md" sx={{ minHeight: "100%", paddingBottom: "15px" }} ref={containerRef}>
+        {containerRef.current && 
         <RenderLineChart
           targetExerciseHistory={targetExerciseHistory}
           open={open}
           handleClose={handleClose}
-        />
+          containerRef={containerRef}
+        />}
         <Grid
           container
           component={Paper}

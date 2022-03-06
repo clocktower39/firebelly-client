@@ -19,11 +19,11 @@ export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
