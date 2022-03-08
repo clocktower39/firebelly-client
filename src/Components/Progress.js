@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Box, Modal, Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
+import { Box, Modal, Button, Grid, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import AuthNavbar from "./AuthNavbar";
 
 const modalStyle = () => ({
   position: "absolute",
@@ -18,7 +18,7 @@ const modalStyle = () => ({
 });
 
 export const RenderLineChart = (props) => {
-  const { targetExerciseHistory, open, handleClose, containerRef } = props;
+  const { targetExerciseHistory, open, handleClose, containerSize } = props;
   let totalMaxWeight = 0;
   let totalMaxReps = 0;
   let exerciseTitle = "";
@@ -60,18 +60,18 @@ export const RenderLineChart = (props) => {
     });
   }
 
-  const [dimensions, setDimensions] = useState({ width: containerRef.current.offsetWidth * 0.75 , height: containerRef.current.offsetWidth * 0.25 });
+  // const [dimensions, setDimensions] = useState({ width: containerSize * 0.75 , height: containerSize * 0.25 });
 
-  useEffect(()=> {
-    const updateWindowDimensions = () => {
-      setDimensions({ width: (containerRef.current.offsetWidth * 0.75), height: (containerRef.current.offsetWidth * 0.25) });
-    };
+  // useEffect(()=> {
+  //   const updateWindowDimensions = () => {
+  //     setDimensions({ width: (containerSize * 0.75), height: (containerSize * 0.25) });
+  //   };
 
-    window.addEventListener("resize", updateWindowDimensions);
+  //   window.addEventListener("resize", updateWindowDimensions);
 
-    return () => window.removeEventListener("resize", updateWindowDimensions) 
+  //   return () => window.removeEventListener("resize", updateWindowDimensions) 
 
-  }, [containerRef]);
+  // }, [containerSize]);
   
   return (
     <Modal
@@ -86,8 +86,8 @@ export const RenderLineChart = (props) => {
           {exerciseTitle}
         </Typography>
         <BarChart
-          width={dimensions.width}
-          height={dimensions.height}
+          width={containerSize * 0.75}
+          height={containerSize * 0.25}
           data={exercise}
         >
           {exercise[exerciseIndex] &&
@@ -107,8 +107,8 @@ export const RenderLineChart = (props) => {
         </BarChart>
 
         <BarChart
-          width={dimensions.width}
-          height={dimensions.height}
+          width={containerSize * 0.75}
+          height={containerSize * 0.25}
           data={exercise}
         >
           {exercise[exerciseIndex] &&
@@ -128,8 +128,8 @@ export const RenderLineChart = (props) => {
 };
 
 export default function Progress(props) {
+  const [ size ] = useOutletContext();
   const dispatch = useDispatch();
-  const containerRef = useRef(null);
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
   const exerciseList = useSelector((state) => state.progress.exerciseList);
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
@@ -153,25 +153,14 @@ export default function Progress(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ minHeight: "100%", paddingBottom: "15px" }} ref={containerRef}>
-        {containerRef.current && 
+        {size &&
         <RenderLineChart
           targetExerciseHistory={targetExerciseHistory}
           open={open}
           handleClose={handleClose}
-          containerRef={containerRef}
+          containerSize={size}
         />}
-        <Grid
-          container
-          component={Paper}
-          style={{
-            minHeight: "100%",
-            justifyContent: "center",
-            marginTop: "25px",
-            padding: "15px",
-            borderRadius: "15px",
-          }}
-        >
+        <Grid container sx={{justifyContent: "center", marginTop: "25px",}}>
           <Grid item xs={12} sm={8} container>
             <TextField
               label="Exercise"
@@ -199,8 +188,6 @@ export default function Progress(props) {
               ) : null
             )}
         </Grid>
-      </Container>
-      <AuthNavbar />
     </>
   );
 }

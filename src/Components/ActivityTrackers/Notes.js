@@ -33,7 +33,7 @@ export default function Notes() {
             </Typography>
           </Grid>
 
-          <Grid container item xs={12} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', flex: 'auto', }}>
+          <Grid container item xs={12} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
             {notes &&
               notes.map((n, i) => (
                 <Grid key={`note-${n.date}-${i}`} container sx={{ padding: "12px 0px" }}>
@@ -47,7 +47,7 @@ export default function Notes() {
                       </Typography>
                       <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>{n.date.substr(0, 10)}</Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid item xs={11}>
                       <Typography variant="body2">{n.note}</Typography>
                     </Grid>
                   </Grid>

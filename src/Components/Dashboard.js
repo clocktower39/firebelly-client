@@ -53,7 +53,7 @@ export default function Dashboard() {
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
         <Grid container spacing={2}>
           <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-            <Typography variant="h4" sx={{ color: "white" }}>
+            <Typography variant="h4">
               Dashboard
             </Typography>
           </Grid>

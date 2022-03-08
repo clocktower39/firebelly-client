@@ -16,7 +16,7 @@ function SwipeableSet(props) {
         toggleRemoveSet,
         maxSteps,
         selectedDate,
-        trainingContainerRef,
+        size,
     } = props;
     const [activeStep, setActiveStep] = useState(0);
     const [heightToggle, setHeightToggle] = useState(true);
@@ -114,7 +114,7 @@ function SwipeableSet(props) {
                                     localTraining={localTraining}
                                     setLocalTraining={setLocalTraining}
                                     setHeightToggle={setHeightToggle}
-                                    trainingContainerRef={trainingContainerRef}
+                                    size={size}
                                 />
                             ))}
                             <Grid container item xs={12}>

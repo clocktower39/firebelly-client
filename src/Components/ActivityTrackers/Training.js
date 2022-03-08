@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect,  } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Autocomplete,
   Box,
   Button,
   Chip,
-  Container,
   Divider,
   Grid,
   IconButton,
   LinearProgress,
   Modal,
-  Paper,
   TextField,
   Typography,
 } from "@mui/material";
@@ -19,7 +18,6 @@ import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons
 import { createTraining, requestTraining, updateTraining, updateWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
-import AuthNavbar from "../AuthNavbar";
 import Loading from "../Loading";
 
 export function ModalAction(props) {
@@ -59,7 +57,7 @@ export function ModalAction(props) {
 
 export default function Training(props) {
   const dispatch = useDispatch();
-  const trainingContainerRef = useRef(null);
+  const [ size ] = useOutletContext();
   const training = useSelector((state) => state.training);
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -259,7 +257,6 @@ export default function Training(props) {
   
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px", }} ref={trainingContainerRef} >
         <Modal open={modalOpen} onClose={handleModalToggle} >
           <Box sx={classes.modalStyle}>
             <Typography variant="h5" textAlign="center" gutterBottom >Workout Settings</Typography>
@@ -272,15 +269,6 @@ export default function Training(props) {
             <ModalAction actionType={modalActionType} selectedDate={selectedDate} handleModalToggle={handleModalToggle}/>
           </Box>
         </Modal>
-        <Paper
-          sx={{
-            padding: "0px 15px 0px 15px",
-            borderRadius: "15px",
-            minHeight: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
           <SelectedDate setParentSelectedDate={setSelectedDate} input />
           <Grid container sx={{ alignItems: "center", paddingBottom: "15px" }}>
             <Grid item xs={3}>
@@ -351,7 +339,7 @@ export default function Training(props) {
                     toggleRemoveSet={toggleRemoveSet}
                     maxSteps={localTraining.length}
                     selectedDate={selectedDate}
-                    trainingContainerRef={trainingContainerRef}
+                    size={size}
                   />
                 )}
               </Grid>
@@ -378,9 +366,6 @@ export default function Training(props) {
               </Button>
             </Grid>
           )}
-        </Paper>
-      </Container>
-      <AuthNavbar />
     </>
   );
 }

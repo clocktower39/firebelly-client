@@ -21,6 +21,7 @@ import Clients from "./Components/Clients";
 import Progress from "./Components/Progress";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ExerciseLibrary from "./Components/ExerciseLibrary";
+import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrackerContainer";
 import "./App.css";
 
 function App() {
@@ -59,25 +60,37 @@ function App() {
 
               {/* Must be logged in and have JWT token to authenticate */}
               <Route exact path="/" element={<AuthRoute />}>
-                <Route exact path="/" element={<Dashboard />} />
+                <Route exact path="/" element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Dashboard />} />
+                </Route>
               </Route>
 
               <Route exact path="/tasks" element={<AuthRoute />}>
-                <Route exact path="/tasks" element={<Tasks />} />
+                <Route exact path="/tasks" element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Tasks />} />
+                </Route>
               </Route>
 
               <Route exact path="/training" element={<AuthRoute />}>
-                <Route exact path="/training" element={<Training />} />
+                <Route exact path="/training" element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Training />} />
+                </Route>
               </Route>
 
               <Route exact path="/nutrition" element={<AuthRoute />}>
-                <Route exact path="/nutrition" element={<Nutrition />} />
+                <Route exact path="/nutrition" element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Nutrition />} />
+                </Route>
               </Route>
+
+              <Route exact path="/progress" element={<AuthRoute />}>
+                <Route exact path="/progress" element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Progress />} />
+                </Route>
+              </Route>
+              
               <Route exact path="/notes" element={<AuthRoute />}>
                 <Route exact path="/notes" element={<Notes />} />
-              </Route>
-              <Route exact path="/nutrition" element={<AuthRoute />}>
-                <Route exact path="/nutrition" element={<Nutrition />} />
               </Route>
 
               <Route exact path="/week" element={<AuthRoute />}>
@@ -92,10 +105,6 @@ function App() {
 
               <Route exact path="/clients" element={<AuthRoute />}>
                 <Route exact path="/clients" element={<Clients />} />
-              </Route>
-
-              <Route exact path="/progress" element={<AuthRoute />}>
-                <Route exact path="/progress" element={<Progress />} />
               </Route>
 
               <Route exact path="/exerciseLibrary" element={<AuthRoute />}>

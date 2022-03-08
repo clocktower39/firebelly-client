@@ -6,7 +6,6 @@ import {
   AccordionSummary,
   Button,
   Checkbox,
-  Container,
   FormGroup,
   FormControlLabel,
   FormControl,
@@ -21,7 +20,6 @@ import { ExpandMore } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { requestTasks, checkToggleTask, addDateToTaskHistory } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
-import AuthNavbar from "../AuthNavbar";
 import DefaultTasks from "./DefaultTasks";
 
 const useStyles = makeStyles((theme) => ({
@@ -73,7 +71,6 @@ export default function Tasks(props) {
 
   return (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "15px" }}>
         <Modal open={isModalOpen}>
           <Paper className={classes.ModalPaper}>
             <Grid container spacing={3} alignContent="center" style={{ height: "100%" }}>
@@ -93,15 +90,6 @@ export default function Tasks(props) {
             </Grid>
           </Paper>
         </Modal>
-        <Paper
-          sx={{
-            padding: "0px 15px",
-            borderRadius: "15px",
-            minHeight: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
           <Grid container alignItems="center">
             <SelectedDate setParentSelectedDate={setSelectedDate} />
             <Grid container item xs={12} sx={{padding: '7.5px 0px'}}>
@@ -211,9 +199,6 @@ export default function Tasks(props) {
               </Grid>
             )}
           </Grid>
-        </Paper>
-      </Container>
-      <AuthNavbar />
     </>
   );
 }

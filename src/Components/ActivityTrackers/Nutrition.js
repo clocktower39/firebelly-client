@@ -2,18 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
-  Container,
   Grid,
   InputAdornment,
   LinearProgress,
-  Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { requestNutrition, updateNutrition } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
-import AuthNavbar from '../AuthNavbar';
 
 const useStyles = makeStyles((theme) => ({
   heading: {},
@@ -135,39 +132,34 @@ export default function Nutrition() {
 
   return (
     <>
-    <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
-      <Paper sx={{ padding: "0px 15px", borderRadius: "15px", minHeight: '100%', }}>
-          <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
-            <SelectedDate setParentSelectedDate={setSelectedDate} />
-            <Grid item xs={3}>
-              <Typography className={classes.heading}>Nutrition</Typography>
-            </Grid>
-            <Grid item xs={9}>
-              <LinearProgress
-                variant="determinate"
-                value={(nutritionAchieved / nutritionGoal) * 100}
-              />
-            </Grid>
-          </Grid>
-          <Grid container spacing={2}>
-            {localNutrition.stats &&
-              Object.keys(nutrition.stats).map((task) => (
-                <NutritionStat
-                  key={task}
-                  nutritionObjectProperty={task}
-                  task={localNutrition.stats[task]}
-                  setLocalNutrition={setLocalNutrition}
-                />
-              ))}
-            <Grid xs={12} item container style={{ justifyContent: "center" }}>
-              <Button variant="outlined" onClick={saveChanges}>
-                Save
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      </Container>
-      <AuthNavbar />
+      <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
+        <SelectedDate setParentSelectedDate={setSelectedDate} />
+        <Grid item xs={3}>
+          <Typography className={classes.heading}>Nutrition</Typography>
+        </Grid>
+        <Grid item xs={9}>
+          <LinearProgress
+            variant="determinate"
+            value={(nutritionAchieved / nutritionGoal) * 100}
+          />
+        </Grid>
+      </Grid>
+      <Grid container spacing={2}>
+        {localNutrition.stats &&
+          Object.keys(nutrition.stats).map((task) => (
+            <NutritionStat
+              key={task}
+              nutritionObjectProperty={task}
+              task={localNutrition.stats[task]}
+              setLocalNutrition={setLocalNutrition}
+            />
+          ))}
+        <Grid xs={12} item container style={{ justifyContent: "center" }}>
+          <Button variant="outlined" onClick={saveChanges}>
+            Save
+          </Button>
+        </Grid>
+      </Grid>
     </>
   );
 }
