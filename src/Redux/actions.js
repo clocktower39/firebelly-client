@@ -113,6 +113,36 @@ export function logoutUser() {
   };
 }
 
+export function changePassword(currentPassword, newPassword) {
+  return async (dispatch, getState) => {
+      const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+      const response = await fetch(`${serverURL}/changePassword`, {
+          method: 'post',
+          dataType: 'json',
+          body: JSON.stringify({ currentPassword, newPassword}),
+          headers: {
+              "Content-type": "application/json; charset=UTF-8",
+              "Authorization": bearer,
+          }
+      })
+      const data = await response.json();
+      if (data.error) {
+          return dispatch({
+              type: ERROR,
+              error: data.error
+          });
+      }
+      const accessToken = data.accessToken;
+      const decodedAccessToken = jwt(accessToken);
+
+      localStorage.setItem('JWT_AUTH_TOKEN', accessToken);
+      return dispatch({
+          type: LOGIN_USER,
+          agent: decodedAccessToken,
+      });
+  }
+}
 export function editUser(user) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;

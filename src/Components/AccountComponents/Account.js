@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
@@ -10,12 +10,33 @@ import {
   List,
   ListItem,
   ListItemText,
+  Menu,
+  MenuItem,
 } from "@mui/material";
+import { Settings } from "@mui/icons-material";
 import AuthNavbar from "../AuthNavbar";
 import { logoutUser } from "../../Redux/actions";
+import ChangePassword from './ChangePassword';
 
 export default function Account() {
   const dispatch = useDispatch();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const [passwordModal, setPasswordModal] = useState(false);
+  const handlePasswordOpen = () => setPasswordModal(true);
+  const handlePasswordClose = () => setPasswordModal(false);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  
+  const handleLogout = () => dispatch(logoutUser());
+
   return (
     <>
       <Container
@@ -27,7 +48,8 @@ export default function Account() {
             <Typography variant="h5" style={{ color: "#fff" }}>
               Account Settings
             </Typography>
-            <Button variant="contained" onClick={() => dispatch(logoutUser())}>Logout</Button>
+            
+            <Button variant="contained" onClick={handleClick}><Settings/></Button>
           </Grid>
           <Grid container item xs={12} sm={4} alignContent="flex-start">
             <Box component={Grid} display={{ xs: "none", sm: "flex" }}>
@@ -44,6 +66,13 @@ export default function Account() {
         </Grid>
       </Container>
       <AuthNavbar />
+              <Menu open={open} onClose={handleClose} anchorEl={anchorEl}>
+                <MenuItem onClick={handlePasswordOpen}>Change password</MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+              {passwordModal && open && (
+                <ChangePassword open={open} handlePasswordClose={handlePasswordClose} />
+              )}
     </>
   );
 }
