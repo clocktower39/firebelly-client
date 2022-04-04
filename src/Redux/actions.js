@@ -180,12 +180,11 @@ export function checkToggleTask(selectedDate, taskHistoryDateObject, newHistory)
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const response = await fetch(`${serverURL}/updateTaskHistoryDate`, {
+    const response = await fetch(`${serverURL}/updateTaskHistory`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        date: selectedDate,
-        tasks: taskHistoryDateObject.tasks,
+        history: newHistory,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -213,6 +212,20 @@ export function addDateToTaskHistory(taskDateObject) {
     const state = getState();
     const newHistory = [...state.tasks.history];
     newHistory.push(taskDateObject);
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/updateTaskHistory`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        history: newHistory
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
     return dispatch({
       type: EDIT_TASK_HISTORY,
       history: newHistory,
