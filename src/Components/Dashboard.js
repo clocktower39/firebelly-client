@@ -107,7 +107,6 @@ export default function Dashboard() {
                       <Typography
                         gutterBottom
                         variant="h5"
-                        component="a"
                         sx={{
                           width: "100%",
                           color: "white",
@@ -120,7 +119,6 @@ export default function Dashboard() {
                       <Typography
                         variant="body1"
                         color="textSecondary"
-                        component="a"
                         sx={{
                           padding: "7.5px 0",
                           color: "white",

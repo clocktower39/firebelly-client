@@ -229,6 +229,7 @@ export function addDateToTaskHistory(taskDateObject) {
     return dispatch({
       type: EDIT_TASK_HISTORY,
       history: newHistory,
+      data,
     });
   };
 }
