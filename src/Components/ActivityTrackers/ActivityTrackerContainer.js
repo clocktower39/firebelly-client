@@ -30,6 +30,7 @@ export default function ActivityTrackerContainer(props) {
                         minHeight: "100%",
                         display: "flex",
                         flexDirection: "column",
+                        root: {backgroundColor: '#fff'}
                     }}
                 >
                     <Outlet socket={socket} context={[size]} />

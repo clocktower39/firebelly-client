@@ -84,11 +84,11 @@ export default function Dashboard() {
                     }}
                   >
                     <CardMedia
-                      sx={{
+                      sx={(theme)=>({
                         height: 0,
                         paddingTop: "56.25%", // 16:9 == '56.25%',
-                        backgroundColor: '#D50000',
-                      }}
+                        backgroundColor: theme.palette.primary.main,
+                      })}
                     />
                     <CardContent
                       className="card-content"
