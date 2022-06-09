@@ -2,22 +2,21 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { loginUser } from "../Redux/actions";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: "25px 0",
-    textAlign: "center",
+const classes = {
+  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px", },
+  Paper: {
+    padding: "0px 15px 0px 15px",
+    borderRadius: "15px",
+    minHeight: "100%",
+    backgroundColor: '#fff',
+    flexDirection: 'column',
   },
-  textField: {
-    margin: "12px",
-  },
-  button: {},
-}));
+  JCcenter: { justifyContent: 'center', },
+};
 
 export const Login = (props) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
   const [email, setEmail] = useState(
@@ -52,51 +51,52 @@ export const Login = (props) => {
     return <Navigate to={{ pathname: "/" }} />;
   }
   return (
-    <Container maxWidth="sm">
-      <Grid container className={classes.root} component={Paper} spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h4" gutterBottom>
-            Log in
-          </Typography>
+    <Container maxWidth="sm" sx={classes.Container}>
+      <Grid container item component={Paper} sx={classes.Paper}>
+        <Grid container item xs={12} sx={{ flexGrow: 0, justifyContent: 'center', padding: '50px 0 25px 0', }}>
+
+          <Grid container item xs={12} sx={classes.JCcenter} ><Typography variant="h3" gutterBottom>Welcome!</Typography></Grid>
+          <Grid container item xs={12} sx={classes.JCcenter} ><Typography variant="h4" gutterBottom>Log in</Typography></Grid>
+
         </Grid>
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your email" : false}
-            className={classes.textField}
-            label="Email"
-            value={email}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your password" : false}
-            className={classes.textField}
-            label="Password"
-            value={password}
-            type="password"
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              e.target.value === "" ? setError(true) : setError(false);
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Button
-            variant="contained"
-            color="secondary"
-            className={classes.button}
-            onClick={(e) => handleLoginAttempt(e)}
-            disabled={disableButtonDuringLogin}
-          >
-            Login
-          </Button>
+        <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your email" : false}
+              label="Email"
+              value={email}
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Grid>
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your password" : false}
+              label="Password"
+              value={password}
+              type="password"
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                e.target.value === "" ? setError(true) : setError(false);
+              }}
+            />
+          </Grid>
+          <Grid container item xs={12} sx={classes.JCcenter}>
+            <Button
+              variant="contained"
+              color="secondary"
+              className={classes.button}
+              onClick={(e) => handleLoginAttempt(e)}
+              disabled={disableButtonDuringLogin}
+            >
+              Login
+            </Button>
+          </Grid>
         </Grid>
       </Grid>
     </Container>

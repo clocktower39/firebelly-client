@@ -1,23 +1,22 @@
 import React, { useState } from "react";
 import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { signupUser } from "../Redux/actions";
 
-const useStyles = makeStyles({
-  root: {
-    padding: "25px 0",
-    textAlign: "center",
+const classes = {
+  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px", },
+  Paper: {
+    padding: "0px 15px 0px 15px",
+    borderRadius: "15px",
+    minHeight: "100%",
+    backgroundColor: '#fff',
+    flexDirection: 'column',
   },
-  textField: {
-    margin: "12px",
-  },
-  button: {},
-});
+  JCcenter: { justifyContent: 'center', },
+};
 
 export const SignUp = (props) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const [error, setError] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -45,88 +44,95 @@ export const SignUp = (props) => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Grid container className={classes.root} component={Paper} spacing={3}>
-        <Grid item xs={12}>
-          <Typography variant="h4" gutterBottom>
-            Sign Up
-          </Typography>
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your first name" : false}
-            className={classes.textField}
-            label="First Name"
-            value={firstName}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
+    <Container maxWidth="sm" sx={classes.Container}>
+      <Grid container item component={Paper} sx={classes.Paper}>
+
+        <Grid container item xs={12} sx={{ flexGrow: 0, justifyContent: 'center', padding: '50px 0 25px 0', }}>
+          <Grid container item xs={12} sx={classes.JCcenter} ><Typography variant="h4" gutterBottom>Sign Up</Typography></Grid>
         </Grid>
 
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your last name" : false}
-            className={classes.textField}
-            label="Last Name"
-            value={lastName}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => setLastName(e.target.value)}
-          />
+        <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your first name" : false}
+              className={classes.textField}
+              label="First Name"
+              value={firstName}
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </Grid>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your last name" : false}
+              className={classes.textField}
+              label="Last Name"
+              value={lastName}
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+          </Grid>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your email" : false}
+              className={classes.textField}
+              label="Email"
+              value={email}
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </Grid>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your password" : false}
+              className={classes.textField}
+              label="Password"
+              value={password}
+              type="password"
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                e.target.value === "" ? setError(true) : setError(false);
+              }}
+            />
+          </Grid>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <TextField
+              color="secondary"
+              error={error === true ? true : false}
+              helperText={error === true ? "Please enter your password" : false}
+              className={classes.textField}
+              label="Confirm Password"
+              value={confirmPassword}
+              type="password"
+              onKeyDown={(e) => handleKeyDown(e)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                e.target.value === "" ? setError(true) : setError(false);
+              }}
+            />
+          </Grid>
+
+          <Grid container item xs={12} sx={classes.JCcenter} >
+            <Button variant="contained" color="secondary" className={classes.button}>
+              Sign Up
+            </Button>
+          </Grid>
         </Grid>
 
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your email" : false}
-            className={classes.textField}
-            label="Email"
-            value={email}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your password" : false}
-            className={classes.textField}
-            label="Password"
-            value={password}
-            type="password"
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              e.target.value === "" ? setError(true) : setError(false);
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            color="secondary"
-            error={error === true ? true : false}
-            helperText={error === true ? "Please enter your password" : false}
-            className={classes.textField}
-            label="Confirm Password"
-            value={confirmPassword}
-            type="password"
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              e.target.value === "" ? setError(true) : setError(false);
-            }}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant="contained" color="secondary" className={classes.button}>
-            Sign Up
-          </Button>
-        </Grid>
       </Grid>
     </Container>
   );
