@@ -22,6 +22,7 @@ import Progress from "./Components/Progress";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ExerciseLibrary from "./Components/ExerciseLibrary";
 import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrackerContainer";
+import NotFoundPage from "./Components/NotFoundPage";
 import "./App.css";
 
 function App() {
@@ -112,6 +113,7 @@ function App() {
               </Route>
             </>
           )}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </ThemeProvider>
