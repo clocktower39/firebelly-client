@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import {
+  Box,
   Card,
   CardActionArea,
   CardContent,
@@ -66,7 +67,7 @@ export default function Dashboard() {
               xs={6}
               sx={{ justifyContent: "center" }}
             >
-              <div style={{ width: "100%" }}>
+              <Box sx={{ width: "100%" }}>
                 <Card
                   sx={{
                     height: "100%",
@@ -91,7 +92,6 @@ export default function Dashboard() {
                       })}
                     />
                     <CardContent
-                      className="card-content"
                       sx={{
                         display: "flex",
                         flexDirection: "column",
@@ -128,7 +128,7 @@ export default function Dashboard() {
                     </CardContent>
                   </CardActionArea>
                 </Card>
-              </div>
+              </Box>
             </Grid>
           ))}
         </Grid>

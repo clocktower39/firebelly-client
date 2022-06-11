@@ -8,11 +8,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { requestNutrition, updateNutrition } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
   heading: {},
   ModalPaper: {
     position: "absolute",
@@ -22,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
     left: "50%",
     transform: "translate(-50%, 50%)",
   },
-}));
+};
 
 const NutritionStat = (props) => {
   const { task, setLocalNutrition, nutritionObjectProperty, } = props;
@@ -92,7 +91,6 @@ const NutritionStat = (props) => {
 };
 
 export default function Nutrition() {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const nutrition = useSelector((state) => state.nutrition);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -135,7 +133,7 @@ export default function Nutrition() {
       <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
         <SelectedDate setParentSelectedDate={setSelectedDate} />
         <Grid item xs={3}>
-          <Typography className={classes.heading}>Nutrition</Typography>
+          <Typography sx={classes.heading}>Nutrition</Typography>
         </Grid>
         <Grid item xs={9}>
           <LinearProgress
@@ -154,7 +152,7 @@ export default function Nutrition() {
               setLocalNutrition={setLocalNutrition}
             />
           ))}
-        <Grid xs={12} item container style={{ justifyContent: "center" }}>
+        <Grid xs={12} item container sx={{ justifyContent: "center" }}>
           <Button variant="outlined" onClick={saveChanges}>
             Save
           </Button>

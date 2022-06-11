@@ -118,7 +118,7 @@ function SwipeableSet(props) {
                                 />
                             ))}
                             <Grid container item xs={12}>
-                                <Grid container item xs={12} style={{ justifyContent: "center" }}>
+                                <Grid container item xs={12} sx={{ justifyContent: "center" }}>
                                     <IconButton onClick={() => newExercise(index)} title="Add a new exercise to the current set">
                                         <AddCircle />
                                     </IconButton>

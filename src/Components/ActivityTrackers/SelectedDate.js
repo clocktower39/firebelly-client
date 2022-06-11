@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button, Container, Grid, TextField, Divider } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
   ModalPaper: {
     position: "absolute",
     padding: "17.5px",
@@ -13,12 +12,11 @@ const useStyles = makeStyles((theme) => ({
     transform: "translate(-50%, 50%)",
   },
   ArrowIcons: {
-    color: theme.palette.primary.dark,
+    color: 'primary.dark',
   },
-}));
+};
 
 export default function SelectedDate(props) {
-  const classes = useStyles();
   const { setParentSelectedDate } = props;
 
   // format a Date object like ISO
@@ -45,11 +43,11 @@ export default function SelectedDate(props) {
   }, [selectedDate]);
 
   return (
-    <Container maxWidth="md" style={{ height: "100%", paddingTop: "25px" }}>
-      <Grid item xs={12} container style={{ justifyContent: "center" }}>
+    <Container maxWidth="md" sx={{ height: "100%", paddingTop: "25px" }}>
+      <Grid item xs={12} container sx={{ justifyContent: "center" }}>
         {/* Go back one day */}
-        <Button onClick={() => changeDate(-1)} className={classes.ArrowButton}>
-          <ArrowBack className={classes.ArrowIcons} />
+        <Button onClick={() => changeDate(-1)} sx={classes.ArrowButton}>
+          <ArrowBack sx={classes.ArrowIcons} />
         </Button>
 
         {/* Select a date from a calander input */}
@@ -60,7 +58,6 @@ export default function SelectedDate(props) {
           type="date"
           color="primary"
           value={selectedDate}
-          className={classes.TextField}
           onChange={(e) => setSelectedDate(e.target.value)}
           InputLabelProps={{
             shrink: true,
@@ -69,15 +66,16 @@ export default function SelectedDate(props) {
             "& .MuiOutlinedInput-input": {
               color: "secondary.contrastText",
             },
+            ...classes.TextField,
           }}
         />
 
         {/* Go forward one day */}
-        <Button onClick={() => changeDate(1)} className={classes.ArrowButton}>
-          <ArrowForward className={classes.ArrowIcons} />
+        <Button onClick={() => changeDate(1)} sx={classes.ArrowButton}>
+          <ArrowForward sx={classes.ArrowIcons} />
         </Button>
       </Grid>
-      <Divider style={{ margin: "15px" }} />
+      <Divider sx={{ margin: "15px" }} />
     </Container>
   );
 }

@@ -1,9 +1,8 @@
 import React from 'react'
 import { Box, Container, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
-import { makeStyles } from '@mui/styles'
 import Navbar from "./Navbar";
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
     root: {},
     MainCategory: {
         fontWeight: 'bold',
@@ -12,16 +11,15 @@ const useStyles = makeStyles((theme) => ({
     SubCategory: {
         fontWeight: 'bold',
     },
-}))
+};
 
 export default function Nutrition() {
-    const classes = useStyles();
     return (
         <>
             <Navbar />
             <Container >
-                <Typography variant="h3" style={{ color: 'white', textAlign: 'center', }} gutterBottom >Nutrition </Typography>
-                <Paper elevation="6" style={{ padding: '5px 25px' }}>
+                <Typography variant="h3" sx={{ color: 'white', textAlign: 'center', }} gutterBottom >Nutrition </Typography>
+                <Paper elevation="6" sx={{ padding: '5px 25px' }}>
                     <Typography >
                         Although the internet is a terrific tool that we are able to use for instant communication and spreading information quickly; its downfall is the fact that the information it so rapidly spreads, may be false.  I have met many people that are going along with the latest fad diet but have not gotten any science-based explanations on how nutrition actually works.
                         <br />
@@ -31,28 +29,28 @@ export default function Nutrition() {
                     </Typography>
                     <br />
                     <br />
-                    <Typography variant="h5"><Box className={classes.MainCategory} display='inline'>CALORIES</Box></Typography>
+                    <Typography variant="h5"><Box sx={classes.MainCategory} display='inline'>CALORIES</Box></Typography>
                     <Typography >
                         A simplified definition: A Calorie is a Unit of Energy<br /> How do we measure the amount of energy we consume when we eat, or the amount of energy we expend during exercise?
                     </Typography>
-                    <Typography ><span style={{ backgroundColor: 'green' }}>- IT IS MEASURED IN CALORIES</span></Typography>
+                    <Typography ><span sx={{ backgroundColor: 'green' }}>- IT IS MEASURED IN CALORIES</span></Typography>
                     <br />
                     <br />
-                    <Typography variant="h6"><Box className={classes.SubCategory} display='inline'>Why is this important?</Box></Typography>
+                    <Typography variant="h6"><Box sx={classes.SubCategory} display='inline'>Why is this important?</Box></Typography>
                     <Typography >Having a measurable number for how much energy we expend compared to how much we intake allows us to control our Weight.</Typography>
                     <br />
 
-                    <Typography variant="h6"><Box className={classes.SubCategory} display='inline'>How do we control weight with calories?</Box></Typography>
+                    <Typography variant="h6"><Box sx={classes.SubCategory} display='inline'>How do we control weight with calories?</Box></Typography>
                     <Typography >3500 Calories = 1 Pound of weight. (This is the standard, everyone may be slightly different)<br />
                         This means that if you consume 3500 calories more than you expend, you will gain one pound of weight.<br />
                         The opposite is also true; if you expend 3500 calories more than you consume, you will lose one pound of weight.</Typography>
                     <br />
 
-                    <Typography variant="h6"><Box className={classes.SubCategory} display='inline'>Tracking Caloric Intake</Box></Typography>
+                    <Typography variant="h6"><Box sx={classes.SubCategory} display='inline'>Tracking Caloric Intake</Box></Typography>
                     <Typography >Tracking your caloric intake has become very easy with many different food tracking apps such as MyFitnessPal, Fitbit, and others. You can simply scan barcodes of many packaged meals; or for homemade meals, figure out the calories content yourself and plug it in the app to save it. (Click here for an excel spread sheet to calculate calories & macros for homemade meals with multiple ingredients)</Typography>
                     <br />
 
-                    <Typography variant="h6"><Box className={classes.SubCategory} display='inline'>Finding Caloric Expenditure</Box></Typography>
+                    <Typography variant="h6"><Box sx={classes.SubCategory} display='inline'>Finding Caloric Expenditure</Box></Typography>
                     <Typography >When trying to figure out how many calories you are normally burning throughout the day, you must first find your BASAL METABOLIC RATE (BMR)
                         BMR is also frequently referred to as "Resting Metabolism", meaning the amount of energy (in calories) that your body requires to stay alive, without any action (as if you laid in bed all day long).
                         You can use our BMR Calculator if you don’t know yours already - more accurate if you are able to add in your body fat percentage.</Typography>
@@ -66,8 +64,8 @@ export default function Nutrition() {
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell><Box className={classes.SubCategory} display='inline'>Amount of Activity</Box></TableCell>
-                                    <TableCell><Box className={classes.SubCategory} display='inline'>Calculation</Box></TableCell>
+                                    <TableCell><Box sx={classes.SubCategory} display='inline'>Amount of Activity</Box></TableCell>
+                                    <TableCell><Box sx={classes.SubCategory} display='inline'>Calculation</Box></TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>

@@ -90,7 +90,7 @@ export const Login = (props) => {
             <Button
               variant="contained"
               color="secondary"
-              className={classes.button}
+              sx={classes.button}
               onClick={(e) => handleLoginAttempt(e)}
               disabled={disableButtonDuringLogin}
             >

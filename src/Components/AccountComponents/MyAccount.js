@@ -52,14 +52,14 @@ export default function MyAccount() {
   };
 
   return (
-    <Container maxWidth="md" style={{ height: "100%" }}>
-      <Grid container item xs={12} style={{ padding: "15px" }}>
-        <Typography variant="h5" gutterBottom style={{ color: "#fff" }}>
+    <Container maxWidth="md" sx={{ height: "100%" }}>
+      <Grid container item xs={12} sx={{ padding: "15px" }}>
+        <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
           My Account
         </Typography>
       </Grid>
       <Paper>
-        <Grid container spacing={2} style={{ padding: "15px" }}>
+        <Grid container spacing={2} sx={{ padding: "15px" }}>
           <Grid container item xs={12}>
             <TextField
               label="First Name"
@@ -144,7 +144,7 @@ export default function MyAccount() {
               <MenuItem value="N/A">Prefer not to answer</MenuItem>
             </TextField>
           </Grid>
-          <Grid container style={{ justifyContent: "center" }} item xs={12} spacing={2}>
+          <Grid container sx={{ justifyContent: "center" }} item xs={12} spacing={2}>
             <Grid item>
               <Button color='secondaryButton' variant="contained" onClick={handleCancel} >
                 Cancel

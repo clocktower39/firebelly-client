@@ -17,12 +17,11 @@ import {
   Typography,
 } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
-import { makeStyles } from "@mui/styles";
 import { requestTasks, checkToggleTask, addDateToTaskHistory } from "../../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import DefaultTasks from "./DefaultTasks";
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
   heading: {},
   ModalPaper: {
     position: "absolute",
@@ -33,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
     transform: "translate(-50%, 50%)",
     height: "50%",
   },
-}));
+};
 
 const TaskCheckbox = ({ selectedDate, tasks, task, compareWithSelectedDate }) => {
   const dispatch = useDispatch();
@@ -81,7 +80,6 @@ const TaskCheckbox = ({ selectedDate, tasks, task, compareWithSelectedDate }) =>
 }
 
 export default function Tasks(props) {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const tasks = useSelector((state) => state.tasks);
   const defaultTasks = tasks.defaultTasks;
@@ -117,16 +115,16 @@ export default function Tasks(props) {
   return (
     <>
       <Modal open={isModalOpen}>
-        <Paper className={classes.ModalPaper}>
-          <Grid container spacing={3} alignContent="center" style={{ height: "100%" }}>
-            <Grid item xs={12} container style={{ justifyContent: "center" }}>
+        <Paper sx={classes.ModalPaper}>
+          <Grid container spacing={3} alignContent="center" sx={{ height: "100%" }}>
+            <Grid item xs={12} container sx={{ justifyContent: "center" }}>
               <TextField
                 label="New Task Title"
                 value={modalNewTaskTitle}
                 onChange={(e) => setModalNewTaskTitle(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} container style={{ justifyContent: "center" }}>
+            <Grid item xs={12} container sx={{ justifyContent: "center" }}>
               <Button variant="outlined" onClick={cancelNewTask}>
                 Cancel
               </Button>
@@ -160,7 +158,7 @@ export default function Tasks(props) {
           </Accordion>
         </Grid>
         <Grid container item xs={3}>
-          <Typography className={classes.heading}>Daily Tasks</Typography>
+          <Typography sx={classes.heading}>Daily Tasks</Typography>
         </Grid>
         <Grid item xs={9}>
           <LinearProgress

@@ -64,7 +64,7 @@ const LoggedField = (props) => {
         size="small"
         InputProps={{
           endAdornment: (
-            <InputAdornment position="start" style={{ fontSize: "10px", textAlign: "right" }}>
+            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right" }}>
               /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
             </InputAdornment>
           ),
@@ -100,7 +100,7 @@ export default function LogLoader(props) {
               item
               xs={2}
               container
-              style={{ justifyContent: "flex-end", alignContent: "center" }}
+              sx={{ justifyContent: "flex-end", alignContent: "center" }}
             >
               <Typography noWrap>Set {exerciseSetIndex + 1}:</Typography>
             </Grid>

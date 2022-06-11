@@ -82,7 +82,7 @@ export const RenderLineChart = (props) => {
       aria-describedby="keep-mounted-modal-description"
     >
       <Box sx={modalStyle()} >
-        <Typography variant="h4" style={{ textAlign: "center" }}>
+        <Typography variant="h4" sx={{ textAlign: "center" }}>
           {exerciseTitle}
         </Typography>
         <BarChart

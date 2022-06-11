@@ -324,7 +324,7 @@ export default function Training(props) {
                   </Grid>
                 </Grid>
                 <Grid item xs={12}>
-                  <Divider style={{ margin: "25px 0px" }} />
+                  <Divider sx={{ margin: "25px 0px" }} />
                 </Grid>
                 {training.training.length > 0 && (
                   <SwipeableSet

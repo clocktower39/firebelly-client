@@ -7,8 +7,8 @@ export default function Fitness() {
     <>
       <Navbar />
       <Container >
-        <Typography variant="h3" style={{ color: 'white', textAlign: 'center', }} gutterBottom >Fitness</Typography>
-        <Paper elevation="6" style={{ padding: '5px 25px' }}>
+        <Typography variant="h3" sx={{ color: 'white', textAlign: 'center', }} gutterBottom >Fitness</Typography>
+        <Paper elevation="6" sx={{ padding: '5px 25px' }}>
           <Typography >
             Page coming soon.
           </Typography>

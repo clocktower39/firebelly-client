@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import {
   AppBar,
   Avatar,
+  Box,
   Button,
   Divider,
   IconButton,
@@ -16,12 +17,11 @@ import {
   Toolbar,
 } from "@mui/material";
 import { Assessment, FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
-import { makeStyles } from "@mui/styles";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import FireBellyLogo from "../../img/fireBellyLogo.jpg";
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
   Toolbar: {
     margin: 0,
     display: "flex",
@@ -36,6 +36,9 @@ const useStyles = makeStyles((theme) => ({
   NavAccountContainer: {
     display: "flex",
     flexDirection: "column",
+    minWidth: "32px",
+    padding: "0px 8px",
+    color: "white",
   },
   NavAccountOptions: {
     color: "#FEFFFF",
@@ -46,12 +49,11 @@ const useStyles = makeStyles((theme) => ({
     textTransform: "uppercase",
   },
   nested: {
-    paddingLeft: theme.spacing(4),
+    paddingLeft: 'theme.spacing(4)',
   },
-}));
+};
 
 export default function Navbar() {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const wide = useWindowWidth(775);
   const user = useSelector((state) => state.user);
@@ -61,7 +63,7 @@ export default function Navbar() {
 
   return (
     <AppBar position="sticky">
-      <Toolbar className={classes.Toolbar}>
+      <Toolbar sx={classes.Toolbar}>
         <IconButton color="inherit" component={Link} to="/">
           <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
         </IconButton>
@@ -77,63 +79,58 @@ export default function Navbar() {
           }
         >
           <Button
-            className={classes.NavLink}
+            sx={classes.NavLink}
             component={Link}
             to="/"
-            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
-              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Home</div>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Home</Box>
               <Home sx={{ color: "#FFF" }} />
             </Stack>
           </Button>
           <Button
-            className={classes.NavLink}
+            sx={classes.NavLink}
             component={Link}
             to="/basicinfo/fitness"
-            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
-              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Fitness</div>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Fitness</Box>
               <Assessment sx={{ color: "#D56100" }} />
             </Stack>
           </Button>
           <Button
-            className={classes.NavLink}
+            sx={classes.NavLink}
             component={Link}
             to="/basicinfo/nutrition"
-            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
-              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Nutrition</div>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Nutrition</Box>
               <Restaurant sx={{ color: "#00AA00" }} />
             </Stack>
           </Button>
           <Button
-            className={classes.NavLink}
+            sx={classes.NavLink}
             component={Link}
             to="/basicinfo/workshops"
-            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
-              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Workshops</div>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Workshops</Box>
               <Workspaces sx={{ color: "#008080" }} />
             </Stack>
           </Button>
           <Button
-            className={classes.NavLink}
+            sx={classes.NavLink}
             component={Link}
             to="/basicinfo/training"
-            sx={{ minWidth: "32px", padding: "0px 8px", color: "white" }}
           >
             <Stack justifyContent="center" alignItems="center">
-              <div style={{ display: wide ? "block" : "none", color: "#fff" }}>Training</div>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Training</Box>
               <FitnessCenter sx={{ color: "#d50000" }} />
             </Stack>
           </Button>
         </Stack>
 
-        <div className={classes.NavAccountContainer}>
+        <Box sx={classes.NavAccountContainer}>
           {user.email ? (
             <List component="nav" aria-labelledby="nested-list-subheader">
               <ListItem button onClick={toggleList}>
@@ -146,15 +143,15 @@ export default function Navbar() {
                 in={isListOpen}
                 timeout="auto"
                 unmountOnExit
-                style={{ position: "absolute" }}
+                sx={{ position: "absolute" }}
               >
-                <List component="div" disablePadding style={{ backgroundColor: "black" }}>
+                <List component="div" disablePadding sx={{ backgroundColor: "black" }}>
                   <ListItem
                     button
                     component={Link}
                     to="/dashboard"
                     onClick={toggleList}
-                    className={classes.nested}
+                    sx={classes.nested}
                   >
                     <ListItemText>Dashboard</ListItemText>
                   </ListItem>
@@ -162,7 +159,7 @@ export default function Navbar() {
                   <ListItem
                     button
                     onClick={() => dispatch(logoutUser())}
-                    className={classes.nested}
+                    sx={classes.nested}
                   >
                     <ListItemText>Logout</ListItemText>
                   </ListItem>
@@ -172,22 +169,20 @@ export default function Navbar() {
           ) : (
             <>
               <Button
-                className={classes.NavAccountOptions}
-                style={{ color: "#ee2726" }}
+                sx={{ ...classes.NavAccountOptions, color: "#ee2726" }}
                 href="https://app.firebellyfitness.com/login"
               >
                 Login
               </Button>
               <Button
-                className={classes.NavAccountOptions}
-                style={{ color: "#ffffff" }}
+                sx={{ ...classes.NavAccountOptions, color: "#ffffff" }}
                 href="https://app.firebellyfitness.com/signup"
               >
                 Sign up
               </Button>
             </>
           )}
-        </div>
+        </Box>
       </Toolbar>
     </AppBar>
   );

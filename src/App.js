@@ -38,7 +38,7 @@ function App() {
       parts.splice(0, 1);
       // Set the location to the new url
     }
-    return subdomain === "app" || subdomain === "10" || subdomain === "172" || subdomain === "192" || host === "localhost:3000" ? false : true;
+    return subdomain === "app"  || subdomain === "172" || subdomain === "192" || host === "localhost:3000" ? false : true;
   };
 
   return (

@@ -41,11 +41,11 @@ export default function Account() {
     <>
       <Container
         maxWidth="md"
-        style={{ height: "100%", paddingTop: "25px", paddingBottom: "75px" }}
+        sx={{ height: "100%", paddingTop: "25px", paddingBottom: "75px" }}
       >
         <Grid container>
           <Grid container item xs={12} sx={{ justifyContent: 'space-between'}}>
-            <Typography variant="h5" style={{ color: "#fff" }}>
+            <Typography variant="h5" sx={{ color: "#fff" }}>
               Account Settings
             </Typography>
             
@@ -55,7 +55,7 @@ export default function Account() {
             <Box component={Grid} display={{ xs: "none", sm: "flex" }}>
               <List>
                 <ListItem button component={Link} to="/account">
-                  <ListItemText primary="My Account" style={{ color: "white" }} />
+                  <ListItemText primary="My Account" sx={{ color: "white" }} />
                 </ListItem>
               </List>
             </Box>

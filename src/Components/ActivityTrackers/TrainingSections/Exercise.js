@@ -230,7 +230,7 @@ export default function Exercise(props) {
   };
 
   return (
-    <Grid container spacing={2} style={{ marginBottom: "25px", justifyContent: "center" }}>
+    <Grid container spacing={2} sx={{ marginBottom: "25px", justifyContent: "center" }}>
       {editMode ? (
         <>
           <Grid container item xs={12} spacing={1}>
@@ -321,12 +321,12 @@ export default function Exercise(props) {
               setLocalTraining={setLocalTraining}
             />
           </Grid>
-          <Grid container item xs={12} style={{ alignContent: "center" }}>
+          <Grid container item xs={12} sx={{ alignContent: "center" }}>
             <Grid
               container
               item
               xs={12}
-              style={{ justifyContent: "center", alignContent: "center" }}
+              sx={{ justifyContent: "center", alignContent: "center" }}
             >
               <Grid item>
                 <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
@@ -339,7 +339,7 @@ export default function Exercise(props) {
       ) : (
         <>
           <Grid item xs={12}>
-            <Typography variant="h6" style={{ textAlign: "center" }}>
+            <Typography variant="h6" sx={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
               <IconButton variant="contained" onClick={handleModalExercise}>
                 <Info />

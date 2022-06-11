@@ -58,7 +58,7 @@ export const SignUp = (props) => {
               color="secondary"
               error={error === true ? true : false}
               helperText={error === true ? "Please enter your first name" : false}
-              className={classes.textField}
+              sx={classes.textField}
               label="First Name"
               value={firstName}
               onKeyDown={(e) => handleKeyDown(e)}
@@ -71,7 +71,7 @@ export const SignUp = (props) => {
               color="secondary"
               error={error === true ? true : false}
               helperText={error === true ? "Please enter your last name" : false}
-              className={classes.textField}
+              sx={classes.textField}
               label="Last Name"
               value={lastName}
               onKeyDown={(e) => handleKeyDown(e)}
@@ -84,7 +84,7 @@ export const SignUp = (props) => {
               color="secondary"
               error={error === true ? true : false}
               helperText={error === true ? "Please enter your email" : false}
-              className={classes.textField}
+              sx={classes.textField}
               label="Email"
               value={email}
               onKeyDown={(e) => handleKeyDown(e)}
@@ -97,7 +97,7 @@ export const SignUp = (props) => {
               color="secondary"
               error={error === true ? true : false}
               helperText={error === true ? "Please enter your password" : false}
-              className={classes.textField}
+              sx={classes.textField}
               label="Password"
               value={password}
               type="password"
@@ -114,7 +114,7 @@ export const SignUp = (props) => {
               color="secondary"
               error={error === true ? true : false}
               helperText={error === true ? "Please enter your password" : false}
-              className={classes.textField}
+              sx={classes.textField}
               label="Confirm Password"
               value={confirmPassword}
               type="password"
@@ -127,7 +127,7 @@ export const SignUp = (props) => {
           </Grid>
 
           <Grid container item xs={12} sx={classes.JCcenter} >
-            <Button variant="contained" color="secondary" className={classes.button}>
+            <Button variant="contained" color="secondary" sx={classes.button}>
               Sign Up
             </Button>
           </Grid>

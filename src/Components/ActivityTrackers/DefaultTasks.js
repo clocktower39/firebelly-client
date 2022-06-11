@@ -146,7 +146,7 @@ export default function DefaultTasks(props) {
             }}
           />
         </Grid>
-        <Grid container style={{ justifyContent: "center" }} item xs={12} spacing={2}>
+        <Grid container sx={{ justifyContent: "center" }} item xs={12} spacing={2}>
           <Grid item>
             <Button variant="contained" onClick={handleCancel}>
               Cancel

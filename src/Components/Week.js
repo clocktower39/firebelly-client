@@ -10,27 +10,25 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { makeStyles } from "@mui/styles";
 import { ExpandMore } from "@mui/icons-material";
 import { requestNutritionWeek, requestTrainingWeek } from "../Redux/actions";
 import AuthNavbar from './AuthNavbar';
 
-const useStyles = makeStyles((theme) => ({
+const classes = {
   heading: {
     fontWeight: 600,
   },
   TextField: {
     "& .css-1d3z3hw-MuiOutlinedInput-notchedOutline": {
-      borderColor: theme.palette.primary.dark,
+      borderColor: 'primary.dark',
     },
     "& .MuiOutlinedInput-input": {
       color: "#ffffff",
     },
   },
-}));
+};
 
 export default function Week() {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const weeklyView = useSelector((state) => state.calander.weeklyView);
 
@@ -100,12 +98,12 @@ export default function Week() {
   return (
     <>
       <Container maxWidth="md" sx={{ minHeight: "100%", paddingTop: "15px", paddingBottom: "75px" }}>
-        <Typography variant="h5" gutterBottom textAlign="center" style={{ color: "#fff" }}>
+        <Typography variant="h5" gutterBottom textAlign="center" sx={{ color: "#fff" }}>
           Weekly View
         </Typography>
-        <Grid container item xs={12} style={{ justifyContent: "center", marginBottom: "25px" }}>
+        <Grid container item xs={12} sx={{ justifyContent: "center", marginBottom: "25px" }}>
           {/* Select start and end dates from a calander input */}
-          <Grid container item xs={6} sm={6} style={{ justifyContent: "center" }}>
+          <Grid container item xs={6} sm={6} sx={{ justifyContent: "center" }}>
             <TextField
               focused
               id="startDate"
@@ -113,14 +111,14 @@ export default function Week() {
               type="date"
               color="primary"
               value={selectedStartDate}
-              className={classes.TextField}
+              sx={classes.TextField}
               onChange={(e) => handleDatePick(e, "start")}
               InputLabelProps={{
                 shrink: true,
               }}
             />
           </Grid>
-          <Grid container item xs={6} sm={6} style={{ justifyContent: "center" }}>
+          <Grid container item xs={6} sm={6} sx={{ justifyContent: "center" }}>
             <TextField
               focused
               id="endDate"
@@ -128,7 +126,7 @@ export default function Week() {
               type="date"
               color="primary"
               value={selectedEndDate}
-              className={classes.TextField}
+              sx={classes.TextField}
               onChange={(e) => handleDatePick(e, "end")}
               InputLabelProps={{
                 shrink: true,
@@ -173,7 +171,7 @@ export default function Week() {
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
-                          <Typography variant="h5" className={classes.heading} textAlign="center">
+                          <Typography variant="h5" sx={classes.heading} textAlign="center">
                             {day.training
                               ? dayOfWeek(
                                 new Date(
@@ -186,18 +184,18 @@ export default function Week() {
                       </Grid>
                     </Grid>
                   </AccordionSummary>
-                  <Grid container style={{ justifyContent: "center" }}>
+                  <Grid container sx={{ justifyContent: "center" }}>
                     <Grid item xs={8}>
                       <Divider />
                     </Grid>
                   </Grid>
-                  <Grid container style={{ textAlign: "center" }}>
+                  <Grid container sx={{ textAlign: "center" }}>
                     <Grid item xs={12} sm={4}>
                       <AccordionDetails>
                         <Typography variant="h5">Daily Tasks</Typography>
                         <Typography variant="body1">{day.tasks ? `` : "No Data"}</Typography>
                       </AccordionDetails>
-                      <Grid container style={{ justifyContent: "center" }}>
+                      <Grid container sx={{ justifyContent: "center" }}>
                         <Grid item xs={8}>
                           <Divider />
                         </Grid>
@@ -213,7 +211,7 @@ export default function Week() {
                             : "No Data"}
                         </Typography>
                       </AccordionDetails>
-                      <Grid container style={{ justifyContent: "center" }}>
+                      <Grid container sx={{ justifyContent: "center" }}>
                         <Grid item xs={8}>
                           <Divider />
                         </Grid>

@@ -7,10 +7,10 @@ export default function Workshops() {
     <>
       <Navbar />
       <Container>
-        <Typography variant="h3" style={{ color: "white", textAlign: "center" }} gutterBottom>
+        <Typography variant="h3" sx={{ color: "white", textAlign: "center" }} gutterBottom>
           Workshops
         </Typography>
-        <Paper elevation="6" style={{ padding: "5px 25px" }}>
+        <Paper elevation="6" sx={{ padding: "5px 25px" }}>
           <Typography>
             Workshops are used to educate proper form & movement mechanics for certain exercises and
             skills. This will be very useful for those that may not want one-on-one training, but
