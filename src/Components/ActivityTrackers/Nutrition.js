@@ -97,7 +97,7 @@ export default function Nutrition() {
 
   let nutritionAchieved = 0;
   let nutritionGoal = 1;
-  if (nutrition.stats && Object.keys(nutrition.stats).length > 0) {
+  if (nutrition && nutrition.stats && Object.keys(nutrition.stats).length > 0) {
     nutritionAchieved = Object.keys(nutrition.stats)
       .map((item) => nutrition.stats[item])
       .reduce((a, b) => ({
@@ -143,7 +143,7 @@ export default function Nutrition() {
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        {localNutrition.stats &&
+        {localNutrition && nutrition && localNutrition.stats &&
           Object.keys(nutrition.stats).map((task) => (
             <NutritionStat
               key={task}
