@@ -143,7 +143,7 @@ export default function Exercise(props) {
           nonRepeating: [],
         });
       default:
-        return <Typography>Type Error</Typography>;
+        return <Typography color="primary.contrastText" >Type Error</Typography>;
     }
   };
 
@@ -197,7 +197,7 @@ export default function Exercise(props) {
           },
         ];
       default:
-        return <Typography>Type Error</Typography>;
+        return <Typography color="primary.contrastText" >Type Error</Typography>;
     }
   };
 
@@ -339,7 +339,7 @@ export default function Exercise(props) {
       ) : (
         <>
           <Grid item xs={12}>
-            <Typography variant="h6" sx={{ textAlign: "center" }}>
+            <Typography color="primary.contrastText" variant="h6" sx={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
               <IconButton variant="contained" onClick={handleModalExercise}>
                 <Info />

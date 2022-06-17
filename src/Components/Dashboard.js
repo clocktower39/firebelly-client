@@ -31,14 +31,14 @@ export default function Dashboard() {
       title: "Notes",
       to: "/notes",
     },
-    {
-      title: "Exercise Library",
-      to: "/exerciselibrary",
-    },
-    {
-      title: "Week View",
-      to: "/week",
-    },
+    // {
+    //   title: "Exercise Library",
+    //   to: "/exerciselibrary",
+    // },
+    // {
+    //   title: "Week View",
+    //   to: "/week",
+    // },
     {
       title: "Progress",
       to: "/progress",
@@ -54,7 +54,7 @@ export default function Dashboard() {
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "15px", paddingBottom: '75px', }}>
         <Grid container spacing={2}>
           <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-            <Typography variant="h4">
+            <Typography variant="h4" color="common.white">
               Dashboard
             </Typography>
           </Grid>
@@ -85,18 +85,18 @@ export default function Dashboard() {
                     }}
                   >
                     <CardMedia
-                      sx={(theme)=>({
+                      sx={{
                         height: 0,
                         paddingTop: "56.25%", // 16:9 == '56.25%',
-                        backgroundColor: theme.palette.primary.main,
-                      })}
+                        backgroundColor: 'primary.main',
+                      }}
                     />
                     <CardContent
                       sx={{
                         display: "flex",
                         flexDirection: "column",
                         padding: "5px 7.5px",
-                        backgroundColor: '#232323',
+                        backgroundColor: 'background.DashboardCard',
                         bottom: "-20%",
                         height: "100%",
                         minWidth: "calc(100% - 15px)",

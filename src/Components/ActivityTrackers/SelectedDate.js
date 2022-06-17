@@ -3,14 +3,6 @@ import { Button, Container, Grid, TextField, Divider } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 
 const classes = {
-  ModalPaper: {
-    position: "absolute",
-    padding: "17.5px",
-    width: "65%",
-    backgroundColor: "#fcfcfc",
-    left: "50%",
-    transform: "translate(-50%, 50%)",
-  },
   ArrowIcons: {
     color: 'primary.dark',
   },
@@ -61,12 +53,6 @@ export default function SelectedDate(props) {
           onChange={(e) => setSelectedDate(e.target.value)}
           InputLabelProps={{
             shrink: true,
-          }}
-          sx={{
-            "& .MuiOutlinedInput-input": {
-              color: "secondary.contrastText",
-            },
-            ...classes.TextField,
           }}
         />
 

@@ -4,6 +4,7 @@ import { Box, Modal, Button, Grid, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
+import { theme } from '../theme';
 
 const modalStyle = () => ({
   position: "absolute",
@@ -11,7 +12,7 @@ const modalStyle = () => ({
   left: "50%",
   transform: `translate(-50%, -50%)`,
   maxWidth: '1220px',
-  bgcolor: "background.paper",
+  bgcolor: "background.ATCPaperBackground",
   border: "2px solid #000",
   boxShadow: 24,
   p: 4,
@@ -59,19 +60,6 @@ export const RenderLineChart = (props) => {
       return newE;
     });
   }
-
-  // const [dimensions, setDimensions] = useState({ width: containerSize * 0.75 , height: containerSize * 0.25 });
-
-  // useEffect(()=> {
-  //   const updateWindowDimensions = () => {
-  //     setDimensions({ width: (containerSize * 0.75), height: (containerSize * 0.25) });
-  //   };
-
-  //   window.addEventListener("resize", updateWindowDimensions);
-
-  //   return () => window.removeEventListener("resize", updateWindowDimensions) 
-
-  // }, [containerSize]);
   
   return (
     <Modal
@@ -82,7 +70,7 @@ export const RenderLineChart = (props) => {
       aria-describedby="keep-mounted-modal-description"
     >
       <Box sx={modalStyle()} >
-        <Typography variant="h4" sx={{ textAlign: "center" }}>
+        <Typography variant="h4" color="primary.contrastText" sx={{ textAlign: "center" }}>
           {exerciseTitle}
         </Typography>
         <BarChart
@@ -95,13 +83,13 @@ export const RenderLineChart = (props) => {
               <Bar
                 key={`bar-weight-${exerciseIndex}-${i}`}
                 dataKey={`weight[${i}]`}
-                fill="#8884d8"
+                fill={theme.palette.secondary.main}
               />
             ))}
           <XAxis dataKey="date" />
           <YAxis
             domain={[0, totalMaxWeight]}
-            label={{ value: "Weight", angle: -90, position: "insideLeft" }}
+            label={{ value: "Weight", angle: -90, position: "insideLeft", fill: theme.palette.secondary.main, }}
           />
           <Tooltip cursor={false} />
         </BarChart>
@@ -113,12 +101,12 @@ export const RenderLineChart = (props) => {
         >
           {exercise[exerciseIndex] &&
             exercise[exerciseIndex].reps.map((w, i) => (
-              <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill="#8884d8" />
+              <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill={theme.palette.error.main} />
             ))}
           <XAxis dataKey="date" />
           <YAxis
             domain={[0, totalMaxReps]}
-            label={{ value: "Reps", angle: -90, position: "insideLeft" }}
+            label={{ value: "Reps", angle: -90, position: "insideLeft", fill: theme.palette.error.main, }}
           />
           <Tooltip cursor={false} />
         </BarChart>

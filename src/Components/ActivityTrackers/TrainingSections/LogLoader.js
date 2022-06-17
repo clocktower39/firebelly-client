@@ -102,7 +102,7 @@ export default function LogLoader(props) {
               container
               sx={{ justifyContent: "flex-end", alignContent: "center" }}
             >
-              <Typography noWrap>Set {exerciseSetIndex + 1}:</Typography>
+              <Typography color="primary.contrastText" noWrap>Set {exerciseSetIndex + 1}:</Typography>
             </Grid>
 
             {fields.map((field, fieldIndex) => {

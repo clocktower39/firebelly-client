@@ -22,16 +22,6 @@ import SelectedDate from "./SelectedDate";
 import DefaultTasks from "./DefaultTasks";
 
 const classes = {
-  heading: {},
-  ModalPaper: {
-    position: "absolute",
-    padding: "17.5px",
-    width: "65%",
-    backgroundColor: "#fcfcfc",
-    left: "50%",
-    transform: "translate(-50%, 50%)",
-    height: "50%",
-  },
 };
 
 const TaskCheckbox = ({ selectedDate, tasks, task, compareWithSelectedDate }) => {
@@ -115,7 +105,7 @@ export default function Tasks(props) {
   return (
     <>
       <Modal open={isModalOpen}>
-        <Paper sx={classes.ModalPaper}>
+        <Paper >
           <Grid container spacing={3} alignContent="center" sx={{ height: "100%" }}>
             <Grid item xs={12} container sx={{ justifyContent: "center" }}>
               <TextField
@@ -136,15 +126,14 @@ export default function Tasks(props) {
       <Grid container alignItems="center">
         <SelectedDate setParentSelectedDate={setSelectedDate} />
         <Grid container item xs={12} sx={{ padding: '7.5px 0px' }}>
-          <Accordion sx={{ width: "100%", boxShadow: "none", backgroundColor: (theme) => `#282828`, }}>
+          <Accordion sx={{ width: "100%", boxShadow: "none", backgroundColor: 'background.DashboardCard', }}>
             <AccordionSummary
-              expandIcon={<ExpandMore sx={{ color: (theme) => `${theme.palette.primary.contrastText}`, }} />}
+              expandIcon={<ExpandMore />}
               aria-controls="panel1a-content"
               id="panel1a-header"
               sx={{
-                padding: '0px', justifyContent: "center",
-                backgroundColor: (theme) => `${theme.palette.primary.main}`,
-                color: (theme) => `${theme.palette.primary.contrastText}`,
+                justifyContent: "center",
+                backgroundColor: 'primary.main',
                 '& .MuiAccordionSummary-content': {
                   flexGrow: 0,
                 },
@@ -158,7 +147,7 @@ export default function Tasks(props) {
           </Accordion>
         </Grid>
         <Grid container item xs={3}>
-          <Typography sx={classes.heading}>Daily Tasks</Typography>
+          <Typography sx={classes.heading} >Daily Tasks</Typography>
         </Grid>
         <Grid item xs={9}>
           <LinearProgress
@@ -177,7 +166,16 @@ export default function Tasks(props) {
             day.tasks
               .sort((a, b) => a.title > b.title)
               .map((task, taskIndex, taskArray) => {
-                return <TaskCheckbox key={`historyItem-${dayIndex}-${task.title}`} selectedDate={selectedDate} tasks={tasks} task={task} dayIndex={dayIndex} compareWithSelectedDate={compareWithSelectedDate} />
+                return (
+                  <TaskCheckbox
+                    key={`historyItem-${dayIndex}-${task.title}`}
+                    selectedDate={selectedDate}
+                    tasks={tasks}
+                    task={task}
+                    dayIndex={dayIndex}
+                    compareWithSelectedDate={compareWithSelectedDate}
+                  />
+                )
               })
           )
         ) : (

@@ -2,7 +2,7 @@ import { createTheme } from "@mui/material";
 
 export const theme = createTheme({
   palette: {
-    type: "dark",
+    mode: "dark",
     primary: {
       main: "#2e7d32",
     },
@@ -13,13 +13,14 @@ export const theme = createTheme({
       main: "#ff9800",
       contrastText: "#fff",
     },
+    background: {
+      ATCPaperBackground: '#121212',
+      DashboardCard: '#282828',
+    }
   },
   props: {
     MuiTextField: {
       variant: "outlined",
     },
-  },
-  overrides: {
-    MuiInputBase: {},
   },
 });
