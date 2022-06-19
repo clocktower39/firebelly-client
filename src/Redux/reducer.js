@@ -33,7 +33,12 @@ export let reducer = (
     case LOGOUT_USER:
       return {
         ...state,
-        user: {},
+        user: {
+          isTrainer: false,
+          theme: {
+            mode: 'dark',
+          }
+        },
       };
     case EDIT_TASKS:
       return {
@@ -53,7 +58,7 @@ export let reducer = (
         ...state,
         tasks: {
           ...state.tasks,
-          history: [...state,tasks.history, action.newDay],
+          history: [...state, tasks.history, action.newDay],
         },
       };
     case EDIT_TRAINING:

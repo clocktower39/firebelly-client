@@ -1,5 +1,8 @@
 export let user = {
     isTrainer: false,
+    theme: {
+        mode: 'light',
+    }
 }
 
 export let tasks = {

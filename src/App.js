@@ -20,6 +20,7 @@ import Account from "./Components/AccountComponents/Account";
 import Clients from "./Components/Clients";
 import Progress from "./Components/Progress";
 import MyAccount from "./Components/AccountComponents/MyAccount";
+import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import ExerciseLibrary from "./Components/ExerciseLibrary";
 import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrackerContainer";
 import NotFoundPage from "./Components/NotFoundPage";
@@ -101,6 +102,7 @@ function App() {
               <Route exact path="/account/*" element={<AuthRoute />}>
                 <Route exact path="/account/*/*" element={<Account />}>
                   <Route index={true} exact path="" element={<MyAccount />} />
+                  <Route index={true} exact path="theme" element={<ThemeSettings />} />
                 </Route>
               </Route>
 

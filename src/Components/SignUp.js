@@ -10,7 +10,6 @@ const classes = {
     padding: "0px 15px 0px 15px",
     borderRadius: "15px",
     minHeight: "100%",
-    backgroundColor: '#fff',
     flexDirection: 'column',
   },
   JCcenter: { justifyContent: 'center', },
