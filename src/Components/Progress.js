@@ -83,13 +83,13 @@ export const RenderLineChart = (props) => {
               <Bar
                 key={`bar-weight-${exerciseIndex}-${i}`}
                 dataKey={`weight[${i}]`}
-                fill={theme.palette.secondary.main}
+                fill={theme().palette.secondary.main}
               />
             ))}
           <XAxis dataKey="date" />
           <YAxis
             domain={[0, totalMaxWeight]}
-            label={{ value: "Weight", angle: -90, position: "insideLeft", fill: theme.palette.secondary.main, }}
+            label={{ value: "Weight", angle: -90, position: "insideLeft", fill: theme().palette.secondary.main, }}
           />
           <Tooltip cursor={false} />
         </BarChart>
@@ -101,12 +101,12 @@ export const RenderLineChart = (props) => {
         >
           {exercise[exerciseIndex] &&
             exercise[exerciseIndex].reps.map((w, i) => (
-              <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill={theme.palette.error.main} />
+              <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill={theme().palette.error.main} />
             ))}
           <XAxis dataKey="date" />
           <YAxis
             domain={[0, totalMaxReps]}
-            label={{ value: "Reps", angle: -90, position: "insideLeft", fill: theme.palette.error.main, }}
+            label={{ value: "Reps", angle: -90, position: "insideLeft", fill: theme().palette.error.main, }}
           />
           <Tooltip cursor={false} />
         </BarChart>

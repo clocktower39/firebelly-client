@@ -13,15 +13,15 @@ import {
 
 export default function AccountSettings() {
     const dispatch = useDispatch();
-    const userThemeMode = useSelector(state => state.user);
-    const options = [{ label: 'Dark (Default)', value: 'dark', }, { label: 'Light', value: 'light', }, { label: 'Custom', value: 'custom', disabled: true },]
+    const userThemeMode = useSelector(state => state.user.themeMode);
+    const options = [{ label: 'Light', value: 'light', }, { label: 'Dark', value: 'dark', }, { label: 'Custom', value: 'custom', disabled: true },]
     const [themeSelection, setThemeSelection] = useState(options.filter(option => option.value === userThemeMode)[0]);
 
     const handleChange = (e, selection) => {
         setThemeSelection(selection);
     }
 
-    const saveTheme = () => false? dispatch(updateThemeMode(themeSelection.value)) :null;
+    const saveTheme = () => dispatch(updateThemeMode(themeSelection.value));
 
     return (
         <Container maxWidth="md" sx={{ height: "100%" }}>

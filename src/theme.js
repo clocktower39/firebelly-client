@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material";
+import { store } from './Redux/store';
 
 const darkTheme = {
   palette: {
@@ -48,5 +49,5 @@ const lightTheme = {
     },
   },
 }
-
-export const theme = createTheme(true ? darkTheme : lightTheme);
+console.log(store.getState().user.themeMode)
+export const theme = () => createTheme(store.getState().user.themeMode === 'light' ? lightTheme : darkTheme);

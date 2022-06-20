@@ -35,9 +35,7 @@ export let reducer = (
         ...state,
         user: {
           isTrainer: false,
-          theme: {
-            mode: 'dark',
-          }
+          themeMode: 'light',
         },
       };
     case EDIT_TASKS:

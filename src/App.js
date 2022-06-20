@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from 'react-redux';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
@@ -27,6 +28,8 @@ import NotFoundPage from "./Components/NotFoundPage";
 import "./App.css";
 
 function App() {
+  const themeMode = useSelector(state => state.user.themeMode);
+  const [themeSelection, setThemeSelection] = useState(theme());
   const checkSubDomain = () => {
     let host = window.location.host;
     let parts = host.split(".");
@@ -42,8 +45,12 @@ function App() {
     return subdomain === "app"  || subdomain === "172" || subdomain === "192" || host === "localhost:3000" ? false : true;
   };
 
+  useEffect(()=>{
+    setThemeSelection(theme());
+  },[themeMode])
+
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={themeSelection}>
       <Router>
         <Routes>
           {/* Default website pages, anyone can access */}
