@@ -17,11 +17,12 @@ import Training from "./Components/ActivityTrackers/Training";
 import Notes from "./Components/ActivityTrackers/Notes";
 import Nutrition from "./Components/ActivityTrackers/Nutrition";
 import Week from "./Components/Week";
-import Account from "./Components/AccountComponents/Account";
 import Clients from "./Components/Clients";
 import Progress from "./Components/Progress";
+import Account from "./Components/AccountComponents/Account";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
+import Trainers from "./Components/AccountComponents/Trainers";
 import ExerciseLibrary from "./Components/ExerciseLibrary";
 import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrackerContainer";
 import NotFoundPage from "./Components/NotFoundPage";
@@ -110,6 +111,7 @@ function App() {
                 <Route exact path="/account/*/*" element={<Account />}>
                   <Route index={true} exact path="" element={<MyAccount />} />
                   <Route index={true} exact path="theme" element={<ThemeSettings />} />
+                  <Route index={true} exact path="trainers" element={<Trainers />} />
                 </Route>
               </Route>
 

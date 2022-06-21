@@ -100,7 +100,7 @@ export default function DefaultTasks(props) {
             fullWidth
             sx={{
               "& .MuiOutlinedInput-input": {
-                color: "primary.contrastText",
+                color: "text.primary",
               },
               borderBottomColor: "white",
               "& input": {

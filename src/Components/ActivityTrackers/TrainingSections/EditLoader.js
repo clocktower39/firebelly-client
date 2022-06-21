@@ -97,7 +97,7 @@ export default function EditLoader(props) {
               container
               sx={{ justifyContent: "flex-end", alignContent: "center" }}
             >
-              <Typography color="primary.contrastText" noWrap>Set {exerciseSetIndex + 1}:</Typography>
+              <Typography color="text.primary" noWrap>Set {exerciseSetIndex + 1}:</Typography>
             </Grid>
             <Grid container item xs={10} spacing={1} >
 

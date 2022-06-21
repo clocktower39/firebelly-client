@@ -44,7 +44,7 @@ export function ModalAction(props) {
       return (
         <>
         <Grid container>
-          <Grid container><Typography color='primary.contrastText' >Are you sure you would like the delete the training from {selectedDate}</Typography></Grid>
+          <Grid container><Typography color='text.primary' >Are you sure you would like the delete the training from {selectedDate}</Typography></Grid>
           <Grid container sx={{ justifyContent: 'center', }}>
             <Button variant="contained" onClick={handleDelete} >Confrim</Button>
           </Grid>
@@ -259,7 +259,7 @@ export default function Training(props) {
     <>
         <Modal open={modalOpen} onClose={handleModalToggle} >
           <Box sx={classes.modalStyle}>
-            <Typography variant="h5" textAlign="center" color="primary.contrastText" gutterBottom >Workout Settings</Typography>
+            <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom >Workout Settings</Typography>
             <Grid container sx={{ justifyContent: 'center', }}>
               <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
               <IconButton title="Copy Workout" disabled ><ContentCopy /></IconButton>
