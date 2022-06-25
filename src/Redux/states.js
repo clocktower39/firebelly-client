@@ -58,3 +58,5 @@ export let calander = {
     monthlyView:{
     },
 }
+
+export let myTrainers = [];

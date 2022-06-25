@@ -17,13 +17,14 @@ export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
+export const UPDATE_MY_TRAINERS = "UPDATE_MY_TRAINERS";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+const serverURL = `http:${currentIP}:6969`;
 
 // live server
-const serverURL = "https://firebellyfitness.herokuapp.com";
+// const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -791,3 +792,24 @@ export function updateThemeMode(mode) {
     });
   }
 }
+
+
+export function requestMyTrainers() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/relationships/myTrainers`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let myTrainers = await response.json();
+
+    return dispatch({
+      type: UPDATE_MY_TRAINERS,
+      myTrainers,
+    });
+  };
+}
+
