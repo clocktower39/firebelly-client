@@ -60,3 +60,4 @@ export let calander = {
 }
 
 export let myTrainers = [];
+export let trainers = [];
