@@ -19,6 +19,7 @@ import Nutrition from "./Components/ActivityTrackers/Nutrition";
 import Week from "./Components/Week";
 import Clients from "./Components/Clients";
 import Progress from "./Components/Progress";
+import Goals from "./Components/ActivityTrackers/Goals";
 import Account from "./Components/AccountComponents/Account";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
@@ -99,6 +100,10 @@ function App() {
                 </Route>
               </Route>
               
+              <Route exact path="/goals" element={<AuthRoute />}>
+                <Route exact path="/goals" element={<Goals />} />
+              </Route>
+
               <Route exact path="/notes" element={<AuthRoute />}>
                 <Route exact path="/notes" element={<Notes />} />
               </Route>

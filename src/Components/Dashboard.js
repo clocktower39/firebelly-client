@@ -40,6 +40,10 @@ export default function Dashboard() {
     //   to: "/week",
     // },
     {
+      title: "Goals",
+      to: "/goals",
+    },
+    {
       title: "Progress",
       to: "/progress",
     },

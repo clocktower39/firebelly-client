@@ -24,9 +24,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
 
   const SearchResultsTrainerCard = (props) => {
     const { trainer } = props;
-    const [isHovered, setIsHovered] = useState(false);
 
-    const toggleHover = () => setIsHovered(prev => !prev);
     return (
       <Grid container item xs={12}>
         <Card sx={{ width: '100%' }} >
@@ -37,12 +35,12 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
               </Avatar>
             }
             action={
-              <IconButton aria-label="status" onMouseEnter={toggleHover} onMouseLeave={toggleHover} >
-                {isHovered ? <AddCircle /> : trainer.accepted ? <AddCircle /> : <AddCircle />}
+              <IconButton aria-label="status" >
+                <AddCircle />
               </IconButton>
             }
             title={`${trainer.firstName} ${trainer.lastName}`}
-            subheader={trainer.accepted ? 'Accepted' : 'Pending'}
+            subheader={'Available'}
             sx={{
               '& .MuiCardHeader-action': {
                 alignSelf: 'center',

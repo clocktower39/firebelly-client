@@ -17,10 +17,11 @@ import {
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
   UPDATE_MY_TRAINERS,
   GET_TRAINERS,
+  GET_GOALS,
 } from "./actions";
-import { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers } from "./states";
+import { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers, goals } from "./states";
 export let reducer = (
-  state = { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers },
+  state = { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers, goals },
   action
 ) => {
   switch (action.type) {
@@ -134,6 +135,11 @@ export let reducer = (
       return {
         ...state,
         trainers: action.trainers,
+      };
+    case GET_GOALS:
+      return {
+        ...state,
+        goals: action.goals,
       };
     case ERROR:
       return {

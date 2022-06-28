@@ -45,9 +45,6 @@ export default function AccountSettings() {
                     </Grid>
                     <Grid container item xs={12} sx={{ justifyContent: 'center' }} spacing={1}>
                         <Grid item >
-                            <Button variant="contained" onClick={() => null}>Cancel</Button>
-                        </Grid>
-                        <Grid item >
                             <Button variant="contained" onClick={saveTheme}>Save</Button>
                         </Grid>
                     </Grid>
