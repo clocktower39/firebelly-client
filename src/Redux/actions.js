@@ -20,13 +20,14 @@ export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERC
 export const UPDATE_MY_TRAINERS = "UPDATE_MY_TRAINERS";
 export const GET_TRAINERS = "GET_TRAINERS";
 export const GET_GOALS = "GET_GOALS";
+export const UPDATE_GOAL = "UPDATE_GOAL";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -849,6 +850,28 @@ export function getGoals() {
     return dispatch({
       type: GET_GOALS,
       goals,
+    });
+  };
+}
+
+export function updateGoal(updatedGoal) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/updateGoal`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify(updatedGoal),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    })
+    let goal = await response.json();
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal,
     });
   };
 }
