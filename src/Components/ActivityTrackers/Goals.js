@@ -18,31 +18,64 @@ import {
 import {
   AccountCircle,
 } from "@mui/icons-material";
-import { getGoals, updateGoal } from "../../Redux/actions";
+import { getGoals, updateGoal, addGoalComment } from "../../Redux/actions";
 import AuthNavbar from "../AuthNavbar";
 
 export default function Goals() {
   const dispatch = useDispatch();
   const goals = useSelector((state) => state.goals);
-  const [openGoalDetails, setOpenGoalDetails] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState({});
-
-  const handleOpenGoalDetails = (goal) => {
-    setSelectedGoal(goal);
-    setOpenGoalDetails(true);
-  };
-  const handleCloseGoalDetails = () => {
-    setSelectedGoal({});
-    setOpenGoalDetails(false);
-  }
 
   useEffect(() => {
     dispatch(getGoals());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const GoalCard = ({ goal }) => {
+    const [openGoalDetails, setOpenGoalDetails] = useState(false);
+
+    const handleOpenGoalDetails = () => setOpenGoalDetails(true);
+    const handleCloseGoalDetails = () => setOpenGoalDetails(false);
+
+    return (
+      <Grid
+        container
+        item
+        md={4}
+        sm={6}
+        xs={12}
+        sx={{ justifyContent: "center" }}
+      >
+        <Box sx={{ width: "100%" }}>
+          <Card
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              '& .MuiPaper-root': {
+                backgroundColor: 'white',
+              }
+            }}
+          >
+            <CardActionArea onClick={handleOpenGoalDetails}
+            >
+              <CardContent>
+                <Typography gutterBottom variant="h5" component="div">
+                  {goal.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {goal.description}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+          </Card>
+        </Box>
+        <GoalDetails goal={goal} open={openGoalDetails} onClose={handleCloseGoalDetails} />
+      </Grid>
+    );
+  }
+
   const GoalDetails = (props) => {
-    const { goal } = props;
+    const { goal, open, onClose } = props;
     const [title, setTitle] = useState(goal.title || '');
     const [description, setDescription] = useState(goal.description || '');
     const [targetDate, setTargetDate] = useState(goal.targetDate || '');
@@ -68,10 +101,24 @@ export default function Goals() {
       setAchievedDate(goal.achievedDate || '');
     }
 
+    const handleCommentSubmit = () => {
+      if (newComment !== '') {
+        dispatch(addGoalComment(goal._id, newComment))
+          .then(() => setNewComment(''));
+      }
+    }
+
+    useEffect(() => {
+      setTitle(goal.title || '');
+      setDescription(goal.description || '');
+      setTargetDate(goal.targetDate || '');
+      setAchievedDate(goal.achievedDate || '');
+    }, [goal])
+
     return (
       <Dialog
-        open={openGoalDetails}
-        onClose={handleCloseGoalDetails}
+        open={open}
+        onClose={onClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         sx={{
@@ -100,7 +147,7 @@ export default function Goals() {
                 type="date"
                 fullWidth
                 label="Target Date"
-                value={targetDate}
+                value={targetDate.substr(0, 10)}
                 onChange={(e) => handleChange(e, setTargetDate)}
                 InputLabelProps={{ shrink: true }}
               />
@@ -110,7 +157,7 @@ export default function Goals() {
                 type="date"
                 fullWidth
                 label="Achieved Date"
-                value={achievedDate}
+                value={achievedDate.substr(0, 10)}
                 onChange={(e) => handleChange(e, setAchievedDate)}
                 InputLabelProps={{ shrink: true }}
               />
@@ -133,7 +180,7 @@ export default function Goals() {
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" onClick={saveTask} disabled >
+                <Button variant="contained" onClick={saveTask} >
                   Save
                 </Button>
               </Grid>
@@ -173,7 +220,7 @@ export default function Goals() {
                 onChange={(e) => setNewComment(e.target.value)}
                 label="Note"
                 InputProps={{
-                  endAdornment: <Button variant="contained" sx={{}} onClick={null}>Submit</Button>
+                  endAdornment: <Button variant="contained" sx={{}} onClick={handleCommentSubmit}>Submit</Button>
                 }}
                 InputLabelProps={{ shrink: true }}
               />
@@ -196,45 +243,8 @@ export default function Goals() {
           </Grid>
 
           <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
-            {goals.map((goal) => (
-              <Grid
-                key={goal._id}
-                container
-                item
-                md={4}
-                sm={6}
-                xs={12}
-                sx={{ justifyContent: "center" }}
-              >
-                <Box sx={{ width: "100%" }}>
-                  <Card
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      '& .MuiPaper-root': {
-                        backgroundColor: 'white',
-                      }
-                    }}
-                  >
-                    <CardActionArea onClick={() => handleOpenGoalDetails(goal)}
-                    >
-                      <CardContent>
-                        <Typography gutterBottom variant="h5" component="div">
-                          {goal.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {goal.description}
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Box>
-                <GoalDetails goal={selectedGoal} />
-              </Grid>
-            ))}
+            {goals.map((goal) => <GoalCard key={goal._id} goal={goal} /> )}
           </Grid>
-
 
         </Paper>
       </Container>

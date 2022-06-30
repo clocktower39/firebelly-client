@@ -146,7 +146,7 @@ export let reducer = (
       return {
         ...state,
         goals: [
-          ...state.goals.filter(goal => goal._id !== action.goal._id), action.goal
+          ...state.goals.map(goal => (goal._id === action.goal._id) ? { ...goal, ...action.goal } : goal)
         ]
       };
     case ERROR:

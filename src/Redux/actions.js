@@ -876,3 +876,26 @@ export function updateGoal(updatedGoal) {
   };
 }
 
+export function addGoalComment(goalId, newComment) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/commentGoal`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify({ _id: goalId, comment: newComment}),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    })
+    let goal = await response.json();
+    console.log(goal)
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal
+    });
+  };
+}
+
