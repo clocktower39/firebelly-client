@@ -25,16 +25,28 @@ export default function Goals() {
   const dispatch = useDispatch();
   const goals = useSelector((state) => state.goals);
 
+  const [selectedGoal, setSelectedGoal] = useState({});
+  const [openGoalDetails, setOpenGoalDetails] = useState(false);
+
+  const handleOpenGoalDetails = (goal) => {
+    setSelectedGoal(goal)
+    setOpenGoalDetails(true);
+  }
+  const handleCloseGoalDetails = () => setOpenGoalDetails(false);
+
+  useEffect(() => {
+    setSelectedGoal(prev => {
+      return prev ? goals.filter(goal => goal._id === prev._id)[0] : prev;
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goals]);
+
   useEffect(() => {
     dispatch(getGoals());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const GoalCard = ({ goal }) => {
-    const [openGoalDetails, setOpenGoalDetails] = useState(false);
-
-    const handleOpenGoalDetails = () => setOpenGoalDetails(true);
-    const handleCloseGoalDetails = () => setOpenGoalDetails(false);
+  const GoalCard = ({ goal, handleOpenGoalDetails }) => {
 
     return (
       <Grid
@@ -56,7 +68,7 @@ export default function Goals() {
               }
             }}
           >
-            <CardActionArea onClick={handleOpenGoalDetails}
+            <CardActionArea onClick={() => handleOpenGoalDetails(goal)}
             >
               <CardContent>
                 <Typography gutterBottom variant="h5" component="div">
@@ -69,7 +81,6 @@ export default function Goals() {
             </CardActionArea>
           </Card>
         </Box>
-        <GoalDetails goal={goal} open={openGoalDetails} onClose={handleCloseGoalDetails} />
       </Grid>
     );
   }
@@ -123,6 +134,7 @@ export default function Goals() {
         aria-describedby="alert-dialog-description"
         sx={{
           '& .MuiDialog-paper': {
+            height: '100%',
             width: "100%",
           }
         }}
@@ -189,7 +201,7 @@ export default function Goals() {
             <DialogTitle id="alert-dialog-title">
               Comments
             </DialogTitle>
-            <Grid container spacing={1} item sx={{ padding: "10px 0px" }}>
+            <Grid container spacing={1} item sx={{ padding: "10px 0px", justifyContent: 'center', }}>
               {goal.comments && goal.comments.length > 0
                 ? goal.comments.map(comment => (
                   <Grid key={comment._id} container sx={{ padding: "12px 0px" }}>
@@ -209,7 +221,7 @@ export default function Goals() {
                     </Grid>
                   </Grid>
                 ))
-                : "No comments"}
+                : <Typography variant="body1" >No comments</Typography>}
             </Grid>
             <Grid container item xs={12} sx={{ flexGrow: 1, alignContent: 'flex-end', flex: 'initial', }}>
               <TextField
@@ -243,12 +255,14 @@ export default function Goals() {
           </Grid>
 
           <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
-            {goals.map((goal) => <GoalCard key={goal._id} goal={goal} /> )}
+            {goals.map((goal) => <GoalCard key={goal._id} goal={goal} handleOpenGoalDetails={handleOpenGoalDetails} />)}
           </Grid>
 
         </Paper>
       </Container>
       <AuthNavbar />
+
+      {selectedGoal && <GoalDetails goal={selectedGoal} open={openGoalDetails} onClose={handleCloseGoalDetails} /> }
     </>
   );
 }
