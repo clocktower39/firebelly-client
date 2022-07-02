@@ -11,14 +11,17 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import {
   AccountCircle,
+  AddCircle,
+  Delete,
 } from "@mui/icons-material";
-import { getGoals, updateGoal, addGoalComment } from "../../Redux/actions";
+import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
 import AuthNavbar from "../AuthNavbar";
 
 export default function Goals() {
@@ -27,12 +30,17 @@ export default function Goals() {
 
   const [selectedGoal, setSelectedGoal] = useState({});
   const [openGoalDetails, setOpenGoalDetails] = useState(false);
+  const [openAddNewGoal, setOpenAddNewGoal] = useState(false);
+
 
   const handleOpenGoalDetails = (goal) => {
     setSelectedGoal(goal)
     setOpenGoalDetails(true);
   }
   const handleCloseGoalDetails = () => setOpenGoalDetails(false);
+
+  const handleOpenAddNewGoal = () => setOpenAddNewGoal(true);
+  const handleCloseAddNewGoal = () => setOpenAddNewGoal(false);
 
   useEffect(() => {
     setSelectedGoal(prev => {
@@ -92,8 +100,10 @@ export default function Goals() {
     const [targetDate, setTargetDate] = useState(goal.targetDate || '');
     const [achievedDate, setAchievedDate] = useState(goal.achievedDate || '');
     const [newComment, setNewComment] = useState('');
+    const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
 
     const handleChange = (e, setter) => setter(e.target.value);
+    
 
     const saveTask = () => {
       dispatch(updateGoal({
@@ -105,7 +115,7 @@ export default function Goals() {
       }))
     }
 
-    const cancelEdit = () => {
+    const resetEdit = () => {
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setTargetDate(goal.targetDate || '');
@@ -117,6 +127,52 @@ export default function Goals() {
         dispatch(addGoalComment(goal._id, newComment))
           .then(() => setNewComment(''));
       }
+    }
+
+    const handleOpenDeleteConfirmation = () => setOpenDeleteConfirmation(true);
+    const handleCloseDeleteConfirmation = () => setOpenDeleteConfirmation(false);
+
+    const DeleteConfirmation = ({ goalId, open, onClose }) => {
+      const submitDelete = () => dispatch(deleteGoal(goalId))
+      return (
+        <Dialog
+          open={open}
+          onClose={onClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          sx={{
+            '& .MuiDialog-paper': {
+              width: "80%",
+            }
+          }}
+        >
+          <DialogTitle id="alert-dialog-title">
+            <Grid container  >
+              <Grid container item xs={12} >
+                Delete Confirmation
+              </Grid>
+            </Grid>
+          </DialogTitle>
+          <DialogContent>
+            <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+              <Grid item container xs={12}>
+                <Typography variant="body1" >Are you sure you would like the permanently delete this goal?</Typography>
+              </Grid>
+              <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
+                <Grid item>
+                  <Button color='secondaryButton' variant="contained" onClick={onClose} >
+                    Cancel
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" onClick={submitDelete} >
+                    Confirm
+                  </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </Dialog>);
     }
 
     useEffect(() => {
@@ -140,7 +196,16 @@ export default function Goals() {
         }}
       >
         <DialogTitle id="alert-dialog-title">
-          Goal Details
+          <Grid container  >
+            <Grid container item xs={6} >
+              Goal Details
+            </Grid>
+            <Grid container item xs={6} justifyContent="flex-end" >
+              <IconButton variant="contained" onClick={handleOpenDeleteConfirmation} >
+                <Delete />
+              </IconButton>
+            </Grid>
+          </Grid>
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
@@ -187,8 +252,8 @@ export default function Goals() {
             </Grid>
             <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
               <Grid item>
-                <Button color='secondaryButton' variant="contained" onClick={cancelEdit} >
-                  Cancel
+                <Button color='secondaryButton' variant="contained" onClick={resetEdit} >
+                  Reset
                 </Button>
               </Grid>
               <Grid item>
@@ -211,7 +276,7 @@ export default function Goals() {
                     <Grid container item xs={10}>
                       <Grid container item xs={12}>
                         <Typography variant="body1">
-                          {/* {n.firstName} {n.lastName} */}
+                          {/* {comment.firstName} {comment.lastName} */}
                         </Typography>
                         <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>{comment.createdDate.substr(0, 10)}</Typography>
                       </Grid>
@@ -239,6 +304,113 @@ export default function Goals() {
             </Grid>
           </Grid>
         </DialogContent>
+        <DeleteConfirmation open={openDeleteConfirmation} onClose={handleCloseDeleteConfirmation} goalId={goal._id}/>
+      </Dialog>
+    )
+  }
+
+  const AddNewGoal = (props) => {
+    const { open, onClose } = props;
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [targetDate, setTargetDate] = useState('');
+    const [achievedDate, setAchievedDate] = useState('');
+
+    const handleChange = (e, setter) => setter(e.target.value);
+
+    const resetForm = () => {
+      setTitle('');
+      setDescription('');
+      setTargetDate('');
+      setAchievedDate('');
+    }
+
+    const submitNewGoal = () => {
+      dispatch(addNewGoal({
+        title,
+        description,
+        targetDate,
+        achievedDate,
+      }))
+        .then(() => {
+          resetForm();
+          onClose();
+        });
+    }
+
+    return (
+      <Dialog
+        open={open}
+        onClose={onClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        sx={{
+          '& .MuiDialog-paper': {
+            height: '100%',
+            width: "100%",
+          }
+        }}
+      >
+        <DialogTitle id="alert-dialog-title">
+          New Goal
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={1} sx={{ padding: "10px 0px" }} >
+            <Grid item container xs={12} >
+              <TextField
+                type="text"
+                fullWidth
+                label="Title"
+                value={title}
+                onChange={(e) => handleChange(e, setTitle)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item container xs={12} sm={6} >
+              <TextField
+                type="date"
+                fullWidth
+                label="Target Date"
+                value={targetDate.substr(0, 10)}
+                onChange={(e) => handleChange(e, setTargetDate)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item container xs={12} sm={6} >
+              <TextField
+                type="date"
+                fullWidth
+                label="Achieved Date"
+                value={achievedDate.substr(0, 10)}
+                onChange={(e) => handleChange(e, setAchievedDate)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item container xs={12}>
+              <TextField
+                type="text"
+                fullWidth
+                multiline
+                label="Description"
+                value={description}
+                onChange={(e) => handleChange(e, setDescription)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
+              <Grid item>
+                <Button color='secondaryButton' variant="contained" onClick={resetForm} >
+                  Reset
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" onClick={submitNewGoal} >
+                  Save
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
+        </DialogContent>
       </Dialog>
     )
   }
@@ -252,6 +424,7 @@ export default function Goals() {
             <Typography variant="h4">
               Goals
             </Typography>
+            <IconButton onClick={handleOpenAddNewGoal}><AddCircle /></IconButton>
           </Grid>
 
           <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
@@ -262,7 +435,8 @@ export default function Goals() {
       </Container>
       <AuthNavbar />
 
-      {selectedGoal && <GoalDetails goal={selectedGoal} open={openGoalDetails} onClose={handleCloseGoalDetails} /> }
+      {selectedGoal && <GoalDetails goal={selectedGoal} open={openGoalDetails} onClose={handleCloseGoalDetails} />}
+      <AddNewGoal goal={selectedGoal} open={openAddNewGoal} onClose={handleCloseAddNewGoal} />
     </>
   );
 }

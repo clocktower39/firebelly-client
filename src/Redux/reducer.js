@@ -19,6 +19,8 @@ import {
   GET_TRAINERS,
   GET_GOALS,
   UPDATE_GOAL,
+  ADD_NEW_GOAL,
+  DELETE_GOAL,
 } from "./actions";
 import { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers, goals } from "./states";
 export let reducer = (
@@ -147,6 +149,20 @@ export let reducer = (
         ...state,
         goals: [
           ...state.goals.map(goal => (goal._id === action.goal._id) ? { ...goal, ...action.goal } : goal)
+        ]
+      };
+    case ADD_NEW_GOAL:
+      return {
+        ...state,
+        goals: [
+          ...state.goals, action.goal
+        ]
+      };
+    case DELETE_GOAL:
+      return {
+        ...state,
+        goals: [
+          ...state.goals.filter(goal => goal._id !== action.goalId)
         ]
       };
     case ERROR:

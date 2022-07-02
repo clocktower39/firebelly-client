@@ -21,6 +21,8 @@ export const UPDATE_MY_TRAINERS = "UPDATE_MY_TRAINERS";
 export const GET_TRAINERS = "GET_TRAINERS";
 export const GET_GOALS = "GET_GOALS";
 export const UPDATE_GOAL = "UPDATE_GOAL";
+export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
+export const DELETE_GOAL = "DELETE_GOAL";
 
 // dev server
 // const currentIP = window.location.href.split(":")[1];
@@ -876,6 +878,53 @@ export function updateGoal(updatedGoal) {
   };
 }
 
+export function addNewGoal(newGoal) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/createGoal`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify(newGoal),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    })
+    let goal = await response.json();
+
+    return dispatch({
+      type: ADD_NEW_GOAL,
+      goal,
+    });
+  };
+}
+
+export function deleteGoal(goalId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/removeGoal`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify({ goalId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    })
+    let results = await response.json();
+
+    if(results.status === 'Record deleted'){
+      return dispatch({
+        type: DELETE_GOAL,
+        goalId,
+      });
+    }
+
+  };
+}
+
 export function addGoalComment(goalId, newComment) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -890,7 +939,6 @@ export function addGoalComment(goalId, newComment) {
       }
     })
     let goal = await response.json();
-    console.log(goal)
 
     return dispatch({
       type: UPDATE_GOAL,
