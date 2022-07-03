@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Box,
@@ -13,6 +14,7 @@ import {
 import AuthNavbar from './AuthNavbar';
 
 export default function Dashboard() {
+  const user = useSelector(state => state.user);
 
   const components = [
     {
@@ -48,6 +50,10 @@ export default function Dashboard() {
       to: "/progress",
     },
     {
+      title: "Clients",
+      to: "/clients",
+    },
+    {
       title: "Account Settings",
       to: "/account",
     },
@@ -62,7 +68,15 @@ export default function Dashboard() {
               Dashboard
             </Typography>
           </Grid>
-          {components.map((component) => (
+          {components.filter(c => {
+            if(!user.isTrainer){
+              if(c.title === 'Clients'){
+                return false;
+              }
+            }
+
+            return true;
+          }).map((component) => (
             <Grid
               key={`component-${component.title}`}
               container

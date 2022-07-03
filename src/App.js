@@ -112,6 +112,10 @@ function App() {
                 <Route exact path="/week" element={<Week />} />
               </Route>
 
+              <Route exact path="/clients" element={<AuthRoute />}>
+                <Route exact path="/clients" element={<Clients />} />
+              </Route>
+
               <Route exact path="/account/*" element={<AuthRoute />}>
                 <Route exact path="/account/*/*" element={<Account />}>
                   <Route index={true} exact path="" element={<MyAccount />} />
