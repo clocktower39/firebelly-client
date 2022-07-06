@@ -19,6 +19,7 @@ export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
 export const UPDATE_MY_TRAINERS = "UPDATE_MY_TRAINERS";
 export const GET_TRAINERS = "GET_TRAINERS";
+export const GET_CLIENTS = "GET_CLIENTS";
 export const GET_GOALS = "GET_GOALS";
 export const UPDATE_GOAL = "UPDATE_GOAL";
 export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
@@ -440,15 +441,21 @@ export function createNote(newNote) {
 }
 
 // Fetches daily training information
-export function requestTraining(date) {
+export function requestTraining(date, requestedBy = 'client', clientId) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const response = await fetch(`${serverURL}/training`, {
+    let url = `${serverURL}/training`;
+    if(requestedBy === 'trainer'){
+      url = `${serverURL}/getClientTraining`;
+    }
+
+    const response = await fetch(url, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
         date,
+        clientId
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -817,6 +824,24 @@ export function requestMyTrainers() {
   };
 }
 
+export function requestClients() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/relationships/myClients`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let clients = await response.json();
+
+    return dispatch({
+      type: GET_CLIENTS,
+      clients,
+    });
+  };
+}
 
 export function getTrainers() {
   return async (dispatch, getState) => {

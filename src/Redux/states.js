@@ -13,22 +13,23 @@ export let exerciseLibrary = [];
 
 export let training = {
     trainingCategory: "",
-    training:[
-    // [
-    //     {
-    //         exercise: "Incline DB Chest Press",
-    //         goals: {
-    //             sets: 4,
-    //             minReps: 12,
-    //             maxReps: 15,
-    //         },
-    //         achieved: {
-    //             sets: 4,
-    //             reps: [],
-    //         }
-    //     }
-    // ],
-]};
+    training: [
+        // [
+        //     {
+        //         exercise: "Incline DB Chest Press",
+        //         goals: {
+        //             sets: 4,
+        //             minReps: 12,
+        //             maxReps: 15,
+        //         },
+        //         achieved: {
+        //             sets: 4,
+        //             reps: [],
+        //         }
+        //     }
+        // ],
+    ]
+};
 
 export let nutrition = [];
 
@@ -46,7 +47,7 @@ export let progress = {
 }
 
 export let calander = {
-    weeklyView:[
+    weeklyView: [
         {},
         {},
         {},
@@ -55,10 +56,10 @@ export let calander = {
         {},
         {},
     ],
-    monthlyView:{
+    monthlyView: {
     },
 }
-
+export let clients = [];
 export let myTrainers = [];
 export let trainers = [];
 export let goals = [];

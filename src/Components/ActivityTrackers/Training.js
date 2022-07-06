@@ -56,8 +56,9 @@ export function ModalAction(props) {
 }
 
 export default function Training(props) {
+  const { view='client', clientId, } = props;
   const dispatch = useDispatch();
-  const [ size ] = useOutletContext();
+  const [ size ] = useOutletContext() || [900];
   const training = useSelector((state) => state.training);
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -213,7 +214,7 @@ export default function Training(props) {
   useEffect(() => {
     if(selectedDate !== null){
       setLoading(true);
-      dispatch(requestTraining(selectedDate))
+      dispatch(requestTraining(selectedDate, view, clientId ))
       .then(()=>{
         setLoading(false);
       });

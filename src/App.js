@@ -44,7 +44,7 @@ function App() {
       parts.splice(0, 1);
       // Set the location to the new url
     }
-    return subdomain === "app"  || subdomain === "172" || subdomain === "192" || host === "localhost:3000" ? false : true;
+    return subdomain === "app"  || subdomain === "172" || subdomain === "192" || subdomain === "10" || host === "localhost:3000" ? false : true;
   };
 
   useEffect(()=>{
@@ -65,7 +65,7 @@ function App() {
               <Route exact path="/basicinfo/training" element={<TrainingInfo />} />
             </>
           ) : (
-            <>
+            <> {/* App */}
               <Route exact path="/login" element={<Login />} />
               <Route exact path="/signup" element={<SignUp />} />
 

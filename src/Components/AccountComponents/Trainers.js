@@ -19,7 +19,7 @@ export default function Trainers() {
     const myTrainers = useSelector(state => state.myTrainers);
     const [openSearch, setOpenSearch] = useState(false);
 
-    const currentRelationshipIds=myTrainers.map(trainer => trainer.trainerId);
+    const currentRelationshipIds = myTrainers.map(trainer => trainer.trainerId);
 
     const handleOpenSearch = () => setOpenSearch(true);
     const handleCloseSearch = () => setOpenSearch(false);
@@ -31,12 +31,10 @@ export default function Trainers() {
 
     const RelationshipTrainerCard = (props) => {
         const { trainer } = props;
-        const [isHovered, setIsHovered] = useState(false);
 
-        const toggleHover = () => setIsHovered(prev => !prev);
         return (
             <Grid container item xs={12}>
-                <Card sx={{width:'100%'}} >
+                <Card sx={{ width: '100%' }} >
                     <CardHeader
                         avatar={
                             <Avatar aria-label="recipe">
@@ -44,9 +42,14 @@ export default function Trainers() {
                             </Avatar>
                         }
                         action={
-                            <IconButton aria-label="status" onMouseEnter={toggleHover} onMouseLeave={toggleHover} >
-                                {isHovered ? <Delete /> : trainer.accepted ? <Done /> : <PendingActions />}
-                            </IconButton>
+                            <>
+                                <IconButton aria-label="status" disableRipple >
+                                    {trainer.accepted ? <Done /> : <PendingActions />}
+                                </IconButton>
+                                <IconButton aria-label="status"  >
+                                    <Delete />
+                                </IconButton>
+                            </>
                         }
                         title={`${trainer.firstName} ${trainer.lastName}`}
                         subheader={trainer.accepted ? 'Accepted' : 'Pending'}
