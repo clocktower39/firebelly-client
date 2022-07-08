@@ -17,6 +17,7 @@ const darkTheme = {
     background: {
       ATCPaperBackground: '#121212',
       DashboardCard: '#282828',
+      ChartToopTip: '#000',
     }
   },
   props: {
@@ -41,6 +42,7 @@ const lightTheme = {
     background: {
       ATCPaperBackground: '#FFF',
       DashboardCard: '#444',
+      ChartToopTip: '#fff',
     }
   },
   props: {

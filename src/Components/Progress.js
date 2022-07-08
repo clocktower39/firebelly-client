@@ -60,7 +60,17 @@ export const RenderLineChart = (props) => {
       return newE;
     });
   }
-  
+
+  const RenderToolTip = ({ payload, unit, fill }) => {
+    return (
+      <Box sx={{ padding: '7.5px', borderRadius: '15px', backgroundColor: 'background.ChartToopTip', opacity: '.90' }}>
+        <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload[0] && payload[0].payload.date}</Typography>
+        <Typography textAlign='center' sx={{ color: fill }}>{unit}</Typography>
+        {payload[0] && payload[0].payload.reps.map((rep, i) => <Typography key={`${rep}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i+1}:</strong> <Typography variant="p" sx={{ color: fill}}>{rep}</Typography></Typography>)}
+      </Box>
+    );
+  }
+
   return (
     <Modal
       keepMounted
@@ -91,7 +101,7 @@ export const RenderLineChart = (props) => {
             domain={[0, totalMaxWeight]}
             label={{ value: "Weight", angle: -90, position: "insideLeft", fill: theme().palette.secondary.main, }}
           />
-          <Tooltip cursor={false} />
+          <Tooltip content={<RenderToolTip  />} unit={"Weight"} fill={theme().palette.secondary.main} cursor={false} />
         </BarChart>
 
         <BarChart
@@ -108,7 +118,7 @@ export const RenderLineChart = (props) => {
             domain={[0, totalMaxReps]}
             label={{ value: "Reps", angle: -90, position: "insideLeft", fill: theme().palette.error.main, }}
           />
-          <Tooltip cursor={false} />
+          <Tooltip content={<RenderToolTip  />} unit={"Reps"} fill={theme().palette.error.main} cursor={false} />
         </BarChart>
       </Box>
     </Modal>
@@ -116,7 +126,7 @@ export const RenderLineChart = (props) => {
 };
 
 export default function Progress(props) {
-  const [ size ] = useOutletContext();
+  const [size] = useOutletContext();
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
   const exerciseList = useSelector((state) => state.progress.exerciseList);
@@ -141,41 +151,41 @@ export default function Progress(props) {
 
   return (
     <>
-        {size &&
+      {size &&
         <RenderLineChart
           targetExerciseHistory={targetExerciseHistory}
           open={open}
           handleClose={handleClose}
           containerSize={size}
         />}
-        <Grid container sx={{justifyContent: "center", marginTop: "25px",}}>
-          <Grid item xs={12} sm={8} container>
-            <TextField
-              label="Exercise"
-              onChangeCapture={(e) => setSearchValue(e.target.value)}
-              value={searchValue}
-              fullWidth
-            />
-          </Grid>
-          {/* Remove empty strings and sort alphabetically from exercise list then filter by turning searchValue into a case-insensitive RegExp test */}
-          {exerciseList
-            .filter((x) => x !== "")
-            .sort((a, b) => a > b)
-            .map((exercise) =>
-              new RegExp(searchValue, "i").test(exercise) ? (
-                <Grid
-                  component={Button}
-                  item
-                  xs={12}
-                  container
-                  key={exercise}
-                  onClick={(e) => loadExerciseProgress(exercise)}
-                >
-                  <Typography variant="p">{exercise}</Typography>
-                </Grid>
-              ) : null
-            )}
+      <Grid container sx={{ justifyContent: "center", marginTop: "25px", }}>
+        <Grid item xs={12} sm={8} container>
+          <TextField
+            label="Exercise"
+            onChangeCapture={(e) => setSearchValue(e.target.value)}
+            value={searchValue}
+            fullWidth
+          />
         </Grid>
+        {/* Remove empty strings and sort alphabetically from exercise list then filter by turning searchValue into a case-insensitive RegExp test */}
+        {exerciseList
+          .filter((x) => x !== "")
+          .sort((a, b) => a > b)
+          .map((exercise) =>
+            new RegExp(searchValue, "i").test(exercise) ? (
+              <Grid
+                component={Button}
+                item
+                xs={12}
+                container
+                key={exercise}
+                onClick={(e) => loadExerciseProgress(exercise)}
+              >
+                <Typography variant="p">{exercise}</Typography>
+              </Grid>
+            ) : null
+          )}
+      </Grid>
     </>
   );
 }
