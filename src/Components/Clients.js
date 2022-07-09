@@ -108,7 +108,7 @@ export default function Clients() {
             {clients.map((client) => <ClientCard key={client._id} client={client} />)}
           </Grid>
         </Paper>
-        <Dialog open={openTraining} onClose={handleCloseTraining} ><Training view="trainer" clientId={selectedClient}/> </Dialog>
+        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient}/> </Dialog>
       </Container>
       <AuthNavbar />
     </>

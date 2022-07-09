@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import { AddCircle } from '@mui/icons-material';
-import { getTrainers } from '../../Redux/actions';
+import { getTrainers, requestTrainer } from '../../Redux/actions';
 
 export default function SearchTrainerDialog({ open, handleClose, currentRelationships }) {
   const dispatch = useDispatch();
@@ -25,6 +25,10 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
   const SearchResultsTrainerCard = (props) => {
     const { trainer } = props;
 
+    const handleRequestTrainer = () => {
+      dispatch(requestTrainer(trainer.trainerId))
+    }
+
     return (
       <Grid container item xs={12}>
         <Card sx={{ width: '100%' }} >
@@ -35,7 +39,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
               </Avatar>
             }
             action={
-              <IconButton aria-label="status" >
+              <IconButton aria-label="status" onClick={handleRequestTrainer}>
                 <AddCircle />
               </IconButton>
             }
