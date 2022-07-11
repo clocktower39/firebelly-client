@@ -882,6 +882,25 @@ export function requestTrainer(trainerId) {
   };
 }
 
+export function removeTrainer(trainerId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/removeRelationship`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify({ trainerId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    });
+    if(response.status === 200){
+      dispatch(requestMyTrainers());
+    }
+  };
+}
+
 export function getGoals() {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
