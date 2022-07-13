@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
-import { createTraining, requestTraining, updateTraining, updateWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
+import { createTraining, requestTraining, updateTraining, updateWorkoutDate, copyWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
 import SwipeableSet from "./TrainingSections/SwipeableSet";
 import SelectedDate from "./SelectedDate";
 import Loading from "../Loading";
@@ -29,6 +29,10 @@ export function ModalAction(props) {
     dispatch(updateWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
   }
 
+  const handleCopy = () => {
+    dispatch(copyWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
+  }
+
   const handleDelete = () => {
     dispatch(deleteWorkoutDate(selectedDate)).then(()=> handleModalToggle());
   }
@@ -39,6 +43,12 @@ export function ModalAction(props) {
         <>
           <SelectedDate setParentSelectedDate={setNewDate} />
           <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleMove} >Move</Button></Grid>
+        </>);
+    case 'copy':
+      return (
+        <>
+          <SelectedDate setParentSelectedDate={setNewDate} />
+          <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleCopy} >Copy</Button></Grid>
         </>);
     case 'delete':
       return (
@@ -263,7 +273,7 @@ export default function Training(props) {
             <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom >Workout Settings</Typography>
             <Grid container sx={{ justifyContent: 'center', }}>
               <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
-              <IconButton title="Copy Workout" disabled ><ContentCopy /></IconButton>
+              <IconButton title="Copy Workout" onClick={() => handleSetModalAction('copy')} ><ContentCopy /></IconButton>
               <IconButton title="Import Workout" disabled ><Download /></IconButton>
               <IconButton title="Delete Workout" onClick={() => handleSetModalAction('delete')} ><Delete /></IconButton>
             </Grid>

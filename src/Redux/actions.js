@@ -608,6 +608,33 @@ export function updateWorkoutDate(selectedDate, newDate) {
   };
 }
 
+// Updates training date
+export function copyWorkoutDate(selectedDate, newDate) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const data = await fetch(`${serverURL}/copyWorkout`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        originalDate: selectedDate,
+        newDate,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    }).then((res) => res.json());
+
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+  };
+}
+
 // Delete a training record
 export function deleteWorkoutDate(selectedDate) {
   return async (dispatch) => {
