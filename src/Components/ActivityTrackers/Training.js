@@ -30,7 +30,7 @@ export function ModalAction(props) {
   }
 
   const handleCopy = () => {
-    dispatch(copyWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
+    dispatch(copyWorkoutDate(selectedDate, newDate, )).then(()=> handleModalToggle());
   }
 
   const handleDelete = () => {
@@ -45,10 +45,29 @@ export function ModalAction(props) {
           <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleMove} >Move</Button></Grid>
         </>);
     case 'copy':
+      let copyOptions = [
+        { label: 'Exact Copy', value: 'exact' },
+        { label: 'Copy achieved as the new goal', value: 'achievedToNewGoal' },
+        { label: 'Copy goal only', value: 'copyGoalOnly' },
+      ];
       return (
         <>
           <SelectedDate setParentSelectedDate={setNewDate} />
-          <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleCopy} >Copy</Button></Grid>
+            
+          <Grid container sx={{ justifyContent: 'center', }} >
+            <Grid container item xs={12} sx={{ paddingBottom: '15px', }}>
+              <Autocomplete
+                disablePortal
+                options={copyOptions}
+                defaultValue={copyOptions[0]}
+                renderInput={(params) => <TextField {...params} label="Type" />}
+                sx={{ width: "100%" }}
+              />
+            </Grid>
+            <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
+              <Button variant="contained" onClick={handleCopy} >Copy</Button>
+            </Grid>
+          </Grid>
         </>);
     case 'delete':
       return (
