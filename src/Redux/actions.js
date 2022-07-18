@@ -26,11 +26,11 @@ export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
 export const DELETE_GOAL = "DELETE_GOAL";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// const serverURL = "https://firebellyfitness.herokuapp.com";
+const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -609,7 +609,7 @@ export function updateWorkoutDate(selectedDate, newDate) {
 }
 
 // Updates training date
-export function copyWorkoutDate(selectedDate, newDate) {
+export function copyWorkoutDate(selectedDate, newDate, copyOption = 'exact') {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -619,6 +619,7 @@ export function copyWorkoutDate(selectedDate, newDate) {
       body: JSON.stringify({
         originalDate: selectedDate,
         newDate,
+        option: copyOption,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

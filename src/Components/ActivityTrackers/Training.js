@@ -24,13 +24,14 @@ export function ModalAction(props) {
   const { actionType, selectedDate, handleModalToggle } = props;
   const dispatch = useDispatch();
   const [newDate, setNewDate] = useState(null);
+  const [copyOption, setCopyOption] = useState(null);
   
   const handleMove = () => {
     dispatch(updateWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
   }
 
   const handleCopy = () => {
-    dispatch(copyWorkoutDate(selectedDate, newDate, )).then(()=> handleModalToggle());
+    dispatch(copyWorkoutDate(selectedDate, newDate, copyOption.value )).then(()=> handleModalToggle());
   }
 
   const handleDelete = () => {
@@ -50,6 +51,10 @@ export function ModalAction(props) {
         { label: 'Copy achieved as the new goal', value: 'achievedToNewGoal' },
         { label: 'Copy goal only', value: 'copyGoalOnly' },
       ];
+
+      const handleOptionChange = (e, getTagProps) => {
+        setCopyOption(getTagProps);
+      };
       return (
         <>
           <SelectedDate setParentSelectedDate={setNewDate} />
@@ -59,13 +64,14 @@ export function ModalAction(props) {
               <Autocomplete
                 disablePortal
                 options={copyOptions}
-                defaultValue={copyOptions[0]}
+                isOptionEqualToValue={(option, value) => option.value === value.value}
                 renderInput={(params) => <TextField {...params} label="Type" />}
                 sx={{ width: "100%" }}
+                onChange={handleOptionChange}
               />
             </Grid>
             <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
-              <Button variant="contained" onClick={handleCopy} >Copy</Button>
+              <Button variant="contained" onClick={handleCopy} disabled={!copyOption} >Copy</Button>
             </Grid>
           </Grid>
         </>);
