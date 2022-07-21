@@ -871,6 +871,24 @@ export function requestClients() {
   };
 }
 
+export function changeRelationshipStatus(clientId, accepted) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    fetch(`${serverURL}/changeRelationshipStatus`, {
+      method: 'post',
+      dataType: 'json',
+      body: JSON.stringify({ clientId, accepted }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      }
+    })
+    .then(() => dispatch(requestClients()));
+
+  };
+}
+
 export function getTrainers() {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { requestClients } from '../Redux/actions';
+import { requestClients, changeRelationshipStatus } from '../Redux/actions';
 import { Avatar, Button, Card, CardHeader, Container, Dialog, Grid, IconButton, Paper, Typography } from "@mui/material";
-import { AddCircle, Delete, Done, PendingActions, } from "@mui/icons-material";
+import { Delete, Done, PendingActions, } from "@mui/icons-material";
 import AuthNavbar from "./AuthNavbar";
 import Training from "./ActivityTrackers/Training";
 
@@ -24,6 +24,10 @@ export default function Clients() {
     setSelectedClient('')
   }
 
+  const handleRelationshipStatus = (clientId, accepted) => {
+    dispatch(changeRelationshipStatus(clientId, accepted));
+  }
+
   const ClientCard = (props) => {
     const { client } = props;
     return (
@@ -31,16 +35,17 @@ export default function Clients() {
         <Card sx={{ width: '100%' }} >
           <CardHeader
             avatar={
-              <Avatar aria-label="recipe">
+              <Avatar >
                 {client.firstName[0]}{client.lastName[0]}
               </Avatar>
             }
             action={
               <>
-                <IconButton aria-label="status" disableRipple >
+
+                <IconButton title="Suspend" onClick={() => handleRelationshipStatus(client.clientId, !client.accepted)} >
                   {client.accepted ? <Done /> : <PendingActions />}
                 </IconButton>
-                <IconButton aria-label="status"  >
+                <IconButton title="Remove"  >
                   <Delete />
                 </IconButton>
               </>
@@ -48,10 +53,14 @@ export default function Clients() {
             title={`${client.firstName} ${client.lastName}`}
             subheader={client.accepted ? 'Accepted' : 'Pending'}
           />
-          <Button onClick={()=>handleOpenTraining(client)} >Training</Button>
-          <Button disabled >Daily Tasks</Button>
-          <Button disabled >Nutrition</Button>
-          <Button disabled >Goals</Button>
+          {client.accepted &&
+            <>
+              <Button onClick={() => handleOpenTraining(client)} >Training</Button>
+              <Button disabled >Daily Tasks</Button>
+              <Button disabled >Nutrition</Button>
+              <Button disabled >Goals</Button>
+            </>
+          }
         </Card>
       </Grid>
     );
@@ -87,9 +96,6 @@ export default function Clients() {
             }}
           >
             <Typography variant="h4">Training Clients</Typography>
-            <IconButton onClick={null}>
-              <AddCircle />
-            </IconButton>
           </Grid>
 
           <Grid
@@ -108,7 +114,7 @@ export default function Clients() {
             {clients.map((client) => <ClientCard key={client._id} client={client} />)}
           </Grid>
         </Paper>
-        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient}/> </Dialog>
+        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient} /> </Dialog>
       </Container>
       <AuthNavbar />
     </>
