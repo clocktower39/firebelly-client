@@ -947,16 +947,40 @@ export function removeTrainer(trainerId) {
   };
 }
 
-export function getGoals() {
+export function getGoals({ requestedBy = 'client', clientId, }) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const response = await fetch(`${serverURL}/goals`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
+    
+    let url = `${serverURL}/goals`;
+    let response;
+
+    if(requestedBy === 'trainer'){
+      url = `${serverURL}/clientGoals`;
+      response = await fetch(url, {
+        method: "post",
+        dataType: "json",
+        body: JSON.stringify({
+          requestedBy,
+          clientId
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+    }
+    else {
+      response = await fetch(url, {
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+    }
+
+
+
     let goals = await response.json();
 
     return dispatch({

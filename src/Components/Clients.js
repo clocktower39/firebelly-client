@@ -5,6 +5,7 @@ import { Avatar, Button, Card, CardHeader, Container, Dialog, Grid, IconButton, 
 import { Delete, Done, PendingActions, } from "@mui/icons-material";
 import AuthNavbar from "./AuthNavbar";
 import Training from "./ActivityTrackers/Training";
+import Goals from "./ActivityTrackers/Goals";
 
 export default function Clients() {
   const dispatch = useDispatch();
@@ -12,6 +13,7 @@ export default function Clients() {
   const clients = useSelector((state) => state.clients);
 
   const [openTraining, setOpenTraining] = useState(false);
+  const [openGoals, setOpenGoals] = useState(false);
   const [selectedClient, setSelectedClient] = useState('');
 
   const handleOpenTraining = (client) => {
@@ -21,6 +23,16 @@ export default function Clients() {
 
   const handleCloseTraining = () => {
     setOpenTraining(false);
+    setSelectedClient('')
+  }
+
+  const handleOpenGoals = (client) => {
+    setSelectedClient(client.clientId)
+    setOpenGoals(true);
+  }
+
+  const handleCloseGoals = () => {
+    setOpenGoals(false);
     setSelectedClient('')
   }
 
@@ -56,9 +68,9 @@ export default function Clients() {
           {client.accepted &&
             <>
               <Button onClick={() => handleOpenTraining(client)} >Training</Button>
+              <Button onClick={() => handleOpenGoals(client)} >Goals</Button>
               <Button disabled >Daily Tasks</Button>
               <Button disabled >Nutrition</Button>
-              <Button disabled >Goals</Button>
             </>
           }
         </Card>
@@ -115,6 +127,7 @@ export default function Clients() {
           </Grid>
         </Paper>
         <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient} /> </Dialog>
+        <Dialog open={openGoals} onClose={handleCloseGoals} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Goals view="trainer" clientId={selectedClient} /> </Dialog>
       </Container>
       <AuthNavbar />
     </>

@@ -24,7 +24,7 @@ import {
 import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
 import AuthNavbar from "../AuthNavbar";
 
-export default function Goals() {
+export default function Goals({ view="client", clientId, }) {
   const dispatch = useDispatch();
   const goals = useSelector((state) => state.goals);
 
@@ -50,7 +50,7 @@ export default function Goals() {
   }, [goals]);
 
   useEffect(() => {
-    dispatch(getGoals());
+    dispatch(getGoals({ requestedBy: view, clientId }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
