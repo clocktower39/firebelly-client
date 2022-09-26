@@ -12,6 +12,12 @@ const LoggedField = (props) => {
     setLocalTraining,
   } = props;
 
+  const handleFocus = (e) => {
+    if(Number(e.target.value) === 0){
+      e.target.select();
+    }
+  }
+
   const handleChange = (e) => {
     let answer = 0;
     setLocalTraining((prev) => {
@@ -61,6 +67,7 @@ const LoggedField = (props) => {
           pattern: "[0-9]*",
         }}
         onChange={handleChange}
+        onFocus={handleFocus}
         size="small"
         InputProps={{
           endAdornment: (
