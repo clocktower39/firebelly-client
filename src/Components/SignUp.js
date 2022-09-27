@@ -15,29 +15,84 @@ const classes = {
   JCcenter: { justifyContent: 'center', },
 };
 
+const SignupInput = ({ fieldProperty, label, value, error, helperText, handleKeyDown, setFormData }) => {
+  return (
+    <Grid container item xs={12} sx={classes.JCcenter} >
+      <TextField
+        color="secondary"
+        sx={classes.textField}
+        label={label}
+        value={value}
+        error={error === true ? true : false}
+        helperText={error === true ? helperText : false}
+        onKeyDown={(e) => handleKeyDown(e)}
+        onChange={(e) => setFormData(prev => ({
+          ...prev,
+          [fieldProperty]: {
+            ...prev[fieldProperty],
+            value: e.target.value
+          }
+        }))}
+        required
+      />
+    </Grid>
+  );
+}
+
 export const SignUp = (props) => {
   const dispatch = useDispatch();
-  const [error, setError] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const user = useSelector((state) => state.user);
+  const [formData, setFormData] = useState({
+    firstName: {
+      label: 'First Name',
+      value: '',
+      error: null,
+      helperText: 'Please enter your first name',
+    },
+    lastName: {
+      label: 'Last Name',
+      value: '',
+      error: null,
+      helperText: 'Please enter your last name',
+    },
+    email: {
+      label: 'Email',
+      value: '',
+      error: null,
+      helperText: 'Invalid email',
+    },
+    password: {
+      label: 'Password',
+      value: '',
+      error: null,
+      helperText: 'Please enter your first name',
+    },
+    confirmPassword: {
+      label: 'Confirm Password',
+      value: '',
+      error: null,
+      helperText: 'Please enter your first name',
+    },
+  });
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      if (firstName && lastName && email && password && confirmPassword) {
+      if (formData.firstName && formData.lastName && formData.email && formData.password && formData.confirmPassword) {
         handleSignupAttempt();
       }
     }
   };
+
   const handleSignupAttempt = (e) => {
-    if (email && password) {
-      dispatch(signupUser(JSON.stringify({ firstName, lastName, email, password })));
-      localStorage.setItem("email", email);
+    if (formData.firstName && formData.lastName && formData.email && formData.password && formData.confirmPassword) {
+      dispatch(signupUser(JSON.stringify({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: formData.password, })));
+      localStorage.setItem("email", formData.email);
+    }
+    else {
+
     }
   };
+
   if (user.email) {
     return <Navigate to={{ pathname: "/" }} />;
   }
@@ -52,81 +107,21 @@ export const SignUp = (props) => {
 
         <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
 
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your first name" : false}
-              sx={classes.textField}
-              label="First Name"
-              value={firstName}
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => setFirstName(e.target.value)}
+          {Object.keys(formData).map(fieldProperty => (
+            <SignupInput
+              key={fieldProperty}
+              fieldProperty={fieldProperty}
+              label={formData[fieldProperty].label}
+              value={formData[fieldProperty].value}
+              error={formData[fieldProperty].error}
+              helperText={formData[fieldProperty].helperText}
+              setFormData={setFormData}
+              handleKeyDown={handleKeyDown}
             />
-          </Grid>
+          ))}
 
           <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your last name" : false}
-              sx={classes.textField}
-              label="Last Name"
-              value={lastName}
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </Grid>
-
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your email" : false}
-              sx={classes.textField}
-              label="Email"
-              value={email}
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Grid>
-
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your password" : false}
-              sx={classes.textField}
-              label="Password"
-              value={password}
-              type="password"
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                e.target.value === "" ? setError(true) : setError(false);
-              }}
-            />
-          </Grid>
-
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your password" : false}
-              sx={classes.textField}
-              label="Confirm Password"
-              value={confirmPassword}
-              type="password"
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                e.target.value === "" ? setError(true) : setError(false);
-              }}
-            />
-          </Grid>
-
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <Button variant="contained" color="secondary" sx={classes.button}>
+            <Button variant="contained" color="secondary" sx={classes.button} onClick={handleSignupAttempt} >
               Sign Up
             </Button>
           </Grid>
