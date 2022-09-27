@@ -65,31 +65,40 @@ export const SignUp = (props) => {
       label: 'Password',
       value: '',
       error: null,
-      helperText: 'Please enter your first name',
+      helperText: 'Please enter your password',
     },
     confirmPassword: {
       label: 'Confirm Password',
       value: '',
       error: null,
-      helperText: 'Please enter your first name',
+      helperText: 'Passwords do not match',
     },
   });
+  const fieldProperties = Object.keys(formData);
+
+  const setError = (fieldProperty, hasError) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldProperty]: {
+        ...prev[fieldProperty],
+        error: hasError
+      }
+    }))
+  }
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      if (formData.firstName && formData.lastName && formData.email && formData.password && formData.confirmPassword) {
-        handleSignupAttempt();
-      }
+      handleSignupAttempt();
     }
   };
 
   const handleSignupAttempt = (e) => {
-    if (formData.firstName && formData.lastName && formData.email && formData.password && formData.confirmPassword) {
-      dispatch(signupUser(JSON.stringify({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: formData.password, })));
+    fieldProperties.forEach(fieldProperty => {
+      (formData[fieldProperty].value === '') ? setError(fieldProperty, true) : setError(fieldProperty, false);
+    })
+    if (!formData.firstName.error && !formData.lastName.error && !formData.email.error && !formData.password.error && !formData.confirmPassword.error) {
+      dispatch(signupUser({ firstName: formData.firstName.value, lastName: formData.lastName.value, email: formData.email.value, password: formData.password.value, }));
       localStorage.setItem("email", formData.email);
-    }
-    else {
-
     }
   };
 
@@ -107,7 +116,7 @@ export const SignUp = (props) => {
 
         <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
 
-          {Object.keys(formData).map(fieldProperty => (
+          {fieldProperties.map(fieldProperty => (
             <SignupInput
               key={fieldProperty}
               fieldProperty={fieldProperty}
