@@ -19,7 +19,7 @@ export default function MyAccount() {
   const [lastName, setLastName] = useState(user.lastName);
   const [email, setEmail] = useState(user.email);
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
-  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth.substr(0,10) || "");
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth ? user.dateOfBirth.substr(0,10) : "");
   const [height, setHeight] = useState(user.height || "");
   const [sex, setSex] = useState(user.sex || "");
 

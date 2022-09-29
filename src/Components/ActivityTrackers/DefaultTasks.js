@@ -69,7 +69,7 @@ export default function DefaultTasks(props) {
   };
 
   useEffect(() => {
-    setTempDefaultTasks(defaultTasks);
+    setTempDefaultTasks(defaultTasks || []);
   }, [defaultTasks]);
 
   return (

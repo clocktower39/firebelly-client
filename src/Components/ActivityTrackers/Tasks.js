@@ -71,8 +71,8 @@ const TaskCheckbox = ({ selectedDate, tasks, task, compareWithSelectedDate }) =>
 
 export default function Tasks(props) {
   const dispatch = useDispatch();
-  const tasks = useSelector((state) => state.tasks);
-  const defaultTasks = tasks.defaultTasks;
+  const tasks = useSelector((state) => state.tasks || []);
+  const defaultTasks = tasks ? tasks.defaultTasks : [];
   const [selectedDate, setSelectedDate] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -85,7 +85,7 @@ export default function Tasks(props) {
   const compareWithSelectedDate = (date) => date.substr(0, 10) === selectedDate;
 
   const filteredHistory = useSelector(
-    (state) => state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) || []
+    (state) => state.tasks ? state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) : []
   );
 
 
