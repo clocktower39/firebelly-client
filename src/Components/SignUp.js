@@ -15,7 +15,7 @@ const classes = {
   JCcenter: { justifyContent: 'center', },
 };
 
-const SignupInput = ({ fieldProperty, label, value, error, helperText, handleKeyDown, setFormData }) => {
+const SignupInput = ({ fieldProperty, label, value, error, helperText, type, handleKeyDown, setFormData }) => {
   return (
     <Grid container item xs={12} sx={classes.JCcenter} >
       <TextField
@@ -25,6 +25,7 @@ const SignupInput = ({ fieldProperty, label, value, error, helperText, handleKey
         value={value}
         error={error === true ? true : false}
         helperText={error === true ? helperText : false}
+        type={type}
         onKeyDown={(e) => handleKeyDown(e)}
         onChange={(e) => setFormData(prev => ({
           ...prev,
@@ -60,18 +61,21 @@ export const SignUp = (props) => {
       value: '',
       error: null,
       helperText: 'Invalid email',
+      type: 'email',
     },
     password: {
       label: 'Password',
       value: '',
       error: null,
       helperText: 'Please enter your password',
+      type: 'password',
     },
     confirmPassword: {
       label: 'Confirm Password',
       value: '',
       error: null,
       helperText: 'Passwords do not match',
+      type: 'password',
     },
   });
   const fieldProperties = Object.keys(formData);
@@ -124,6 +128,7 @@ export const SignUp = (props) => {
               value={formData[fieldProperty].value}
               error={formData[fieldProperty].error}
               helperText={formData[fieldProperty].helperText}
+              type={formData[fieldProperty].type || 'text'}
               setFormData={setFormData}
               handleKeyDown={handleKeyDown}
             />

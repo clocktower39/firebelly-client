@@ -15,15 +15,45 @@ const classes = {
   JCcenter: { justifyContent: 'center', },
 };
 
+const LoginInput = ({ fieldProperty, label, value, error, helperText, type, handleKeyDown, setFormData }) => {
+  return (
+    <Grid container item xs={12} sx={classes.JCcenter} >
+      <TextField
+        color="secondary"
+        sx={classes.textField}
+        label={label}
+        value={value}
+        error={error === true ? true : false}
+        helperText={error === true ? helperText : false}
+        type={type}
+        onKeyDown={(e) => handleKeyDown(e)}
+        onChange={(e) => setFormData(prev => ({
+          ...prev,
+          [fieldProperty]: {
+            ...prev[fieldProperty],
+            value: e.target.value
+          }
+        }))}
+        required
+      />
+    </Grid>
+  );
+}
+
 export const Login = (props) => {
   const dispatch = useDispatch();
-  const [error, setError] = useState(false);
-  const [email, setEmail] = useState(
-    localStorage.getItem("email") ? localStorage.getItem("email") : ""
-  );
-  const [password, setPassword] = useState("");
   const [disableButtonDuringLogin, setDisableButtonDuringLogin] = useState(false);
   const user = useSelector((state) => state.user);
+
+  const setError = (fieldProperty, hasError) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldProperty]: {
+        ...prev[fieldProperty],
+        error: hasError
+      }
+    }))
+  }
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -31,20 +61,37 @@ export const Login = (props) => {
     }
   };
   const handleLoginAttempt = (e) => {
-    if (email && password) {
+    fieldProperties.forEach(fieldProperty => {
+      (formData[fieldProperty].value === '') ? setError(fieldProperty, true) : setError(fieldProperty, false);
+    })
+
+    if (!formData.email.error && !formData.password.error) {
       setDisableButtonDuringLogin(true);
-      dispatch(loginUser({ email: email, password: password })).then((res) => {
+      dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then((res) => {
         if (res.error) {
-          setError(true);
         }
         setDisableButtonDuringLogin(false);
       });
-      localStorage.setItem("email", email);
-    } else {
-      setDisableButtonDuringLogin(false);
-      setError(true);
+      localStorage.setItem("email", formData.email.value);
     }
   };
+  const [formData, setFormData] = useState({
+    email: {
+      label: 'Email',
+      value: localStorage.getItem("email") || "",
+      error: null,
+      helperText: 'Invalid email',
+      type: 'email',
+    },
+    password: {
+      label: 'Password',
+      value: '',
+      error: null,
+      helperText: 'Please enter your password',
+      type: 'password'
+    },
+  });
+  const fieldProperties = Object.keys(formData);
 
   if (user.email) {
     return <Navigate to={{ pathname: "/" }} />;
@@ -59,32 +106,20 @@ export const Login = (props) => {
 
         </Grid>
         <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your email" : false}
-              label="Email"
-              value={email}
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => setEmail(e.target.value)}
+          {fieldProperties.map(fieldProperty => (
+            <LoginInput
+              key={fieldProperty}
+              fieldProperty={fieldProperty}
+              label={formData[fieldProperty].label}
+              value={formData[fieldProperty].value}
+              error={formData[fieldProperty].error}
+              helperText={formData[fieldProperty].helperText}
+              type={formData[fieldProperty].type || 'text'}
+              setFormData={setFormData}
+              handleKeyDown={handleKeyDown}
             />
-          </Grid>
-          <Grid container item xs={12} sx={classes.JCcenter} >
-            <TextField
-              color="secondary"
-              error={error === true ? true : false}
-              helperText={error === true ? "Please enter your password" : false}
-              label="Password"
-              value={password}
-              type="password"
-              onKeyDown={(e) => handleKeyDown(e)}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                e.target.value === "" ? setError(true) : setError(false);
-              }}
-            />
-          </Grid>
+          ))}
+
           <Grid container item xs={12} sx={classes.JCcenter}>
             <Button
               variant="contained"
