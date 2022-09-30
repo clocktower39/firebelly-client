@@ -64,7 +64,7 @@ export const RenderLineChart = (props) => {
   const RenderToolTip = ({ payload, unit, fill }) => {
     return (
       <Box sx={{ padding: '7.5px', borderRadius: '15px', backgroundColor: 'background.ChartToopTip', opacity: '.90' }}>
-        <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload[0] && payload[0].payload.date}</Typography>
+        <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload && payload[0] && payload[0].payload.date}</Typography>
         <Typography textAlign='center' sx={{ color: fill }}>{unit}</Typography>
         {payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i+1}:</strong> <Typography variant="p" sx={{ color: fill}}>{u}</Typography></Typography>)}
       </Box>
