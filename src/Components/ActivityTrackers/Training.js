@@ -329,12 +329,12 @@ export default function Training(props) {
                       multiple
                       id="tags-filled"
                       defaultValue={trainingCategory.map((category) => category)}
-                      options={categories.map((option) => option)}
+                      options={categories.map((option) => option.username)}
                       freeSolo
                       onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
                       renderTags={(value, getTagProps) =>
                         value.map((option, index) => (
-                          <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                          <Chip variant="outlined" label={option.username} {...getTagProps({ index })} />
                         ))
                       }
                       renderInput={(params) => (

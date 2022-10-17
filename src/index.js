@@ -3,14 +3,17 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import socketIOClient from "socket.io-client";
 import { Provider } from 'react-redux';
 import { store } from './Redux/store';
+import { serverURL } from "./Redux/actions";
 
+const socket = socketIOClient(serverURL,{transports: ['websocket'], upgrade: false});
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <App socket={socket} />
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

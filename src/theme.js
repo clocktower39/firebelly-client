@@ -51,5 +51,5 @@ const lightTheme = {
     },
   },
 }
-console.log(store.getState().user.themeMode)
+
 export const theme = () => createTheme(store.getState().user.themeMode === 'light' ? lightTheme : darkTheme);
