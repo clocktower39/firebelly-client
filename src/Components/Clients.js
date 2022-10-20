@@ -17,7 +17,7 @@ export default function Clients() {
   const [selectedClient, setSelectedClient] = useState('');
 
   const handleOpenTraining = (client) => {
-    setSelectedClient(client.clientId)
+    setSelectedClient(client._id)
     setOpenTraining(true);
   }
 
@@ -27,7 +27,7 @@ export default function Clients() {
   }
 
   const handleOpenGoals = (client) => {
-    setSelectedClient(client.clientId)
+    setSelectedClient(client._id)
     setOpenGoals(true);
   }
 
@@ -41,34 +41,34 @@ export default function Clients() {
   }
 
   const ClientCard = (props) => {
-    const { client } = props;
+    const { clientRelationship } = props;
     return (
       <Grid container item xs={12} >
         <Card sx={{ width: '100%' }} >
           <CardHeader
             avatar={
               <Avatar >
-                {client.firstName[0]}{client.lastName[0]}
+                {clientRelationship.client.firstName[0]}{clientRelationship.client.lastName[0]}
               </Avatar>
             }
             action={
               <>
 
-                <IconButton title="Suspend" onClick={() => handleRelationshipStatus(client.clientId, !client.accepted)} >
-                  {client.accepted ? <Done /> : <PendingActions />}
+                <IconButton title="Suspend" onClick={() => handleRelationshipStatus(clientRelationship.client._id, !clientRelationship.accepted)} >
+                  {clientRelationship.accepted ? <Done /> : <PendingActions />}
                 </IconButton>
                 <IconButton title="Remove"  >
                   <Delete />
                 </IconButton>
               </>
             }
-            title={`${client.firstName} ${client.lastName}`}
-            subheader={client.accepted ? 'Accepted' : 'Pending'}
+            title={`${clientRelationship.client.firstName} ${clientRelationship.client.lastName}`}
+            subheader={clientRelationship.accepted ? 'Accepted' : 'Pending'}
           />
-          {client.accepted &&
+          {clientRelationship.accepted &&
             <>
-              <Button onClick={() => handleOpenTraining(client)} >Training</Button>
-              <Button onClick={() => handleOpenGoals(client)} >Goals</Button>
+              <Button onClick={() => handleOpenTraining(clientRelationship.client)} >Training</Button>
+              <Button onClick={() => handleOpenGoals(clientRelationship.client)} >Goals</Button>
               <Button disabled >Daily Tasks</Button>
               <Button disabled >Nutrition</Button>
             </>
@@ -123,7 +123,7 @@ export default function Clients() {
               flex: "auto",
             }}
           >
-            {clients.map((client) => <ClientCard key={client._id} client={client} />)}
+            {clients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
           </Grid>
         </Paper>
         <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient} /> </Dialog>

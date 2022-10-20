@@ -26,11 +26,11 @@ export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
 export const DELETE_GOAL = "DELETE_GOAL";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-export const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// export const serverURL = "https://firebellyfitness.herokuapp.com";
+export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -441,22 +441,22 @@ export function createNote(newNote) {
 }
 
 // Fetches daily training information
-export function requestTraining(date, requestedBy = 'client', clientId) {
+export function requestTraining(date, requestedBy = 'client', client) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     let url = `${serverURL}/training`;
+    let requestbody = { date, client: null };
+
     if(requestedBy === 'trainer'){
       url = `${serverURL}/getClientTraining`;
+      requestbody.client = client;
     }
 
     const response = await fetch(url, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({
-        date,
-        clientId
-      }),
+      body: JSON.stringify(requestbody),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -871,14 +871,14 @@ export function requestClients() {
   };
 }
 
-export function changeRelationshipStatus(clientId, accepted) {
+export function changeRelationshipStatus(client, accepted) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     fetch(`${serverURL}/changeRelationshipStatus`, {
       method: 'post',
       dataType: 'json',
-      body: JSON.stringify({ clientId, accepted }),
+      body: JSON.stringify({ client, accepted }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         "Authorization": bearer,
@@ -908,14 +908,14 @@ export function getTrainers() {
   };
 }
 
-export function requestTrainer(trainerId) {
+export function requestTrainer(trainer) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/manageRelationship`, {
       method: 'post',
       dataType: 'json',
-      body: JSON.stringify({ trainerId }),
+      body: JSON.stringify({ trainer }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         "Authorization": bearer,
@@ -928,14 +928,14 @@ export function requestTrainer(trainerId) {
   };
 }
 
-export function removeTrainer(trainerId) {
+export function removeTrainer(trainer) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/removeRelationship`, {
       method: 'post',
       dataType: 'json',
-      body: JSON.stringify({ trainerId }),
+      body: JSON.stringify({ trainer }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         "Authorization": bearer,
@@ -947,7 +947,7 @@ export function removeTrainer(trainerId) {
   };
 }
 
-export function getGoals({ requestedBy = 'client', clientId, }) {
+export function getGoals({ requestedBy = 'client', client, }) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -962,7 +962,7 @@ export function getGoals({ requestedBy = 'client', clientId, }) {
         dataType: "json",
         body: JSON.stringify({
           requestedBy,
-          clientId
+          client
         }),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
