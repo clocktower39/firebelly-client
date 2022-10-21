@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { Box, Modal, Button, Grid, TextField, Typography } from "@mui/material";
+import { Box, Modal, Button, Grid, Slider, TextField, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
@@ -25,40 +25,47 @@ export const RenderLineChart = (props) => {
   let exerciseTitle = "";
   let exerciseIndex = 0;
   let exercise = [];
+  let [range, setRange] = useState([0, targetExerciseHistory.length - 1]);
+
+  const handleRangeChange = (event, newValue) => {
+    setRange(newValue);
+  };
 
   if (targetExerciseHistory) {
-    exercise = targetExerciseHistory.map((e, i) => {
-      const reps = e.achieved.reps;
-      const weight = e.achieved.weight;
-      exerciseIndex = i;
+    exercise = targetExerciseHistory
+      .filter((e, i) => i >= range[0] && i <= range[1])
+      .map((e, i) => {
+        const reps = e.achieved.reps;
+        const weight = e.achieved.weight;
+        exerciseIndex = i;
 
-      const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
-      const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
+        const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
+        const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
 
-      let minReps = parseInt(sortedReps[0]);
-      let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
-      let minWeight = parseInt(sortedWeight[0]);
-      let maxWeight = parseInt(sortedWeight[sortedWeight.length - 1]);
+        let minReps = parseInt(sortedReps[0]);
+        let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
+        let minWeight = parseInt(sortedWeight[0]);
+        let maxWeight = parseInt(sortedWeight[sortedWeight.length - 1]);
 
-      if (totalMaxWeight < maxWeight) {
-        totalMaxWeight = maxWeight;
-      }
-      if (totalMaxReps < maxReps) {
-        totalMaxReps = maxReps;
-      }
-      if (exerciseTitle === "") {
-        exerciseTitle = e.exercise;
-      }
+        if (totalMaxWeight < maxWeight) {
+          totalMaxWeight = maxWeight;
+        }
+        if (totalMaxReps < maxReps) {
+          totalMaxReps = maxReps;
+        }
+        if (exerciseTitle === "") {
+          exerciseTitle = e.exercise;
+        }
 
-      let newE = {
-        date: e.date.substr(0, 10),
-        weightRange: [minWeight, maxWeight],
-        repRange: [minReps, maxReps],
-        weight,
-        reps,
-      };
-      return newE;
-    });
+        let newE = {
+          date: e.date.substr(0, 10),
+          weightRange: [minWeight, maxWeight],
+          repRange: [minReps, maxReps],
+          weight,
+          reps,
+        };
+        return newE;
+      });
   }
 
   const RenderToolTip = ({ payload, unit, fill }) => {
@@ -66,7 +73,7 @@ export const RenderLineChart = (props) => {
       <Box sx={{ padding: '7.5px', borderRadius: '15px', backgroundColor: 'background.ChartToopTip', opacity: '.90' }}>
         <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload && payload[0] && payload[0].payload.date}</Typography>
         <Typography textAlign='center' sx={{ color: fill }}>{unit}</Typography>
-        {payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i+1}:</strong> <Typography variant="p" sx={{ color: fill}}>{u}</Typography></Typography>)}
+        {payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i + 1}:</strong> <Typography variant="p" sx={{ color: fill }}>{u}</Typography></Typography>)}
       </Box>
     );
   }
@@ -83,6 +90,15 @@ export const RenderLineChart = (props) => {
         <Typography variant="h4" color="primary.contrastText" sx={{ textAlign: "center" }}>
           {exerciseTitle}
         </Typography>
+        <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
+          <Slider
+            getAriaLabel={() => 'Temperature range'}
+            value={range}
+            onChange={handleRangeChange}
+            valueLabelDisplay="auto"
+            max={targetExerciseHistory.length > 0 ? targetExerciseHistory.length : 1}
+          />
+        </Grid>
         <BarChart
           width={containerSize * 0.75}
           height={containerSize * 0.25}
@@ -101,7 +117,7 @@ export const RenderLineChart = (props) => {
             domain={[0, totalMaxWeight]}
             label={{ value: "Weight", angle: -90, position: "insideLeft", fill: theme().palette.secondary.main, }}
           />
-          <Tooltip content={<RenderToolTip  />} unit={"Weight"} fill={theme().palette.secondary.main} cursor={false} />
+          <Tooltip content={<RenderToolTip />} unit={"Weight"} fill={theme().palette.secondary.main} cursor={false} />
         </BarChart>
 
         <BarChart
@@ -118,7 +134,7 @@ export const RenderLineChart = (props) => {
             domain={[0, totalMaxReps]}
             label={{ value: "Reps", angle: -90, position: "insideLeft", fill: theme().palette.error.main, }}
           />
-          <Tooltip content={<RenderToolTip  />} unit={"Reps"} fill={theme().palette.error.main} cursor={false} />
+          <Tooltip content={<RenderToolTip />} unit={"Reps"} fill={theme().palette.error.main} cursor={false} />
         </BarChart>
       </Box>
     </Modal>
