@@ -360,12 +360,13 @@ export default function Exercise(props) {
           />
         </>
       )}
+      {open && 
       <RenderLineChart
         targetExerciseHistory={targetExerciseHistory}
         open={open}
         handleClose={handleClose}
         containerSize={size}
-      />
+      />}
     </Grid>
   );
 }

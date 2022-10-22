@@ -25,11 +25,31 @@ export const RenderLineChart = (props) => {
   let exerciseTitle = "";
   let exerciseIndex = 0;
   let exercise = [];
-  let [range, setRange] = useState([0, targetExerciseHistory.length - 1]);
+  let historyCount = targetExerciseHistory.length;
+  let [range, setRange] = useState([historyCount > 5 ? historyCount - 6 : 0, historyCount]);
 
-  const handleRangeChange = (event, newValue) => {
-    setRange(newValue);
+  const handleRangeChange = (event, newValue, activeThumb) => {
+    if (!Array.isArray(newValue)) {
+      return;
+    }
+
+    if (newValue[1] - newValue[0] < 1) {
+      if (activeThumb === 0) {
+        const clamped = Math.min(newValue[0], historyCount - 1);
+        setRange([clamped, clamped + 1]);
+      } else {
+        const clamped = Math.max(newValue[1], 1);
+        setRange([clamped - 1, clamped]);
+      }
+    } else {
+      setRange(newValue);
+    }
   };
+
+  useEffect(()=>{
+    setRange([historyCount > 5 ? historyCount - 6 : 0, historyCount]);
+  },[historyCount])
+
 
   if (targetExerciseHistory) {
     exercise = targetExerciseHistory
@@ -73,7 +93,7 @@ export const RenderLineChart = (props) => {
       <Box sx={{ padding: '7.5px', borderRadius: '15px', backgroundColor: 'background.ChartToopTip', opacity: '.90' }}>
         <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload && payload[0] && payload[0].payload.date}</Typography>
         <Typography textAlign='center' sx={{ color: fill }}>{unit}</Typography>
-        {payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i + 1}:</strong> <Typography variant="p" sx={{ color: fill }}>{u}</Typography></Typography>)}
+        {payload && payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i + 1}:</strong> <Typography variant="p" sx={{ color: fill }}>{u}</Typography></Typography>)}
       </Box>
     );
   }
@@ -95,8 +115,9 @@ export const RenderLineChart = (props) => {
             getAriaLabel={() => 'Temperature range'}
             value={range}
             onChange={handleRangeChange}
-            valueLabelDisplay="auto"
-            max={targetExerciseHistory.length > 0 ? targetExerciseHistory.length : 1}
+            valueLabelDisplay="off"
+            max={historyCount > 0 ? historyCount - 1: 1}
+            disableSwap
           />
         </Grid>
         <BarChart
