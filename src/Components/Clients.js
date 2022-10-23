@@ -91,9 +91,6 @@ export default function Clients() {
             padding: "5px 15px",
             borderRadius: "15px",
             height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            flex: "auto",
           }}
         >
           <Grid

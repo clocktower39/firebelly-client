@@ -29,17 +29,9 @@ export default function Dashboard() {
       title: "Nutrition",
       to: "/nutrition",
     },
-    {
-      title: "Notes",
-      to: "/notes",
-    },
     // {
     //   title: "Exercise Library",
     //   to: "/exerciselibrary",
-    // },
-    // {
-    //   title: "Week View",
-    //   to: "/week",
     // },
     {
       title: "Goals",

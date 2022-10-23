@@ -10,8 +10,6 @@ export const ADD_TASK_HISTORY_DAY = "ADD_TASK_HISTORY_DAY";
 export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
-export const EDIT_NOTES = "EDIT_NOTES";
-export const ADD_NOTE = "ADD_NOTE";
 export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
@@ -385,58 +383,6 @@ export function updateNutrition(updatedNutrition) {
         nutrition: data.nutrition,
       });
     }
-  };
-}
-
-// Fetches or creates daily note
-export function requestNotes() {
-  return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    const response = await fetch(`${serverURL}/notes`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let data = await response.json();
-
-    return dispatch({
-      type: EDIT_NOTES,
-      notes: data,
-    });
-  };
-}
-
-// Add a new note
-export function createNote(newNote) {
-  return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    await fetch(`${serverURL}/createNote`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        note: newNote,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          return dispatch({
-            type: ERROR,
-            error: data.error,
-          });
-        }
-        return dispatch({
-          type: ADD_NOTE,
-          note: data.note,
-        });
-      });
   };
 }
 

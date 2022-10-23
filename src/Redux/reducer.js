@@ -8,8 +8,6 @@ import {
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_NUTRITION,
-  EDIT_NOTES,
-  ADD_NOTE,
   EDIT_TRAINING,
   EDIT_WEEKLY_VIEW,
   EDIT_EXERCISE_LIBRARY,
@@ -23,9 +21,9 @@ import {
   ADD_NEW_GOAL,
   DELETE_GOAL,
 } from "./actions";
-import { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers, goals, clients } from "./states";
+import { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients } from "./states";
 export let reducer = (
-  state = { user, calander, exerciseLibrary, progress, nutrition, training, notes, tasks, myTrainers, trainers, goals, clients },
+  state = { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients },
   action
 ) => {
   switch (action.type) {
@@ -75,16 +73,6 @@ export let reducer = (
       return {
         ...state,
         nutrition: action.nutrition,
-      };
-    case ADD_NOTE:
-      return {
-        ...state,
-        notes: [...state.notes, action.note],
-      };
-    case EDIT_NOTES:
-      return {
-        ...state,
-        notes: [...action.notes],
       };
     case EDIT_MYACCOUNT:
       return {
