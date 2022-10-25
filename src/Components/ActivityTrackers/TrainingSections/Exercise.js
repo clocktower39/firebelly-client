@@ -309,6 +309,18 @@ export default function Exercise(props) {
                 <option value="6">6</option>
                 <option value="7">7</option>
                 <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="1">10</option>
+                <option value="1">11</option>
+                <option value="1">12</option>
+                <option value="1">13</option>
+                <option value="1">14</option>
+                <option value="1">15</option>
+                <option value="1">16</option>
+                <option value="1">17</option>
+                <option value="1">18</option>
+                <option value="1">19</option>
+                <option value="1">20</option>
               </TextField>
             </Grid>
             <EditLoader

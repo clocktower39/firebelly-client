@@ -82,7 +82,6 @@ function SwipeableSet(props) {
                 axis="x"
                 index={activeStep}
                 onChangeIndex={handleStepChange}
-                enableMouseEvents
                 animateHeight
                 ref={ref}
             >

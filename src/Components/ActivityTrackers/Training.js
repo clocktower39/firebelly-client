@@ -383,7 +383,7 @@ export default function Training(props) {
                 container
                 item
                 xs={12}
-                sx={{ alignContent: "flex-end", flexGrow: 1, paddingBottom: "5px" }}
+                sx={{ alignContent: "flex-end", '&.MuiGrid-root': { flexGrow: 1, }, paddingBottom: "5px" }}
               >
                 <Button variant="contained" onClick={save} fullWidth>
                   Save

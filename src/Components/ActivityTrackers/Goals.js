@@ -50,7 +50,7 @@ export default function Goals({ view="client", clientId, }) {
   }, [goals]);
 
   useEffect(() => {
-    dispatch(getGoals({ requestedBy: view, clientId }));
+    dispatch(getGoals({ requestedBy: view, client: clientId }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -418,7 +418,7 @@ export default function Goals({ view="client", clientId, }) {
   return (
     <>
       <Container maxWidth="md" sx={{ height: "100%", padding: "15px 0px" }}>
-        <Paper sx={{ padding: "5px 15px", borderRadius: "15px", height: "100%", display: 'flex', flexDirection: 'column', flex: 'auto', }}>
+        <Paper sx={{ padding: "5px 15px", borderRadius: "15px", minHeight: "100%", }}>
 
           <Grid container item xs={12} sx={{ justifyContent: 'center', paddingBottom: "15px", alignSelf: 'flex-start', flex: 'initial', }}>
             <Typography variant="h4">
@@ -428,7 +428,7 @@ export default function Goals({ view="client", clientId, }) {
           </Grid>
 
           <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
-            {goals.map((goal) => <GoalCard key={goal._id} goal={goal} handleOpenGoalDetails={handleOpenGoalDetails} />)}
+            {goals && goals.map((goal) => <GoalCard key={goal._id} goal={goal} handleOpenGoalDetails={handleOpenGoalDetails} />)}
           </Grid>
 
         </Paper>
