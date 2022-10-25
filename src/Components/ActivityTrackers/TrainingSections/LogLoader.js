@@ -59,7 +59,7 @@ const LoggedField = (props) => {
     <Grid item xs={5}>
       <TextField
         label={field.label}
-        value={exercise.achieved[field.achievedAttribute][exerciseSetIndex]}
+        value={exercise.achieved[field.achievedAttribute][exerciseSetIndex] || 0}
         type="number"
         inputProps={{
           type: "number",

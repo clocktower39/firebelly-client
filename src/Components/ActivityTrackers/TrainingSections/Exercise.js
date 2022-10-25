@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Autocomplete, Chip, Grid, IconButton, TextField, Typography } from "@mui/material";
+import { Autocomplete, Chip, Grid, IconButton, TextField, Tooltip, Typography } from "@mui/material";
 import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../../../Redux/actions";
@@ -22,7 +22,7 @@ export default function Exercise(props) {
 
   const [title, setTitle] = useState(exercise.exercise || "");
   const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
-  const [sets, setSets] = useState(exercise.goals.sets);
+  const [sets, setSets] = useState(exercise.goals.sets || 0);
   const [editMode, setEditMode] = useState(false);
   const [open, setOpen] = useState(false);
   const handleClose = () => setOpen(false);
@@ -262,12 +262,16 @@ export default function Exercise(props) {
                       ...params.InputProps,
                       endAdornment: (
                         <>
-                          <IconButton variant="contained" onClick={handleModalExercise}>
-                            <Info />
-                          </IconButton>
-                          <IconButton variant="contained" onClick={handleEditToggle}>
-                            <FactCheck />
-                          </IconButton>
+                          <Tooltip title="View Progress Chart">
+                            <IconButton variant="contained" onClick={handleModalExercise}>
+                              <Info />
+                            </IconButton>
+                          </ Tooltip>
+                          <Tooltip title="Log Exercise">
+                            <IconButton variant="contained" onClick={handleEditToggle}>
+                              <FactCheck />
+                            </IconButton>
+                          </ Tooltip>
                           {params.InputProps.endAdornment}
                         </>
                       ),
@@ -300,27 +304,7 @@ export default function Exercise(props) {
                 value={sets}
                 onChange={handleSetChange}
               >
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="1">10</option>
-                <option value="1">11</option>
-                <option value="1">12</option>
-                <option value="1">13</option>
-                <option value="1">14</option>
-                <option value="1">15</option>
-                <option value="1">16</option>
-                <option value="1">17</option>
-                <option value="1">18</option>
-                <option value="1">19</option>
-                <option value="1">20</option>
+                {[...Array(21)].map((x, i) => <option key={i} value={i}>{i}</option>)}
               </TextField>
             </Grid>
             <EditLoader
@@ -341,9 +325,11 @@ export default function Exercise(props) {
               sx={{ justifyContent: "center", alignContent: "center" }}
             >
               <Grid item>
-                <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
-                  <RemoveCircle />
-                </IconButton>
+                <Tooltip title="Remove Set">
+                  <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
+                    <RemoveCircle />
+                  </IconButton>
+                </ Tooltip>
               </Grid>
             </Grid>
           </Grid>
@@ -353,12 +339,16 @@ export default function Exercise(props) {
           <Grid item xs={12}>
             <Typography color="text.primary" variant="h6" sx={{ textAlign: "center" }}>
               {title || "Enter an exercise"}:
-              <IconButton variant="contained" onClick={handleModalExercise}>
-                <Info />
-              </IconButton>
-              <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
-                <Edit />
-              </IconButton>
+              <Tooltip title="View Progress Chart">
+                <IconButton variant="contained" onClick={handleModalExercise}>
+                  <Info />
+                </IconButton>
+              </ Tooltip>
+              <Tooltip title="Edit Exercise">
+                <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
+                  <Edit />
+                </IconButton>
+              </ Tooltip>
             </Typography>
           </Grid>
           <LogLoader
@@ -372,13 +362,13 @@ export default function Exercise(props) {
           />
         </>
       )}
-      {open && 
-      <RenderLineChart
-        targetExerciseHistory={targetExerciseHistory}
-        open={open}
-        handleClose={handleClose}
-        containerSize={size}
-      />}
+      {open &&
+        <RenderLineChart
+          targetExerciseHistory={targetExerciseHistory}
+          open={open}
+          handleClose={handleClose}
+          containerSize={size}
+        />}
     </Grid>
   );
 }

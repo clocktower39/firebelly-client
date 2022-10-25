@@ -14,6 +14,7 @@ import {
   IconButton,
   Paper,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -24,7 +25,7 @@ import {
 import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
 import AuthNavbar from "../AuthNavbar";
 
-export default function Goals({ view="client", clientId, }) {
+export default function Goals({ view = "client", clientId, }) {
   const dispatch = useDispatch();
   const goals = useSelector((state) => state.goals);
 
@@ -103,7 +104,7 @@ export default function Goals({ view="client", clientId, }) {
     const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
 
     const handleChange = (e, setter) => setter(e.target.value);
-    
+
 
     const saveTask = () => {
       dispatch(updateGoal({
@@ -201,9 +202,11 @@ export default function Goals({ view="client", clientId, }) {
               Goal Details
             </Grid>
             <Grid container item xs={6} justifyContent="flex-end" >
-              <IconButton variant="contained" onClick={handleOpenDeleteConfirmation} >
-                <Delete />
-              </IconButton>
+              <Tooltip title="Delete">
+                <IconButton variant="contained" onClick={handleOpenDeleteConfirmation} >
+                  <Delete />
+                </IconButton>
+              </ Tooltip>
             </Grid>
           </Grid>
         </DialogTitle>
@@ -304,7 +307,7 @@ export default function Goals({ view="client", clientId, }) {
             </Grid>
           </Grid>
         </DialogContent>
-        <DeleteConfirmation open={openDeleteConfirmation} onClose={handleCloseDeleteConfirmation} goalId={goal._id}/>
+        <DeleteConfirmation open={openDeleteConfirmation} onClose={handleCloseDeleteConfirmation} goalId={goal._id} />
       </Dialog>
     )
   }
@@ -424,7 +427,9 @@ export default function Goals({ view="client", clientId, }) {
             <Typography variant="h4">
               Goals
             </Typography>
-            <IconButton onClick={handleOpenAddNewGoal}><AddCircle /></IconButton>
+            <Tooltip title="New Goal">
+              <IconButton onClick={handleOpenAddNewGoal}><AddCircle /></IconButton>
+            </ Tooltip>
           </Grid>
 
           <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>

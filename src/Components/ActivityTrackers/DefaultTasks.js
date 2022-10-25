@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Button, IconButton, TextField, Grid, InputAdornment } from "@mui/material";
+import { Button, IconButton, TextField, Tooltip, Grid, InputAdornment } from "@mui/material";
 import { AddCircle, RemoveCircle } from "@mui/icons-material";
 import { editDefaultDailyTask } from "../../Redux/actions";
 
@@ -58,9 +58,11 @@ export default function DefaultTasks(props) {
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={() => removeTask(task)}>
-                <RemoveCircle />
-              </IconButton>
+              <Tooltip title="Remove">
+                <IconButton onClick={() => removeTask(task)}>
+                  <RemoveCircle />
+                </IconButton>
+              </ Tooltip>
             </InputAdornment>
           ),
         }}
@@ -121,9 +123,9 @@ export default function DefaultTasks(props) {
                 },
 
                 "& .MuiInputBase-root-MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: "white",
-                  },
+                {
+                  borderColor: "white",
+                },
               },
               "& .MuiSvgIcon-root": {
                 color: "white",
@@ -138,9 +140,11 @@ export default function DefaultTasks(props) {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={submitNewTask}>
-                    <AddCircle />
-                  </IconButton>
+                  <Tooltip title="Add">
+                    <IconButton onClick={submitNewTask}>
+                      <AddCircle />
+                    </IconButton>
+                  </ Tooltip>
                 </InputAdornment>
               ),
             }}

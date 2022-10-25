@@ -12,6 +12,7 @@ import {
   LinearProgress,
   Modal,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
@@ -297,10 +298,10 @@ export default function Training(props) {
           <Box sx={classes.modalStyle}>
             <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom >Workout Settings</Typography>
             <Grid container sx={{ justifyContent: 'center', }}>
-              <IconButton title="Move Workout" onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton>
-              <IconButton title="Copy Workout" onClick={() => handleSetModalAction('copy')} ><ContentCopy /></IconButton>
-              <IconButton title="Import Workout" disabled ><Download /></IconButton>
-              <IconButton title="Delete Workout" onClick={() => handleSetModalAction('delete')} ><Delete /></IconButton>
+              <Tooltip title="Move Workout" ><IconButton onClick={() => handleSetModalAction('move')} ><DoubleArrow /></IconButton></ Tooltip>
+              <Tooltip title="Copy Workout" ><IconButton onClick={() => handleSetModalAction('copy')} ><ContentCopy /></IconButton></ Tooltip>
+              <Tooltip title="Import Workout" ><IconButton disabled ><Download /></IconButton></ Tooltip>
+              <Tooltip title="Delete Workout" ><IconButton onClick={() => handleSetModalAction('delete')} ><Delete /></IconButton></ Tooltip>
             </Grid>
             <ModalAction actionType={modalActionType} selectedDate={selectedDate} handleModalToggle={handleModalToggle}/>
           </Box>
@@ -347,9 +348,11 @@ export default function Training(props) {
                             ...params.InputProps,
                             endAdornment: (
                               <>
-                                <IconButton variant="contained" title="Workout Settings" onClick={handleModalToggle}>
+                              <Tooltip title="Workout Settings" >
+                                <IconButton variant="contained" onClick={handleModalToggle}>
                                   <Settings />
                                 </IconButton>
+                                </ Tooltip>
                                 {params.InputProps.endAdornment}
                               </>
                             ),
