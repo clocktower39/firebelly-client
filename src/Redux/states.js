@@ -63,3 +63,6 @@ export let clients = [];
 export let myTrainers = [];
 export let trainers = [];
 export let goals = [];
+
+
+export let conversations = [];

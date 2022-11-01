@@ -20,10 +20,12 @@ import {
   UPDATE_GOAL,
   ADD_NEW_GOAL,
   DELETE_GOAL,
+  UPDATE_CONVERSATIONS,
+  UPDATE_CONVERSATION_MESSAGES,
 } from "./actions";
-import { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients } from "./states";
+import { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients, conversations, } from "./states";
 export let reducer = (
-  state = { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients },
+  state = { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients, conversations },
   action
 ) => {
   switch (action.type) {
@@ -159,6 +161,24 @@ export let reducer = (
           ...state.goals.filter(goal => goal._id !== action.goalId)
         ]
       };
+      case UPDATE_CONVERSATIONS:
+          return {
+              ...state,
+              conversations: [...action.conversations]
+          }
+      case UPDATE_CONVERSATION_MESSAGES:
+          const updatedConversations = [...state.conversations.map(c => {
+              if( c._id === action.conversation._id){
+                  c.messages = action.conversation.messages
+                  console.log(c)
+              }
+              return c;
+          })];
+
+          return {
+              ...state,
+              conversations: [...updatedConversations],
+          }
     case ERROR:
       return {
         ...state,

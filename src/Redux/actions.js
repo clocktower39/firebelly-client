@@ -22,6 +22,8 @@ export const GET_GOALS = "GET_GOALS";
 export const UPDATE_GOAL = "UPDATE_GOAL";
 export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
 export const DELETE_GOAL = "DELETE_GOAL";
+export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
+export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
 // const currentIP = window.location.href.split(":")[1];
@@ -1027,3 +1029,93 @@ export function addGoalComment(goalId, newComment) {
   };
 }
 
+
+export function getConversations() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+    const response = await fetch(`${serverURL}/conversation/getConversations`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
+    return dispatch({
+      type: UPDATE_CONVERSATIONS,
+      conversations: data
+    });
+  }
+}
+
+export function sendMessage(conversationId, message) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+    const response = await fetch(`${serverURL}/conversation/message/send`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ conversationId, message }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+    
+    return dispatch({
+      type: UPDATE_CONVERSATION_MESSAGES,
+      conversation: { ...data }
+    });
+  }
+}
+
+export function socketMessage(conversation) {
+  return async (dispatch) => {
+    return dispatch({
+      type: UPDATE_CONVERSATION_MESSAGES,
+      conversation
+    })
+  }
+}
+
+export function deleteMessage(conversationId, messageId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+    const response = await fetch(`${serverURL}/conversation/message/delete`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ conversationId, messageId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        "Authorization": bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+    
+    return dispatch({
+      type: UPDATE_CONVERSATION_MESSAGES,
+      conversation: { ...data }
+    });
+  }
+}
