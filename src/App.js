@@ -17,6 +17,7 @@ import Training from "./Components/ActivityTrackers/Training";
 import Nutrition from "./Components/ActivityTrackers/Nutrition";
 import Week from "./Components/Week";
 import Clients from "./Components/Clients";
+import Messages from "./Components/Messages";
 import Progress from "./Components/Progress";
 import Goals from "./Components/ActivityTrackers/Goals";
 import Account from "./Components/AccountComponents/Account";
@@ -28,7 +29,7 @@ import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrac
 import NotFoundPage from "./Components/NotFoundPage";
 import "./App.css";
 
-function App() {
+function App({ socket }) {
   const themeMode = useSelector(state => state.user.themeMode);
   const [themeSelection, setThemeSelection] = useState(theme());
   const checkSubDomain = () => {
@@ -110,6 +111,10 @@ function App() {
               <Route exact path="/clients" element={<AuthRoute />}>
                 <Route exact path="/clients" element={<Clients />} />
               </Route>
+
+            <Route exact path="/messages" element={<AuthRoute />} >
+              <Route exact path="/messages" element={<Messages socket={socket} />} />
+            </Route>
 
               <Route exact path="/account/*" element={<AuthRoute />}>
                 <Route exact path="/account/*/*" element={<Account />}>

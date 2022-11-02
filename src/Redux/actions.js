@@ -150,6 +150,7 @@ export function changePassword(currentPassword, newPassword) {
     });
   }
 }
+
 export function editUser(user) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
