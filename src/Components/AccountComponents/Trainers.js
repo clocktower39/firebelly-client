@@ -116,8 +116,7 @@ export default function Trainers() {
                 <LinearProgress />
               </Box>
             ) : (
-              myTrainers.length > 0 &&
-              myTrainers.map((t) => <RelationshipTrainerCard key={t.trainerId} trainer={t} />)
+              myTrainers?.map((t) => <RelationshipTrainerCard key={t.trainerId} trainer={t} />)
             )}
           </Grid>
           <Grid container sx={{ justifyContent: "center" }}>

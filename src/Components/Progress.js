@@ -93,7 +93,7 @@ export const RenderLineChart = (props) => {
       <Box sx={{ padding: '7.5px', borderRadius: '15px', backgroundColor: 'background.ChartToopTip', opacity: '.90' }}>
         <Typography textAlign='center' sx={{ color: 'text.primary' }}>{payload && payload[0] && payload[0].payload.date}</Typography>
         <Typography textAlign='center' sx={{ color: fill }}>{unit}</Typography>
-        {payload && payload[0] && payload[0].payload[unit.toLowerCase()].map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i + 1}:</strong> <Typography variant="p" sx={{ color: fill }}>{u}</Typography></Typography>)}
+        {payload?.[0]?.payload[unit.toLowerCase()]?.map((u, i) => <Typography key={`${u}-${i}`} textAlign='center' sx={{ color: 'text.primary' }}><strong>Set {i + 1}:</strong> <Typography variant="p" sx={{ color: fill }}>{u}</Typography></Typography>)}
       </Box>
     );
   }
@@ -125,8 +125,7 @@ export const RenderLineChart = (props) => {
           height={containerSize * 0.25}
           data={exercise}
         >
-          {exercise[exerciseIndex] &&
-            exercise[exerciseIndex].weight.map((w, i) => (
+          {exercise[exerciseIndex]?.weight?.map((w, i) => (
               <Bar
                 key={`bar-weight-${exerciseIndex}-${i}`}
                 dataKey={`weight[${i}]`}

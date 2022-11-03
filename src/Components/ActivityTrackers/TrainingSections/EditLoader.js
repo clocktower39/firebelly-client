@@ -88,7 +88,7 @@ export default function EditLoader(props) {
 
   return (
     <Grid container item xs={12} spacing={1}>
-      {fields.nonRepeating && fields.nonRepeating.map((field) => <Grid key={`nonRepeating-${field.label}`} container item xs={12} sx={{ justifyContent: 'center', }} ><TextField label="One Rep Max" fullWidth /></Grid>)}
+      {fields?.nonRepeating?.map((field) => <Grid key={`nonRepeating-${field.label}`} container item xs={12} sx={{ justifyContent: 'center', }} ><TextField label="One Rep Max" fullWidth /></Grid>)}
       {exerciseSets.map((count, exerciseSetIndex) => {
         return (
           <Grid

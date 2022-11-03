@@ -31,7 +31,7 @@ export function ModalAction(props) {
   const handleMove = () => {
     dispatch(updateWorkoutDate(selectedDate, newDate)).then((res)=> {
       console.log(res);
-      if(res.error){
+      if(res?.error !== undefined){
         setActionError(res.error);
       }
       else {
@@ -43,7 +43,7 @@ export function ModalAction(props) {
 
   const handleCopy = () => {
     dispatch(copyWorkoutDate(selectedDate, newDate, copyOption.value )).then((res)=> {
-      if(res.error){
+      if(res?.error !== undefined){
         setActionError(res.error);
       }
       else {
