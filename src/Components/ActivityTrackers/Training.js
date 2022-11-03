@@ -26,18 +26,40 @@ export function ModalAction(props) {
   const dispatch = useDispatch();
   const [newDate, setNewDate] = useState(null);
   const [copyOption, setCopyOption] = useState(null);
+  const [actionError, setActionError] = useState(false);
   
   const handleMove = () => {
-    dispatch(updateWorkoutDate(selectedDate, newDate)).then(()=> handleModalToggle());
+    dispatch(updateWorkoutDate(selectedDate, newDate)).then((res)=> {
+      console.log(res);
+      if(res.error){
+        setActionError(res.error);
+      }
+      else {
+        setActionError(false);
+        handleModalToggle()
+      }
+    });
   }
 
   const handleCopy = () => {
-    dispatch(copyWorkoutDate(selectedDate, newDate, copyOption.value )).then(()=> handleModalToggle());
+    dispatch(copyWorkoutDate(selectedDate, newDate, copyOption.value )).then((res)=> {
+      if(res.error){
+        setActionError(res.error);
+      }
+      else {
+        setActionError(false);
+        handleModalToggle()
+      }
+    });
   }
 
   const handleDelete = () => {
     dispatch(deleteWorkoutDate(selectedDate)).then(()=> handleModalToggle());
   }
+
+  useEffect(()=>{
+    setActionError(false);
+  },[newDate])
 
   switch (actionType) {
     case 'move':
@@ -45,6 +67,7 @@ export function ModalAction(props) {
         <>
           <SelectedDate setParentSelectedDate={setNewDate} />
           <Grid container sx={{ justifyContent: 'center', }}><Button variant="contained" onClick={handleMove} >Move</Button></Grid>
+          {actionError && <Grid container item xs={12} sx={{ justifyContent: 'center', }}><Typography variant="caption" sx={{ color: 'red', }}>{actionError}</Typography></Grid>}
         </>);
     case 'copy':
       let copyOptions = [
@@ -71,9 +94,12 @@ export function ModalAction(props) {
                 onChange={handleOptionChange}
               />
             </Grid>
+            
             <Grid container item xs={12} sx={{ justifyContent: 'center', }}>
               <Button variant="contained" onClick={handleCopy} disabled={!copyOption} >Copy</Button>
             </Grid>
+
+            {actionError && <Grid container item xs={12} sx={{ justifyContent: 'center', }}><Typography variant="caption" sx={{ color: 'red', }}>{actionError}</Typography></Grid>}
           </Grid>
         </>);
     case 'delete':
