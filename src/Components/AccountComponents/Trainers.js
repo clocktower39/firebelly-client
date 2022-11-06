@@ -16,11 +16,13 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import { AddCircle, Delete, Done, PendingActions } from "@mui/icons-material";
+import { AddCircle, Delete, Done, Message as MessageIcon, PendingActions } from "@mui/icons-material";
 import { requestMyTrainers, removeTrainer } from "../../Redux/actions";
 import SearchTrainerDialog from "./SearchTrainerDialog";
+import Messages from "../Messages";
 
-export default function Trainers() {
+
+export default function Trainers({ socket }) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const myTrainers = useSelector((state) => state.myTrainers);
@@ -39,6 +41,10 @@ export default function Trainers() {
   const RelationshipTrainerCard = (props) => {
     const { trainer } = props;
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+    const [openMessageDrawer, setOpenMessageDrawer] = useState(false);
+  
+    const handleMessageDrawerOpen = () => setOpenMessageDrawer(true)
+    const handleMessageDrawerClose = () => setOpenMessageDrawer(false)
 
     const handleDeleteConfirmationOpen = () => setDeleteConfirmationOpen(true);
     const handleDeleteConfirmationClose = () => setDeleteConfirmationOpen(false);
@@ -55,6 +61,9 @@ export default function Trainers() {
             }
             action={
               <>
+                <IconButton onClick={handleMessageDrawerOpen}>
+                  <MessageIcon />
+                </IconButton>
                 <IconButton aria-label="status" disableRipple>
                   {trainer.accepted ? <Done /> : <PendingActions />}
                 </IconButton>
@@ -79,7 +88,7 @@ export default function Trainers() {
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
               <Grid item container xs={12}>
                 <Typography variant="body1">
-                  Are you sure you would like the permanently delete this goal?
+                  Are you sure you would like to remove this trainer?
                 </Typography>
               </Grid>
               <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
@@ -97,6 +106,7 @@ export default function Trainers() {
             </Grid>
           </DialogContent>
         </Dialog>
+        <Messages open={openMessageDrawer} handleClose={handleMessageDrawerClose} conversation={{}} socket={socket} />
       </Grid>
     );
   };

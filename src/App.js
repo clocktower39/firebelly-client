@@ -17,7 +17,6 @@ import Training from "./Components/ActivityTrackers/Training";
 import Nutrition from "./Components/ActivityTrackers/Nutrition";
 import Week from "./Components/Week";
 import Clients from "./Components/Clients";
-import Messages from "./Components/Messages";
 import Progress from "./Components/Progress";
 import Goals from "./Components/ActivityTrackers/Goals";
 import Account from "./Components/AccountComponents/Account";
@@ -112,15 +111,11 @@ function App({ socket }) {
                 <Route exact path="/clients" element={<Clients />} />
               </Route>
 
-            <Route exact path="/messages" element={<AuthRoute />} >
-              <Route exact path="/messages" element={<Messages socket={socket} />} />
-            </Route>
-
               <Route exact path="/account/*" element={<AuthRoute />}>
                 <Route exact path="/account/*/*" element={<Account />}>
                   <Route index={true} exact path="" element={<MyAccount />} />
                   <Route index={true} exact path="theme" element={<ThemeSettings />} />
-                  <Route index={true} exact path="trainers" element={<Trainers />} />
+                  <Route index={true} exact path="trainers" element={<Trainers socket={socket} />} />
                 </Route>
               </Route>
 
