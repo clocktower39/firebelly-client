@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Container, Drawer, Grid, IconButton, TextField, Typography, } from "@mui/material";
 import { ArrowBackIosNew, Delete, } from "@mui/icons-material";
-import { sendMessage, socketMessage, deleteMessage, serverURL } from '../Redux/actions';
-  
+import { sendMessage, deleteMessage, serverURL, } from '../Redux/actions';
+import Loading from './Loading';
+
 
 const MessageList = ({ users, conversationId, messages, handleMessageDrawerClose }) => {
   const user = useSelector(state => state.user);
@@ -18,7 +19,7 @@ const MessageList = ({ users, conversationId, messages, handleMessageDrawerClose
           <IconButton onClick={handleMessageDrawerClose} ><ArrowBackIosNew /></IconButton>
         </Grid>
         <Grid container item xs={11} sx={{ alignContent: 'center', }} >
-          <Typography variant="h5">{users.map(u => u.username).join(' ')}</Typography>
+          <Typography variant="h5">{users?.map(u => u.username).join(' ')}</Typography>
         </Grid>
         <Grid container item xs={12} >
           {messages?.map((message, i) => {
@@ -151,40 +152,43 @@ const MessageInput = ({ conversationId }) => {
 }
 
 
-export default function Messages({ open, handleClose, conversation, socket }) {
+export default function Messages({ open, handleClose, socket }) {
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const [conversation, setConversation] = useState({});
 
-
-  useEffect(() => {
-    if (open) {
-      socket.emit('join', { conversationId: conversation._id })
-      socket.on("update_messages", (data) => dispatch(socketMessage(data)))
-    }
-  }, [conversation._id, dispatch, open, socket])
+  useEffect(()=>{
+    // dispatch(getConversation())
+    setLoading(false);
+  },[])
 
   return (
-      <Drawer
-        anchor={"right"}
-        open={open}
-        onClose={handleClose}
-        sx={{ '& .MuiPaper-root': { width: '100%' } }}
-      >
-        <div style={{
-          height: 'calc(100% - 72px)',
-          display: 'flex',
-          flexDirection: 'column',
-        }} >
-          <MessageList users={conversation.users} conversationId={conversation._id} messages={conversation.messages} handleMessageDrawerClose={handleClose} />
+    <Drawer
+      anchor={"right"}
+      open={open}
+      onClose={handleClose}
+      sx={{ '& .MuiPaper-root': { width: '100%' } }}
+    >
+      {loading ? <Loading /> :
+        <>
+          <div style={{
+            height: 'calc(100% - 72px)',
+            display: 'flex',
+            flexDirection: 'column',
+          }} >
+            <MessageList users={conversation?.users} conversationId={conversation?._id} messages={conversation?.messages} handleMessageDrawerClose={handleClose} />
 
-        </div>
-        <div style={{
-          bottom: 0,
-          left: 0,
-          position: "fixed",
-          width: '100%',
-        }}>
-          <MessageInput conversationId={conversation._id} />
-        </div>
-      </Drawer>
+          </div>
+          <div style={{
+            bottom: 0,
+            left: 0,
+            position: "fixed",
+            width: '100%',
+          }}>
+            <MessageInput conversationId={conversation?._id} />
+          </div>
+        </>
+      }
+    </Drawer>
   )
 };

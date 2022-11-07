@@ -106,7 +106,7 @@ export default function Trainers({ socket }) {
             </Grid>
           </DialogContent>
         </Dialog>
-        <Messages open={openMessageDrawer} handleClose={handleMessageDrawerClose} conversation={{}} socket={socket} />
+        <Messages open={openMessageDrawer} handleClose={handleMessageDrawerClose} socket={socket} />
       </Grid>
     );
   };
