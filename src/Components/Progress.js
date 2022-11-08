@@ -57,7 +57,6 @@ export const RenderLineChart = (props) => {
       .map((e, i) => {
         const reps = e.achieved.reps;
         const weight = e.achieved.weight;
-        exerciseIndex = i;
 
         const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
         const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
@@ -86,6 +85,7 @@ export const RenderLineChart = (props) => {
         };
         return newE;
       });
+      exerciseIndex = exercise.slice().sort((a,b) => a.reps.length < b.reps.length)[0];
   }
 
   const RenderToolTip = ({ payload, unit, fill }) => {
@@ -125,7 +125,7 @@ export const RenderLineChart = (props) => {
           height={containerSize * 0.25}
           data={exercise}
         >
-          {exercise[exerciseIndex]?.weight?.map((w, i) => (
+          {exerciseIndex?.weight?.map((w, i) => (
               <Bar
                 key={`bar-weight-${exerciseIndex}-${i}`}
                 dataKey={`weight[${i}]`}
@@ -145,8 +145,7 @@ export const RenderLineChart = (props) => {
           height={containerSize * 0.25}
           data={exercise}
         >
-          {exercise[exerciseIndex] &&
-            exercise[exerciseIndex].reps.map((w, i) => (
+          {exerciseIndex?.reps?.map((w, i) => (
               <Bar key={`bar-reps-${exerciseIndex}-${i}`} dataKey={`reps[${i}]`} fill={theme().palette.error.main} />
             ))}
           <XAxis dataKey="date" />
