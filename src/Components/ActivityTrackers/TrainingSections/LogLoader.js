@@ -19,6 +19,7 @@ const LoggedField = (props) => {
   }
 
   const handleChange = (e) => {
+    console.log(e);
     let answer = 0;
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
@@ -55,6 +56,13 @@ const LoggedField = (props) => {
     });
   };
 
+  const handleGoalAdornmentClick = (e, goalValue) => {
+    e.target.value = goalValue.substr(0, goalValue.length);
+    if(e.detail === 2){
+      handleChange(e);
+    }
+  }
+
   return (
     <Grid item xs={5}>
       <TextField
@@ -71,7 +79,7 @@ const LoggedField = (props) => {
         size="small"
         InputProps={{
           endAdornment: (
-            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right" }}>
+            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right", userSelect: 'none', }} onClick={(e) => handleGoalAdornmentClick(e, parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]) }>
               /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
             </InputAdornment>
           ),
