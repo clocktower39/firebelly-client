@@ -1,11 +1,28 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginJWT } from "../../Redux/actions";
-import { Box, Container, Grid, Typography } from "@mui/material";
-import { Assessment, FitnessCenter, Restaurant, Workspaces } from "@mui/icons-material";
+import {
+  Box,
+  Container,
+  Grid,
+  List,
+  ListItem,
+  Typography,
+} from "@mui/material";
 import Navbar from "./Navbar";
-import useWindowWidth from "../../Hooks/WindowWidth"
+import useWindowWidth from "../../Hooks/WindowWidth";
 import DeadliftImg from "../../img/deadlift.jpg";
+import BryceFlagpole from "../../img/bryce_flagpole.jpg";
+
+const classes = {
+  MainImgBox: {
+    backgroundColor: "black",
+    width: "100%",
+  },
+  WideMainImg:{ width: "100%", height: "auto" },
+  NonWideMainImg: { width: "100%", height: "55vh", objectFit: "cover" },
+  AboutSite: { padding: "25px 15px" },
+};
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -25,33 +42,137 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <div>
-        <Box sx={{ backgroundColor: "black", width: "100%" }}>
-          <Container maxWidth={"lg"} disableGutters >
-            <img alt="Deadlift" src={DeadliftImg} style={wide ? { width: "100%", height: "auto" } : { width: '100%', height: '55vh', objectFit: 'cover', }} />
-          </Container>
-        </Box>
-        <Container maxWidth="xl">
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} sx={{ color: "#D56100" }}>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Assessment sx={{ fontSize: "125px" }} /> </Grid>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Typography variant="h4" >Fitness</Typography></Grid>
-            </Grid>
-            <Grid item xs={12} sm={6} sx={{ color: "#00AA00" }}>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Restaurant sx={{ fontSize: "125px" }} /> </Grid>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Typography variant="h4" >Nutrition</Typography></Grid>
-            </Grid>
-            <Grid item xs={12} sm={6} sx={{ color: "#008080" }}>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Workspaces sx={{ fontSize: "125px" }} /> </Grid>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Typography variant="h4" >Workshops</Typography></Grid>
-            </Grid>
-            <Grid item xs={12} sm={6} sx={{ color: "#d50000" }}>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><FitnessCenter sx={{ fontSize: "125px" }} /> </Grid>
-              <Grid item xs={12} container sx={{ justifyContent: "center" }}><Typography variant="h4" >Training</Typography></Grid>
-            </Grid>
+      <Box sx={classes.MainImgBox}>
+        <Container maxWidth={"lg"} disableGutters>
+          <img
+            alt="Deadlift"
+            src={DeadliftImg}
+            style={
+              wide
+                ? classes.WideMainImg
+                : classes.NonWideMainImg
+            }
+          />
+        </Container>
+      </Box>
+      <Grid>
+        <Container maxWidth="md" sx={classes.AboutSite}>
+          <Grid>
+            <Typography
+              variant="h4"
+              textAlign="center"
+              sx={{ fontFamily: "Rockwell" }}
+            >
+              About Firebelly Fitness
+            </Typography>
+          </Grid>
+          <Grid>
+            <Typography>
+              Our goal is to help as many people as possible improve their
+              lifestyle by giving them the information, coaching, and tools
+              needed to improve functionality for any experience they encounter.
+            </Typography>
+          </Grid>
+          <Grid>
+            <Typography>On this website, you will find:</Typography>
+            <List sx={{ listStyleType: "disc", pl: 4 }}>
+              <ListItem sx={{ display: "list-item" }}>
+                Consolidated information about Fitness & Nutrition, it will
+                contain some of the most important basic information that you
+                need to understand to be successful. (Please read it, it's free,
+                we just want everyone to have the most accurate information
+                possible)
+              </ListItem>
+              <ListItem sx={{ display: "list-item" }}>
+                Workshops for specific exercises or skills with step by step
+                instructions for proper form and advancements
+              </ListItem>
+              <ListItem sx={{ display: "list-item" }}>
+                Training Program Options
+              </ListItem>
+              <ListItem sx={{ display: "list-item" }}>
+                Fitness Application with our free programs, online programs, and
+                custom programs
+              </ListItem>
+            </List>
           </Grid>
         </Container>
-      </div>
+        <Container maxWidth="false" sx={{ backgroundColor: "black" }}>
+          <Container
+            maxWidth="md"
+            sx={{
+              backgroundColor: "black",
+              color: "white",
+              padding: "25px 0px",
+            }}
+          >
+            <Grid container>
+              <Grid container item xs={12} md={6}>
+                <Grid>
+                  <Typography
+                    variant="h4"
+                    textAlign="center"
+                    sx={{ fontFamily: "Rockwell" }}
+                  >
+                    About Me
+                  </Typography>
+                </Grid>
+                <Grid>
+                  <Typography>
+                    I have always had a passion for understanding, never able to
+                    accept "that’s just the way it is" as an answer. This
+                    curiosity has shaped me in many ways that I am grateful for,
+                    mostly, the determination to find the truth through trial.
+                    The most when learning about Kinesiology or Nutrition, is
+                    that I can apply the information to myself and see the
+                    results before my very eyes.
+                  </Typography>
+                </Grid>
+                <Grid>
+                  <Typography>
+                    I live a very active lifestyle, and like to practice what I
+                    preach!
+                  </Typography>
+                </Grid>
+                <Grid>
+                  <Typography>My hobbies include:</Typography>
+                  <List sx={{ listStyleType: "disc", pl: 4 }}>
+                    <ListItem sx={{ display: "list-item" }}>
+                      Calisthenics (Handstands, Flagpoles, Lever, Planche, etc)
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item" }}>Hiking</ListItem>
+                    <ListItem sx={{ display: "list-item" }}>Jiu Jitsu</ListItem>
+                    <ListItem sx={{ display: "list-item" }}>
+                      Strength Training
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item" }}>Stunting</ListItem>
+                    <ListItem sx={{ display: "list-item" }}>Tumbling</ListItem>
+                    <ListItem sx={{ display: "list-item" }}>
+                      Longboarding
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item" }}>
+                      Videogames
+                    </ListItem>
+                  </List>
+                </Grid>
+              </Grid>
+              <Grid
+                container
+                item
+                xs={12}
+                md={6}
+                sx={{ justifyContent: "center", alignItems: "center" }}
+              >
+                <img
+                  alt="flagpole calisthenics"
+                  src={BryceFlagpole}
+                  style={{ width: "70%", height: "auto", maxWidth: '300px', borderRadius: '5px' }}
+                />
+              </Grid>
+            </Grid>
+          </Container>
+        </Container>
+      </Grid>
     </>
   );
 }

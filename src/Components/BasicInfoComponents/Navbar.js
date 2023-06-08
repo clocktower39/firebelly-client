@@ -15,8 +15,14 @@ import {
   Collapse,
   Stack,
   Toolbar,
+  Typography,
 } from "@mui/material";
-import { Assessment, FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
+import {
+  FitnessCenter,
+  Home,
+  Restaurant,
+  Workspaces,
+} from "@mui/icons-material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import FireBellyLogo from "../../img/fireBellyLogo.jpg";
@@ -49,7 +55,11 @@ const classes = {
     textTransform: "uppercase",
   },
   nested: {
-    paddingLeft: 'theme.spacing(4)',
+    paddingLeft: "theme.spacing(4)",
+  },
+  NavLogoText: {
+    fontFamily: "Rockwell",
+    fontSize: "14px",
   },
 };
 
@@ -64,9 +74,14 @@ export default function Navbar() {
   return (
     <AppBar position="sticky">
       <Toolbar sx={classes.Toolbar}>
-        <IconButton color="inherit" component={Link} to="/">
-          <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
+      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <IconButton color="inherit" component={Link} to="/" sx={{ position: 'relative', zIndex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: '75px', height: '75px' }} />
         </IconButton>
+        <Typography variant="caption" sx={{ position: 'absolute', zIndex: 2, textAlign: 'center', color: 'white', '&:hover': { cursor: 'default' }, userSelect: 'none'  }}>
+          Firebelly Fitness
+        </Typography>
+      </Box>
         <Stack
           direction="row"
           divider={
@@ -78,33 +93,31 @@ export default function Navbar() {
             />
           }
         >
-          <Button
-            sx={classes.NavLink}
-            component={Link}
-            to="/"
-          >
+          <Button sx={classes.NavLink} component={Link} to="/">
             <Stack justifyContent="center" alignItems="center">
-              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Home</Box>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
+                Home
+              </Box>
               <Home sx={{ color: "#FFF" }} />
             </Stack>
           </Button>
-          <Button
-            sx={classes.NavLink}
-            component={Link}
-            to="/basicinfo/fitness"
-          >
+          {/* <Button sx={classes.NavLink} component={Link} to="/basicinfo/fitness">
             <Stack justifyContent="center" alignItems="center">
-              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Fitness</Box>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
+                Fitness
+              </Box>
               <Assessment sx={{ color: "#D56100" }} />
             </Stack>
-          </Button>
+          </Button> */}
           <Button
             sx={classes.NavLink}
             component={Link}
             to="/basicinfo/nutrition"
           >
             <Stack justifyContent="center" alignItems="center">
-              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Nutrition</Box>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
+                Nutrition
+              </Box>
               <Restaurant sx={{ color: "#00AA00" }} />
             </Stack>
           </Button>
@@ -114,7 +127,9 @@ export default function Navbar() {
             to="/basicinfo/workshops"
           >
             <Stack justifyContent="center" alignItems="center">
-              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Workshops</Box>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
+                Workshops
+              </Box>
               <Workspaces sx={{ color: "#008080" }} />
             </Stack>
           </Button>
@@ -124,7 +139,9 @@ export default function Navbar() {
             to="/basicinfo/training"
           >
             <Stack justifyContent="center" alignItems="center">
-              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Training</Box>
+              <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
+                Training
+              </Box>
               <FitnessCenter sx={{ color: "#d50000" }} />
             </Stack>
           </Button>
@@ -145,7 +162,11 @@ export default function Navbar() {
                 unmountOnExit
                 sx={{ position: "absolute" }}
               >
-                <List component="div" disablePadding sx={{ backgroundColor: "black" }}>
+                <List
+                  component="div"
+                  disablePadding
+                  sx={{ backgroundColor: "black" }}
+                >
                   <ListItem
                     button
                     component={Link}

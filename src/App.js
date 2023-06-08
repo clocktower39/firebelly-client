@@ -43,7 +43,7 @@ function App({ socket }) {
       parts.splice(0, 1);
       // Set the location to the new url
     }
-    return subdomain === "app"  || subdomain === "172" || subdomain === "192" || subdomain === "10" || host === "localhost:3000" ? false : true;
+    return subdomain === "app"  || subdomain === "172" || subdomain === "192" || subdomain === "10" || host === "localhost:3001" ? true : false;
   };
 
   useEffect(()=>{

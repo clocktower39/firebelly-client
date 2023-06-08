@@ -7,3 +7,13 @@ html, body, #root {
     height: calc(100% - 56px);
     scrollbar-width: none;
 }
+@font-face {
+    font-family: 'Rockwell';
+    src: url('./fonts/ROCK.TTF') format('truetype');
+    /* ... additional font-face properties */
+  }
+  @font-face {
+      font-family: 'Verdana';
+      src: url('./fonts/Verdana.ttf') format('truetype');
+      /* ... additional font-face properties */
+    }
