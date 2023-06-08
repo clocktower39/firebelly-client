@@ -19,7 +19,6 @@ const LoggedField = (props) => {
   }
 
   const handleChange = (e) => {
-    console.log(e);
     let answer = 0;
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
@@ -68,11 +67,9 @@ const LoggedField = (props) => {
       <TextField
         label={field.label}
         value={exercise.achieved[field.achievedAttribute][exerciseSetIndex] || 0}
-        type="number"
         inputProps={{
-          type: "number",
           inputMode: "decimal",
-          pattern: "[0-9]*",
+          pattern: "^[0-9]*\\.?[0-9]*$",
         }}
         onChange={handleChange}
         onFocus={handleFocus}

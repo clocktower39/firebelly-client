@@ -60,11 +60,9 @@ const LoggedField = (props) => {
       <TextField
         label={field.label}
         value={exercise.goals[field.goalAttribute][exerciseSetIndex] || 0}
-        type="number"
         inputProps={{
-          type: "number",
           inputMode: "decimal",
-          pattern: "[0-9]*",
+          pattern: "^[0-9]*\\.?[0-9]*$",
         }}
         onChange={handleChange}
         onFocus={handleFocus}
