@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
-import { RenderLineChart } from "../../Progress";
+import { ModalBarChartHistory } from "../../Progress";
 
 export default function Exercise(props) {
   const {
@@ -16,7 +16,6 @@ export default function Exercise(props) {
     localTraining,
     removeExercise,
     setHeightToggle,
-    size,
   } = props;
   const dispatch = useDispatch();
 
@@ -363,11 +362,10 @@ export default function Exercise(props) {
         </>
       )}
       {open &&
-        <RenderLineChart
+        <ModalBarChartHistory
           targetExerciseHistory={targetExerciseHistory}
           open={open}
           handleClose={handleClose}
-          containerSize={size}
         />}
     </Grid>
   );
