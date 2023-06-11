@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Autocomplete, Chip, Grid, IconButton, TextField, Tooltip, Typography } from "@mui/material";
 import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestMyExerciseList, requestExerciseProgess } from "../../../Redux/actions";
+import { requestMyExerciseList, requestExerciseProgess } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
-import { ModalBarChartHistory } from "../../Progress";
+import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
 
 export default function Exercise(props) {
   const {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import AuthNavbar from './AuthNavbar';
 import { useSelector, useDispatch } from 'react-redux';
-import { requestExerciseLibrary } from '../Redux/actions';
+import { requestExerciseLibrary } from '../../Redux/actions';
 
 export default function ExerciseLibrary() {
   const exerciseLibrary = useSelector(state => state.exerciseLibrary)

@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { requestNutrition, updateNutrition } from "../../Redux/actions";
-import SelectedDate from "./SelectedDate";
+import SelectedDate from "../../Components/SelectedDate";
 
 const classes = {
   heading: {},

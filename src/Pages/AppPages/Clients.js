@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { requestClients, changeRelationshipStatus } from '../Redux/actions';
+import { requestClients, changeRelationshipStatus } from '../../Redux/actions';
 import { Avatar, Button, Card, CardHeader, Container, Dialog, Grid, IconButton, Paper, Typography } from "@mui/material";
 import { Delete, Done, PendingActions, } from "@mui/icons-material";
 import AuthNavbar from "./AuthNavbar";
-import Training from "./ActivityTrackers/Training";
-import Goals from "./ActivityTrackers/Goals";
+import Training from "./Training";
+import Goals from "./Goals";
 
 export default function Clients() {
   const dispatch = useDispatch();

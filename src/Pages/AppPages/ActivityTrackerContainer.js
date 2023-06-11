@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Container, Paper } from '@mui/material';
 import { Outlet } from 'react-router-dom';
-import AuthNavbar from '../AuthNavbar';
+import AuthNavbar from './AuthNavbar';
 
 export default function ActivityTrackerContainer(props) {
     const { socket } = props;

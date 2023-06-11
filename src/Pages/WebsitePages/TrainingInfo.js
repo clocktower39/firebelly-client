@@ -1,11 +1,11 @@
 import React from "react";
-import Navbar from "./Navbar";
+import WebsiteNavbar from "./WebsiteNavbar";
 import { Container, Paper, Typography } from "@mui/material";
 
 export default function TrainingInfo() {
   return (
     <>
-      <Navbar />
+      <WebsiteNavbar />
       <Container>
         <Typography variant="h3" sx={{ color: "white", textAlign: "center" }} gutterBottom>
           Training

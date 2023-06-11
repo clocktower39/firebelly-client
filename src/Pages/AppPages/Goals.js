@@ -23,7 +23,7 @@ import {
   Delete,
 } from "@mui/icons-material";
 import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
-import AuthNavbar from "../AuthNavbar";
+import AuthNavbar from "./AuthNavbar";
 
 export default function Goals({ view = "client", clientId, }) {
   const dispatch = useDispatch();

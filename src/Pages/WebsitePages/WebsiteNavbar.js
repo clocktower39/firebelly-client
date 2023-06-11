@@ -63,7 +63,7 @@ const classes = {
   },
 };
 
-export default function Navbar() {
+export default function WebsiteNavbar() {
   const dispatch = useDispatch();
   const wide = useWindowWidth(775);
   const user = useSelector((state) => state.user);

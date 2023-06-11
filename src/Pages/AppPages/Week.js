@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
-import { requestNutritionWeek, requestTrainingWeek } from "../Redux/actions";
+import { requestNutritionWeek, requestTrainingWeek } from "../../Redux/actions";
 import AuthNavbar from './AuthNavbar';
 
 const classes = {

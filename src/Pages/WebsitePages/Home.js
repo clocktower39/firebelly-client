@@ -9,7 +9,7 @@ import {
   ListItem,
   Typography,
 } from "@mui/material";
-import Navbar from "./Navbar";
+import WebsiteNavbar from "./WebsiteNavbar";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import DeadliftImg from "../../img/deadlift.jpg";
 import BryceFlagpole from "../../img/bryce_flagpole.jpg";
@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <>
-      <Navbar />
+      <WebsiteNavbar />
       <Box sx={classes.MainImgBox}>
         <Container maxWidth={"lg"} disableGutters>
           <img

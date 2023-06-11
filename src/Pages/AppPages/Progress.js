@@ -14,9 +14,9 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   requestMyExerciseList,
   requestExerciseProgess,
-} from "../Redux/actions";
+} from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import { theme } from "../theme";
+import { theme } from "../../theme";
 
 const modalStyle = () => ({
   position: "absolute",

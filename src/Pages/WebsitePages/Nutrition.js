@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Container, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
-import Navbar from "./Navbar";
+import WebsiteNavbar from "./WebsiteNavbar";
 
 const classes = {
     root: {},
@@ -16,7 +16,7 @@ const classes = {
 export default function Nutrition() {
     return (
         <>
-            <Navbar />
+            <WebsiteNavbar />
             <Container >
                 <Typography variant="h3" sx={{ color: 'white', textAlign: 'center', }} gutterBottom >Nutrition </Typography>
                 <Paper elevation="6" sx={{ padding: '5px 25px' }}>

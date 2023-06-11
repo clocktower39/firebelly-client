@@ -4,28 +4,28 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
 import AuthRoute from "./Components/AuthRoute";
-import Home from "./Components/BasicInfoComponents/Home";
-import Fitness from "./Components/BasicInfoComponents/Fitness";
-import NutritionInfo from "./Components/BasicInfoComponents/Nutrition";
-import Workshops from "./Components/BasicInfoComponents/Workshops";
-import TrainingInfo from "./Components/BasicInfoComponents/TrainingInfo";
-import Login from "./Components/Login";
-import SignUp from "./Components/SignUp";
-import Dashboard from "./Components/Dashboard";
-import Tasks from "./Components/ActivityTrackers/Tasks";
-import Training from "./Components/ActivityTrackers/Training";
-import Nutrition from "./Components/ActivityTrackers/Nutrition";
-import Week from "./Components/Week";
-import Clients from "./Components/Clients";
-import Progress from "./Components/Progress";
-import Goals from "./Components/ActivityTrackers/Goals";
-import Account from "./Components/AccountComponents/Account";
+import Home from "./Pages/WebsitePages/Home";
+import Fitness from "./Pages/WebsitePages/Fitness";
+import NutritionInfo from "./Pages/WebsitePages/Nutrition";
+import Workshops from "./Pages/WebsitePages/Workshops";
+import TrainingInfo from "./Pages/WebsitePages/TrainingInfo";
+import Login from "./Pages/Login";
+import SignUp from "./Pages/SignUp";
+import Dashboard from "./Pages/AppPages/Dashboard";
+import Tasks from "./Pages/AppPages/Tasks";
+import Training from "./Pages/AppPages/Training";
+import Nutrition from "./Pages/AppPages/Nutrition";
+import Week from "./Pages/AppPages/Week";
+import Clients from "./Pages/AppPages/Clients";
+import Progress from "./Pages/AppPages/Progress";
+import Goals from "./Pages/AppPages/Goals";
+import Account from "./Pages/AppPages/Account";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import Trainers from "./Components/AccountComponents/Trainers";
-import ExerciseLibrary from "./Components/ExerciseLibrary";
-import ActivityTrackerContainer from "./Components/ActivityTrackers/ActivityTrackerContainer";
-import NotFoundPage from "./Components/NotFoundPage";
+import ExerciseLibrary from "./Pages/AppPages/ExerciseLibrary";
+import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
+import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
 function App({ socket }) {
@@ -58,10 +58,10 @@ function App({ socket }) {
           {checkSubDomain() ? (
             <>
               <Route exact path="/" element={<Home />} />
-              <Route exact path="/basicinfo/fitness" element={<Fitness />} />
-              <Route exact path="/basicinfo/nutrition" element={<NutritionInfo />} />
-              <Route exact path="/basicinfo/workshops" element={<Workshops />} />
-              <Route exact path="/basicinfo/training" element={<TrainingInfo />} />
+              <Route exact path="/fitness" element={<Fitness />} />
+              <Route exact path="/nutrition" element={<NutritionInfo />} />
+              <Route exact path="/workshops" element={<Workshops />} />
+              <Route exact path="/training" element={<TrainingInfo />} />
             </>
           ) : (
             <> {/* App */}

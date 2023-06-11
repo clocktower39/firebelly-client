@@ -17,9 +17,9 @@ import {
 } from "@mui/material";
 import { ContentCopy, Delete, DoubleArrow, Download, Settings } from "@mui/icons-material";
 import { createTraining, requestTraining, updateTraining, updateWorkoutDate, copyWorkoutDate, deleteWorkoutDate, } from "../../Redux/actions";
-import SwipeableSet from "./TrainingSections/SwipeableSet";
-import SelectedDate from "./SelectedDate";
-import Loading from "../Loading";
+import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
+import SelectedDate from "../../Components/SelectedDate";
+import Loading from "../../Components/Loading";
 
 export function ModalAction(props) {
   const { actionType, selectedDate, handleModalToggle } = props;

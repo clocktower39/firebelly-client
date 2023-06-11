@@ -15,9 +15,9 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Settings, List as ListIcon } from "@mui/icons-material";
-import AuthNavbar from "../AuthNavbar";
+import AuthNavbar from "./AuthNavbar";
 import { logoutUser } from "../../Redux/actions";
-import ChangePassword from './ChangePassword';
+import ChangePassword from '../../Components/AccountComponents/ChangePassword';
 
 export default function Account() {
   const dispatch = useDispatch();
