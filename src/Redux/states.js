@@ -11,6 +11,8 @@ export let tasks = {
 
 export let exerciseLibrary = [];
 
+export let workouts = [];
+
 export let training = {
     trainingCategory: "",
     training: [
@@ -64,5 +66,5 @@ export let myTrainers = [];
 export let trainers = [];
 export let goals = [];
 
-
 export let conversations = [];
+export let weeklyTraining = [];

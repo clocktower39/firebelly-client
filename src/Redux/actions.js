@@ -10,6 +10,8 @@ export const ADD_TASK_HISTORY_DAY = "ADD_TASK_HISTORY_DAY";
 export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
+export const EDIT_HOME_WORKOUTS = "EDIT_HOME_WORKOUTS";
+export const ADD_WORKOUT = "ADD_WORKOUT";
 export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
@@ -26,11 +28,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -390,12 +392,12 @@ export function updateNutrition(updatedNutrition) {
 }
 
 // Fetches daily training information
-export function requestTraining(date, requestedBy = 'client', client) {
+export function requestTraining(trainingId, requestedBy = 'client', client) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     let url = `${serverURL}/training`;
-    let requestbody = { date, client: null };
+    let requestbody = { _id: trainingId, client: null };
 
     if(requestedBy === 'trainer'){
       url = `${serverURL}/getClientTraining`;
@@ -431,6 +433,53 @@ export function requestTraining(date, requestedBy = 'client', client) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...data[0] },
+      });
+    }
+  };
+}
+
+// Fetches workouts by date
+export function requestWorkoutsByDate(date, requestedBy = 'client', client) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    let url = `${serverURL}/workouts`;
+    let requestbody = { date, client: null };
+
+    if(requestedBy === 'trainer'){
+      url = `${serverURL}/getClientTraining`;
+      requestbody.client = client;
+    }
+
+    const response = await fetch(url, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(requestbody),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let data = await response.json();
+
+    if (!data || data.length < 1) {
+      return dispatch({
+        type: EDIT_HOME_WORKOUTS,
+        workouts: [ ...data ],
+      });
+    } else {
+      data.map(workout => workout.training.map((set) => {
+        set.map((exercise) => {
+          if (!exercise.achieved.weight) {
+            exercise.achieved.weight = [0];
+          }
+          return exercise;
+        });
+        return set;
+      }));
+      return dispatch({
+        type: EDIT_HOME_WORKOUTS,
+        workouts: [ ...data ],
       });
     }
   };
@@ -486,8 +535,8 @@ export function createTraining(date) {
           });
         }
         return dispatch({
-          type: EDIT_TRAINING,
-          training: data.training,
+          type: ADD_WORKOUT,
+          workout: data.training,
         });
       });
   };
@@ -526,15 +575,15 @@ export function updateTraining(trainingId, updatedTraining) {
 }
 
 // Updates training date
-export function updateWorkoutDate(selectedDate, newDate) {
+export function updateWorkoutDateById(training, newDate) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const data = await fetch(`${serverURL}/updateWorkoutDate`, {
+    const data = await fetch(`${serverURL}/updateWorkoutDateById`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        originalDate: selectedDate,
+        _id: training._id,
         newDate,
       }),
       headers: {
@@ -551,22 +600,22 @@ export function updateWorkoutDate(selectedDate, newDate) {
     } else {
       return dispatch({
         type: EDIT_TRAINING,
-        training: { training: [] },
+        training: { ...training, date: newDate },
       });
     }
   };
 }
 
 // Updates training date
-export function copyWorkoutDate(selectedDate, newDate, copyOption = 'exact') {
+export function copyWorkoutById(trainingId, newDate, copyOption = 'exact') {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const data = await fetch(`${serverURL}/copyWorkout`, {
+    const data = await fetch(`${serverURL}/copyWorkoutById`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        originalDate: selectedDate,
+        _id: trainingId,
         newDate,
         option: copyOption,
       }),
@@ -586,15 +635,15 @@ export function copyWorkoutDate(selectedDate, newDate, copyOption = 'exact') {
 }
 
 // Delete a training record
-export function deleteWorkoutDate(selectedDate) {
+export function deleteWorkoutById(trainingId) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    const data = await fetch(`${serverURL}/deleteWorkoutDate`, {
+    const data = await fetch(`${serverURL}/deleteWorkoutById`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        date: selectedDate,
+        _id: trainingId,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

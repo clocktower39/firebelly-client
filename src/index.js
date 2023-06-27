@@ -14,7 +14,7 @@ ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
       <App socket={socket} />
-    </Provider>
+    </Provider>,
   </React.StrictMode>,
   document.getElementById('root')
 );

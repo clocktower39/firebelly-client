@@ -4,16 +4,19 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
 import AuthRoute from "./Components/AuthRoute";
-import Home from "./Pages/WebsitePages/Home";
+import WebsiteHome from "./Pages/WebsitePages/WebsiteHome";
 import Fitness from "./Pages/WebsitePages/Fitness";
 import NutritionInfo from "./Pages/WebsitePages/Nutrition";
 import Workshops from "./Pages/WebsitePages/Workshops";
 import TrainingInfo from "./Pages/WebsitePages/TrainingInfo";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
+import Home from "./Pages/AppPages/Home";
+import Workout from "./Pages/AppPages/Workout";
 import Dashboard from "./Pages/AppPages/Dashboard";
 import Tasks from "./Pages/AppPages/Tasks";
-import Training from "./Pages/AppPages/Training";
+// import Training from "./Pages/AppPages/Training";
+import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Nutrition from "./Pages/AppPages/Nutrition";
 import Week from "./Pages/AppPages/Week";
 import Clients from "./Pages/AppPages/Clients";
@@ -57,7 +60,7 @@ function App({ socket }) {
           {/* Default website pages, anyone can access */}
           {checkSubDomain() ? (
             <>
-              <Route exact path="/" element={<Home />} />
+              <Route exact path="/" element={<WebsiteHome />} />
               <Route exact path="/fitness" element={<Fitness />} />
               <Route exact path="/nutrition" element={<NutritionInfo />} />
               <Route exact path="/workshops" element={<Workshops />} />
@@ -70,31 +73,50 @@ function App({ socket }) {
 
               {/* Must be logged in and have JWT token to authenticate */}
               <Route exact path="/" element={<AuthRoute />}>
-                <Route exact path="/" element={<ActivityTrackerContainer />} >
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Home />} />
+                </Route>
+              </Route>
+              
+              <Route exact path="/dashboard" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Dashboard />} />
                 </Route>
               </Route>
 
+              <Route exact path="/history" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<WorkoutHistory />} />
+                </Route>
+              </Route>
+
+              <Route exact path="/workout" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="/workout/:_id" element={<Workout />} />
+                </Route>
+              </Route>
+
+
               <Route exact path="/tasks" element={<AuthRoute />}>
-                <Route exact path="/tasks" element={<ActivityTrackerContainer />} >
+                <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Tasks />} />
                 </Route>
               </Route>
 
-              <Route exact path="/training" element={<AuthRoute />}>
-                <Route exact path="/training" element={<ActivityTrackerContainer />} >
+              {/* <Route exact path="/training" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Training />} />
                 </Route>
-              </Route>
+              </Route> */}
 
               <Route exact path="/nutrition" element={<AuthRoute />}>
-                <Route exact path="/nutrition" element={<ActivityTrackerContainer />} >
+                <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Nutrition />} />
                 </Route>
               </Route>
 
               <Route exact path="/progress" element={<AuthRoute />}>
-                <Route exact path="/progress" element={<ActivityTrackerContainer />} >
+                <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Progress />} />
                 </Route>
               </Route>
@@ -112,10 +134,12 @@ function App({ socket }) {
               </Route>
 
               <Route exact path="/account/*" element={<AuthRoute />}>
-                <Route exact path="/account/*/*" element={<Account />}>
-                  <Route index={true} exact path="" element={<MyAccount />} />
-                  <Route index={true} exact path="theme" element={<ThemeSettings />} />
-                  <Route index={true} exact path="trainers" element={<Trainers socket={socket} />} />
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="/account/*/*" element={<Account />}>
+                    <Route index={true} exact path="" element={<MyAccount />} />
+                    <Route index={true} exact path="theme" element={<ThemeSettings />} />
+                    <Route index={true} exact path="trainers" element={<Trainers socket={socket} />} />
+                  </Route>
                 </Route>
               </Route>
 

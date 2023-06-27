@@ -153,9 +153,8 @@ const MessageInput = ({ conversationId }) => {
 
 
 export default function Messages({ open, handleClose, socket }) {
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  const [conversation, setConversation] = useState({});
+  const [conversation] = useState({});
 
   useEffect(()=>{
     // dispatch(getConversation())

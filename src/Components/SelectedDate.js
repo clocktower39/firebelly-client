@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Button, Container, Grid, TextField, Divider } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import dayjs from "dayjs";
 
 const classes = {
   ArrowIcons: {
@@ -8,29 +9,19 @@ const classes = {
   },
 };
 
+const convertToReadableDateInput = (date) => {
+  return dayjs(date).format('YYYY-MM-DD');
+}
+
 export default function SelectedDate(props) {
-  const { setParentSelectedDate } = props;
-
-  // format a Date object like ISO
-  const dateToISOLikeButLocal = (date) => {
-    const offsetMs = date.getTimezoneOffset() * 60 * 1000;
-    const msLocal = date.getTime() - offsetMs;
-    const dateLocal = new Date(msLocal);
-    const iso = dateLocal.toISOString();
-    const isoLocal = iso.slice(0, 19);
-    return isoLocal;
-  };
-
-  const [selectedDate, setSelectedDate] = useState(dateToISOLikeButLocal(new Date()).substr(0, 10));
-
+  const { selectedDate, setSelectedDate } = props;
   // handles when arrow buttons are clicked
   const changeDate = (change) => {
-    let newDate = new Date(selectedDate).setDate(new Date(selectedDate).getDate() + change);
-    setSelectedDate(new Date(newDate).toISOString().substr(0, 10));
+    let newDate = dayjs(selectedDate).add(change, 'day');
+    setSelectedDate(convertToReadableDateInput(newDate));
   };
 
   useEffect(() => {
-    setParentSelectedDate(selectedDate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -50,7 +41,7 @@ export default function SelectedDate(props) {
           type="date"
           color="primary"
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          onChange={(e) => setSelectedDate(convertToReadableDateInput(e.target.value))}
           InputLabelProps={{
             shrink: true,
           }}

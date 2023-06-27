@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { Home, FormatListBulleted, FitnessCenter, Assessment, Settings } from '@mui/icons-material';
+import { Home, FormatListBulleted, History, Assessment, Settings } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
 
@@ -29,9 +29,9 @@ export default function Navbar() {
       color: 'white',
     }} >
       <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Progress" value="/progress" to='/progress' icon={<Assessment />} component={Link} />
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Tasks" value="/tasks" to='/tasks' icon={<FormatListBulleted />} component={Link} />
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Dashboard" value="/" to='/' icon={<Home />} component={Link} />
-      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Training" value="/training" to='/training' icon={<FitnessCenter />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="History" value="/history" to='/history' icon={<History />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Home" value="/" to='/' icon={<Home />} component={Link} />
+      <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Goals" value="/goals" to='/goals' icon={<FormatListBulleted />} component={Link} />
       <BottomNavigationAction sx={{ color: 'white', }} disabled={disableNav} label="Settings" value="/account" to='/account' icon={<Settings />} component={Link} />
     </BottomNavigation>
   );

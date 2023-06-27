@@ -8,6 +8,8 @@ import {
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_NUTRITION,
+  EDIT_HOME_WORKOUTS,
+  ADD_WORKOUT,
   EDIT_TRAINING,
   EDIT_WEEKLY_VIEW,
   EDIT_EXERCISE_LIBRARY,
@@ -23,9 +25,9 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_CONVERSATION_MESSAGES,
 } from "./actions";
-import { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients, conversations, } from "./states";
+import { user, calander, exerciseLibrary, progress, nutrition, workouts, training, tasks, myTrainers, trainers, goals, clients, conversations } from "./states";
 export let reducer = (
-  state = { user, calander, exerciseLibrary, progress, nutrition, training, tasks, myTrainers, trainers, goals, clients, conversations },
+  state = { user, calander, exerciseLibrary, progress, nutrition, workouts, training, tasks, myTrainers, trainers, goals, clients, conversations },
   action
 ) => {
   switch (action.type) {
@@ -65,6 +67,16 @@ export let reducer = (
           ...state.tasks,
           history: [...state, tasks.history, action.newDay],
         },
+      };
+    case EDIT_HOME_WORKOUTS:
+      return {
+        ...state,
+        workouts: [ ...action.workouts ],
+      };
+    case ADD_WORKOUT:
+      return {
+        ...state,
+        workouts: [ ...state.workouts, action.workout ],
       };
     case EDIT_TRAINING:
       return {
@@ -170,7 +182,6 @@ export let reducer = (
           const updatedConversations = [...state.conversations.map(c => {
               if( c._id === action.conversation._id){
                   c.messages = action.conversation.messages
-                  console.log(c)
               }
               return c;
           })];
