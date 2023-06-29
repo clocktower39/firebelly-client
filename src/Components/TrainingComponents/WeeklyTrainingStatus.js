@@ -56,7 +56,8 @@ export default function WeeklyTrainingStatus({ selectedDate }) {
     };
 
     fetchWeelyData().then(wd => setWeeklyData(wd));;
-  }, [date]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     // onClick open detail. btn on detail will move to that date
     <Grid container sx={{ justifyContent: "center" }}>

@@ -4,7 +4,7 @@ import { requestClients, changeRelationshipStatus } from '../../Redux/actions';
 import { Avatar, Button, Card, CardHeader, Container, Dialog, Grid, IconButton, Paper, Typography } from "@mui/material";
 import { Delete, Done, PendingActions, } from "@mui/icons-material";
 import AuthNavbar from "./AuthNavbar";
-import Training from "./Training";
+import Workout from "./Workout";
 import Goals from "./Goals";
 
 export default function Clients() {
@@ -123,7 +123,7 @@ export default function Clients() {
             {clients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
           </Grid>
         </Paper>
-        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Training view="trainer" clientId={selectedClient} /> </Dialog>
+        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Workout view="trainer" clientId={selectedClient} /> </Dialog>
         <Dialog open={openGoals} onClose={handleCloseGoals} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Goals view="trainer" clientId={selectedClient} /> </Dialog>
       </Container>
       <AuthNavbar />

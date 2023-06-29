@@ -81,7 +81,7 @@ export default function Workout() {
 
   const [localTraining, setLocalTraining] = useState([]);
   const [trainingCategory, setTrainingCategory] = useState([]);
-  const [trainingTitle, setTrainingTitle] = useState(training.title || "");
+  const [trainingTitle, setTrainingTitle] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);

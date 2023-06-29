@@ -299,9 +299,7 @@ export default function Progress(props) {
         </Grid>
         <Grid container xs={12}>
           <Grid xs={12}>
-            {targetExerciseHistory && targetExerciseHistory.length > 0 && (
-              <BarChartHistory targetExerciseHistory={targetExerciseHistory} />
-            )}
+              <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
           </Grid>
         </Grid>
       </Grid>
