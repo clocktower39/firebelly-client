@@ -236,8 +236,8 @@ const WorkoutSet = (props) => {
   return (
     <>
       <Paper sx={{ padding: "0 5px" }}>
-        <Typography variant="h5" {...workoutSetProvided.dragHandleProps}>
-          Set {workoutSet.workoutSetIndex + 1}
+        <Typography variant="h5">
+          <span {...workoutSetProvided.dragHandleProps}>Set {workoutSet.workoutSetIndex + 1}</span>
         </Typography>
         <div
           ref={provided.innerRef}
@@ -268,11 +268,15 @@ const WorkoutSet = (props) => {
                       <DragHandleIcon />
                     </Grid>
                     <Grid container item xs={5}>
+                      <Typography variant="body1">
                       {exercise.exercise}
+                      </Typography>
                     </Grid>
                     <Grid container item xs={6}>
+                      <Typography variant="body1">
                       {exercise.goals.exactReps.length} sets:{" "}
                       {exercise.goals.exactReps.join(", ")} reps
+                      </Typography>
                     </Grid>
                   </Grid>
                 )}

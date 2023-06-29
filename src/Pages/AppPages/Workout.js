@@ -284,7 +284,6 @@ export default function Workout() {
             <>
               <Grid
                 container
-                spacing={2}
                 sx={{
                   justifyContent: "flex-start",
                   minHeight: "100%",
@@ -321,6 +320,7 @@ export default function Workout() {
                     {dayjs.utc(training.date).format("MMMM Do, YYYY")}
                   </Typography>
                 </Grid>
+                <Grid container spacing={2}>
                 <Grid item xs={12} container alignContent="center">
                   <TextField
                     label="Title"
@@ -386,6 +386,7 @@ export default function Workout() {
                       )}
                     />
                   </Grid>
+                </Grid>
                 </Grid>
                 <Grid item xs={12}>
                   <Divider sx={{ margin: "25px 0px" }} />

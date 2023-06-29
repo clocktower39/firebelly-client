@@ -58,7 +58,6 @@ function Home() {
   ) : (
     <Container
       className="App"
-      maxWidth="md"
       sx={{
         display: "flex",
         flexDirection: "column",

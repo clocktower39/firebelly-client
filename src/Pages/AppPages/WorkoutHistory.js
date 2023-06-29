@@ -81,7 +81,7 @@ export default function WorkoutHistory() {
                 </Grid>
                 <Grid>
                   <Typography variant="caption">
-                    {dayjs(workout.date).format("MMMM Do, YYYY")}
+                    {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
                   </Typography>
                 </Grid>
                 <Grid>{workout?.category?.join(", ")}</Grid>
