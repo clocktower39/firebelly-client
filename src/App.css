@@ -3,10 +3,7 @@ html, body, #root {
     height: 100%;
     overflow: auto;
 }
-#root {
-    height: calc(100% - 56px);
-    scrollbar-width: none;
-}
+
 @font-face {
     font-family: 'Rockwell';
     src: url('./fonts/ROCK.TTF') format('truetype');

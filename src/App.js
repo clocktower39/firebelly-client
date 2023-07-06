@@ -46,6 +46,7 @@ function App({ socket }) {
       parts.splice(0, 1);
       // Set the location to the new url
     }
+    // end line with false : true for production
     return subdomain === "app"  || subdomain === "172" || subdomain === "192" || subdomain === "10" || host === "localhost:3000" ? false : true;
   };
 
@@ -68,6 +69,9 @@ function App({ socket }) {
             </>
           ) : (
             <> {/* App */}
+            {document.getElementById("root").style.scrollbarWidth = 'none'}
+            {document.getElementById("root").style.height = 'calc(100% - 56px)'}
+
               <Route exact path="/login" element={<Login />} />
               <Route exact path="/signup" element={<SignUp />} />
 

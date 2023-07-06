@@ -1,16 +1,17 @@
 import React from "react";
 import WebsiteNavbar from "./WebsiteNavbar";
-import { Container, Paper, Typography } from "@mui/material";
+import { Container, List, ListItem, Paper, Typography } from "@mui/material";
 
 export default function TrainingInfo() {
   return (
     <>
       <WebsiteNavbar />
       <Container>
-        <Typography variant="h3" sx={{ color: "white", textAlign: "center" }} gutterBottom>
-          Training
-        </Typography>
-        <Paper elevation="6" sx={{ padding: "5px 25px" }}>
+        <Paper elevation="6" sx={{ margin: "15px 0", padding: "5px 25px" }}>
+          <Typography variant="h2" sx={{ textAlign: "center" }} gutterBottom>
+            Training
+          </Typography>
+
           <Typography>
             There are online programs for anyone that wants just their program written for them, but
             doesn’t want any coaching.
@@ -22,16 +23,16 @@ export default function TrainingInfo() {
           <Typography>
             And of course, programs that are very customized with frequent communication!
           </Typography>
-          <Typography>
-          Some program examples include: 
-	• Calisthenics
-	• Fat Loss
-	• Flexibility & Mobility
-	• General Functionality
-	• Muscle Mass
-	• Strength Gains 
-Custom
-          </Typography>
+
+          <Typography>Some program examples include:</Typography>
+          <List sx={{ listStyleType: "disc", pl: 4 }}>
+            <ListItem sx={{ display: "list-item" }}>Calisthenics</ListItem>
+            <ListItem sx={{ display: "list-item" }}>Fat Loss</ListItem>
+            <ListItem sx={{ display: "list-item" }}>Flexibility & Mobility</ListItem>
+            <ListItem sx={{ display: "list-item" }}>General Functionality</ListItem>
+            <ListItem sx={{ display: "list-item" }}>Muscle Mass</ListItem>
+            <ListItem sx={{ display: "list-item" }}>Strength Gains Custom</ListItem>
+          </List>
         </Paper>
       </Container>
     </>

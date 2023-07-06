@@ -337,7 +337,7 @@ export default function Exercise(props) {
         <>
           <Grid item xs={12}>
             <Typography color="text.primary" variant="h6" sx={{ textAlign: "center" }}>
-              {title || "Enter an exercise"}:
+              {title || "Enter an exercise"}
               <Tooltip title="View Progress Chart">
                 <IconButton variant="contained" onClick={handleModalExercise}>
                   <Info />

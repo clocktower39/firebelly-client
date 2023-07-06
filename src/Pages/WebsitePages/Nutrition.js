@@ -18,12 +18,9 @@ export default function Nutrition() {
         <>
             <WebsiteNavbar />
             <Container >
-                <Typography variant="h3" sx={{ color: 'white', textAlign: 'center', }} gutterBottom >Nutrition </Typography>
-                <Paper elevation="6" sx={{ padding: '5px 25px' }}>
+                <Paper elevation="6" sx={{ margin: '15px 0', padding: '5px 25px' }}>
+                    <Typography variant="h2" sx={{ textAlign: 'center', }} gutterBottom >Nutrition </Typography>
                     <Typography >
-                        Although the internet is a terrific tool that we are able to use for instant communication and spreading information quickly; its downfall is the fact that the information it so rapidly spreads, may be false.  I have met many people that are going along with the latest fad diet but have not gotten any science-based explanations on how nutrition actually works.
-                        <br />
-                        <br />
                         This Nutrition page will lay out the most important information that you need to know in order to be successful.
                         Remember to take things step-by-step to ensure that you can understand what you are trying to do and why!
                     </Typography>
