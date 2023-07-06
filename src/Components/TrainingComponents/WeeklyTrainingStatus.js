@@ -15,6 +15,8 @@ import { serverURL } from "../../Redux/actions";
 export default function WeeklyTrainingStatus({ selectedDate }) {
   const date = dayjs(selectedDate);
   const [weeklyData, setWeeklyData] = useState([]);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const fillData = [
     { workouts: [], date: date.subtract(6, "day").format("YYYY-MM-DD") },
@@ -55,40 +57,113 @@ export default function WeeklyTrainingStatus({ selectedDate }) {
       return data;
     };
 
-    fetchWeelyData().then(wd => setWeeklyData(wd));;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchWeelyData().then((wd) => setWeeklyData(wd));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    // onClick open detail. btn on detail will move to that date
-    <Grid container sx={{ justifyContent: "center" }}>
-      {weekData.map((day) => (
-        <DayStatusView day={day} key={day.date} />
-      ))}
-    </Grid>
+    <>
+      <Grid container sx={{ justifyContent: "center" }}>
+        {weekData.map((day) => (
+          <DayStatusView day={day} key={day.date} setSelectedWorkout={setSelectedWorkout} setAnchorEl={setAnchorEl} />
+        ))}
+      </Grid>
+      <DayPopperOverview selectedWorkout={selectedWorkout} anchorEl={anchorEl} />
+    </>
   );
 }
 
-const DayStatusView = ({ day }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-
-  const handleClick = (event) => {
-    setAnchorEl(anchorEl ? null : event.currentTarget);
-  };
-  const open = Boolean(anchorEl);
-  const id = open ? "simple-popper" : undefined;
+const DayPopperOverview = (props) => {
+  const { selectedWorkout, anchorEl } = props;
 
   return (
-    <Box
-      sx={{ position: "relative" }}
-      key={day.date}
-      onClick={handleClick}
-      component={Button}
+    <Popper
+      open={selectedWorkout ? true : false}
+      anchorEl={anchorEl}
+      placement="bottom"
+      disablePortal={false}
+      sx={{ maxWidth: "95%", }}
+      modifiers={[
+        {
+          name: "flip",
+          enabled: false,
+          options: {
+            altBoundary: true,
+            rootBoundary: "document",
+            padding: 8,
+          },
+        },
+        {
+          name: "preventOverflow",
+          enabled: true,
+          options: {
+            altAxis: true,
+            altBoundary: true,
+            tether: true,
+            rootBoundary: "document",
+            padding: 8,
+          },
+        },
+        {
+          name: "arrow",
+          enabled: true,
+        },
+      ]}
     >
+      {selectedWorkout &&
+        selectedWorkout.workouts.map((workout) => {
+          return (
+              <Container key={workout._id} >
+                <Paper sx={{ padding: '5px'}} elevation={5} >
+                <Typography variant="body1">{workout.title}</Typography>
+
+                {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
+                  return (
+                    <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
+                      <Grid item xs={12}>
+                        set {workoutSetIndex + 1}
+                      </Grid>
+                      {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
+                        return (
+                          <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
+                            <Grid item xs={6}>
+                              <Typography variant="caption">{exercise.exercise}</Typography>
+                            </Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption">
+                                Reps: {exercise.achieved.reps.join(", ")}
+                              </Typography>
+                            </Grid>
+                            <Grid item xs={6}></Grid>
+                            <Grid item xs={6}>
+                              <Typography variant="caption">
+                                Weight: {exercise.achieved.weight.join(", ")}
+                              </Typography>
+                            </Grid>
+                          </Fragment>
+                        );
+                      })}
+                    </Grid>
+                  );
+                })}
+                </Paper>
+              </Container>
+          );
+        })}
+    </Popper>
+  );
+};
+
+const DayStatusView = ({ day, setSelectedWorkout, setAnchorEl }) => {
+  const handleClick = (e) => {
+    setSelectedWorkout((prev) => prev ? dayjs.utc(prev.date).format('YYYY-MM-DD') !== dayjs.utc(day.date).format('YYYY-MM-DD') ? day : null : day);
+    setAnchorEl(e.currentTarget.parentElement);
+  }
+  return (
+    <Box sx={{ position: "relative", color: 'primary' }} key={day.date} onClick={handleClick} component={Button}>
       <CircularProgress
         variant="determinate"
         sx={{
-          color: (theme) =>
-            theme.palette.grey[theme.palette.mode === "light" ? 200 : 800],
+          color: (theme) => theme.palette.grey[theme.palette.mode === "light" ? 200 : 800],
         }}
         size={45}
         thickness={1}
@@ -98,8 +173,7 @@ const DayStatusView = ({ day }) => {
         value={day.workouts.length > 0 ? 100 : 0}
         variant="determinate"
         sx={{
-          color: (theme) =>
-            theme.palette.mode === "light" ? "#1a90ff" : "#308fe8",
+          color: (theme) => (theme.palette.mode === "light" ? "#1a90ff" : "#308fe8"),
           animationDuration: "550ms",
           position: "absolute",
           left: 10,
@@ -118,99 +192,15 @@ const DayStatusView = ({ day }) => {
         justifyContent="center"
         flexDirection="column"
       >
-        <Box>
+        <Box sx={{ color: 'primary.contrastText'}}>
           <Typography variant="body2" component="div">
             {dayjs(day.date).format("ddd")}
           </Typography>
-          <Typography
-            variant="body2"
-            component="div"
-            sx={{ textAlign: "center" }}
-          >
+          <Typography variant="body2" component="div" sx={{ textAlign: "center" }}>
             {dayjs(day.date).format("DD")}{" "}
           </Typography>
         </Box>
       </Box>
-
-      <Popper
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        placement="bottom"
-        disablePortal={false}
-        modifiers={[
-          {
-            name: "flip",
-            enabled: false,
-            options: {
-              altBoundary: true,
-              rootBoundary: "document",
-              padding: 8,
-            },
-          },
-          {
-            name: "preventOverflow",
-            enabled: true,
-            options: {
-              altAxis: true,
-              altBoundary: true,
-              tether: true,
-              rootBoundary: "document",
-              padding: 8,
-            },
-          },
-          {
-            name: "arrow",
-            enabled: true,
-          },
-        ]}
-      >
-        {day.workouts.map((workout) => {
-          return (
-            <Paper key={workout._id}>
-              <Container >
-              <Typography variant="body1">{workout.workoutTitle}</Typography>
-
-              {workout.training.map(
-                (workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
-                  return (
-                    <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
-                      <Grid item xs={12}>
-                        set {workoutSetIndex + 1}
-                      </Grid>
-                      {workoutSet.map(
-                        (exercise, exerciseIndex, workoutSetArray) => {
-                          return (
-                            <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
-                              <Grid item xs={6} >
-                                <Typography variant="caption">
-                                  {exercise.exercise}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="caption">
-                                  Reps: {exercise.achieved.reps.join(", ")}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}></Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="caption">
-                                  Weight: {exercise.achieved.weight.join(", ")}
-                                </Typography>
-                              </Grid>
-                            </Fragment>
-                          );
-                        }
-                      )}
-                    </Grid>
-                  );
-                }
-              )}
-              </Container>
-            </Paper>
-          );
-        })}
-      </Popper>
     </Box>
   );
 };

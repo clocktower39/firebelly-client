@@ -112,7 +112,7 @@ export default function WebsiteNavbar() {
           <Button
             sx={classes.NavLink}
             component={Link}
-            to="/basicinfo/nutrition"
+            to="/nutrition"
           >
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
@@ -124,7 +124,7 @@ export default function WebsiteNavbar() {
           <Button
             sx={classes.NavLink}
             component={Link}
-            to="/basicinfo/workshops"
+            to="/workshops"
           >
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
@@ -136,7 +136,7 @@ export default function WebsiteNavbar() {
           <Button
             sx={classes.NavLink}
             component={Link}
-            to="/basicinfo/training"
+            to="/training"
           >
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>
