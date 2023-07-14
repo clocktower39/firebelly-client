@@ -45,12 +45,13 @@ export const Login = (props) => {
   const [disableButtonDuringLogin, setDisableButtonDuringLogin] = useState(false);
   const user = useSelector((state) => state.user);
 
-  const setError = (fieldProperty, hasError) => {
+  const setError = (fieldProperty, hasError, message) => {
     setFormData(prev => ({
       ...prev,
       [fieldProperty]: {
         ...prev[fieldProperty],
-        error: hasError
+        error: hasError,
+        helperText: message,
       }
     }))
   }
@@ -69,6 +70,10 @@ export const Login = (props) => {
       setDisableButtonDuringLogin(true);
       dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then((res) => {
         if (res.error) {
+          const { error } = res;
+
+          error.email && setError("email", true, res.error.email)
+          error.password && setError("password", true, res.error.password);
         }
         setDisableButtonDuringLogin(false);
       });
