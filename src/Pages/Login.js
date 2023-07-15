@@ -31,7 +31,9 @@ const LoginInput = ({ fieldProperty, label, value, error, helperText, type, hand
           ...prev,
           [fieldProperty]: {
             ...prev[fieldProperty],
-            value: e.target.value
+            value: e.target.value,
+            error: false,
+            helperText: null,
           }
         }))}
         required
@@ -63,9 +65,10 @@ export const Login = (props) => {
   };
   const handleLoginAttempt = (e) => {
     fieldProperties.forEach(fieldProperty => {
-      (formData[fieldProperty].value === '') ? setError(fieldProperty, true) : setError(fieldProperty, false);
+      (formData[fieldProperty].value === '') ? setError(fieldProperty, true, `${formData[fieldProperty].label} is required.`) : setError(fieldProperty, false, null);
     })
 
+    // this needs to be changed or before it gets here the errors need to be updated, it does not clear after typing and should
     if (!formData.email.error && !formData.password.error) {
       setDisableButtonDuringLogin(true);
       dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then((res) => {
