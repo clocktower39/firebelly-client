@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useOutletContext, useNavigate, Link, } from "react-router-dom";
+import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   Autocomplete,
@@ -104,15 +104,7 @@ export default function Workout() {
   const [modalActionType, setModalActionType] = useState("");
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
-  const categories = [
-    "Biceps",
-    "Triceps",
-    "Chest",
-    "Back",
-    "Shoulders",
-    "Legs",
-    "Abs",
-  ];
+  const categories = ["Biceps", "Triceps", "Chest", "Back", "Shoulders", "Legs", "Abs"];
   // Create a new exercise on the current set
   const newExercise = (index) => {
     const newTraining = localTraining.map((group, i) => {
@@ -182,9 +174,7 @@ export default function Workout() {
   // Remove the current set
   const removeSet = (setIndex) => {
     if (localTraining.length > 1) {
-      setLocalTraining((prev) =>
-        prev.filter((item, index) => index !== setIndex)
-      );
+      setLocalTraining((prev) => prev.filter((item, index) => index !== setIndex));
       setToggleRemoveSet((prev) => !prev);
     }
   };
@@ -229,9 +219,7 @@ export default function Workout() {
 
   useEffect(() => {
     setLocalTraining(training.training || []);
-    setTrainingCategory(
-      training.category && training.category.length > 0 ? training.category : []
-    );
+    setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
   }, [training]);
 
@@ -241,45 +229,13 @@ export default function Workout() {
         <Loading />
       ) : training._id ? (
         <>
-          <Modal open={modalOpen} onClose={handleModalToggle}>
-            <Box sx={classes.modalStyle}>
-              <Typography
-                variant="h5"
-                textAlign="center"
-                color="text.primary"
-                gutterBottom
-              >
-                Workout Settings
-              </Typography>
-              <Grid container sx={{ justifyContent: "center" }}>
-                <Tooltip title="Move Workout">
-                  <IconButton onClick={() => handleSetModalAction("move")}>
-                    <DoubleArrow />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Copy Workout">
-                  <IconButton onClick={() => handleSetModalAction("copy")}>
-                    <ContentCopy />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Import Workout">
-                  <IconButton disabled>
-                    <Download />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Delete Workout">
-                  <IconButton onClick={() => handleSetModalAction("delete")}>
-                    <Delete />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-              <ModalAction
-                actionType={modalActionType}
-                selectedDate={training.date}
-                handleModalToggle={handleModalToggle}
-              />
-            </Box>
-          </Modal>
+          <WorkoutOptionModalView
+            modalOpen={modalOpen}
+            handleModalToggle={handleModalToggle}
+            handleSetModalAction={handleSetModalAction}
+            modalActionType={modalActionType}
+            training={training}
+          />
           {training._id ? (
             <>
               <Grid
@@ -290,103 +246,74 @@ export default function Workout() {
                   paddingTop: "15px",
                 }}
               >
-                <Grid
-                  container
-                  item
-                  xs={1}
-                  sx={{ justifyContent: "center", alignItems: "center" }}
-                >
+                <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
                   <IconButton
                     component={Link}
                     to={
                       dayjs.utc(training.date).format("YYYY-MM-DD") ===
                       dayjs(new Date()).format("YYYY-MM-DD")
                         ? "/"
-                        : `/?date=${dayjs
-                            .utc(training.date)
-                            .format("YYYYMMDD")}`
+                        : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`
                     }
                   >
                     <ArrowBack />
                   </IconButton>
                 </Grid>
-                <Grid
-                  item
-                  xs={11}
-                  container
-                  sx={{ justifyContent: "center", marginLeft: "-35px" }}
-                >
+                <Grid item xs={10} container sx={{ justifyContent: "center" }}>
                   <Typography variant="h5">
                     {dayjs.utc(training.date).format("MMMM Do, YYYY")}
                   </Typography>
                 </Grid>
-                <Grid container spacing={2}>
-                <Grid item xs={12} container alignContent="center">
-                  <TextField
-                    label="Title"
-                    placeholder="Workout Title"
-                    value={trainingTitle}
-                    onChange={handleTitleChange}
-                    fullWidth
-                  />
+                <Grid item xs={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
+                  <Tooltip title="Workout Settings">
+                    <IconButton variant="contained" onClick={handleModalToggle}>
+                      <Settings />
+                    </IconButton>
+                  </Tooltip>
                 </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  container
-                  sx={classes.TrainingCategoryInputContainer}
-                >
+
+                <Grid container spacing={2} sx={{ paddingTop: "15px" }}>
                   <Grid item xs={12} container alignContent="center">
-                    <Autocomplete
-                      disableCloseOnSelect
-                      value={trainingCategory}
+                    <TextField
+                      label="Title"
+                      placeholder="Workout Title"
+                      value={trainingTitle}
+                      onChange={handleTitleChange}
                       fullWidth
-                      multiple
-                      id="tags-filled"
-                      defaultValue={trainingCategory.map(
-                        (category) => category
-                      )}
-                      options={categories.map((option) => option)}
-                      freeSolo
-                      onChange={(e, getTagProps) =>
-                        handleTrainingCategory(getTagProps)
-                      }
-                      renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                          <Chip
-                            variant="outlined"
-                            label={option}
-                            {...getTagProps({ index })}
-                          />
-                        ))
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Training Category"
-                          placeholder="Categories"
-                          sx={classes.textFieldRoot}
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                <Tooltip title="Workout Settings">
-                                  <IconButton
-                                    variant="contained"
-                                    onClick={handleModalToggle}
-                                  >
-                                    <Settings />
-                                  </IconButton>
-                                </Tooltip>
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
-                          }}
-                        />
-                      )}
                     />
                   </Grid>
-                </Grid>
+                  <Grid item xs={12} container sx={classes.TrainingCategoryInputContainer}>
+                    <Grid item xs={12} container alignContent="center">
+                      <Autocomplete
+                        disableCloseOnSelect
+                        value={trainingCategory}
+                        fullWidth
+                        multiple
+                        id="tags-filled"
+                        defaultValue={trainingCategory.map((category) => category)}
+                        options={categories.map((option) => option)}
+                        freeSolo
+                        onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
+                        renderTags={(value, getTagProps) =>
+                          value.map((option, index) => (
+                            <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                          ))
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Training Category"
+                            placeholder="Categories"
+                            sx={classes.textFieldRoot}
+                            InputProps={{
+                              ...params.InputProps,
+                              endAdornment: <>{params.InputProps.endAdornment}</>,
+                            }}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  </Grid>
                 </Grid>
                 <Grid item xs={12}>
                   <Divider sx={{ margin: "25px 0px" }} />
@@ -448,13 +375,10 @@ export default function Workout() {
 }
 
 export function ModalAction(props) {
-  const { actionType, selectedDate, handleModalToggle } = props;
+  const { actionType, selectedDate, handleModalToggle, training, setSelectedDate, } = props;
   const dispatch = useDispatch();
-  const training = useSelector((state) => state.training);
   const navigate = useNavigate();
-  const [newDate, setNewDate] = useState(
-    dayjs(new Date()).format("YYYY-MM-DD")
-  );
+  const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
   const [actionError, setActionError] = useState(false);
 
@@ -465,29 +389,28 @@ export function ModalAction(props) {
       } else {
         setActionError(false);
         handleModalToggle();
+        setSelectedDate && setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD"));
       }
     });
   };
 
   const handleCopy = () => {
     dispatch(copyWorkoutById(training._id, newDate, copyOption.value)).then(() => {
-      dayjs.utc(newDate).format("YYYY-MM-DD") ===
-      dayjs(new Date()).format("YYYY-MM-DD")
-        ? navigate("/")
-        : navigate(`/?date=${dayjs
-            .utc(newDate)
-            .format("YYYYMMDD")}`)
+      setActionError(false);
+      handleModalToggle();
+      setSelectedDate ? 
+      setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD")) :
+      
+    dayjs.utc(newDate).format("YYYY-MM-DD") === dayjs(new Date()).format("YYYY-MM-DD")
+    ? navigate("/")
+    : navigate(`/?date=${dayjs.utc(newDate).format("YYYYMMDD")}`);;
     });
   };
 
   const handleDelete = () => {
     dispatch(deleteWorkoutById(training._id)).then(() => {
-      dayjs.utc(training.date).format("YYYY-MM-DD") ===
-      dayjs(new Date()).format("YYYY-MM-DD")
-        ? navigate("/")
-        : navigate(`/?date=${dayjs
-            .utc(training.date)
-            .format("YYYYMMDD")}`)
+      setActionError(false);
+      handleModalToggle();
     });
   };
 
@@ -533,9 +456,7 @@ export function ModalAction(props) {
               <Autocomplete
                 disablePortal
                 options={copyOptions}
-                isOptionEqualToValue={(option, value) =>
-                  option.value === value.value
-                }
+                isOptionEqualToValue={(option, value) => option.value === value.value}
                 renderInput={(params) => <TextField {...params} label="Type" />}
                 sx={{ width: "100%" }}
                 onChange={handleOptionChange}
@@ -543,11 +464,7 @@ export function ModalAction(props) {
             </Grid>
 
             <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-              <Button
-                variant="contained"
-                onClick={handleCopy}
-                disabled={!copyOption}
-              >
+              <Button variant="contained" onClick={handleCopy} disabled={!copyOption}>
                 Copy
               </Button>
             </Grid>
@@ -568,8 +485,7 @@ export function ModalAction(props) {
           <Grid container>
             <Grid container>
               <Typography color="text.primary">
-                Are you sure you would like the delete the training from{" "}
-                {selectedDate}
+                Are you sure you would like the delete the training from {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
               </Typography>
             </Grid>
             <Grid container sx={{ justifyContent: "center" }}>
@@ -583,4 +499,46 @@ export function ModalAction(props) {
     default:
       return <></>;
   }
+}
+
+export function WorkoutOptionModalView(props) {
+  const { modalOpen, handleModalToggle, handleSetModalAction, modalActionType, training, setSelectedDate, } = props;
+  return (
+    <Modal open={modalOpen} onClose={handleModalToggle}>
+      <Box sx={classes.modalStyle}>
+        <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom>
+          Workout Settings
+        </Typography>
+        <Grid container sx={{ justifyContent: "center" }}>
+          <Tooltip title="Move Workout">
+            <IconButton onClick={() => handleSetModalAction("move")}>
+              <DoubleArrow />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Copy Workout">
+            <IconButton onClick={() => handleSetModalAction("copy")}>
+              <ContentCopy />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Import Workout">
+            <IconButton disabled>
+              <Download />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete Workout">
+            <IconButton onClick={() => handleSetModalAction("delete")}>
+              <Delete />
+            </IconButton>
+          </Tooltip>
+        </Grid>
+        <ModalAction
+          actionType={modalActionType}
+          selectedDate={training.date}
+          handleModalToggle={handleModalToggle}
+          training={training}
+          setSelectedDate={setSelectedDate}
+        />
+      </Box>
+    </Modal>
+  );
 }

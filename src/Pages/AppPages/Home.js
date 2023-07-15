@@ -37,6 +37,19 @@ function Home() {
     setLocalWorkouts([...workouts]);
   };
 
+  const [openModal, setOpenModal] = useState(false);
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleModalToggle = () => {
+    setModalOpen((prev) => !prev);
+    setModalActionType("");
+  };
+
+  const [modalActionType, setModalActionType] = useState("");
+  const handleSetModalAction = (actionType) => setModalActionType(actionType);
+
   useEffect(() => {
     setLocalWorkouts(workouts || []);
   }, [workouts]);
@@ -51,7 +64,7 @@ function Home() {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, workouts.length]);
 
   return loading ? (
     <Loading />
@@ -75,6 +88,7 @@ function Home() {
             setLocalWorkouts={setLocalWorkouts}
             selectedDate={selectedDate}
             handleCancelEdit={handleCancelEdit}
+            workoutOptionModalViewProps={{ modalOpen, handleModalToggle, handleSetModalAction, modalActionType, openModal, handleOpenModal, handleCloseModal, setSelectedDate, }}
           />
         )}
       </Paper>

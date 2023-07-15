@@ -576,8 +576,9 @@ export function updateTraining(trainingId, updatedTraining) {
 
 // Updates training date
 export function updateWorkoutDateById(training, newDate) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
 
     const data = await fetch(`${serverURL}/updateWorkoutDateById`, {
       method: "post",
@@ -601,6 +602,7 @@ export function updateWorkoutDateById(training, newDate) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...training, date: newDate },
+        workouts: [...state.workouts.filter(workout => workout._id !== training._id)],
       });
     }
   };
@@ -636,8 +638,9 @@ export function copyWorkoutById(trainingId, newDate, copyOption = 'exact') {
 
 // Delete a training record
 export function deleteWorkoutById(trainingId) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
 
     const data = await fetch(`${serverURL}/deleteWorkoutById`, {
       method: "post",
@@ -660,6 +663,7 @@ export function deleteWorkoutById(trainingId) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { training: [] },
+        workouts: [ ...state.workouts.filter(workout => workout._id !== trainingId) ],
       });
     }
   };

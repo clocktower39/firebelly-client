@@ -79,10 +79,17 @@ export let reducer = (
         workouts: [ ...state.workouts, action.workout ],
       };
     case EDIT_TRAINING:
-      return {
+      return action.workouts ?
+       {
         ...state,
         training: { ...action.training },
-      };
+        workouts: [ ...action.workouts ],
+      } : 
+       {
+        ...state,
+        training: { ...action.training },
+      } 
+      ;
     case EDIT_NUTRITION:
       return {
         ...state,

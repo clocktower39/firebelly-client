@@ -2,16 +2,40 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { Button, Grid, Paper, Typography } from "@mui/material";
-import { DragHandle as DragHandleIcon } from "@mui/icons-material";
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Grid,
+  IconButton,
+  Paper,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
+import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
 
 export default function WorkoutOverview({
   selectedDate,
   localWorkouts,
   setLocalWorkouts,
   handleCancelEdit,
+  workoutOptionModalViewProps,
 }) {
+  const {
+    modalOpen,
+    handleModalToggle,
+    handleSetModalAction,
+    modalActionType,
+    openModal,
+    // handleOpenModal,
+    handleCloseModal,
+    setSelectedDate,
+  } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
 
   const onDragEnd = (result) => {
@@ -44,15 +68,12 @@ export default function WorkoutOverview({
         // const updatedDestinationWorkout = localWorkouts.find(
         //   (w) => w._id === destination.droppableId
         // );
-
         // const updatedSourceTraining = Array.from(updatedSourceWorkout.training);
         // const updatedDestinationTraining = Array.from(
         //   updatedDestinationWorkout.training
         // );
-
         // const [movedItem] = updatedSourceTraining.splice(source.index, 1);
         // updatedDestinationTraining.splice(destination.index, 0, movedItem);
-
         // const updatedWorkouts = localWorkouts.map((workout) => {
         //   if (workout._id === source.droppableId) {
         //     return { ...workout, training: updatedSourceTraining };
@@ -62,7 +83,6 @@ export default function WorkoutOverview({
         //   }
         //   return workout;
         // });
-
         // setLocalWorkouts(updatedWorkouts);
         // setModified(true)
       }
@@ -73,25 +93,14 @@ export default function WorkoutOverview({
       const destinationWorkoutId = destination.droppableId.split("-")[0];
       const destinationSetIndex = Number(destination.droppableId.split("-")[1]);
 
-      const sourceWorkout = localWorkouts.find(
-        (w) => w._id === sourceWorkoutId
-      );
-      const destinationWorkout = localWorkouts.find(
-        (w) => w._id === destinationWorkoutId
-      );
+      const sourceWorkout = localWorkouts.find((w) => w._id === sourceWorkoutId);
+      const destinationWorkout = localWorkouts.find((w) => w._id === destinationWorkoutId);
 
       const updatedSourceWorkout = [...sourceWorkout.training];
       const updatedDestinationWorkout = [...destinationWorkout.training];
 
-      const movedItem = updatedSourceWorkout[sourceSetIndex].splice(
-        source.index,
-        1
-      )[0];
-      updatedDestinationWorkout[destinationSetIndex].splice(
-        destination.index,
-        0,
-        movedItem
-      );
+      const movedItem = updatedSourceWorkout[sourceSetIndex].splice(source.index, 1)[0];
+      updatedDestinationWorkout[destinationSetIndex].splice(destination.index, 0, movedItem);
 
       const updatedWorkouts = localWorkouts.map((w) => {
         if (w._id === sourceWorkoutId) {
@@ -109,7 +118,7 @@ export default function WorkoutOverview({
 
   // Save and start workout
   const saveStart = (training) => {
-    const localTraining = localWorkouts.filter(w => w._id === training._id);
+    const localTraining = localWorkouts.filter((w) => w._id === training._id);
     dispatch(
       updateTraining(training._id, {
         ...training,
@@ -119,7 +128,7 @@ export default function WorkoutOverview({
       })
     );
   };
-
+  
   // Create new workout
   const handleAddWorkout = () => dispatch(createTraining(selectedDate));
 
@@ -130,28 +139,38 @@ export default function WorkoutOverview({
           // Each day may have multiple workouts, this separates the workouts
           localWorkouts.map((workout) => {
             return (
-              <Paper
-                key={workout._id}
-                elevation={5}
-                sx={{ margin: "5px", padding: "5px" }}
-              >
-                <Typography variant="h6">{workout.title}</Typography>
-                <Typography variant="h6">
-                  {workout.category.join(", ")}
-                </Typography>
-                <Droppable droppableId={workout._id} type="workoutSet">
-                  {
-                    // This creates the droppable area to move sets around, it is the parent container before mapping each set out
-                    (provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        style={{ padding: "10px 0px" }}
-                      >
-                        {
-                          // iterates through each workout set (supersets)
-                          workout.training.map(
-                            (workoutSet, workoutSetIndex) => {
+              <>
+                <Paper key={workout._id} elevation={5} sx={{ margin: "5px", padding: "5px" }}>
+                  <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
+                    <Grid item xs={11} container>
+                      <Typography variant="h6">{workout.title}</Typography>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={1}
+                      container
+                      sx={{ justifyContent: "center", alignItems: "center" }}
+                    >
+                      <Tooltip title="Workout Settings">
+                        <IconButton variant="contained" onClick={handleModalToggle}>
+                          <Settings />
+                        </IconButton>
+                      </Tooltip>
+                    </Grid>
+                  </Grid>
+                  <Typography variant="h6">{workout.category.join(", ")}</Typography>
+                  <Droppable droppableId={workout._id} type="workoutSet">
+                    {
+                      // This creates the droppable area to move sets around, it is the parent container before mapping each set out
+                      (provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          style={{ padding: "10px 0px" }}
+                        >
+                          {
+                            // iterates through each workout set (supersets)
+                            workout.training.map((workoutSet, workoutSetIndex) => {
                               const set = {
                                 workoutSetIndex,
                                 exercises: workoutSet,
@@ -181,12 +200,8 @@ export default function WorkoutOverview({
                                                 <WorkoutSet
                                                   workout={workout}
                                                   workoutSet={set}
-                                                  provided={
-                                                    exerciseDraggableProvided
-                                                  }
-                                                  workoutSetProvided={
-                                                    workoutSetProvided
-                                                  }
+                                                  provided={exerciseDraggableProvided}
+                                                  workoutSetProvided={workoutSetProvided}
                                                 />
                                               </Grid>
                                               {exerciseDraggableProvided.placeholder}
@@ -198,25 +213,30 @@ export default function WorkoutOverview({
                                   }}
                                 </Draggable>
                               );
-                            }
-                          )
-                        }
-                        {provided.placeholder}
-                      </div>
-                    )
-                  }
-                </Droppable>
-                <Grid
-                  container
-                  item
-                  xs={12}
-                  sx={{ justifyContent: "center", padding: "5px" }}
-                >
-                  <Link to={`/workout/${workout._id}`}>
-                    <Button onClick={() => saveStart(workout)} variant="contained">Start</Button>
-                  </Link>
-                </Grid>
-              </Paper>
+                            })
+                          }
+                          {provided.placeholder}
+                        </div>
+                      )
+                    }
+                  </Droppable>
+                  <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
+                    <Link to={`/workout/${workout._id}`}>
+                      <Button onClick={() => saveStart(workout)} variant="contained">
+                        Start
+                      </Button>
+                    </Link>
+                  </Grid>
+                </Paper>
+                <WorkoutOptionModalView
+                  modalOpen={modalOpen}
+                  handleModalToggle={handleModalToggle}
+                  handleSetModalAction={handleSetModalAction}
+                  modalActionType={modalActionType}
+                  training={workout}
+                  setSelectedDate={setSelectedDate}
+                />
+              </>
             );
           })}
         <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
@@ -226,6 +246,23 @@ export default function WorkoutOverview({
             </Button>
           </Grid>
         </Grid>
+        <Dialog
+          open={openModal}
+          onClose={handleCloseModal}
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle>{"Create a workout"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              Options
+              {/* import from queue, custom set & reps per set (default: 4 X (4 X 10)) */}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Cancel</Button>
+            <Button onClick={handleCloseModal}>Submit</Button>
+          </DialogActions>
+        </Dialog>
       </>
     </DragDropContext>
   );
@@ -268,14 +305,12 @@ const WorkoutSet = (props) => {
                       <DragHandleIcon />
                     </Grid>
                     <Grid container item xs={5}>
-                      <Typography variant="body1">
-                      {exercise.exercise}
-                      </Typography>
+                      <Typography variant="body1">{exercise.exercise}</Typography>
                     </Grid>
                     <Grid container item xs={6}>
                       <Typography variant="body1">
-                      {exercise.goals.exactReps.length} sets:{" "}
-                      {exercise.goals.exactReps.join(", ")} reps
+                        {exercise.goals.exactReps.length} sets:{" "}
+                        {exercise.goals.exactReps.join(", ")} reps
                       </Typography>
                     </Grid>
                   </Grid>
