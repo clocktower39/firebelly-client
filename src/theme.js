@@ -8,9 +8,11 @@ const darkTheme = {
     mode: "dark",
     primary: {
       main: "#2e7d32",
+      contrastText: "#fff",
     },
     secondary: {
       main: "#ff9800",
+      contrastText: "#fff",
     },
     secondaryButton: {
       main: "#ff9800",
@@ -48,10 +50,10 @@ const darkTheme = {
     body1: {
       fontSize: "1rem",
       [initTheme.breakpoints.down("md")]: {
-        fontSize: ".9rem",
+        fontSize: "1rem",
       },
       [initTheme.breakpoints.down("sm")]: {
-        fontSize: "0.7rem",
+        fontSize: "1rem",
       },
     },
     subtitle1: {

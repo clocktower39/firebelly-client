@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, InputAdornment, TextField, Typography } from "@mui/material";
+import { Button, Grid, InputAdornment, TextField, } from "@mui/material";
 
 const LoggedField = (props) => {
   const {
@@ -57,7 +57,7 @@ const LoggedField = (props) => {
 
   const handleGoalAdornmentClick = (e, goalValue) => {
     e.target.value = goalValue.substr(0, goalValue.length);
-    if(e.detail === 2){
+    if(e.detail === 1){
       handleChange(e);
     }
   }
@@ -76,8 +76,8 @@ const LoggedField = (props) => {
         size="small"
         InputProps={{
           endAdornment: (
-            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right", userSelect: 'none', }} onClick={(e) => handleGoalAdornmentClick(e, parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]) }>
-              /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
+            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right", userSelect: 'none', }} >
+              <Button sx={{ color: "#fff"}} onClick={(e) => handleGoalAdornmentClick(e, parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex])} >/{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}</Button>
             </InputAdornment>
           ),
         }}
@@ -97,6 +97,28 @@ export default function LogLoader(props) {
     count++;
   }
 
+  const handleAutofillSet = (exerciseSetIndex) => {
+    setLocalTraining((prev) => {
+      return prev.map((set, sIndex) => {
+        if (setIndex === sIndex) {
+          set.map((exercise, eIndex) => {
+            if (eIndex === exerciseIndex) {
+              exercise.achieved.reps.map((exerciseSet, esIndex) => {
+                if(esIndex === exerciseSetIndex){
+                  exercise.achieved.reps[exerciseSetIndex] = exercise.goals.exactReps[exerciseSetIndex];
+                  exercise.achieved.weight[exerciseSetIndex] = exercise.goals.weight[exerciseSetIndex];
+                }
+                return exerciseSet;
+              })
+            }
+            return exercise;
+          });
+        }
+        return set;
+      });
+    });
+  }
+
   return (
     <Grid container item xs={12} spacing={1}>
       {exerciseSets.map((count, exerciseSetIndex) => {
@@ -114,7 +136,7 @@ export default function LogLoader(props) {
               container
               sx={{ justifyContent: "flex-end", alignContent: "center" }}
             >
-              <Typography color="text.primary" noWrap>Set {exerciseSetIndex + 1}:</Typography>
+              <Button sx={{ color: '#fff', }} onClick={()=>handleAutofillSet(exerciseSetIndex)} >Set {exerciseSetIndex + 1}:</Button>
             </Grid>
 
             {fields.map((field, fieldIndex) => {

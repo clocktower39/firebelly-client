@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import {
   ArrowBack,
+  CheckCircle,
   ContentCopy,
   Delete,
   DoubleArrow,
@@ -235,6 +236,7 @@ export default function Workout() {
             handleSetModalAction={handleSetModalAction}
             modalActionType={modalActionType}
             training={training}
+            setLocalTraining={setLocalTraining}
           />
           {training._id ? (
             <>
@@ -375,7 +377,14 @@ export default function Workout() {
 }
 
 export function ModalAction(props) {
-  const { actionType, selectedDate, handleModalToggle, training, setSelectedDate, } = props;
+  const {
+    actionType,
+    selectedDate,
+    handleModalToggle,
+    training,
+    setSelectedDate,
+    setLocalTraining,
+  } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
@@ -398,12 +407,11 @@ export function ModalAction(props) {
     dispatch(copyWorkoutById(training._id, newDate, copyOption.value)).then(() => {
       setActionError(false);
       handleModalToggle();
-      setSelectedDate ? 
-      setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD")) :
-      
-    dayjs.utc(newDate).format("YYYY-MM-DD") === dayjs(new Date()).format("YYYY-MM-DD")
-    ? navigate("/")
-    : navigate(`/?date=${dayjs.utc(newDate).format("YYYYMMDD")}`);;
+      setSelectedDate
+        ? setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD"))
+        : dayjs.utc(newDate).format("YYYY-MM-DD") === dayjs(new Date()).format("YYYY-MM-DD")
+        ? navigate("/")
+        : navigate(`/?date=${dayjs.utc(newDate).format("YYYYMMDD")}`);
     });
   };
 
@@ -412,6 +420,20 @@ export function ModalAction(props) {
       setActionError(false);
       handleModalToggle();
     });
+  };
+
+  const handleAutofillWorkout = () => {
+    setLocalTraining((prev) => {
+      return prev.map((set, sIndex) => {
+        set.map((exercise, eIndex) => {
+          exercise.achieved.reps = exercise.goals.exactReps;
+          exercise.achieved.weight = exercise.goals.weight;
+          return exercise;
+        });
+        return set;
+      });
+    });
+    handleModalToggle();
   };
 
   useEffect(() => {
@@ -485,11 +507,29 @@ export function ModalAction(props) {
           <Grid container>
             <Grid container>
               <Typography color="text.primary">
-                Are you sure you would like the delete the training from {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
+                Are you sure you would like the delete the training from{" "}
+                {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
               </Typography>
             </Grid>
             <Grid container sx={{ justifyContent: "center" }}>
               <Button variant="contained" onClick={handleDelete}>
+                Confrim
+              </Button>
+            </Grid>
+          </Grid>
+        </>
+      );
+    case "autofill_workout":
+      return (
+        <>
+          <Grid container>
+            <Grid container>
+              <Typography color="text.primary">
+                Are you sure you would like the autofill this workout?
+              </Typography>
+            </Grid>
+            <Grid container sx={{ justifyContent: "center" }}>
+              <Button variant="contained" onClick={handleAutofillWorkout}>
                 Confrim
               </Button>
             </Grid>
@@ -502,7 +542,15 @@ export function ModalAction(props) {
 }
 
 export function WorkoutOptionModalView(props) {
-  const { modalOpen, handleModalToggle, handleSetModalAction, modalActionType, training, setSelectedDate, } = props;
+  const {
+    modalOpen,
+    handleModalToggle,
+    handleSetModalAction,
+    modalActionType,
+    training,
+    setSelectedDate,
+    setLocalTraining,
+  } = props;
   return (
     <Modal open={modalOpen} onClose={handleModalToggle}>
       <Box sx={classes.modalStyle}>
@@ -510,6 +558,11 @@ export function WorkoutOptionModalView(props) {
           Workout Settings
         </Typography>
         <Grid container sx={{ justifyContent: "center" }}>
+          <Tooltip title="Autofill Workout">
+            <IconButton onClick={() => handleSetModalAction("autofill_workout")}>
+              <CheckCircle />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Move Workout">
             <IconButton onClick={() => handleSetModalAction("move")}>
               <DoubleArrow />
@@ -537,6 +590,7 @@ export function WorkoutOptionModalView(props) {
           handleModalToggle={handleModalToggle}
           training={training}
           setSelectedDate={setSelectedDate}
+          setLocalTraining={setLocalTraining}
         />
       </Box>
     </Modal>

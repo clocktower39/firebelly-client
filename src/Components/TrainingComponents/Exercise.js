@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Autocomplete, Chip, Grid, IconButton, TextField, Tooltip, Typography } from "@mui/material";
-import { Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
+import { CheckCircle, Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
@@ -78,6 +78,23 @@ export default function Exercise(props) {
       });
     });
   }, [setLocalTraining, exerciseIndex, setIndex, sets, title, exerciseType]);
+
+  const handleAutoFillExercise = () => {
+    setLocalTraining((prev) => {
+      return prev.map((set, sIndex) => {
+        if (setIndex === sIndex) {
+          set.map((exercise, eIndex) => {
+            if (eIndex === exerciseIndex) {
+              exercise.achieved.reps = exercise.goals.exactReps;
+              exercise.achieved.weight = exercise.goals.weight;
+            }
+            return exercise;
+          });
+        }
+        return set;
+      });
+    });
+  }
 
   const EditFields = () => {
     switch (exerciseType) {
@@ -341,6 +358,11 @@ export default function Exercise(props) {
               <Tooltip title="View Progress Chart">
                 <IconButton variant="contained" onClick={handleModalExercise}>
                   <Info />
+                </IconButton>
+              </ Tooltip>
+              <Tooltip title="Autofill Exercise">
+                <IconButton variant="contained" onClick={handleAutoFillExercise}>
+                  <CheckCircle />
                 </IconButton>
               </ Tooltip>
               <Tooltip title="Edit Exercise">

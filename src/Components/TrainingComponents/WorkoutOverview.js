@@ -304,14 +304,16 @@ const WorkoutSet = (props) => {
                     >
                       <DragHandleIcon />
                     </Grid>
-                    <Grid container item xs={5}>
-                      <Typography variant="body1">{exercise.exercise}</Typography>
-                    </Grid>
-                    <Grid container item xs={6}>
-                      <Typography variant="body1">
-                        {exercise.goals.exactReps.length} sets:{" "}
-                        {exercise.goals.exactReps.join(", ")} reps
-                      </Typography>
+                    <Grid container xs={11} sx={{ padding: '5px'}}>
+                      <Grid container item xs={12} sm={6}>
+                        <Typography variant="body1">{exercise.exercise}</Typography>
+                      </Grid>
+                      <Grid container item xs={12} sm={6}>
+                        <Typography variant="body1">
+                          {exercise.goals.exactReps.length} sets:{" "}
+                          {exercise.goals.exactReps.join(", ")} reps
+                        </Typography>
+                      </Grid>
                     </Grid>
                   </Grid>
                 )}
