@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, TextField, Typography } from "@mui/material";
+import { Button, Grid, TextField, Typography } from "@mui/material";
 
 const LoggedField = (props) => {
   const {
@@ -13,10 +13,10 @@ const LoggedField = (props) => {
   } = props;
 
   const handleFocus = (e) => {
-    if(Number(e.target.value) === 0){
+    if (Number(e.target.value) === 0) {
       e.target.select();
     }
-  }
+  };
 
   const handleChange = (e) => {
     let answer = 0;
@@ -42,9 +42,7 @@ const LoggedField = (props) => {
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = answer;
                 }
               } else {
-                exercise.goals[field.goalAttribute][exerciseSetIndex] = Number(
-                  e.target.value
-                );
+                exercise.goals[field.goalAttribute][exerciseSetIndex] = Number(e.target.value);
               }
             }
             return exercise;
@@ -56,7 +54,7 @@ const LoggedField = (props) => {
   };
 
   return (
-    <Grid item xs={(amountOfFields % 2 === 0) ? 6 : (amountOfFields === 1) ? 12 : 4}>
+    <Grid item xs={amountOfFields % 2 === 0 ? 6 : amountOfFields === 1 ? 12 : 4}>
       <TextField
         label={field.label}
         value={exercise.goals[field.goalAttribute][exerciseSetIndex] || 0}
@@ -74,8 +72,7 @@ const LoggedField = (props) => {
 };
 
 export default function EditLoader(props) {
-  const { fields, exercise, sets, setIndex, setLocalTraining, exerciseIndex } =
-    props;
+  const { fields, exercise, sets, setIndex, setLocalTraining, exerciseIndex } = props;
 
   let exerciseSets = [];
   let count = 0;
@@ -86,7 +83,17 @@ export default function EditLoader(props) {
 
   return (
     <Grid container item xs={12} spacing={1}>
-      {fields?.nonRepeating?.map((field) => <Grid key={`nonRepeating-${field.label}`} container item xs={12} sx={{ justifyContent: 'center', }} ><TextField label="One Rep Max" fullWidth /></Grid>)}
+      {fields?.nonRepeating?.map((field) => (
+        <Grid
+          key={`nonRepeating-${field.label}`}
+          container
+          item
+          xs={12}
+          sx={{ justifyContent: "center" }}
+        >
+          <TextField label="One Rep Max" fullWidth />
+        </Grid>
+      ))}
       {exerciseSets.map((count, exerciseSetIndex) => {
         return (
           <Grid
@@ -96,16 +103,22 @@ export default function EditLoader(props) {
             spacing={2}
             key={`exercise-Set-${count}-${exerciseSetIndex}`}
           >
-            <Grid
-              item
-              xs={2}
-              container
-              sx={{ justifyContent: "flex-end", alignContent: "center" }}
-            >
-              <Typography color="text.primary" noWrap>Set {exerciseSetIndex + 1}:</Typography>
+            <Grid item xs={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
+              <Button
+                sx={{
+                  color: "#fff",
+                  display: "inline-block",
+                  padding: 0,
+                  minHeight: 0,
+                  minWidth: 0,
+                }}
+              >
+                <Typography variant color="text.primary" noWrap>
+                  Set {exerciseSetIndex + 1}:
+                </Typography>
+              </Button>
             </Grid>
-            <Grid container item xs={10} spacing={1} >
-
+            <Grid container item xs={10} spacing={1}>
               {fields.repeating.map((field) => {
                 return (
                   <LoggedField

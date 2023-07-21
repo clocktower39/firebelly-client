@@ -5,7 +5,6 @@ import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
 import AuthRoute from "./Components/AuthRoute";
 import WebsiteHome from "./Pages/WebsitePages/WebsiteHome";
-import Fitness from "./Pages/WebsitePages/Fitness";
 import NutritionInfo from "./Pages/WebsitePages/Nutrition";
 import Workshops from "./Pages/WebsitePages/Workshops";
 import TrainingInfo from "./Pages/WebsitePages/TrainingInfo";
@@ -15,7 +14,6 @@ import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Dashboard from "./Pages/AppPages/Dashboard";
 import Tasks from "./Pages/AppPages/Tasks";
-// import Training from "./Pages/AppPages/Training";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Nutrition from "./Pages/AppPages/Nutrition";
 import Week from "./Pages/AppPages/Week";
@@ -62,7 +60,6 @@ function App({ socket }) {
           {checkSubDomain() ? (
             <>
               <Route exact path="/" element={<WebsiteHome />} />
-              <Route exact path="/fitness" element={<Fitness />} />
               <Route exact path="/nutrition" element={<NutritionInfo />} />
               <Route exact path="/workshops" element={<Workshops />} />
               <Route exact path="/training" element={<TrainingInfo />} />

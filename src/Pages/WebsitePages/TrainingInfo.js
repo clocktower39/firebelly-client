@@ -7,7 +7,7 @@ export default function TrainingInfo() {
     <>
       <WebsiteNavbar />
       <Container>
-        <Paper elevation="6" sx={{ margin: "15px 0", padding: "5px 25px" }}>
+        <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
           <Typography variant="h2" sx={{ textAlign: "center" }} gutterBottom>
             Training
           </Typography>

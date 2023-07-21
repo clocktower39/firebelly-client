@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Autocomplete, Chip, Grid, IconButton, TextField, Tooltip, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Chip,
+  Grid,
+  IconButton,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import { CheckCircle, Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../../Redux/actions";
@@ -94,12 +102,12 @@ export default function Exercise(props) {
         return set;
       });
     });
-  }
+  };
 
   const EditFields = () => {
     switch (exerciseType) {
       case "Rep Range":
-        return ({
+        return {
           repeating: [
             {
               goalAttribute: "weight",
@@ -115,9 +123,9 @@ export default function Exercise(props) {
             },
           ],
           nonRepeating: [],
-        });
+        };
       case "Reps":
-        return ({
+        return {
           repeating: [
             {
               goalAttribute: "weight",
@@ -129,9 +137,9 @@ export default function Exercise(props) {
             },
           ],
           nonRepeating: [],
-        });
+        };
       case "Reps with %":
-        return ({
+        return {
           repeating: [
             {
               goalAttribute: "percent",
@@ -146,10 +154,11 @@ export default function Exercise(props) {
             {
               goalAttribute: "maxWeight",
               label: "One Rep Max",
-            },],
-        });
+            },
+          ],
+        };
       case "Time":
-        return ({
+        return {
           repeating: [
             {
               goalAttribute: "seconds",
@@ -157,9 +166,9 @@ export default function Exercise(props) {
             },
           ],
           nonRepeating: [],
-        });
+        };
       default:
-        return <Typography color="text.primary" >Type Error</Typography>;
+        return <Typography color="text.primary">Type Error</Typography>;
     }
   };
 
@@ -213,7 +222,7 @@ export default function Exercise(props) {
           },
         ];
       default:
-        return <Typography color="text.primary" >Type Error</Typography>;
+        return <Typography color="text.primary">Type Error</Typography>;
     }
   };
 
@@ -223,7 +232,7 @@ export default function Exercise(props) {
 
   useEffect(() => {
     setHeightToggle((prev) => !prev);
-  }, [editMode, setHeightToggle])
+  }, [editMode, setHeightToggle]);
 
   const classes = {
     textFieldRoot: {
@@ -282,12 +291,12 @@ export default function Exercise(props) {
                             <IconButton variant="contained" onClick={handleModalExercise}>
                               <Info />
                             </IconButton>
-                          </ Tooltip>
+                          </Tooltip>
                           <Tooltip title="Log Exercise">
                             <IconButton variant="contained" onClick={handleEditToggle}>
                               <FactCheck />
                             </IconButton>
-                          </ Tooltip>
+                          </Tooltip>
                           {params.InputProps.endAdornment}
                         </>
                       ),
@@ -320,7 +329,11 @@ export default function Exercise(props) {
                 value={sets}
                 onChange={handleSetChange}
               >
-                {[...Array(21)].map((x, i) => <option key={i} value={i}>{i}</option>)}
+                {[...Array(21)].map((x, i) => (
+                  <option key={i} value={i}>
+                    {i}
+                  </option>
+                ))}
               </TextField>
             </Grid>
             <EditLoader
@@ -334,43 +347,40 @@ export default function Exercise(props) {
             />
           </Grid>
           <Grid container item xs={12} sx={{ alignContent: "center" }}>
-            <Grid
-              container
-              item
-              xs={12}
-              sx={{ justifyContent: "center", alignContent: "center" }}
-            >
+            <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: "center" }}>
               <Grid item>
                 <Tooltip title="Remove Set">
                   <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
                     <RemoveCircle />
                   </IconButton>
-                </ Tooltip>
+                </Tooltip>
               </Grid>
             </Grid>
           </Grid>
         </>
       ) : (
         <>
-          <Grid item xs={12}>
+          <Grid item xs={12} >
             <Typography color="text.primary" variant="h6" sx={{ textAlign: "center" }}>
               {title || "Enter an exercise"}
-              <Tooltip title="View Progress Chart">
-                <IconButton variant="contained" onClick={handleModalExercise}>
-                  <Info />
-                </IconButton>
-              </ Tooltip>
-              <Tooltip title="Autofill Exercise">
-                <IconButton variant="contained" onClick={handleAutoFillExercise}>
-                  <CheckCircle />
-                </IconButton>
-              </ Tooltip>
-              <Tooltip title="Edit Exercise">
-                <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
-                  <Edit />
-                </IconButton>
-              </ Tooltip>
             </Typography>
+          </Grid>
+          <Grid xs={12} container sx={{ justifyContent: 'center', }}>
+            <Tooltip title="View Progress Chart">
+              <IconButton variant="contained" onClick={handleModalExercise}>
+                <Info />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Autofill Exercise">
+              <IconButton variant="contained" onClick={handleAutoFillExercise}>
+                <CheckCircle />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit Exercise">
+              <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
+                <Edit />
+              </IconButton>
+            </Tooltip>
           </Grid>
           <LogLoader
             fields={LoggedFields()}
@@ -383,12 +393,13 @@ export default function Exercise(props) {
           />
         </>
       )}
-      {open &&
+      {open && (
         <ModalBarChartHistory
           targetExerciseHistory={targetExerciseHistory}
           open={open}
           handleClose={handleClose}
-        />}
+        />
+      )}
     </Grid>
   );
 }

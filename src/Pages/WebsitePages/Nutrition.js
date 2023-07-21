@@ -18,7 +18,7 @@ export default function Nutrition() {
         <>
             <WebsiteNavbar />
             <Container >
-                <Paper elevation="6" sx={{ margin: '15px 0', padding: '5px 25px' }}>
+                <Paper sx={{ margin: '15px 0', padding: '5px 25px' }}>
                     <Typography variant="h2" sx={{ textAlign: 'center', }} gutterBottom >Nutrition </Typography>
                     <Typography >
                         This Nutrition page will lay out the most important information that you need to know in order to be successful.

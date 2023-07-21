@@ -41,6 +41,15 @@ export default function AccountSettings() {
                             isOptionEqualToValue={(option, value) => option.value === value.value}
                             renderInput={(params) => <TextField {...params} label="Theme" />}
                             getOptionDisabled={(option) => option.value === 'custom'}
+                            renderInput={(params) => (
+                              <TextField
+                              error={true}
+                              helperText="Light theme temporarily disabled, you still may save the preference"
+                                {...params}
+                                label="Combo box"
+                                variant="outlined"
+                              />
+                            )}
                         />
                     </Grid>
                     <Grid container item xs={12} sx={{ justifyContent: 'center' }} spacing={1}>

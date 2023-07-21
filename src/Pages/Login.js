@@ -5,19 +5,28 @@ import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/mate
 import { loginUser } from "../Redux/actions";
 
 const classes = {
-  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px", },
+  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px" },
   Paper: {
     padding: "0px 15px 0px 15px",
     borderRadius: "15px",
     minHeight: "100%",
-    flexDirection: 'column',
+    flexDirection: "column",
   },
-  JCcenter: { justifyContent: 'center', },
+  JCcenter: { justifyContent: "center" },
 };
 
-const LoginInput = ({ fieldProperty, label, value, error, helperText, type, handleKeyDown, setFormData }) => {
+const LoginInput = ({
+  fieldProperty,
+  label,
+  value,
+  error,
+  helperText,
+  type,
+  handleKeyDown,
+  setFormData,
+}) => {
   return (
-    <Grid container item xs={12} sx={classes.JCcenter} >
+    <Grid container item xs={12} sx={classes.JCcenter}>
       <TextField
         color="secondary"
         sx={classes.textField}
@@ -27,20 +36,22 @@ const LoginInput = ({ fieldProperty, label, value, error, helperText, type, hand
         helperText={error === true ? helperText : false}
         type={type}
         onKeyDown={(e) => handleKeyDown(e)}
-        onChange={(e) => setFormData(prev => ({
-          ...prev,
-          [fieldProperty]: {
-            ...prev[fieldProperty],
-            value: e.target.value,
-            error: false,
-            helperText: null,
-          }
-        }))}
+        onChange={(e) =>
+          setFormData((prev) => ({
+            ...prev,
+            [fieldProperty]: {
+              ...prev[fieldProperty],
+              value: e.target.value,
+              error: false,
+              helperText: null,
+            },
+          }))
+        }
         required
       />
     </Grid>
   );
-}
+};
 
 export const Login = (props) => {
   const dispatch = useDispatch();
@@ -48,15 +59,15 @@ export const Login = (props) => {
   const user = useSelector((state) => state.user);
 
   const setError = (fieldProperty, hasError, message) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [fieldProperty]: {
         ...prev[fieldProperty],
         error: hasError,
         helperText: message,
-      }
-    }))
-  }
+      },
+    }));
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -64,57 +75,68 @@ export const Login = (props) => {
     }
   };
   const handleLoginAttempt = (e) => {
-    fieldProperties.forEach(fieldProperty => {
-      (formData[fieldProperty].value === '') ? setError(fieldProperty, true, `${formData[fieldProperty].label} is required.`) : setError(fieldProperty, false, null);
-    })
+    fieldProperties.forEach((fieldProperty) => {
+      formData[fieldProperty].value === ""
+        ? setError(fieldProperty, true, `${formData[fieldProperty].label} is required.`)
+        : setError(fieldProperty, false, null);
+    });
 
-    // this needs to be changed or before it gets here the errors need to be updated, it does not clear after typing and should
     if (!formData.email.error && !formData.password.error) {
       setDisableButtonDuringLogin(true);
-      dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then((res) => {
-        if (res.error) {
-          const { error } = res;
+      dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then(
+        (res) => {
+          if (res.error) {
+            const { error } = res;
 
-          error.email && setError("email", true, res.error.email)
-          error.password && setError("password", true, res.error.password);
+            error.email && setError("email", true, res.error.email);
+            error.password && setError("password", true, res.error.password);
+          }
+          setDisableButtonDuringLogin(false);
         }
-        setDisableButtonDuringLogin(false);
-      });
+      );
       localStorage.setItem("email", formData.email.value);
     }
   };
   const [formData, setFormData] = useState({
     email: {
-      label: 'Email',
+      label: "Email",
       value: localStorage.getItem("email") || "",
       error: null,
-      helperText: 'Invalid email',
-      type: 'email',
+      helperText: "Invalid email",
+      type: "email",
     },
     password: {
-      label: 'Password',
-      value: '',
+      label: "Password",
+      value: "",
       error: null,
-      helperText: 'Please enter your password',
-      type: 'password'
+      helperText: "Please enter your password",
+      type: "password",
     },
   });
   const fieldProperties = Object.keys(formData);
 
-  if (user.email) {
-    return <Navigate to={{ pathname: "/" }} />;
-  }
-  return (
+  return user._id ? <Navigate to={{ pathname: "/" }} /> : (
     <Container maxWidth="sm" sx={classes.Container}>
       <Grid container item component={Paper} sx={classes.Paper}>
-        <Grid container item xs={12} sx={{ flexGrow: 0, justifyContent: 'center', padding: '50px 0 25px 0', }}>
-
-          <Grid container item xs={12} sx={classes.JCcenter} ><Typography variant="h3" gutterBottom>Welcome!</Typography></Grid>
-          <Grid container item xs={12} sx={classes.JCcenter} ><Typography variant="h4" gutterBottom>Log in</Typography></Grid>
-
+        <Grid
+          container
+          item
+          xs={12}
+          sx={{ flexGrow: 0, justifyContent: "center", padding: "50px 0 25px 0" }}
+        >
+          <Grid container item xs={12} sx={classes.JCcenter}>
+            <Typography variant="h3" gutterBottom>
+              Welcome!
+            </Typography>
+          </Grid>
+          <Grid container item xs={12} sx={classes.JCcenter}>
+            <Typography variant="h4" gutterBottom>
+              Log in
+            </Typography>
+          </Grid>
         </Grid>
-        <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: 'flex-start', }}>
-          {fieldProperties.map(fieldProperty => (
+        <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
+          {fieldProperties.map((fieldProperty) => (
             <LoginInput
               key={fieldProperty}
               fieldProperty={fieldProperty}
@@ -122,7 +144,7 @@ export const Login = (props) => {
               value={formData[fieldProperty].value}
               error={formData[fieldProperty].error}
               helperText={formData[fieldProperty].helperText}
-              type={formData[fieldProperty].type || 'text'}
+              type={formData[fieldProperty].type || "text"}
               setFormData={setFormData}
               handleKeyDown={handleKeyDown}
             />
@@ -131,7 +153,7 @@ export const Login = (props) => {
           <Grid container item xs={12} sx={classes.JCcenter}>
             <Button
               variant="contained"
-              color="secondary"
+              color="primary"
               sx={classes.button}
               onClick={(e) => handleLoginAttempt(e)}
               disabled={disableButtonDuringLogin}

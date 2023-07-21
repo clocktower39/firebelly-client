@@ -56,6 +56,9 @@ const darkTheme = {
         fontSize: "1rem",
       },
     },
+    body2: {
+      fontSize: ".8rem",
+    },
     subtitle1: {
       fontWeight: 500,
     },
@@ -130,5 +133,6 @@ const lightTheme = {
   },
 };
 
+// temporarily disabled light theme
 export const theme = () =>
-  createTheme(store.getState().user.themeMode === "light" ? lightTheme : darkTheme);
+  createTheme(store.getState().user.themeMode === "light" ? darkTheme : darkTheme);

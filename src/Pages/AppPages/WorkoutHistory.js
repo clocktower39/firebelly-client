@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from 'react-router-dom';
 import { Box, Button, Grid, Typography } from "@mui/material";
 import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
@@ -12,7 +13,8 @@ export default function WorkoutHistory() {
   const [hasMoreWorkouts, setHasMoreWorkouts] = useState(true); // New state variable
 
   useEffect(() => {
-    if (hasMoreWorkouts) { // Check totalPages before fetching again
+    if (hasMoreWorkouts) {
+      // Check totalPages before fetching again
       const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
       const fetchData = async () => {
         const response = await fetch(`${serverURL}/getWorkoutHistory`, {
@@ -48,7 +50,7 @@ export default function WorkoutHistory() {
   return (
     <Grid container>
       <Grid xs={12}>
-        <Typography variant="h5" textAlign="center" sx={{ padding: '15px'}}>
+        <Typography variant="h5" textAlign="center" sx={{ padding: "15px" }}>
           Workout History
         </Typography>
       </Grid>
@@ -67,7 +69,15 @@ export default function WorkoutHistory() {
       >
         {history?.docs?.map((workout, i) => {
           return (
-            <Grid key={workout._id} container item lg={4} sm={6} xs={12} sx={{ justifyContent: "center" }}>
+            <Grid
+              key={workout._id}
+              container
+              item
+              lg={4}
+              sm={6}
+              xs={12}
+              sx={{ justifyContent: "center" }}
+            >
               <Box
                 sx={{
                   width: "100%",
@@ -76,15 +86,18 @@ export default function WorkoutHistory() {
                   padding: "2.5px",
                 }}
               >
-                <Grid>
+                <Grid sx={{ padding: '5px', }}>
                   <Typography variant="h6">{workout?.title}</Typography>
                 </Grid>
-                <Grid>
+                <Grid sx={{ padding: '5px', }}>
                   <Typography variant="caption">
                     {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
                   </Typography>
                 </Grid>
-                <Grid>{workout?.category?.join(", ")}</Grid>
+                <Grid sx={{ padding: '5px', }}>{workout?.category?.join(", ")}</Grid>
+                <Grid sx={{ padding: '5px', }}>
+                  <Button variant="outlined" component={Link} to={`/workout/${workout._id}`} >Open</Button>
+                </Grid>
               </Box>
             </Grid>
           );
@@ -92,7 +105,11 @@ export default function WorkoutHistory() {
       </Grid>
 
       <Grid container justifyContent="center">
-        {hasMoreWorkouts ? <Button onClick={loadMore}>Load More</Button> : <Typography>No more workouts to load.</Typography>}
+        {hasMoreWorkouts ? (
+          <Button onClick={loadMore}>Load More</Button>
+        ) : (
+          <Typography>No more workouts to load.</Typography>
+        )}
       </Grid>
     </Grid>
   );

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Grid, InputAdornment, TextField, } from "@mui/material";
+import { Button, Grid, InputAdornment, TextField, Typography } from "@mui/material";
 
 const LoggedField = (props) => {
   const {
@@ -13,10 +13,10 @@ const LoggedField = (props) => {
   } = props;
 
   const handleFocus = (e) => {
-    if(Number(e.target.value) === 0){
+    if (Number(e.target.value) === 0) {
       e.target.select();
     }
-  }
+  };
 
   const handleChange = (e) => {
     let answer = 0;
@@ -57,10 +57,10 @@ const LoggedField = (props) => {
 
   const handleGoalAdornmentClick = (e, goalValue) => {
     e.target.value = goalValue.substr(0, goalValue.length);
-    if(e.detail === 1){
+    if (e.detail === 1) {
       handleChange(e);
     }
-  }
+  };
 
   return (
     <Grid item xs={5}>
@@ -76,8 +76,29 @@ const LoggedField = (props) => {
         size="small"
         InputProps={{
           endAdornment: (
-            <InputAdornment position="start" sx={{ fontSize: "10px", textAlign: "right", userSelect: 'none', }} >
-              <Button sx={{ color: "#fff"}} onClick={(e) => handleGoalAdornmentClick(e, parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex])} >/{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}</Button>
+            <InputAdornment
+              position="start"
+              sx={{ fontSize: "10px", textAlign: "right", userSelect: "none" }}
+            >
+              <Button
+                sx={{
+                  color: "#fff",
+                  display: "inline-block",
+                  padding: 0,
+                  minHeight: 0,
+                  minWidth: 0,
+                }}
+                onClick={(e) =>
+                  handleGoalAdornmentClick(
+                    e,
+                    parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]
+                  )
+                }
+              >
+                <Typography variant="subtitle2" noWrap>
+                  /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
+                </Typography>
+              </Button>
             </InputAdornment>
           ),
         }}
@@ -104,12 +125,14 @@ export default function LogLoader(props) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
               exercise.achieved.reps.map((exerciseSet, esIndex) => {
-                if(esIndex === exerciseSetIndex){
-                  exercise.achieved.reps[exerciseSetIndex] = exercise.goals.exactReps[exerciseSetIndex];
-                  exercise.achieved.weight[exerciseSetIndex] = exercise.goals.weight[exerciseSetIndex];
+                if (esIndex === exerciseSetIndex) {
+                  exercise.achieved.reps[exerciseSetIndex] =
+                    exercise.goals.exactReps[exerciseSetIndex];
+                  exercise.achieved.weight[exerciseSetIndex] =
+                    exercise.goals.weight[exerciseSetIndex];
                 }
                 return exerciseSet;
-              })
+              });
             }
             return exercise;
           });
@@ -117,7 +140,7 @@ export default function LogLoader(props) {
         return set;
       });
     });
-  }
+  };
 
   return (
     <Grid container item xs={12} spacing={1}>
@@ -130,13 +153,21 @@ export default function LogLoader(props) {
             spacing={2}
             key={`exercise-Set-${count}-${exerciseSetIndex}`}
           >
-            <Grid
-              item
-              xs={2}
-              container
-              sx={{ justifyContent: "flex-end", alignContent: "center" }}
-            >
-              <Button sx={{ color: '#fff', }} onClick={()=>handleAutofillSet(exerciseSetIndex)} >Set {exerciseSetIndex + 1}:</Button>
+            <Grid item xs={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
+              <Button
+                sx={{
+                  color: "#fff",
+                  display: "inline-block",
+                  padding: 0,
+                  minHeight: 0,
+                  minWidth: 0,
+                }}
+                onClick={() => handleAutofillSet(exerciseSetIndex)}
+              >
+                <Typography variant noWrap>
+                  Set {exerciseSetIndex + 1}:
+                </Typography>
+              </Button>
             </Grid>
 
             {fields.map((field, fieldIndex) => {
