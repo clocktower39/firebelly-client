@@ -3,11 +3,6 @@
   "name": "Firebelly Fitness Personal Training App",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "96x96 48x48",
-      "type": "image/x-icon"
-    },
-    {
       "src": "logo48.png",
       "type": "image/png",
       "sizes": "48x48"

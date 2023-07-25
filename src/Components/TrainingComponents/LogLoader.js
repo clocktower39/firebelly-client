@@ -95,7 +95,7 @@ const LoggedField = (props) => {
                   )
                 }
               >
-                <Typography variant="subtitle2" noWrap>
+                <Typography variant="body2" noWrap>
                   /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
                 </Typography>
               </Button>

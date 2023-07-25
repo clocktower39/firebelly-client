@@ -271,7 +271,7 @@ export default function Exercise(props) {
                   .filter((a) => a !== "")
                   .sort((a, b) => a > b)
                   .map((option) => option)}
-                onChange={(e, getTagProps) => setTitle(getTagProps)}
+                onChange={(e, getTagProps) => setTitle(getTagProps.replace(/\s+/g,' ').trim())}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip variant="outlined" label={option} {...getTagProps({ index })} />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Button,
@@ -21,6 +21,7 @@ import ChangePassword from '../../Components/AccountComponents/ChangePassword';
 
 export default function Account() {
   const dispatch = useDispatch();
+  const user = useSelector(state => state.user);
   const [openOutletList, setOpenOutletList] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -53,6 +54,10 @@ export default function Account() {
         <ListItem button component={Link} to="/account/theme">
           <ListItemText primary="Theme" sx={{ color: "white" }} />
         </ListItem>
+        {user.isTrainer && 
+        <ListItem button component={Link} to="/account/exerciseTitleMergeTool">
+          <ListItemText primary="Exercise Title Merge Tool" sx={{ color: "white" }} />
+        </ListItem>}
       </List>
     )
   }

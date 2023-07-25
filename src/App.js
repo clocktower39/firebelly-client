@@ -23,6 +23,7 @@ import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
+import Tool from "./Components/AccountComponents/Tool";
 import Trainers from "./Components/AccountComponents/Trainers";
 import ExerciseLibrary from "./Pages/AppPages/ExerciseLibrary";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
@@ -140,6 +141,7 @@ function App({ socket }) {
                     <Route index={true} exact path="" element={<MyAccount />} />
                     <Route index={true} exact path="theme" element={<ThemeSettings />} />
                     <Route index={true} exact path="trainers" element={<Trainers socket={socket} />} />
+                    <Route index={true} exact path="exerciseTitleMergeTool" element={<Tool />} />
                   </Route>
                 </Route>
               </Route>
