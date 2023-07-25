@@ -390,6 +390,9 @@ export function ModalAction(props) {
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
   const [actionError, setActionError] = useState(false);
+  const [newTitle, setNewTitle] = useState(training?.title);
+
+  const handleTitleChange = (e) => setNewTitle(e.target.value);
 
   const handleMove = () => {
     dispatch(updateWorkoutDateById(training, newDate)).then((res) => {
@@ -404,7 +407,7 @@ export function ModalAction(props) {
   };
 
   const handleCopy = () => {
-    dispatch(copyWorkoutById(training._id, newDate, copyOption.value)).then(() => {
+    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle)).then(() => {
       setActionError(false);
       handleModalToggle();
       setSelectedDate
@@ -472,6 +475,7 @@ export function ModalAction(props) {
       return (
         <>
           <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
+          <TextField fullWidth label="Copied Workout Title" value={newTitle} onChange={handleTitleChange}/>
 
           <Grid container sx={{ justifyContent: "center" }}>
             <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
