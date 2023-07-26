@@ -23,7 +23,6 @@ import {
   Delete,
 } from "@mui/icons-material";
 import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
-import AuthNavbar from "./AuthNavbar";
 
 export default function Goals({ view = "client", clientId, }) {
   const dispatch = useDispatch();
@@ -438,7 +437,6 @@ export default function Goals({ view = "client", clientId, }) {
 
         </Paper>
       </Container>
-      <AuthNavbar />
 
       {selectedGoal && <GoalDetails goal={selectedGoal} open={openGoalDetails} onClose={handleCloseGoalDetails} />}
       <AddNewGoal goal={selectedGoal} open={openAddNewGoal} onClose={handleCloseAddNewGoal} />

@@ -16,7 +16,6 @@ import Dashboard from "./Pages/AppPages/Dashboard";
 import Tasks from "./Pages/AppPages/Tasks";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Nutrition from "./Pages/AppPages/Nutrition";
-import Week from "./Pages/AppPages/Week";
 import Clients from "./Pages/AppPages/Clients";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
@@ -25,7 +24,6 @@ import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import Tool from "./Components/AccountComponents/Tool";
 import Trainers from "./Components/AccountComponents/Trainers";
-import ExerciseLibrary from "./Pages/AppPages/ExerciseLibrary";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
@@ -67,12 +65,14 @@ function App({ socket }) {
             </>
           ) : (
             <> {/* App */}
-            {document.getElementById("root").style.scrollbarWidth = 'none'}
-            {document.getElementById("root").style.height = 'calc(100% - 56px)'}
-
-              <Route exact path="/login" element={<Login />} />
-              <Route exact path="/signup" element={<SignUp />} />
-
+            
+              <Route element={<ActivityTrackerContainer />} >
+                <Route exact path="/login" element={<Login />} />
+              </Route>
+              
+              <Route element={<ActivityTrackerContainer />} >
+                <Route exact path="/signup" element={<SignUp />} />
+              </Route>
               {/* Must be logged in and have JWT token to authenticate */}
               <Route exact path="/" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
@@ -98,18 +98,11 @@ function App({ socket }) {
                 </Route>
               </Route>
 
-
               <Route exact path="/tasks" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Tasks />} />
                 </Route>
               </Route>
-
-              {/* <Route exact path="/training" element={<AuthRoute />}>
-                <Route element={<ActivityTrackerContainer />} >
-                  <Route exact path="" element={<Training />} />
-                </Route>
-              </Route> */}
 
               <Route exact path="/nutrition" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
@@ -124,15 +117,9 @@ function App({ socket }) {
               </Route>
               
               <Route exact path="/goals" element={<AuthRoute />}>
-                <Route exact path="/goals" element={<Goals />} />
-              </Route>
-
-              <Route exact path="/week" element={<AuthRoute />}>
-                <Route exact path="/week" element={<Week />} />
-              </Route>
-
-              <Route exact path="/clients" element={<AuthRoute />}>
-                <Route exact path="/clients" element={<Clients />} />
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Goals />} />
+                </Route>
               </Route>
 
               <Route exact path="/account/*" element={<AuthRoute />}>
@@ -147,15 +134,16 @@ function App({ socket }) {
               </Route>
 
               <Route exact path="/clients" element={<AuthRoute />}>
-                <Route exact path="/clients" element={<Clients />} />
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Clients />} />
+                </Route>
               </Route>
 
-              <Route exact path="/exerciseLibrary" element={<AuthRoute />}>
-                <Route exact path="/exerciseLibrary" element={<ExerciseLibrary />} />
-              </Route>
             </>
           )}
-          <Route path="*" element={<NotFoundPage />} />
+          <Route element={<ActivityTrackerContainer />} >
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
         </Routes>
       </Router>
     </ThemeProvider>

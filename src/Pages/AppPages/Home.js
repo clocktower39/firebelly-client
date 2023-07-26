@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import queryString from "query-string";
-import { Container, Paper } from "@mui/material";
 import dayjs from "dayjs";
 import Loading from "../../Components/Loading";
 import SelectedDate from "../../Components/SelectedDate";
@@ -69,14 +68,7 @@ function Home() {
   return loading ? (
     <Loading />
   ) : (
-    <Container
-      className="App"
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Paper>
+    <>
         <SelectedDate
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
@@ -91,8 +83,7 @@ function Home() {
             workoutOptionModalViewProps={{ modalOpen, handleModalToggle, handleSetModalAction, modalActionType, openModal, handleOpenModal, handleCloseModal, setSelectedDate, }}
           />
         )}
-      </Paper>
-    </Container>
+        </>
   );
 }
 

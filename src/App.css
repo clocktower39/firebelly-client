@@ -2,8 +2,7 @@
 
 html, body, #root {
     background-color: #3a3a3a;
-    height: 100%;
-    overflow: auto;
+    min-height: 100vh;
 }
 
 @font-face {

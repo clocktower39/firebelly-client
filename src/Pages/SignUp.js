@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
+import { Button, Grid, TextField, Typography } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { signupUser } from "../Redux/actions";
 
 const classes = {
-  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px" },
-  Paper: {
-    padding: "0px 15px 0px 15px",
-    borderRadius: "15px",
-    minHeight: "100%",
-    flexDirection: "column",
-  },
   JCcenter: { justifyContent: "center" },
 };
 
@@ -150,50 +143,48 @@ export const SignUp = (props) => {
   };
 
   return user._id ? <Navigate to={{ pathname: "/" }} /> : (
-    <Container maxWidth="sm" sx={classes.Container}>
-      <Grid container item component={Paper} sx={classes.Paper}>
-        <Grid
-          container
-          item
-          xs={12}
-          sx={{ flexGrow: 0, justifyContent: "center", padding: "50px 0 25px 0" }}
-        >
-          <Grid container item xs={12} sx={classes.JCcenter}>
-            <Typography variant="h4" gutterBottom>
-              Sign Up
-            </Typography>
-          </Grid>
-        </Grid>
-
-        <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
-          {fieldProperties.map((fieldProperty) => (
-            <SignupInput
-              key={fieldProperty}
-              fieldProperty={fieldProperty}
-              label={formData[fieldProperty].label}
-              value={formData[fieldProperty].value}
-              error={formData[fieldProperty].error}
-              helperText={formData[fieldProperty].helperText}
-              type={formData[fieldProperty].type || "text"}
-              setFormData={setFormData}
-              handleKeyDown={handleKeyDown}
-            />
-          ))}
-
-          <Grid container item xs={12} sx={classes.JCcenter}>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={classes.button}
-              onClick={handleSignupAttempt}
-              disabled={disableButtonDuringSignUp}
-            >
-              Sign Up
-            </Button>
-          </Grid>
+    <Grid container item >
+      <Grid
+        container
+        item
+        xs={12}
+        sx={{ flexGrow: 0, justifyContent: "center", padding: "50px 0 25px 0" }}
+      >
+        <Grid container item xs={12} sx={classes.JCcenter}>
+          <Typography variant="h4" gutterBottom>
+            Sign Up
+          </Typography>
         </Grid>
       </Grid>
-    </Container>
+
+      <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
+        {fieldProperties.map((fieldProperty) => (
+          <SignupInput
+            key={fieldProperty}
+            fieldProperty={fieldProperty}
+            label={formData[fieldProperty].label}
+            value={formData[fieldProperty].value}
+            error={formData[fieldProperty].error}
+            helperText={formData[fieldProperty].helperText}
+            type={formData[fieldProperty].type || "text"}
+            setFormData={setFormData}
+            handleKeyDown={handleKeyDown}
+          />
+        ))}
+
+        <Grid container item xs={12} sx={classes.JCcenter}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={classes.button}
+            onClick={handleSignupAttempt}
+            disabled={disableButtonDuringSignUp}
+          >
+            Sign Up
+          </Button>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };
 

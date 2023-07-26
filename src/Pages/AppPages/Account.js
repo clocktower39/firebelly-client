@@ -7,15 +7,13 @@ import {
   Container,
   Typography,
   Grid,
-  IconButton,
   List,
   ListItem,
   ListItemText,
   Menu,
   MenuItem,
 } from "@mui/material";
-import { Settings, List as ListIcon } from "@mui/icons-material";
-import AuthNavbar from "./AuthNavbar";
+import { Settings, } from "@mui/icons-material";
 import { logoutUser } from "../../Redux/actions";
 import ChangePassword from '../../Components/AccountComponents/ChangePassword';
 
@@ -71,8 +69,7 @@ export default function Account() {
         <Grid container>
           <Grid container item xs={12} sx={{ justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', flexDirection: 'row', }}>
-              <IconButton onClick={handleOutletLists} ><ListIcon /></IconButton>
-              <Typography variant="h5" sx={{ color: "#fff" }}>
+              <Typography onClick={handleOutletLists} variant="h5" sx={{ color: "#fff" }}>
                 Account Settings
               </Typography>
             </Box>
@@ -87,7 +84,6 @@ export default function Account() {
           </Grid>
         </Grid>
       </Container>
-      <AuthNavbar />
       <Menu open={open} onClose={handleClose} anchorEl={anchorEl}>
         <MenuItem onClick={handlePasswordOpen}>Change password</MenuItem>
         <MenuItem onClick={handleLogout}>Logout</MenuItem>

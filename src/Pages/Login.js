@@ -1,17 +1,10 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
-import { Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
+import { Button, Grid, TextField, Typography } from "@mui/material";
 import { loginUser } from "../Redux/actions";
 
 const classes = {
-  Container: { height: "100%", paddingTop: "15px", paddingBottom: "15px" },
-  Paper: {
-    padding: "0px 15px 0px 15px",
-    borderRadius: "15px",
-    minHeight: "100%",
-    flexDirection: "column",
-  },
   JCcenter: { justifyContent: "center" },
 };
 
@@ -116,8 +109,7 @@ export const Login = (props) => {
   const fieldProperties = Object.keys(formData);
 
   return user._id ? <Navigate to={{ pathname: "/" }} /> : (
-    <Container maxWidth="sm" sx={classes.Container}>
-      <Grid container item component={Paper} sx={classes.Paper}>
+      <Grid container item >
         <Grid
           container
           item
@@ -163,7 +155,6 @@ export const Login = (props) => {
           </Grid>
         </Grid>
       </Grid>
-    </Container>
   );
 };
 

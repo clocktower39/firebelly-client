@@ -11,9 +11,14 @@
       "src": "logo96.png",
       "type": "image/png",
       "sizes": "96x96"
+    },
+    {
+      "src": "logo144.png",
+      "type": "image/png",
+      "sizes": "144x144"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"

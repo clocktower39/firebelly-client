@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { requestClients, changeRelationshipStatus } from '../../Redux/actions';
-import { Avatar, Button, Card, CardHeader, Container, Dialog, Grid, IconButton, Paper, Typography } from "@mui/material";
+import { Avatar, Button, Card, CardHeader, Dialog, Grid, IconButton, Typography } from "@mui/material";
 import { Delete, Done, PendingActions, } from "@mui/icons-material";
-import AuthNavbar from "./AuthNavbar";
 import Workout from "./Workout";
 import Goals from "./Goals";
 
@@ -85,48 +84,37 @@ export default function Clients() {
 
   return user.isTrainer ? (
     <>
-      <Container maxWidth="md" sx={{ height: "100%", padding: "15px 0px" }}>
-        <Paper
-          sx={{
-            padding: "5px 15px",
-            borderRadius: "15px",
-            height: "100%",
-          }}
-        >
-          <Grid
-            container
-            item
-            xs={12}
-            sx={{
-              justifyContent: "center",
-              paddingBottom: "15px",
-              alignSelf: "flex-start",
-              flex: "initial",
-            }}
-          >
-            <Typography variant="h4">Training Clients</Typography>
-          </Grid>
+      <Grid
+        container
+        item
+        xs={12}
+        sx={{
+          justifyContent: "center",
+          paddingBottom: "15px",
+          alignSelf: "flex-start",
+          flex: "initial",
+        }}
+      >
+        <Typography variant="h4">Training Clients</Typography>
+      </Grid>
 
-          <Grid
-            container
-            item
-            xs={12}
-            spacing={1}
-            sx={{
-              alignSelf: "flex-start",
-              alignContent: "flex-start",
-              overflowY: "scroll",
-              scrollbarWidth: "none",
-              flex: "auto",
-            }}
-          >
-            {clients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
-          </Grid>
-        </Paper>
-        <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Workout view="trainer" clientId={selectedClient} /> </Dialog>
-        <Dialog open={openGoals} onClose={handleCloseGoals} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Goals view="trainer" clientId={selectedClient} /> </Dialog>
-      </Container>
-      <AuthNavbar />
+      <Grid
+        container
+        item
+        xs={12}
+        spacing={1}
+        sx={{
+          alignSelf: "flex-start",
+          alignContent: "flex-start",
+          overflowY: "scroll",
+          scrollbarWidth: "none",
+          flex: "auto",
+        }}
+      >
+        {clients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
+      </Grid>
+      <Dialog open={openTraining} onClose={handleCloseTraining} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Workout view="trainer" clientId={selectedClient} /> </Dialog>
+      <Dialog open={openGoals} onClose={handleCloseGoals} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Goals view="trainer" clientId={selectedClient} /> </Dialog>
     </>
   ) : (
     <Typography variant="body1">You are not a trainer. This page is unavailable.</Typography>

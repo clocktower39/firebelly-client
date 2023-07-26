@@ -11,28 +11,31 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import AuthNavbar from './AuthNavbar';
 
 export default function Dashboard() {
   const user = useSelector(state => state.user);
 
-  const components = [
+  const pages = [
+    {
+      title: "Home",
+      to: "/",
+    },
+    {
+      title: "Dashboard",
+      to: "/dashboard",
+    },
+    {
+      title: "History",
+      to: "/history",
+    },
     {
       title: "Daily Tasks",
       to: "/tasks",
     },
     {
-      title: "Training",
-      to: "/training",
-    },
-    {
       title: "Nutrition",
       to: "/nutrition",
     },
-    // {
-    //   title: "Exercise Library",
-    //   to: "/exerciselibrary",
-    // },
     {
       title: "Goals",
       to: "/goals",
@@ -60,7 +63,7 @@ export default function Dashboard() {
               Dashboard
             </Typography>
           </Grid>
-          {components.filter(c => {
+          {pages.filter(c => {
             if(!user.isTrainer){
               if(c.title === 'Clients'){
                 return false;
@@ -143,7 +146,6 @@ export default function Dashboard() {
           ))}
         </Grid>
       </Container>
-      <AuthNavbar />
     </>
   );
 }
