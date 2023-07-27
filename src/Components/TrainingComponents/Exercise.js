@@ -93,8 +93,8 @@ export default function Exercise(props) {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              exercise.achieved.reps = exercise.goals.exactReps;
-              exercise.achieved.weight = exercise.goals.weight;
+              exercise.achieved.reps = [...exercise.goals.exactReps];
+              exercise.achieved.weight = [...exercise.goals.weight];
             }
             return exercise;
           });

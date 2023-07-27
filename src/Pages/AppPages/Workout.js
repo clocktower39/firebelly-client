@@ -429,8 +429,8 @@ export function ModalAction(props) {
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
         set.map((exercise, eIndex) => {
-          exercise.achieved.reps = exercise.goals.exactReps;
-          exercise.achieved.weight = exercise.goals.weight;
+          exercise.achieved.reps = [...exercise.goals.exactReps];
+          exercise.achieved.weight = [...exercise.goals.weight];
           return exercise;
         });
         return set;
@@ -475,7 +475,12 @@ export function ModalAction(props) {
       return (
         <>
           <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
-          <TextField fullWidth label="Copied Workout Title" value={newTitle} onChange={handleTitleChange}/>
+          <TextField
+            fullWidth
+            label="Copied Workout Title"
+            value={newTitle}
+            onChange={handleTitleChange}
+          />
 
           <Grid container sx={{ justifyContent: "center" }}>
             <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
@@ -562,11 +567,13 @@ export function WorkoutOptionModalView(props) {
           Workout Settings
         </Typography>
         <Grid container sx={{ justifyContent: "center" }}>
-          <Tooltip title="Autofill Workout">
-            <IconButton onClick={() => handleSetModalAction("autofill_workout")}>
-              <CheckCircle />
-            </IconButton>
-          </Tooltip>
+          {setLocalTraining && (
+            <Tooltip title="Autofill Workout">
+              <IconButton onClick={() => handleSetModalAction("autofill_workout")}>
+                <CheckCircle />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Move Workout">
             <IconButton onClick={() => handleSetModalAction("move")}>
               <DoubleArrow />

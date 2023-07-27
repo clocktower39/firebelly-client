@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { requestNutrition, updateNutrition } from "../../Redux/actions";
 import SelectedDate from "../../Components/SelectedDate";
+import dayjs from "dayjs";
 
 const classes = {
   heading: {},
@@ -93,7 +94,7 @@ const NutritionStat = (props) => {
 export default function Nutrition() {
   const dispatch = useDispatch();
   const nutrition = useSelector((state) => state.nutrition);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
 
   let nutritionAchieved = 0;
   let nutritionGoal = 1;
@@ -131,7 +132,7 @@ export default function Nutrition() {
   return (
     <>
       <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
+        <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
         <Grid item xs={3}>
           <Typography sx={classes.heading}>Nutrition</Typography>
         </Grid>

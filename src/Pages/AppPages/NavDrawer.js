@@ -3,7 +3,10 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Box,
+  Button,
+  Container,
   Drawer,
+  Grid,
   IconButton,
   List,
   Divider,
@@ -26,6 +29,7 @@ import {
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
 } from "@mui/icons-material";
+import logo48 from "../../img/logo48.png";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
@@ -147,13 +151,37 @@ export default function NavDrawer() {
   );
 
   return (
-    <div>
-      <IconButton onClick={toggleDrawer}>
-        <NavIcon />
-      </IconButton>
+    <>
+      <Box
+        sx={{
+          backgroundColor: "#232323",
+          marginBottom: "5px",
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+        }}
+      >
+        <Container maxWidth="md">
+          <Grid container>
+            <Grid container item xs={6} >
+              <IconButton onClick={toggleDrawer}>
+                <NavIcon />
+              </IconButton>
+              <Button component={Link} to="/" sx={{ maxHeight: "40px" }}>
+                <img src={logo48} alt="Firebelly Fitness Logo" style={{ maxHeight: "40px" }} />
+              </Button>
+            </Grid>
+            <Grid container item xs={6} sx={{ justifyContent: 'flex-end'}}>
+              <Button component={Link} to="/account" sx={{ maxHeight: "40px" }}>
+                <AccountIcon/>
+              </Button>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
       <Drawer anchor="left" open={open} onClose={toggleDrawer}>
         {list("left")}
       </Drawer>
-    </div>
+    </>
   );
 }
