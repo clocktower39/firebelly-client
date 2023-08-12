@@ -91,15 +91,15 @@ function SwipeableSet(props) {
                             <Grid container item xs={12}>
                                 <Grid item container xs={12} sx={{ justifyContent: "center" }} >
                                     <Box sx={{ display: 'flex', alignItems: "center", justifyContent: "center" }} >
-                                        <Tooltip title="Remove current set" >
+                                        <Tooltip title="Remove current curcuit" >
                                             <IconButton onClick={() => removeSet(index)} >
                                                 <RemoveCircle />
                                             </IconButton>
                                         </ Tooltip>
                                         <Typography variant="h5">
-                                            Set {index + 1}
+                                            Curcuit {index + 1}
                                         </Typography>
-                                        <Tooltip title="Add a new set" >
+                                        <Tooltip title="Add a new curcuit" >
                                             <IconButton onClick={newSet} >
                                                 <AddCircle />
                                             </IconButton>

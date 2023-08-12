@@ -73,7 +73,7 @@ function Home() {
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
         />
-        <WeeklyTrainingStatus selectedDate={selectedDate} />
+        <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
         {localWorkouts && (
           <WorkoutOverview
             localWorkouts={localWorkouts}

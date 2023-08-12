@@ -5,14 +5,16 @@ import {
   CircularProgress,
   Container,
   Grid,
+  IconButton,
   Paper,
   Popper,
   Typography,
 } from "@mui/material";
+import { Cancel as CloseIcon, Today as MoveToDateIcon } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { serverURL } from "../../Redux/actions";
 
-export default function WeeklyTrainingStatus({ selectedDate }) {
+export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) {
   const date = dayjs(selectedDate);
   const [weeklyData, setWeeklyData] = useState([]);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
@@ -64,24 +66,43 @@ export default function WeeklyTrainingStatus({ selectedDate }) {
     <>
       <Grid container sx={{ justifyContent: "center" }}>
         {weekData.map((day) => (
-          <DayStatusView day={day} key={day.date} setSelectedWorkout={setSelectedWorkout} setAnchorEl={setAnchorEl} />
+          <DayStatusView
+            day={day}
+            key={day.date}
+            setSelectedWorkout={setSelectedWorkout}
+            setAnchorEl={setAnchorEl}
+          />
         ))}
       </Grid>
-      <DayPopperOverview selectedWorkout={selectedWorkout} anchorEl={anchorEl} />
+      <DayPopperOverview
+        selectedWorkout={selectedWorkout}
+        setSelectedWorkout={setSelectedWorkout}
+        anchorEl={anchorEl}
+        setActionEl={setAnchorEl}
+        setSelectedDate={setSelectedDate}
+      />
     </>
   );
 }
 
 const DayPopperOverview = (props) => {
-  const { selectedWorkout, anchorEl } = props;
+  const { selectedWorkout, setSelectedWorkout, anchorEl, setAnchorEl, setSelectedDate } = props;
 
+  const handleClose = () => {
+    setSelectedWorkout(null);
+    setAnchorEl(null);
+  };
+
+  const handleMoveToDate = () => {
+    setSelectedDate(dayjs(selectedWorkout.date).format("YYYY-MM-DD"));
+  };
   return (
     <Popper
       open={selectedWorkout ? true : false}
       anchorEl={anchorEl}
       placement="bottom"
       disablePortal={false}
-      sx={{ maxWidth: "95%", }}
+      sx={{ maxWidth: "95%" }}
       modifiers={[
         {
           name: "flip",
@@ -110,34 +131,61 @@ const DayPopperOverview = (props) => {
       ]}
     >
       {selectedWorkout &&
-        selectedWorkout.workouts.map((workout) => {
+        selectedWorkout.workouts.map((workout, workoutIndex) => {
           return (
-              <Container key={workout._id} >
-                <Paper sx={{ padding: '5px'}} elevation={5} >
-                <Typography variant="body1">{workout.title}</Typography>
+            <Container key={workout._id}>
+              <Paper sx={{ padding: "25px" }} elevation={5}>
+                {workoutIndex === 0 && (
+                  <>
+                    <Grid container>
+                      <Grid container item xs={6}>
+                        <IconButton onClick={handleClose}>
+                          <CloseIcon />
+                        </IconButton>
+                      </Grid>
+                      <Grid container item xs={6} sx={{ justifyContent: "flex-end", alignItems: "center" }}>
+                        <Typography variant="subtitle">{dayjs.utc(workout.date).format("MM-DD-YYYY")}</Typography>
+                        <IconButton onClick={handleMoveToDate}>
+                          <MoveToDateIcon />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                    <Typography variant="h5" textAlign="center">
+                      Workout Complete
+                    </Typography>
+                    <Typography variant="h6" textAlign="center" sx={{ paddingBottom: '15px', }}>
+                      Reps & Weight Achieved:
+                    </Typography>
+
+                  </>
+                )}
+                <Typography variant="h6">{workout.title}</Typography>
 
                 {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
                   return (
                     <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
                       <Grid item xs={12}>
-                        set {workoutSetIndex + 1}
+                        Circuit {workoutSetIndex + 1}
                       </Grid>
                       {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
                         return (
                           <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
-                            <Grid item xs={6}>
-                              <Typography variant="caption">{exercise.exercise}</Typography>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="caption" sx={{ marginLeft: "16px" }}>{exercise.exercise}</Typography>
                             </Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="caption">
-                                Reps: {exercise.achieved.reps.join(", ")}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={6}></Grid>
-                            <Grid item xs={6}>
-                              <Typography variant="caption">
-                                Weight: {exercise.achieved.weight.join(", ")}
-                              </Typography>
+
+                            <Grid container item xs={12} sm={6}>
+                              <Grid item xs={12}>
+                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                  Reps: {exercise.achieved.reps.join(", ")}
+                                </Typography>
+                              </Grid>
+
+                              <Grid item xs={12}>
+                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                  Weight: {exercise.achieved.weight.join(", ")}
+                                </Typography>
+                              </Grid>
                             </Grid>
                           </Fragment>
                         );
@@ -145,8 +193,8 @@ const DayPopperOverview = (props) => {
                     </Grid>
                   );
                 })}
-                </Paper>
-              </Container>
+              </Paper>
+            </Container>
           );
         })}
     </Popper>
@@ -155,11 +203,22 @@ const DayPopperOverview = (props) => {
 
 const DayStatusView = ({ day, setSelectedWorkout, setAnchorEl }) => {
   const handleClick = (e) => {
-    setSelectedWorkout((prev) => prev ? dayjs.utc(prev.date).format('YYYY-MM-DD') !== dayjs.utc(day.date).format('YYYY-MM-DD') ? day : null : day);
+    setSelectedWorkout((prev) =>
+      prev
+        ? dayjs.utc(prev.date).format("YYYY-MM-DD") !== dayjs.utc(day.date).format("YYYY-MM-DD")
+          ? day
+          : null
+        : day
+    );
     setAnchorEl(e.currentTarget.parentElement);
-  }
+  };
   return (
-    <Box sx={{ position: "relative", color: 'primary' }} key={day.date} onClick={handleClick} component={Button}>
+    <Box
+      sx={{ position: "relative", color: "primary" }}
+      key={day.date}
+      onClick={handleClick}
+      component={Button}
+    >
       <CircularProgress
         variant="determinate"
         sx={{
@@ -192,7 +251,7 @@ const DayStatusView = ({ day, setSelectedWorkout, setAnchorEl }) => {
         justifyContent="center"
         flexDirection="column"
       >
-        <Box sx={{ color: 'primary.contrastText'}}>
+        <Box sx={{ color: "primary.contrastText" }}>
           <Typography variant="body2" component="div">
             {dayjs(day.date).format("ddd")}
           </Typography>

@@ -273,8 +273,8 @@ const WorkoutSet = (props) => {
   return (
     <>
       <Paper sx={{ padding: "0 5px" }}>
-        <Typography variant="h5">
-          <span {...workoutSetProvided.dragHandleProps}>Set {workoutSet.workoutSetIndex + 1}</span>
+        <Typography variant="h6">
+          <span {...workoutSetProvided.dragHandleProps}>Circuit {workoutSet.workoutSetIndex + 1}</span>
         </Typography>
         <div
           ref={provided.innerRef}
