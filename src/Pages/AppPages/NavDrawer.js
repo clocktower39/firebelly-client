@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
+  Avatar,
   Box,
   Button,
   Container,
@@ -163,7 +164,7 @@ export default function NavDrawer() {
       >
         <Container maxWidth="md">
           <Grid container>
-            <Grid container item xs={6} >
+            <Grid container item xs={6}>
               <IconButton onClick={toggleDrawer}>
                 <NavIcon />
               </IconButton>
@@ -171,10 +172,17 @@ export default function NavDrawer() {
                 <img src={logo48} alt="Firebelly Fitness Logo" style={{ maxHeight: "40px" }} />
               </Button>
             </Grid>
-            <Grid container item xs={6} sx={{ justifyContent: 'flex-end'}}>
-              <Button component={Link} to="/account" sx={{ maxHeight: "40px" }}>
-                <AccountIcon/>
-              </Button>
+            <Grid container item xs={6} sx={{ justifyContent: "flex-end" }}>
+              <IconButton
+                component={Link}
+                to="/account"
+                sx={{ maxHeight: "40px", maxWidth: "40px" }}
+              >
+                <Avatar
+                  sx={{ maxHeight: "40px", maxWidth: "40px" }}
+                  alt={`${user.firstName} ${user.lastName}`}
+                />
+              </IconButton>
             </Grid>
           </Grid>
         </Container>

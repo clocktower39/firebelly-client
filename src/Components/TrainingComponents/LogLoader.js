@@ -31,14 +31,14 @@ const LoggedField = (props) => {
               // remove extra zeros from the front
               else if (Number(e.target.value) || e.target.value === "0") {
                 if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = e.target.value.split("");
+                  answer = Number(e.target.value.split(""));
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer.join("");
                 } else {
                   // update the local state variable
-                  answer = e.target.value;
+                  answer = Number(e.target.value);
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
                 }
               } else {
@@ -56,7 +56,7 @@ const LoggedField = (props) => {
   };
 
   const handleGoalAdornmentClick = (e, goalValue) => {
-    e.target.value = goalValue.substr(0, goalValue.length);
+    e.target.value = Number(goalValue);
     if (e.detail === 1) {
       handleChange(e);
     }
@@ -88,15 +88,26 @@ const LoggedField = (props) => {
                   minHeight: 0,
                   minWidth: 0,
                 }}
-                onClick={(e) =>
-                  handleGoalAdornmentClick(
-                    e,
-                    parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]
-                  )
-                }
+                onClick={(e) => {
+                  exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
+                    ? handleGoalAdornmentClick(
+                        e,
+                        Number(parentProps.exercise.goals.oneRepMax) *
+                          (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
+                      )
+                    : handleGoalAdornmentClick(
+                        e,
+                        parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]
+                      );
+                }}
               >
                 <Typography variant="body2" noWrap>
-                  /{parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}
+                  {exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
+                    ? `/${
+                        Number(parentProps.exercise.goals.oneRepMax) *
+                        (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
+                      }`
+                    : `/${parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}`}
                 </Typography>
               </Button>
             </InputAdornment>
@@ -126,10 +137,32 @@ export default function LogLoader(props) {
             if (eIndex === exerciseIndex) {
               exercise.achieved.reps.map((exerciseSet, esIndex) => {
                 if (esIndex === exerciseSetIndex) {
-                  exercise.achieved.reps[exerciseSetIndex] =
-                    exercise.goals.exactReps[exerciseSetIndex];
-                  exercise.achieved.weight[exerciseSetIndex] =
-                    exercise.goals.weight[exerciseSetIndex];
+                  switch (exercise.exerciseType) {
+                    case "Reps":
+                      exercise.achieved.reps[exerciseSetIndex] =
+                        exercise.achieved.reps[exerciseSetIndex] ||
+                        exercise.goals.exactReps[exerciseSetIndex];
+                      exercise.achieved.weight[exerciseSetIndex] =
+                        exercise.achieved.weight[exerciseSetIndex] ||
+                        exercise.goals.weight[exerciseSetIndex];
+                      break;
+                    case "Time":
+                      exercise.achieved.seconds[exerciseSetIndex] =
+                        exercise.achieved.seconds[exerciseSetIndex] ||
+                        exercise.goals.seconds[exerciseSetIndex];
+                      break;
+                    case "Reps with %":
+                      exercise.achieved.reps[exerciseSetIndex] =
+                        exercise.achieved.reps[exerciseSetIndex] ||
+                        exercise.goals.exactReps[exerciseSetIndex];
+                      exercise.achieved.weight[exerciseSetIndex] =
+                        exercise.achieved.weight[exerciseSetIndex] ||
+                        (Number(exercise.goals.percent[exerciseSetIndex]) / 100) *
+                          exercise.goals.oneRepMax;
+                      break;
+                    default:
+                      break;
+                  }
                 }
                 return exerciseSet;
               });

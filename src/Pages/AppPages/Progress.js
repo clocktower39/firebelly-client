@@ -274,7 +274,6 @@ export default function Progress(props) {
 
   useEffect(() => {
     if (exerciseList.includes(searchValue)) {
-      console.log("passes");
       loadExerciseProgress(searchValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

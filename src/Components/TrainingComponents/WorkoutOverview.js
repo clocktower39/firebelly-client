@@ -128,7 +128,7 @@ export default function WorkoutOverview({
       })
     );
   };
-  
+
   // Create new workout
   const handleAddWorkout = () => dispatch(createTraining(selectedDate));
 
@@ -270,11 +270,49 @@ export default function WorkoutOverview({
 
 const WorkoutSet = (props) => {
   const { workout, workoutSet, provided, workoutSetProvided } = props;
+
+  const renderType = (exercise) => {
+    const { exerciseType, goals } = exercise;
+    switch (exerciseType) {
+      case "Reps":
+        return (
+          <Typography variant="body1">
+            {goals.exactReps.length} sets: {goals.exactReps.join(", ")} reps
+          </Typography>
+        );
+      case "Time":
+        return (
+          <Typography variant="body1">
+            {goals.exactReps.length} sets: {goals.exactReps.join(", ")} seconds
+          </Typography>
+        );
+      case "Reps with %":
+        // const repAtPercentText = goals.exactReps.map((repGoal, index) => `${goals.percent[index]}% for ${repGoal}`).join(", ");
+        return (
+          <>
+          <Grid container>
+            <Typography variant="body1">
+              One Rep Max: {goals.oneRepMax} lbs
+            </Typography>
+          </Grid>
+          <Grid container>
+            <Typography variant="body1">
+              {goals.percent.length} sets: {goals.exactReps.join(", ")} reps
+            </Typography>
+          </Grid>
+          </>
+        );
+      default:
+        break;
+    }
+  };
   return (
     <>
       <Paper sx={{ padding: "0 5px" }}>
         <Typography variant="h6">
-          <span {...workoutSetProvided.dragHandleProps}>Circuit {workoutSet.workoutSetIndex + 1}</span>
+          <span {...workoutSetProvided.dragHandleProps}>
+            Circuit {workoutSet.workoutSetIndex + 1}
+          </span>
         </Typography>
         <div
           ref={provided.innerRef}
@@ -304,15 +342,12 @@ const WorkoutSet = (props) => {
                     >
                       <DragHandleIcon />
                     </Grid>
-                    <Grid container xs={11} sx={{ padding: '5px'}}>
-                      <Grid container item xs={12} sm={6}>
+                    <Grid container xs={11} sx={{ padding: "5px" }}>
+                      <Grid container item xs={12} sm={6} sx={{ alignItems: 'center', }}>
                         <Typography variant="body1">{exercise.exercise}</Typography>
                       </Grid>
                       <Grid container item xs={12} sm={6}>
-                        <Typography variant="body1">
-                          {exercise.goals.exactReps.length} sets:{" "}
-                          {exercise.goals.exactReps.join(", ")} reps
-                        </Typography>
+                        {renderType(exercise)}
                       </Grid>
                     </Grid>
                   </Grid>

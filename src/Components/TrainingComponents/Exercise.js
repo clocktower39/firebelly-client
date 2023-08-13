@@ -93,8 +93,21 @@ export default function Exercise(props) {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              exercise.achieved.reps = [...exercise.goals.exactReps];
-              exercise.achieved.weight = [...exercise.goals.weight];
+              switch(exercise.exerciseType){
+                case "Reps":
+                  exercise.achieved.reps = exercise.achieved.reps.map((rep, repIndex) => rep = rep || exercise.goals.exactReps[repIndex]);
+                  exercise.achieved.weight = exercise.achieved.weight.map((weight, weightIndex) => weight = weight || exercise.goals.weight[weightIndex]);
+                  break;
+                case "Time":
+                  exercise.achieved.seconds = exercise.achieved.seconds.map((second, secondIndex) => second = second || exercise.goals.seconds[secondIndex]);
+                  break;
+                case "Reps with %":
+                  exercise.achieved.reps = exercise.achieved.reps.map((rep, repIndex) => rep = rep || exercise.goals.exactReps[repIndex]);
+                  exercise.achieved.weight = exercise.achieved.weight.map((weight, weightIndex) => weight = weight || (Number(exercise.goals.percent[weightIndex]) / 100) * exercise.goals.oneRepMax);
+                  break;
+                default:
+                  break;
+              }
             }
             return exercise;
           });

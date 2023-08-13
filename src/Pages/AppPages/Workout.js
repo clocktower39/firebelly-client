@@ -105,7 +105,22 @@ export default function Workout() {
   const [modalActionType, setModalActionType] = useState("");
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
-  const categories = ["Biceps", "Triceps", "Chest", "Back", "Shoulders", "Legs", "Abs"];
+  const categories = [
+    "Abdominals",
+    "Back",
+    "Biceps",
+    "Calves",
+    "Chest",
+    "Core",
+    "Forearms",
+    "Full Body",
+    "Hamstrings",
+    "Legs",
+    "Quadriceps",
+    "Shoulders",
+    "Triceps",
+  ];
+  
   // Create a new exercise on the current set
   const newExercise = (index) => {
     const newTraining = localTraining.map((group, i) => {
@@ -431,6 +446,10 @@ export function ModalAction(props) {
         set.map((exercise, eIndex) => {
           exercise.achieved.reps = [...exercise.goals.exactReps];
           exercise.achieved.weight = [...exercise.goals.weight];
+          exercise.achieved.seconds = [...exercise.goals.seconds];
+          if(exercise.exerciseType === "Reps with %"){
+          exercise.achieved.weight = [...exercise.goals.percent].map(goal => goal / 100 * Number(exercise.goals.oneRepMax));
+          }
           return exercise;
         });
         return set;
@@ -535,6 +554,9 @@ export function ModalAction(props) {
             <Grid container>
               <Typography color="text.primary">
                 Are you sure you would like the autofill this workout?
+              </Typography>
+              <Typography color="text.primary" variant="caption">
+                This will copy all goals to achieved, overwriting any previous achieved data entered.
               </Typography>
             </Grid>
             <Grid container sx={{ justifyContent: "center" }}>

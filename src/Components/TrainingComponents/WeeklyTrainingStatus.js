@@ -160,12 +160,13 @@ const DayPopperOverview = (props) => {
                   </>
                 )}
                 <Typography variant="h6">{workout.title}</Typography>
+                <Typography variant="body1">{workout.category.join(", ")}</Typography>
 
                 {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
                   return (
                     <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
-                      <Grid item xs={12}>
-                        Circuit {workoutSetIndex + 1}
+                      <Grid item xs={12} sx={{ marginLeft: "8px" }}>
+                        <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
                       </Grid>
                       {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
                         return (

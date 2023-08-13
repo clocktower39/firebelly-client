@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Grid, TextField, Typography } from "@mui/material";
 
 const LoggedField = (props) => {
@@ -31,14 +31,14 @@ const LoggedField = (props) => {
               // remove extra zeros from the front
               else if (Number(e.target.value) || e.target.value === "0") {
                 if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = e.target.value.split("");
+                  answer = Number(e.target.value.split(""));
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = answer.join("");
                 } else {
                   // update the local state variable
-                  answer = e.target.value;
+                  answer = Number(e.target.value);
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = answer;
                 }
               } else {
@@ -73,6 +73,29 @@ const LoggedField = (props) => {
 
 export default function EditLoader(props) {
   const { fields, exercise, sets, setIndex, setLocalTraining, exerciseIndex } = props;
+  const [oneRepMax, setOneRepMax] = useState(exercise.goals.oneRepMax || 0);
+
+  const handleOneRepMaxChange = (e) => {
+    setLocalTraining((prev) => {
+      return prev.map((set, sIndex) => {
+        if (setIndex === sIndex) {
+          set.map((exercise, eIndex) => {
+            if (eIndex === exerciseIndex) {
+              if(Number(e.target.value)) {
+                setOneRepMax(Number(e.target.value));
+                exercise.goals.oneRepMax = Number(e.target.value);
+              } else {
+                  setOneRepMax(0)
+                  exercise.goals.oneRepMax = 0;
+              };
+            }
+            return exercise;
+          });
+        }
+        return set;
+      });
+    });
+  }
 
   let exerciseSets = [];
   let count = 0;
@@ -91,7 +114,7 @@ export default function EditLoader(props) {
           xs={12}
           sx={{ justifyContent: "center" }}
         >
-          <TextField label="One Rep Max" fullWidth />
+          <TextField label="One Rep Max" value={oneRepMax} onChange={handleOneRepMaxChange} fullWidth />
         </Grid>
       ))}
       {exerciseSets.map((count, exerciseSetIndex) => {
@@ -130,6 +153,7 @@ export default function EditLoader(props) {
                     exerciseSetIndex={exerciseSetIndex}
                     setLocalTraining={setLocalTraining}
                     amountOfFields={fields.repeating.length}
+                    oneRepMax={oneRepMax}
                   />
                 );
               })}
