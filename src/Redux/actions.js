@@ -1,4 +1,5 @@
 import jwt from "jwt-decode";
+import axios from "axios";
 
 export const LOGIN_USER = "LOGIN_USER";
 export const LOGOUT_USER = "LOGOUT_USER";
@@ -28,11 +29,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -1205,5 +1206,20 @@ export function deleteMessage(conversationId, messageId) {
       type: UPDATE_CONVERSATION_MESSAGES,
       conversation: { ...data }
     });
+  }
+}
+
+export function uploadProfilePicture(formData) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+
+    axios
+      .post(`${serverURL}/user/upload/profilePicture`, formData, { headers: { Authorization: bearer } })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 }

@@ -31,6 +31,7 @@ import {
   Login as LoginIcon,
 } from "@mui/icons-material";
 import logo48 from "../../img/logo48.png";
+import { serverURL } from "../../Redux/actions";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
@@ -179,6 +180,9 @@ export default function NavDrawer() {
                 sx={{ maxHeight: "40px", maxWidth: "40px" }}
               >
                 <Avatar
+                  src={
+                    user.profilePicture && `${serverURL}/user/profilePicture/${user.profilePicture}`
+                  }
                   sx={{ maxHeight: "40px", maxWidth: "40px" }}
                   alt={`${user.firstName} ${user.lastName}`}
                 />
