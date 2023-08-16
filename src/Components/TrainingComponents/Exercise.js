@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import {
   Autocomplete,
+  Button,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Grid,
   IconButton,
+  Menu,
+  MenuItem,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
-import { CheckCircle, Edit, FactCheck, Info, RemoveCircle } from "@mui/icons-material";
+import { FactCheck, Info, RemoveCircle, MoreVertSharp } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import { requestMyExerciseList, requestExerciseProgess } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
@@ -37,6 +43,16 @@ export default function Exercise(props) {
   const handleModalExercise = () => {
     dispatch(requestExerciseProgess(title)).then(() => handleModalToggle());
   };
+  const [anchorEl, setAnchorEl] = useState(null);
+  const exerciseOptionsOpen = Boolean(anchorEl);
+  const handleExerciseOptionsClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleExerciseOptionsClose = () => {
+    setAnchorEl(null);
+  };
+
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -93,17 +109,33 @@ export default function Exercise(props) {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              switch(exercise.exerciseType){
+              switch (exercise.exerciseType) {
                 case "Reps":
-                  exercise.achieved.reps = exercise.achieved.reps.map((rep, repIndex) => rep = rep || exercise.goals.exactReps[repIndex]);
-                  exercise.achieved.weight = exercise.achieved.weight.map((weight, weightIndex) => weight = weight || exercise.goals.weight[weightIndex]);
+                  exercise.achieved.reps = exercise.achieved.reps.map(
+                    (rep, repIndex) => (rep = Number(rep) || exercise.goals.exactReps[repIndex])
+                  );
+                  exercise.achieved.weight = exercise.achieved.weight.map(
+                    (weight, weightIndex) =>
+                      (weight = Number(weight) || exercise.goals.weight[weightIndex])
+                  );
                   break;
                 case "Time":
-                  exercise.achieved.seconds = exercise.achieved.seconds.map((second, secondIndex) => second = second || exercise.goals.seconds[secondIndex]);
+                  exercise.achieved.seconds = exercise.achieved.seconds.map(
+                    (second, secondIndex) =>
+                      (second = Number(second) || exercise.goals.seconds[secondIndex])
+                  );
                   break;
                 case "Reps with %":
-                  exercise.achieved.reps = exercise.achieved.reps.map((rep, repIndex) => rep = rep || exercise.goals.exactReps[repIndex]);
-                  exercise.achieved.weight = exercise.achieved.weight.map((weight, weightIndex) => weight = weight || (Number(exercise.goals.percent[weightIndex]) / 100) * exercise.goals.oneRepMax);
+                  exercise.achieved.reps = exercise.achieved.reps.map(
+                    (rep, repIndex) => (rep = Number(rep) || exercise.goals.exactReps[repIndex])
+                  );
+                  exercise.achieved.weight = exercise.achieved.weight.map(
+                    (weight, weightIndex) =>
+                      (weight =
+                        Number(weight) ||
+                        (Number(exercise.goals.percent[weightIndex]) / 100) *
+                          exercise.goals.oneRepMax)
+                  );
                   break;
                 default:
                   break;
@@ -243,6 +275,27 @@ export default function Exercise(props) {
     setEditMode((prev) => !prev);
   };
 
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState({
+    confirmFuction: null,
+    index: null,
+  });
+
+  const handleConfirmDialogOpen = (removeExercise, setIndex, exerciseIndex) => {
+    setConfirmDialogData({
+      confirmFunction: removeExercise,
+      setIndex,
+      exerciseIndex,
+    });
+    setConfirmDialogOpen((prev) => true);
+  };
+  const handleConfirmDialogClose = () => setConfirmDialogOpen((prev) => false);
+
+  const handleDeleteConfirmationSubmit = () => {
+    confirmDialogData.confirmFunction(confirmDialogData.setIndex, confirmDialogData.exerciseIndex);
+    handleConfirmDialogClose();
+  };
+
   useEffect(() => {
     setHeightToggle((prev) => !prev);
   }, [editMode, setHeightToggle]);
@@ -284,7 +337,7 @@ export default function Exercise(props) {
                   .filter((a) => a !== "")
                   .sort((a, b) => a > b)
                   .map((option) => option)}
-                onChange={(e, getTagProps) => setTitle(getTagProps.replace(/\s+/g,' ').trim())}
+                onChange={(e, getTagProps) => setTitle(getTagProps.replace(/\s+/g, " ").trim())}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip variant="outlined" label={option} {...getTagProps({ index })} />
@@ -362,39 +415,111 @@ export default function Exercise(props) {
           <Grid container item xs={12} sx={{ alignContent: "center" }}>
             <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: "center" }}>
               <Grid item>
-                <Tooltip title="Remove Set">
-                  <IconButton onClick={() => removeExercise(setIndex, exerciseIndex)}>
+                <Tooltip title="Remove exercise">
+                  <IconButton onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}>
                     <RemoveCircle />
                   </IconButton>
                 </Tooltip>
               </Grid>
             </Grid>
           </Grid>
+          {confirmDialogOpen && (
+            <Dialog open={confirmDialogOpen} onClose={handleConfirmDialogClose}>
+              <DialogTitle>
+                <Grid container>
+                  <Grid container item xs={12}>
+                    Delete Confirmation
+                  </Grid>
+                </Grid>
+              </DialogTitle>
+              <DialogContent>
+                <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+                  <Grid item container xs={12}>
+                    <Typography variant="body1">
+                      Are you sure you would like to remove the exercise?
+                    </Typography>
+                  </Grid>
+                  <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
+                    <Grid item>
+                      <Button
+                        color="secondaryButton"
+                        variant="contained"
+                        onClick={handleConfirmDialogClose}
+                      >
+                        Cancel
+                      </Button>
+                    </Grid>
+                    <Grid item>
+                      <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
+                        Confirm
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </DialogContent>
+            </Dialog>
+          )}
         </>
       ) : (
         <>
-          <Grid item xs={12} >
-            <Typography color="text.primary" variant="h6" sx={{ textAlign: "center" }}>
-              {title || "Enter an exercise"}
-            </Typography>
+          <Grid container item xs={12} spacing={2}>
+            <Grid
+              container
+              item
+              xs={2}
+              sx={{ justifyContent: "flex-end", alignContent: "center" }}
+            ></Grid>
+            <Grid
+              container
+              item
+              xs={8}
+              sx={{ justifyContent: "flex-start", alignContent: "center" }}
+            >
+              <Typography color="text.primary" variant="h6">
+                {title || "Enter an exercise"}
+              </Typography>
+            </Grid>
+            <Grid
+              container
+              item
+              xs={2}
+              sx={{ justifyContent: "flex-start", alignContent: "center" }}
+            >
+              <Tooltip title="Exercise Options">
+                <IconButton onClick={handleExerciseOptionsClick} ref={anchorEl}>
+                  <MoreVertSharp />
+                </IconButton>
+              </Tooltip>
+            </Grid>
           </Grid>
-          <Grid xs={12} container sx={{ justifyContent: 'center', }}>
-            <Tooltip title="View Progress Chart">
-              <IconButton variant="contained" onClick={handleModalExercise}>
-                <Info />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Autofill Exercise">
-              <IconButton variant="contained" onClick={handleAutoFillExercise}>
-                <CheckCircle />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Edit Exercise">
-              <IconButton variant="contained" onClick={() => setEditMode((prev) => !prev)}>
-                <Edit />
-              </IconButton>
-            </Tooltip>
-          </Grid>
+          <Menu open={exerciseOptionsOpen} onClose={handleExerciseOptionsClose} anchorEl={anchorEl}>
+            <MenuItem
+              onClick={() => {
+                handleAutoFillExercise();
+                handleExerciseOptionsClose();
+              }}
+            >
+              Autocomplete Exercise
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleModalExercise();
+                handleExerciseOptionsClose();
+              }}
+            >
+              View Progress Chart
+            </MenuItem>
+            <MenuItem
+              onClick={() =>
+                setEditMode((prev) => {
+                  handleExerciseOptionsClose();
+                  return !prev;
+                })
+              }
+            >
+              Edit Exercise
+            </MenuItem>
+          </Menu>
           <LogLoader
             fields={LoggedFields()}
             exercise={exercise}

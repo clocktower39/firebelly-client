@@ -31,14 +31,14 @@ const LoggedField = (props) => {
               // remove extra zeros from the front
               else if (Number(e.target.value) || e.target.value === "0") {
                 if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = Number(e.target.value.split(""));
+                  answer = e.target.value.split("");
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer.join("");
                 } else {
                   // update the local state variable
-                  answer = Number(e.target.value);
+                  answer = e.target.value;
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
                 }
               } else {
@@ -140,23 +140,23 @@ export default function LogLoader(props) {
                   switch (exercise.exerciseType) {
                     case "Reps":
                       exercise.achieved.reps[exerciseSetIndex] =
-                        exercise.achieved.reps[exerciseSetIndex] ||
+                        Number(exercise.achieved.reps[exerciseSetIndex]) ||
                         exercise.goals.exactReps[exerciseSetIndex];
                       exercise.achieved.weight[exerciseSetIndex] =
-                        exercise.achieved.weight[exerciseSetIndex] ||
+                        Number(exercise.achieved.weight[exerciseSetIndex]) ||
                         exercise.goals.weight[exerciseSetIndex];
                       break;
                     case "Time":
                       exercise.achieved.seconds[exerciseSetIndex] =
-                        exercise.achieved.seconds[exerciseSetIndex] ||
+                        Number(exercise.achieved.seconds[exerciseSetIndex]) ||
                         exercise.goals.seconds[exerciseSetIndex];
                       break;
                     case "Reps with %":
                       exercise.achieved.reps[exerciseSetIndex] =
-                        exercise.achieved.reps[exerciseSetIndex] ||
+                        Number(exercise.achieved.reps[exerciseSetIndex]) ||
                         exercise.goals.exactReps[exerciseSetIndex];
                       exercise.achieved.weight[exerciseSetIndex] =
-                        exercise.achieved.weight[exerciseSetIndex] ||
+                        Number(exercise.achieved.weight[exerciseSetIndex]) ||
                         (Number(exercise.goals.percent[exerciseSetIndex]) / 100) *
                           exercise.goals.oneRepMax;
                       break;

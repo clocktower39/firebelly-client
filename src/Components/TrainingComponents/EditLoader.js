@@ -31,14 +31,14 @@ const LoggedField = (props) => {
               // remove extra zeros from the front
               else if (Number(e.target.value) || e.target.value === "0") {
                 if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = Number(e.target.value.split(""));
+                  answer = e.target.value.split("");
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = answer.join("");
                 } else {
                   // update the local state variable
-                  answer = Number(e.target.value);
+                  answer = e.target.value;
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = answer;
                 }
               } else {
