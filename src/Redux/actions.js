@@ -29,11 +29,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-export const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// export const serverURL = "https://firebellyfitness.herokuapp.com";
+export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -76,9 +76,11 @@ export function loginUser(user) {
       });
     }
     const accessToken = data.accessToken;
+    const refreshToken = data.refreshToken;
     const decodedAccessToken = jwt(accessToken);
 
     localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+    localStorage.setItem("JWT_REFRESH_TOKEN", refreshToken);
     return dispatch({
       type: LOGIN_USER,
       user: decodedAccessToken,
@@ -86,27 +88,28 @@ export function loginUser(user) {
   };
 }
 
-// Logs into account with JWT token
-export const loginJWT = (token) => {
+export const loginJWT = () => {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
 
-    const response = await fetch(`${serverURL}/checkAuthToken`, {
+    const response = await fetch(`${serverURL}/refresh-tokens`, {
+      method: "POST",
       headers: {
-        Authorization: bearer,
+        "Content-Type": "application/json", // Set the content type to JSON
       },
+      body: JSON.stringify({ refreshToken }), // Send the refresh token in the request body
     });
 
-    const text = await response.text().then((item) => item);
-    if (text === "Authorized") {
-      const decodedAccessToken = jwt(token);
+    const data = await response.json();
+    if (data.accessToken) {
+      const decodedAccessToken = jwt(data.accessToken);
       return dispatch({
         type: LOGIN_USER,
         user: decodedAccessToken,
       });
     } else {
-      // removes JWT token if invalid or expired
       localStorage.removeItem("JWT_AUTH_TOKEN");
+      localStorage.removeItem("JWT_REFRESH_TOKEN");
       return dispatch({
         type: LOGOUT_USER,
       });
@@ -114,9 +117,11 @@ export const loginJWT = (token) => {
   };
 };
 
+
 export function logoutUser() {
   return async (dispatch) => {
     localStorage.removeItem("JWT_AUTH_TOKEN");
+    localStorage.removeItem("JWT_REFRESH_TOKEN");
     return dispatch({
       type: LOGOUT_USER,
     });
