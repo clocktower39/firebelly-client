@@ -103,13 +103,12 @@ export const loginJWT = () => {
     const data = await response.json();
     if (data.accessToken) {
       const decodedAccessToken = jwt(data.accessToken);
+      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
       return dispatch({
         type: LOGIN_USER,
         user: decodedAccessToken,
       });
     } else {
-      localStorage.removeItem("JWT_AUTH_TOKEN");
-      localStorage.removeItem("JWT_REFRESH_TOKEN");
       return dispatch({
         type: LOGOUT_USER,
       });
@@ -1220,8 +1219,15 @@ export function uploadProfilePicture(formData) {
 
     axios
       .post(`${serverURL}/user/upload/profilePicture`, formData, { headers: { Authorization: bearer } })
-      .then((res) => {
-        console.log(res);
+      .then(async (res) => {
+        const accessToken = res.data.accessToken;
+        const decodedAccessToken = jwt(accessToken);
+    
+        localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+        return dispatch({
+          type: LOGIN_USER,
+          user: decodedAccessToken,
+        });
       })
       .catch((err) => {
         console.log(err);
