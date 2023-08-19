@@ -141,12 +141,8 @@ export function changePassword(currentPassword, newPassword) {
       }
     })
     const data = await response.json();
-    if (data.error) {
-      return dispatch({
-        type: ERROR,
-        error: data.error
-      });
-    }
+    if (data.error) return data;
+
     const accessToken = data.accessToken;
     const decodedAccessToken = jwt(accessToken);
 

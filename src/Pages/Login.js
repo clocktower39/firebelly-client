@@ -67,6 +67,7 @@ export const Login = (props) => {
       handleLoginAttempt(e);
     }
   };
+  
   const handleLoginAttempt = (e) => {
     fieldProperties.forEach((fieldProperty) => {
       formData[fieldProperty].value === ""
