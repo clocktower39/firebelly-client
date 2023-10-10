@@ -120,7 +120,7 @@ export default function Workout() {
     "Shoulders",
     "Triceps",
   ];
-  
+
   // Create a new exercise on the current set
   const newExercise = (index) => {
     const newTraining = localTraining.map((group, i) => {
@@ -264,21 +264,29 @@ export default function Workout() {
                 }}
               >
                 <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  <IconButton
-                    component={Link}
-                    to={
-                      dayjs.utc(training.date).format("YYYY-MM-DD") ===
-                      dayjs(new Date()).format("YYYY-MM-DD")
-                        ? "/"
-                        : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`
-                    }
-                  >
-                    <ArrowBack />
-                  </IconButton>
+                  {training.date ? (
+                    <IconButton
+                      component={Link}
+                      to={
+                        dayjs.utc(training.date).format("YYYY-MM-DD") ===
+                        dayjs(new Date()).format("YYYY-MM-DD")
+                          ? "/"
+                          : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`
+                      }
+                    >
+                      <ArrowBack />
+                    </IconButton>
+                  ) : (
+                    <IconButton component={Link} to={`/queue`}>
+                      <ArrowBack />
+                    </IconButton>
+                  )}
                 </Grid>
                 <Grid item xs={10} container sx={{ justifyContent: "center" }}>
                   <Typography variant="h5">
-                    {dayjs.utc(training.date).format("MMMM Do, YYYY")}
+                    {training.date
+                      ? dayjs.utc(training.date).format("MMMM Do, YYYY")
+                      : "Queued Workout"}
                   </Typography>
                 </Grid>
                 <Grid item xs={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
@@ -447,8 +455,10 @@ export function ModalAction(props) {
           exercise.achieved.reps = [...exercise.goals.exactReps];
           exercise.achieved.weight = [...exercise.goals.weight];
           exercise.achieved.seconds = [...exercise.goals.seconds];
-          if(exercise.exerciseType === "Reps with %"){
-          exercise.achieved.weight = [...exercise.goals.percent].map(goal => goal / 100 * Number(exercise.goals.oneRepMax));
+          if (exercise.exerciseType === "Reps with %") {
+            exercise.achieved.weight = [...exercise.goals.percent].map(
+              (goal) => (goal / 100) * Number(exercise.goals.oneRepMax)
+            );
           }
           return exercise;
         });
@@ -556,7 +566,8 @@ export function ModalAction(props) {
                 Are you sure you would like the autofill this workout?
               </Typography>
               <Typography color="text.primary" variant="caption">
-                This will copy all goals to achieved, overwriting any previous achieved data entered.
+                This will copy all goals to achieved, overwriting any previous achieved data
+                entered.
               </Typography>
             </Grid>
             <Grid container sx={{ justifyContent: "center" }}>

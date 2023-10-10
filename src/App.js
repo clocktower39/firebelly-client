@@ -14,7 +14,10 @@ import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Dashboard from "./Pages/AppPages/Dashboard";
 import Tasks from "./Pages/AppPages/Tasks";
+import History from "./Pages/AppPages/History";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
+import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
+import WorkoutQueue from "./Pages/AppPages/WorkoutQueue";
 import Nutrition from "./Pages/AppPages/Nutrition";
 import Clients from "./Pages/AppPages/Clients";
 import Progress from "./Pages/AppPages/Progress";
@@ -88,15 +91,33 @@ function App({ socket }) {
                 </Route>
               </Route>
 
-              <Route exact path="/history" element={<AuthRoute />}>
+              <Route exact path="/workoutHistory" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<WorkoutHistory />} />
+                </Route>
+              </Route>
+
+              <Route exact path="/history" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<History />} />
                 </Route>
               </Route>
 
               <Route exact path="/workout" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="/workout/:_id" element={<Workout />} />
+                </Route>
+              </Route>
+
+              <Route exact path="/queue" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<WorkoutQueue />} />
+                </Route>
+              </Route>
+
+              <Route exact path="/builder" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<WorkoutBuilder />} />
                 </Route>
               </Route>
 
