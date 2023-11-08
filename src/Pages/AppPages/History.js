@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Box, Button, Grid, Typography } from "@mui/material";
+import { Badge, Box, Button, Grid, List, ListItem, Typography } from "@mui/material";
 import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -16,7 +16,7 @@ export default function WorkoutHistory() {
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
 
   const getWorkoutMonthData = (e) => {
-    setIsLoading(true)
+    setIsLoading(true);
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const fetchData = async () => {
@@ -36,7 +36,7 @@ export default function WorkoutHistory() {
       return data;
     };
 
-    setIsLoading(false)
+    setIsLoading(false);
     return fetchData;
   };
 
@@ -52,7 +52,7 @@ export default function WorkoutHistory() {
     setHighlightedDays(() => {
       return history.map((item) => {
         const itemMonth = dayjs.utc(item.date).month();
-        if(currentMonth === itemMonth){
+        if (currentMonth === itemMonth) {
           return dayjs.utc(item.date).date();
         }
         return null;
@@ -69,10 +69,17 @@ export default function WorkoutHistory() {
     });
   };
 
+  const [scrollToDate, setScrollToDate] = useState(null);
+  const handleDateCalanderChange = (e) => {
+    setScrollToDate(e.utc().format("YYYY-MM-DD"));
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Grid container>
         <DateCalendar
+          onChange={handleDateCalanderChange}
+          maxDate={dayjs.utc(new Date())}
           loading={isLoading}
           renderLoading={() => <DayCalendarSkeleton />}
           views={["month", "day"]}
@@ -87,7 +94,7 @@ export default function WorkoutHistory() {
           onMonthChange={(e) => handleMonthChange(e)}
         />
       </Grid>
-      <Workouts currentMonth={currentMonth} history={history} />
+      <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} />
     </LocalizationProvider>
   );
 }
@@ -108,44 +115,74 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history }) => {
+const Workouts = ({ currentMonth, history, scrollToDate }) => {
   return (
-    <Grid>
-      {history.map((workout) => {
-        if(dayjs.utc(new Date(workout.date)).month() === currentMonth ){
-          return(
-          <Grid
-            key={workout._id}
-            container
-            item
-            xs={12}
-            sx={{ justifyContent: "center" }}
-          >
-            <Box
-              sx={{
-                width: "100%",
-                border: "1px solid white",
-                borderRadius: "5px",
-                padding: "2.5px",
-              }}
-            >
-              <Grid sx={{ padding: '5px', }}>
-                <Typography variant="h6">{workout?.title}</Typography>
-              </Grid>
-              <Grid sx={{ padding: '5px', }}>
-                <Typography variant="caption">
-                  {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
-                </Typography>
-              </Grid>
-              <Grid sx={{ padding: '5px', }}>{workout?.category?.join(", ")}</Grid>
-              <Grid sx={{ padding: '5px', }}>
-                <Button variant="outlined" component={Link} to={`/workout/${workout._id}`} >Open</Button>
-              </Grid>
-            </Box>
-          </Grid>);
-        }
-        return null;
-      })}
-    </Grid>
+    <List sx={{ maxHeight: "500px", overflow: "auto" }}>
+      {history
+        .sort((a, b) => a.date > b.date)
+        .map((workout) => {
+          if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
+            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} />;
+          }
+          return null;
+        })}
+    </List>
   );
-}
+};
+
+const Workout = ({ workout, scrollToDate }) => {
+  const workoutRef = useRef(null);
+
+  const handleScroll = (ref) => {
+    const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
+    const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
+
+    if (testDate === scrollDate) {
+      ref.current.parentElement.scrollTo({
+        top: ref.current.offsetTop,
+        left: 0,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  useEffect(() => {
+    // When scrollToDate changes, call handleScroll to scroll to the workout
+    if (scrollToDate) {
+      handleScroll(workoutRef);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollToDate]);
+
+  return (
+    <ListItem
+      xs={12}
+      sx={{ justifyContent: "center" }}
+      ref={workoutRef}
+    >
+      <Box
+        sx={{
+          width: "100%",
+          border: "1px solid white",
+          borderRadius: "5px",
+          padding: "2.5px",
+        }}
+      >
+        <Grid sx={{ padding: "5px" }}>
+          <Typography variant="h6">{workout?.title}</Typography>
+        </Grid>
+        <Grid sx={{ padding: "5px" }}>
+          <Typography variant="caption">
+            {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
+          </Typography>
+        </Grid>
+        <Grid sx={{ padding: "5px" }}>{workout?.category?.join(", ")}</Grid>
+        <Grid sx={{ padding: "5px" }}>
+          <Button variant="outlined" component={Link} to={`/workout/${workout._id}`}>
+            Open
+          </Button>
+        </Grid>
+      </Box>
+    </ListItem>
+  );
+};

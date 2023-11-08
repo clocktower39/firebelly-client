@@ -2,20 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { serverURL } from "../../Redux/actions";
 import { Link } from "react-router-dom";
-import {
-  Button,
-  Grid,
-  IconButton,
-  Paper,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { updateTraining, } from "../../Redux/actions";
+import { updateTraining } from "../../Redux/actions";
 
 export default function WorkoutQueue() {
   const [queue, setQueue] = useState([]);
+
+  const onDragEnd = (result) => {
+    if (!result.destination) {
+      // Item was not dropped in a valid location
+      return;
+    }
+
+    const { source, destination, type } = result;
+    console.log(source);
+    console.log(destination);
+    console.log(type);
+  };
 
   useEffect(() => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -35,40 +40,61 @@ export default function WorkoutQueue() {
 
   return (
     <>
-      <Typography variant="h4" textAlign="center" >Workout Queue</Typography>
-      <WorkoutOverview localWorkouts={queue} setLocalWorkouts={setQueue} />
-      {/* {queue.map((workout, i) => {
-        return (
-          <Grid
-            key={workout._id}
-            container
-            item
-            lg={4}
-            sm={6}
-            xs={12}
-            sx={{ justifyContent: "center" }}
-          >
-            <Box
-              sx={{
-                width: "100%",
-                border: "1px solid white",
-                borderRadius: "5px",
-                padding: "2.5px",
-              }}
-            >
-              <Grid sx={{ padding: "5px" }}>
-                <Typography variant="h6">{workout?.title}</Typography>
-              </Grid>
-              <Grid sx={{ padding: "5px" }}>{workout?.category?.join(", ")}</Grid>
-              <Grid sx={{ padding: "5px" }}>
-                <Button variant="outlined" component={Link} to={`/workout/${workout._id}`}>
-                  Open
-                </Button>
-              </Grid>
-            </Box>
-          </Grid>
-        );
-      })} */}
+      <Typography variant="h4" textAlign="center">
+        Workout Queue
+      </Typography>
+      {/* <WorkoutOverview localWorkouts={queue} setLocalWorkouts={setQueue} /> */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="queue">
+          {(dropProvided) => (
+            <Grid container ref={dropProvided.innerRef} {...dropProvided.droppableProps}>
+              {queue.map((workout, i) => {
+                return (
+                  <Draggable key={workout._id} draggableId={`${workout._id}-${i}`} index={i}>
+                    {(dragProvided) => (
+                      <Grid container item lg={4} sm={6} xs={12} sx={{ justifyContent: "center" }} ref={dragProvided.innerRef} {...dragProvided.draggableProps} >
+                        <Box
+                          sx={{
+                            width: "100%",
+                            border: "1px solid white",
+                            borderRadius: "5px",
+                            padding: "2.5px",
+                          }}
+                        >
+                        <Grid
+                          container
+                          item
+                          xs={1}
+                          sx={{ justifyContent: "center", alignItems: "center" }}
+                          {...dragProvided.dragHandleProps}
+                        >
+                          <DragHandleIcon />
+                        </Grid>
+                          <Grid sx={{ padding: "5px" }}>
+                            <Typography variant="h6">{workout?.title || "Untitled"}</Typography>
+                          </Grid>
+                          <Grid sx={{ padding: "5px" }}>{workout?.category?.join(", ")}</Grid>
+                          <Grid sx={{ padding: "5px" }}>
+                            <Button
+                              variant="outlined"
+                              component={Link}
+                              to={`/workout/${workout._id}`}
+                            >
+                              Open
+                            </Button>
+                          </Grid>
+                        </Box>
+                        {dragProvided.placeholder}
+                      </Grid>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {dropProvided.placeholder}
+            </Grid>
+          )}
+        </Droppable>
+      </DragDropContext>
     </>
   );
 }
@@ -115,16 +141,12 @@ const WorkoutOverview = ({
         setLocalWorkouts(updatedWorkouts);
       } else {
         // Moving sets between workouts
-        const updatedSourceWorkout = localWorkouts.find(
-          (w) => w._id === source.droppableId
-        );
+        const updatedSourceWorkout = localWorkouts.find((w) => w._id === source.droppableId);
         const updatedDestinationWorkout = localWorkouts.find(
           (w) => w._id === destination.droppableId
         );
         const updatedSourceTraining = Array.from(updatedSourceWorkout.training);
-        const updatedDestinationTraining = Array.from(
-          updatedDestinationWorkout.training
-        );
+        const updatedDestinationTraining = Array.from(updatedDestinationWorkout.training);
         const [movedItem] = updatedSourceTraining.splice(source.index, 1);
         updatedDestinationTraining.splice(destination.index, 0, movedItem);
         const updatedWorkouts = localWorkouts.map((workout) => {

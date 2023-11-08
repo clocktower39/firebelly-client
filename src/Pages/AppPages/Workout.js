@@ -429,6 +429,18 @@ export function ModalAction(props) {
     });
   };
 
+  const handleMoveToQueue = () => {
+    dispatch(updateWorkoutDateById(training, null)).then((res) => {
+      if (res?.error !== undefined) {
+        setActionError(res.error);
+      } else {
+        setActionError(false);
+        handleModalToggle();
+        setSelectedDate && setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD"));
+      }
+    });
+  };
+
   const handleCopy = () => {
     dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle)).then(() => {
       setActionError(false);
@@ -480,6 +492,23 @@ export function ModalAction(props) {
           <Grid container sx={{ justifyContent: "center" }}>
             <Button variant="contained" onClick={handleMove}>
               Move
+            </Button>
+          </Grid>
+          {actionError && (
+            <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Typography variant="caption" sx={{ color: "red" }}>
+                {actionError}
+              </Typography>
+            </Grid>
+          )}
+        </>
+      );
+    case "queue":
+      return (
+        <>
+          <Grid container sx={{ justifyContent: "center" }}>
+            <Button variant="contained" onClick={handleMoveToQueue}>
+              Move to Queue
             </Button>
           </Grid>
           {actionError && (
@@ -617,8 +646,8 @@ export function WorkoutOptionModalView(props) {
               <ContentCopy />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Import Workout">
-            <IconButton disabled>
+          <Tooltip title="Add Workout to Queue">
+            <IconButton onClick={() => handleSetModalAction("queue")}>
               <Download />
             </IconButton>
           </Tooltip>
