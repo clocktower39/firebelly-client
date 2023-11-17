@@ -73,28 +73,34 @@ export default function WorkoutHistory() {
   const handleDateCalanderChange = (e) => {
     setScrollToDate(e.utc().format("YYYY-MM-DD"));
   };
-
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Grid container>
-        <DateCalendar
-          onChange={handleDateCalanderChange}
-          maxDate={dayjs.utc(new Date())}
-          loading={isLoading}
-          renderLoading={() => <DayCalendarSkeleton />}
-          views={["month", "day"]}
-          slots={{
-            day: ServerDay,
-          }}
-          slotProps={{
-            day: {
-              highlightedDays,
-            },
-          }}
-          onMonthChange={(e) => handleMonthChange(e)}
-        />
-      </Grid>
-      <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} />
+      <Box sx={{ height: "90vh", minHeight: '650px', display: "flex", flexDirection: "column" }}>
+        {/* DateCalendar takes 20% of the available height */}
+        <Box sx={{ flex: "0 0 20%"}}>
+          <DateCalendar
+            onChange={handleDateCalanderChange}
+            maxDate={dayjs.utc(new Date())}
+            loading={isLoading}
+            renderLoading={() => <DayCalendarSkeleton />}
+            views={["month", "day"]}
+            slots={{
+              day: ServerDay,
+            }}
+            slotProps={{
+              day: {
+                highlightedDays,
+              },
+            }}
+            onMonthChange={(e) => handleMonthChange(e)}
+          />
+        </Box>
+
+        {/* Workouts List takes the remaining space */}
+        <Box sx={{ flex: "1", overflow: "auto", }}>
+          <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} />
+        </Box>
+      </Box>
     </LocalizationProvider>
   );
 }
@@ -117,7 +123,7 @@ function ServerDay(props) {
 
 const Workouts = ({ currentMonth, history, scrollToDate }) => {
   return (
-    <List sx={{ maxHeight: "500px", overflow: "auto" }}>
+    <List>
       {history
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
@@ -138,7 +144,7 @@ const Workout = ({ workout, scrollToDate }) => {
     const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
 
     if (testDate === scrollDate) {
-      ref.current.parentElement.scrollTo({
+      ref.current.parentElement.parentElement.scrollTo({
         top: ref.current.offsetTop,
         left: 0,
         behavior: "smooth",
@@ -151,15 +157,11 @@ const Workout = ({ workout, scrollToDate }) => {
     if (scrollToDate) {
       handleScroll(workoutRef);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
 
   return (
-    <ListItem
-      xs={12}
-      sx={{ justifyContent: "center" }}
-      ref={workoutRef}
-    >
+    <ListItem xs={12} sx={{ justifyContent: "center" }} ref={workoutRef}>
       <Box
         sx={{
           width: "100%",
