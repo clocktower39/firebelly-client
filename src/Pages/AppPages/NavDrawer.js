@@ -66,6 +66,11 @@ export default function NavDrawer() {
 
   const trainerPages = [
     {
+      title: "Clients",
+      to: "/clients",
+      icon: <ClientsIcon />,
+    },
+    {
       title: "Queue",
       to: "/queue",
       icon: <DashboardIcon />,
@@ -74,11 +79,6 @@ export default function NavDrawer() {
       title: "Dashboard",
       to: "/dashboard",
       icon: <DashboardIcon />,
-    },
-    {
-      title: "Clients",
-      to: "/clients",
-      icon: <ClientsIcon />,
     },
     {
       title: "Daily Tasks",

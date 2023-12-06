@@ -9,7 +9,8 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 
-export default function WorkoutHistory() {
+export default function WorkoutHistory(props) {
+  const { view = "client", clientId } = props;
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [highlightedDays, setHighlightedDays] = React.useState([1, 2, 2, 3, 3, 3, 30]);
@@ -20,13 +21,17 @@ export default function WorkoutHistory() {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const fetchData = async () => {
-      const response = await fetch(`${serverURL}/workoutMonth`, {
+      const endpoint = "workoutMonth";
+
+      const payload = JSON.stringify({
+        date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
+        client: clientId,
+      });
+      
+      const response = await fetch(`${serverURL}/${endpoint}`, {
         method: "post",
         dataType: "json",
-        body: JSON.stringify({
-          // this is this issue, it can only be todays date when first rendering
-          date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
-        }),
+        body: payload,
         headers: {
           "Content-type": "application/json; charset=UTF-8",
           Authorization: bearer,
@@ -46,6 +51,7 @@ export default function WorkoutHistory() {
     fetchData().then((data) => {
       setHistory((prev) => data);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -98,7 +104,7 @@ export default function WorkoutHistory() {
 
         {/* Workouts List takes the remaining space */}
         <Box sx={{ flex: "1", overflow: "auto", }}>
-          <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} />
+          <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} view={view} clientId={clientId} />
         </Box>
       </Box>
     </LocalizationProvider>
@@ -121,14 +127,14 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate }) => {
+const Workouts = ({ currentMonth, history, scrollToDate, view, clientId }) => {
   return (
     <List>
       {history
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
           if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
-            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} />;
+            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} view={view} clientId={clientId} />;
           }
           return null;
         })}
@@ -136,8 +142,10 @@ const Workouts = ({ currentMonth, history, scrollToDate }) => {
   );
 };
 
-const Workout = ({ workout, scrollToDate }) => {
+const Workout = ({ workout, scrollToDate, view, clientId }) => {
   const workoutRef = useRef(null);
+  const workoutId = workout._id; // Update this line based on your actual workout ID retrieval logic
+  const to = `/workout/${workoutId}`;
 
   const handleScroll = (ref) => {
     const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
@@ -180,7 +188,7 @@ const Workout = ({ workout, scrollToDate }) => {
         </Grid>
         <Grid sx={{ padding: "5px" }}>{workout?.category?.join(", ")}</Grid>
         <Grid sx={{ padding: "5px" }}>
-          <Button variant="outlined" component={Link} to={`/workout/${workout._id}`}>
+          <Button variant="outlined" component={Link} to={to}>
             Open
           </Button>
         </Grid>

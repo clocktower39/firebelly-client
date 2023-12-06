@@ -74,9 +74,11 @@ const classes = {
   },
 };
 
-export default function Workout() {
+export default function Workout(props) {
   const dispatch = useDispatch();
   const params = useParams();
+  
+  const user = useSelector((state) => state.user);
   const training = useSelector((state) => state.training);
   const [size] = useOutletContext() || [900];
 
@@ -228,10 +230,11 @@ export default function Workout() {
   useEffect(() => {
     setLocalTraining([]);
     setLoading(true);
+
     dispatch(requestTraining(params._id)).then(() => {
       setLoading(false);
     });
-  }, [params, dispatch]);
+  }, [params, dispatch, user._id]);
 
   useEffect(() => {
     setLocalTraining(training.training || []);

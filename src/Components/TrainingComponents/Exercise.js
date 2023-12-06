@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Autocomplete,
+  Avatar,
   Button,
   Chip,
   Dialog,
@@ -14,12 +15,198 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { FactCheck, Info, RemoveCircle, MoreVertSharp } from "@mui/icons-material";
+import {
+  Delete,
+  MoreHoriz,
+  FactCheck,
+  Info,
+  RemoveCircle,
+  MoreVertSharp,
+} from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestMyExerciseList, requestExerciseProgess } from "../../Redux/actions";
+import { requestMyExerciseList, requestExerciseProgess, serverURL } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
 import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
+
+const classes = {
+  media: {
+    height: 0,
+    paddingTop: "100%",
+  },
+  expand: {
+    transform: "rotate(0deg)",
+    marginLeft: "auto",
+  },
+  expandOpen: {
+    transform: "rotate(180deg)",
+  },
+  avatar: {
+    backgroundColor: "#F44336",
+  },
+  avatarComment: {
+    height: "25px",
+    width: "25px",
+  },
+};
+
+export const NotesDialog = (props) => {
+  const { user, notes = [], open, handleClose } = props;
+
+  const CommentCard = ({ i, comment, firstComment = false }) => {
+    const [anchorEl, setAnchorEl] = React.useState(null);
+
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
+    return (
+      <Grid
+        key={comment._id || i}
+        sx={
+          comment.user.username === user.username
+            ? {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                margin: "10px 0px",
+                borderRadius: "7.5px",
+                backgroundColor: "rgb(21, 101, 192)",
+                color: "white",
+              }
+            : {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                margin: "10px 0px",
+                borderRadius: "7.5px",
+                backgroundColor: "#23272A",
+                color: "white",
+              }
+        }
+        container
+      >
+        <Grid container item xs={2} sx={{ justifyContent: "center" }}>
+          <Avatar
+            sx={classes.avatarComment}
+            alt={`${comment.user.firstName[0]}${comment.user.lastName[0]}`}
+            src={
+              comment.user.profilePicture
+                ? `${serverURL}/user/profilePicture/${comment.user.profilePicture}`
+                : null
+            }
+          />
+        </Grid>
+        <Grid item xs={8}>
+          <Typography variant="h6" display="inline">
+            {comment.user.username}{" "}
+          </Typography>
+          <Typography
+            variant="subtitle1"
+            display="inline"
+            sx={{
+              fontSize: "16px",
+              opacity: ".33",
+            }}
+          >
+            {comment.timestamp == null
+              ? null
+              : `${new Date(comment.timestamp)
+                  .toLocaleDateString()
+                  .substr(
+                    0,
+                    new Date(comment.timestamp).toLocaleDateString().length - 5
+                  )} ${new Date(comment.timestamp).toLocaleTimeString()}`}
+          </Typography>
+          <Typography variant="subtitle1" display="block">
+            {comment.text}
+          </Typography>
+        </Grid>
+        <Grid item xs={2}>
+          {comment.user.username === user.username ? (
+            <IconButton onClick={() => null}>
+              <Delete />
+            </IconButton>
+          ) : (
+            <>
+              <IconButton aria-haspopup="true" onClick={handleClick}>
+                <MoreHoriz />
+              </IconButton>
+              <Menu
+                id="simple-menu"
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={handleClose}>👍🏽</MenuItem>
+                <MenuItem onClick={handleClose}>🍞</MenuItem>
+                <MenuItem onClick={handleClose}>👎🏽</MenuItem>
+              </Menu>
+            </>
+          )}
+        </Grid>
+      </Grid>
+    );
+  };
+
+  const CommentField = ({ user }) => {
+    const [comment, setComment] = useState("");
+
+    const handlePostComment = () => {
+      if (comment !== "") {
+        setComment("");
+      }
+    };
+    return (
+      <Grid container alignItems="center">
+        <Grid item xs={12}>
+          <TextField
+            label="Add a comment..."
+            fullWidth
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <Button variant="contained" onClick={handlePostComment}>
+                  Submit
+                </Button>
+              ),
+            }}
+          />
+        </Grid>
+      </Grid>
+    );
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose} PaperProps={{ sx: { width: "80%", height: "100%" } }}>
+      <div
+        style={{
+          height: "calc(100% - 72px)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {notes.length > 0 ? notes.map((note, i) => (
+          <CommentCard key={note._id || i} i={i} comment={note} />
+        )) : <Typography textAlign="center" variant="h5" >No comments</Typography>}
+      </div>
+      <div
+        style={{
+          backgroundColor: "#23272a",
+          width: "100%",
+        }}
+      >
+        <CommentField user={user} />
+      </div>
+    </Dialog>
+  );
+};
 
 export default function Exercise(props) {
   const {
@@ -53,6 +240,10 @@ export default function Exercise(props) {
     setAnchorEl(null);
   };
 
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const handleNotesDialogClose = () => setNotesDialogOpen(false);
+
+  const user = useSelector((state) => state.user);
   const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -416,7 +607,9 @@ export default function Exercise(props) {
             <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: "center" }}>
               <Grid item>
                 <Tooltip title="Remove exercise">
-                  <IconButton onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}>
+                  <IconButton
+                    onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}
+                  >
                     <RemoveCircle />
                   </IconButton>
                 </Tooltip>
@@ -519,6 +712,14 @@ export default function Exercise(props) {
             >
               Edit Exercise
             </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setNotesDialogOpen(true);
+                handleExerciseOptionsClose();
+              }}
+            >
+              Notes
+            </MenuItem>
           </Menu>
           <LogLoader
             fields={LoggedFields()}
@@ -530,6 +731,15 @@ export default function Exercise(props) {
             setLocalTraining={setLocalTraining}
           />
         </>
+      )}
+
+      {notesDialogOpen && (
+        <NotesDialog
+          open={notesDialogOpen}
+          user={user}
+          notes={exercise.notes}
+          handleClose={handleNotesDialogClose}
+        />
       )}
       {open && (
         <ModalBarChartHistory

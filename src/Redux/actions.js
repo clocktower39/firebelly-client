@@ -393,17 +393,12 @@ export function updateNutrition(updatedNutrition) {
 }
 
 // Fetches daily training information
-export function requestTraining(trainingId, requestedBy = 'client', client) {
+export function requestTraining(trainingId) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     let url = `${serverURL}/training`;
     let requestbody = { _id: trainingId, client: null };
-
-    if(requestedBy === 'trainer'){
-      url = `${serverURL}/getClientTraining`;
-      requestbody.client = client;
-    }
 
     const response = await fetch(url, {
       method: "post",
@@ -422,7 +417,7 @@ export function requestTraining(trainingId, requestedBy = 'client', client) {
         training: { training: [] },
       });
     } else {
-      data[0].training.map((set) => {
+      data.training.map((set) => {
         set.map((exercise) => {
           if (!exercise.achieved.weight) {
             exercise.achieved.weight = [0];
@@ -433,7 +428,7 @@ export function requestTraining(trainingId, requestedBy = 'client', client) {
       });
       return dispatch({
         type: EDIT_TRAINING,
-        training: { ...data[0] },
+        training: { ...data },
       });
     }
   };
