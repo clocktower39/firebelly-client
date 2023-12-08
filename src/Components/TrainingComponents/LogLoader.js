@@ -197,7 +197,7 @@ export default function LogLoader(props) {
                 }}
                 onClick={() => handleAutofillSet(exerciseSetIndex)}
               >
-                <Typography variant noWrap>
+                <Typography noWrap>
                   Set {exerciseSetIndex + 1}:
                 </Typography>
               </Button>

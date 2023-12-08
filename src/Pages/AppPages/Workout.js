@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useOutletContext, Link, useNavigate } from "react-router-dom";
+import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import {
   Autocomplete,
+  Avatar,
   Box,
   Button,
   Chip,
@@ -32,6 +33,7 @@ import {
   updateWorkoutDateById,
   copyWorkoutById,
   deleteWorkoutById,
+  serverURL,
 } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -77,10 +79,16 @@ const classes = {
 export default function Workout(props) {
   const dispatch = useDispatch();
   const params = useParams();
-  
+  const navigate = useNavigate();
+
   const user = useSelector((state) => state.user);
   const training = useSelector((state) => state.training);
-  const [size] = useOutletContext() || [900];
+  const [size = 900, setBorderHighlight] = useOutletContext();
+
+  const isPersonalWorkout = useCallback(() => user._id.toString() === training?.user?._id?.toString(), [
+    user._id,
+    training?.user?._id,
+  ]);
 
   const [localTraining, setLocalTraining] = useState([]);
   const [trainingCategory, setTrainingCategory] = useState([]);
@@ -240,7 +248,10 @@ export default function Workout(props) {
     setLocalTraining(training.training || []);
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
-  }, [training]);
+    if(training?.user?._id){
+      setBorderHighlight(!isPersonalWorkout());
+    }
+  }, [isPersonalWorkout, setBorderHighlight, training]);
 
   return (
     <>
@@ -266,21 +277,49 @@ export default function Workout(props) {
                   paddingTop: "15px",
                 }}
               >
+                {!isPersonalWorkout() && (
+                  <Grid
+                    container
+                    item
+                    xs={12}
+                    sx={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <Avatar
+                      src={
+                        training.user.profilePicture &&
+                        `${serverURL}/user/profilePicture/${training.user.profilePicture}`
+                      }
+                      sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px"}}
+                      alt={`${training.user.firstName[0]} ${training.user.lastName[0]}`}
+                    />
+                    <Typography variant="h5">
+                      {training.user.firstName} {training.user.lastName}
+                    </Typography>
+                  </Grid>
+                )}
                 <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
                   {training.date ? (
                     <IconButton
-                      component={Link}
-                      to={
-                        dayjs.utc(training.date).format("YYYY-MM-DD") ===
-                        dayjs(new Date()).format("YYYY-MM-DD")
-                          ? "/"
-                          : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`
-                      }
+                      onClick={() => {
+                        const link =
+                          dayjs.utc(training.date).format("YYYY-MM-DD") ===
+                          dayjs(new Date()).format("YYYY-MM-DD")
+                            ? "/"
+                            : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`;
+                        // Navigate after saving
+                        save();
+                        navigate(link);
+                      }}
                     >
                       <ArrowBack />
                     </IconButton>
                   ) : (
-                    <IconButton component={Link} to={`/queue`}>
+                    <IconButton
+                      onClick={() => {
+                        save();
+                        navigate("/queue");
+                      }}
+                    >
                       <ArrowBack />
                     </IconButton>
                   )}

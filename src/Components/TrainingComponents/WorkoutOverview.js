@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -37,6 +37,7 @@ export default function WorkoutOverview({
     setSelectedDate,
   } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
+  const [selectedWorkout, setSelectedWorkout] = useState({});
 
   const onDragEnd = (result) => {
     if (!result.destination) {
@@ -137,9 +138,14 @@ export default function WorkoutOverview({
       <>
         {localWorkouts?.length > 0 &&
           // Each day may have multiple workouts, this separates the workouts
-          localWorkouts.map((workout) => {
+          localWorkouts.map((workout, index) => {
+            const handleSelectWorkout = () => {
+              setSelectedWorkout(workout);
+              handleModalToggle();
+            }
+
             return (
-              <>
+              <React.Fragment key={`workout-${index}`}>
                 <Paper key={workout._id} elevation={5} sx={{ margin: "5px", padding: "5px" }}>
                   <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
                     <Grid item xs={11} container>
@@ -152,7 +158,7 @@ export default function WorkoutOverview({
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
                       <Tooltip title="Workout Settings">
-                        <IconButton variant="contained" onClick={handleModalToggle}>
+                        <IconButton variant="contained" onClick={handleSelectWorkout}>
                           <Settings />
                         </IconButton>
                       </Tooltip>
@@ -228,15 +234,7 @@ export default function WorkoutOverview({
                     </Link>
                   </Grid>
                 </Paper>
-                <WorkoutOptionModalView
-                  modalOpen={modalOpen}
-                  handleModalToggle={handleModalToggle}
-                  handleSetModalAction={handleSetModalAction}
-                  modalActionType={modalActionType}
-                  training={workout}
-                  setSelectedDate={setSelectedDate}
-                />
-              </>
+              </React.Fragment>
             );
           })}
         <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
@@ -264,6 +262,14 @@ export default function WorkoutOverview({
           </DialogActions>
         </Dialog>
       </>
+      <WorkoutOptionModalView
+        modalOpen={modalOpen}
+        handleModalToggle={handleModalToggle}
+        handleSetModalAction={handleSetModalAction}
+        modalActionType={modalActionType}
+        training={selectedWorkout}
+        setSelectedDate={setSelectedDate}
+      />
     </DragDropContext>
   );
 }
@@ -290,16 +296,14 @@ const WorkoutSet = (props) => {
         // const repAtPercentText = goals.exactReps.map((repGoal, index) => `${goals.percent[index]}% for ${repGoal}`).join(", ");
         return (
           <>
-          <Grid container>
-            <Typography variant="body1">
-              One Rep Max: {goals.oneRepMax} lbs
-            </Typography>
-          </Grid>
-          <Grid container>
-            <Typography variant="body1">
-              {goals.percent.length} sets: {goals.exactReps.join(", ")} reps
-            </Typography>
-          </Grid>
+            <Grid container>
+              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+            </Grid>
+            <Grid container>
+              <Typography variant="body1">
+                {goals.percent.length} sets: {goals.exactReps.join(", ")} reps
+              </Typography>
+            </Grid>
           </>
         );
       default:
@@ -342,8 +346,8 @@ const WorkoutSet = (props) => {
                     >
                       <DragHandleIcon />
                     </Grid>
-                    <Grid container xs={11} sx={{ padding: "5px" }}>
-                      <Grid container item xs={12} sm={6} sx={{ alignItems: 'center', }}>
+                    <Grid container item xs={11} sx={{ padding: "5px" }}>
+                      <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
                         <Typography variant="body1">{exercise.exercise}</Typography>
                       </Grid>
                       <Grid container item xs={12} sm={6}>
