@@ -4,6 +4,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import jwtDecode from "jwt-decode"; // Import jwtDecode library
 import { loginJWT } from "../Redux/actions";
 import Loading from "./Loading";
+import LoadingPage from "./LoadingPage";
+import NavDrawer from "../Pages/AppPages/NavDrawer";
+import Footer from "./Footer";
 
 export const AuthRoute = (props) => {
   const { socket } = props;
@@ -29,9 +32,9 @@ export const AuthRoute = (props) => {
     if (accessToken && refreshToken) {
       if (checkTokenExpiry(accessToken)) {
         if (!user._id) {
-          dispatch(loginJWT(accessToken)).then(()=> setLoading(false));
+          dispatch(loginJWT(accessToken)).then(() => setLoading(false));
         } else {
-            setLoading(false);
+          setLoading(false);
         }
       } else {
         // Try to refresh the access token
@@ -45,7 +48,11 @@ export const AuthRoute = (props) => {
   }, [dispatch, user._id]);
 
   return loading ? (
-    <Loading />
+    <>
+      <NavDrawer />
+        <LoadingPage PropComponent={Loading} />
+      <Footer />
+    </>
   ) : user.email ? (
     <Outlet socket={socket} />
   ) : (

@@ -36,6 +36,7 @@ import {
   serverURL,
 } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
+import LoadingPage from "../../Components/LoadingPage";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
 
@@ -256,7 +257,7 @@ export default function Workout(props) {
   return (
     <>
       {loading ? (
-        <Loading />
+        <LoadingPage PropComponent={Loading} />
       ) : training._id ? (
         <>
           <WorkoutOptionModalView
