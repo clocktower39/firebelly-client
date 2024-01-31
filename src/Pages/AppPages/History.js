@@ -1,6 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { Fragment, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Badge, Box, Button, Grid, List, ListItem, Typography } from "@mui/material";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Badge,
+  Box,
+  Button,
+  Grid,
+  List,
+  ListItem,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
 import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -12,8 +25,8 @@ import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 export default function WorkoutHistory(props) {
   const { view = "client", clientId } = props;
   const [history, setHistory] = useState([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [highlightedDays, setHighlightedDays] = React.useState([1, 2, 2, 3, 3, 3, 30]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [highlightedDays, setHighlightedDays] = useState([1, 2, 2, 3, 3, 3, 30]);
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
 
   const getWorkoutMonthData = (e) => {
@@ -27,7 +40,7 @@ export default function WorkoutHistory(props) {
         date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
         client: clientId,
       });
-      
+
       const response = await fetch(`${serverURL}/${endpoint}`, {
         method: "post",
         dataType: "json",
@@ -51,7 +64,7 @@ export default function WorkoutHistory(props) {
     fetchData().then((data) => {
       setHistory((prev) => data);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -81,12 +94,11 @@ export default function WorkoutHistory(props) {
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ height: "90vh", minHeight: '650px', display: "flex", flexDirection: "column" }}>
+      <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
         {/* DateCalendar takes 20% of the available height */}
-        <Box sx={{ flex: "0 0 20%"}}>
+        <Box sx={{ flex: "0 0 20%" }}>
           <DateCalendar
             onChange={handleDateCalanderChange}
-            maxDate={dayjs.utc(new Date())}
             loading={isLoading}
             renderLoading={() => <DayCalendarSkeleton />}
             views={["month", "day"]}
@@ -103,8 +115,14 @@ export default function WorkoutHistory(props) {
         </Box>
 
         {/* Workouts List takes the remaining space */}
-        <Box sx={{ flex: "1", overflow: "auto", }}>
-          <Workouts currentMonth={currentMonth} history={history} scrollToDate={scrollToDate} view={view} clientId={clientId} />
+        <Box sx={{ flex: "1", overflow: "auto" }}>
+          <Workouts
+            currentMonth={currentMonth}
+            history={history}
+            scrollToDate={scrollToDate}
+            view={view}
+            clientId={clientId}
+          />
         </Box>
       </Box>
     </LocalizationProvider>
@@ -134,7 +152,15 @@ const Workouts = ({ currentMonth, history, scrollToDate, view, clientId }) => {
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
           if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
-            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} view={view} clientId={clientId} />;
+            return (
+              <Workout
+                key={workout._id}
+                workout={workout}
+                scrollToDate={scrollToDate}
+                view={view}
+                clientId={clientId}
+              />
+            );
           }
           return null;
         })}
@@ -146,6 +172,10 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id; // Update this line based on your actual workout ID retrieval logic
   const to = `/workout/${workoutId}`;
+  const theme = useTheme();
+
+  // State to track if the workout date matches scrollToDate
+  const [isDateSelected, setIsDateSelected] = useState(false);
 
   const handleScroll = (ref) => {
     const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
@@ -157,6 +187,9 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
         left: 0,
         behavior: "smooth",
       });
+      setIsDateSelected(true); // Set true when dates match
+    } else {
+      setIsDateSelected(false); // Set false otherwise
     }
   };
 
@@ -169,29 +202,87 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
   }, [scrollToDate]);
 
   return (
-    <ListItem xs={12} sx={{ justifyContent: "center" }} ref={workoutRef}>
+    <ListItem sx={{ justifyContent: "center" }} ref={workoutRef}>
       <Box
         sx={{
-          width: "100%",
-          border: "1px solid white",
+          border: isDateSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
           borderRadius: "5px",
           padding: "2.5px",
+          width: "100%",
         }}
       >
-        <Grid sx={{ padding: "5px" }}>
-          <Typography variant="h6">{workout?.title}</Typography>
-        </Grid>
-        <Grid sx={{ padding: "5px" }}>
-          <Typography variant="caption">
-            {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
-          </Typography>
-        </Grid>
-        <Grid sx={{ padding: "5px" }}>{workout?.category?.join(", ")}</Grid>
-        <Grid sx={{ padding: "5px" }}>
-          <Button variant="outlined" component={Link} to={to}>
-            Open
-          </Button>
-        </Grid>
+        <Accordion sx={{}}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="workout-content"
+            id="workout-header"
+          >
+            <Grid container>
+              <Grid item xs={12}>
+                <Typography variant="h6">{workout?.title}</Typography>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="caption" sx={{ ml: 2 }}>
+                  {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
+                </Typography>
+
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ ml: 2 }}>
+                    Category: {workout?.category?.join(", ")}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              {/* Workout details here */}
+              <Grid item xs={12}>
+                {/* You can iterate over workout data here to display more details */}
+                {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
+                  return (
+                    <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
+                      <Grid item xs={12} sx={{ marginLeft: "8px" }}>
+                        <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
+                      </Grid>
+                      {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
+                        return (
+                          <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
+                            <Grid item xs={12} sm={6}>
+                              <Typography variant="caption" sx={{ marginLeft: "16px" }}>
+                                {exercise.exercise}
+                              </Typography>
+                            </Grid>
+
+                            <Grid container item xs={12} sm={6}>
+                              <Grid item xs={12}>
+                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                  Reps: {exercise.achieved.reps.join(", ")}
+                                </Typography>
+                              </Grid>
+
+                              <Grid item xs={12}>
+                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                  Weight: {exercise.achieved.weight.join(", ")}
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                          </Fragment>
+                        );
+                      })}
+                    </Grid>
+                  );
+                })}
+              </Grid>
+              <Grid container item xs={12} sx={{ justifyContent: 'center', alignItems: 'center',  }}>
+                <Button variant="outlined" component={Link} to={to}>
+                  Open
+                </Button>
+              </Grid>
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
       </Box>
     </ListItem>
   );
