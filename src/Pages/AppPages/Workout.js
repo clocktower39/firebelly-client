@@ -24,6 +24,7 @@ import {
   DoubleArrow,
   Download,
   Settings,
+  Queue as QueueIcon,
 } from "@mui/icons-material";
 import SelectedDate from "../../Components/SelectedDate";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
@@ -522,6 +523,25 @@ export function ModalAction(props) {
     });
     handleModalToggle();
   };
+  
+  const handleExport = () => {
+    // Convert the data to a JSON string
+    const jsonString = JSON.stringify(training);
+    // Create a Blob with the JSON data
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    // Create a URL for the blob
+    const url = URL.createObjectURL(blob);
+    // Create a temporary anchor tag and trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${dayjs(training.date).format("DD-MMM-YYYY")}_${training.user}_workout_data.json`; // Name of the file to be downloaded
+    document.body.appendChild(link);
+    link.click();
+    // Cleanup: remove the temporary link
+    document.body.removeChild(link);
+    // Release the blob URL
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     setActionError(false);
@@ -650,6 +670,24 @@ export function ModalAction(props) {
           </Grid>
         </>
       );
+    case "export":
+      return (
+        <>
+          <Grid container>
+            <Grid container>
+              <Typography color="text.primary">
+                Export training from {" "}
+                {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
+              </Typography>
+            </Grid>
+            <Grid container sx={{ justifyContent: "center" }}>
+              <Button variant="contained" onClick={handleExport}>
+                Confrim
+              </Button>
+            </Grid>
+          </Grid>
+        </>
+      );
     default:
       return <></>;
   }
@@ -691,12 +729,17 @@ export function WorkoutOptionModalView(props) {
           </Tooltip>
           <Tooltip title="Add Workout to Queue">
             <IconButton onClick={() => handleSetModalAction("queue")}>
-              <Download />
+              <QueueIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete Workout">
             <IconButton onClick={() => handleSetModalAction("delete")}>
               <Delete />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Export Workout">
+            <IconButton onClick={() => handleSetModalAction("export")}>
+              <Download />
             </IconButton>
           </Tooltip>
         </Grid>
