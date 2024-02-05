@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Box,
   Button,
@@ -132,6 +133,8 @@ const DayPopperOverview = (props) => {
     >
       {selectedWorkout &&
         selectedWorkout.workouts.map((workout, workoutIndex) => {
+          const to = `/workout/${workout._id}`;
+          
           return (
             <Container key={workout._id}>
               <Paper sx={{ padding: "25px" }} elevation={5}>
@@ -194,6 +197,11 @@ const DayPopperOverview = (props) => {
                     </Grid>
                   );
                 })}
+                <Grid container item xs={12} sx={{ justifyContent: 'center', alignItems: 'center',  }}>
+                  <Button variant="outlined" component={Link} to={to}>
+                    Open
+                  </Button>
+                </Grid>
               </Paper>
             </Container>
           );
