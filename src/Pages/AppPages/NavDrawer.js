@@ -7,8 +7,9 @@ import {
   Button,
   Container,
   Dialog,
-  DialogContent,
   DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Drawer,
   Grid,
@@ -241,18 +242,25 @@ export default function NavDrawer() {
         onClose={handleCloseGymBarCodeDialog}
         PaperProps={{
           style: {
-            width: '100vw',
-            height: '90vh',
+            width: "100vw",
+            height: "90vh",
           },
         }}
       >
+        <DialogTitle>
+          <Typography variant="h2">Gym Barcode</Typography>
+        </DialogTitle>
         <DialogContent>
-          <Grid container sx={{ justifyContent: 'center', alignItems: 'center', }}>
-            <Barcode value={user.gymBarcode}  />
+          <Grid container sx={{ justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <Box sx={{ transform: "scale(2)" }}>
+              <Barcode value={user.gymBarcode} />
+            </Box>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={handleCloseGymBarCodeDialog}>Close</Button>
+          <Button variant="contained" onClick={handleCloseGymBarCodeDialog}>
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
