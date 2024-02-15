@@ -63,29 +63,28 @@ export default function WorkoutOverview({
         setLocalWorkouts(updatedWorkouts);
       } else {
         // Moving sets between workouts
-        // const updatedSourceWorkout = localWorkouts.find(
-        //   (w) => w._id === source.droppableId
-        // );
-        // const updatedDestinationWorkout = localWorkouts.find(
-        //   (w) => w._id === destination.droppableId
-        // );
-        // const updatedSourceTraining = Array.from(updatedSourceWorkout.training);
-        // const updatedDestinationTraining = Array.from(
-        //   updatedDestinationWorkout.training
-        // );
-        // const [movedItem] = updatedSourceTraining.splice(source.index, 1);
-        // updatedDestinationTraining.splice(destination.index, 0, movedItem);
-        // const updatedWorkouts = localWorkouts.map((workout) => {
-        //   if (workout._id === source.droppableId) {
-        //     return { ...workout, training: updatedSourceTraining };
-        //   }
-        //   if (workout._id === destination.droppableId) {
-        //     return { ...workout, training: updatedDestinationTraining };
-        //   }
-        //   return workout;
-        // });
-        // setLocalWorkouts(updatedWorkouts);
-        // setModified(true)
+        const updatedSourceWorkout = localWorkouts.find(
+          (w) => w._id === source.droppableId
+        );
+        const updatedDestinationWorkout = localWorkouts.find(
+          (w) => w._id === destination.droppableId
+        );
+        const updatedSourceTraining = Array.from(updatedSourceWorkout.training);
+        const updatedDestinationTraining = Array.from(
+          updatedDestinationWorkout.training
+        );
+        const [movedItem] = updatedSourceTraining.splice(source.index, 1);
+        updatedDestinationTraining.splice(destination.index, 0, movedItem);
+        const updatedWorkouts = localWorkouts.map((workout) => {
+          if (workout._id === source.droppableId) {
+            return { ...workout, training: updatedSourceTraining };
+          }
+          if (workout._id === destination.droppableId) {
+            return { ...workout, training: updatedDestinationTraining };
+          }
+          return workout;
+        });
+        setLocalWorkouts(updatedWorkouts);
       }
     } else if (type === "exercise") {
       // Moving exercise between sets in different workouts
@@ -101,7 +100,6 @@ export default function WorkoutOverview({
       const updatedDestinationWorkout = [...destinationWorkout.training];
 
       const movedItem = updatedSourceWorkout[sourceSetIndex].splice(source.index, 1)[0];
-      updatedDestinationWorkout[destinationSetIndex].splice(destination.index, 0, movedItem);
       updatedDestinationWorkout[destinationSetIndex].splice(destination.index, 0, movedItem);
 
       const updatedWorkouts = localWorkouts.map((w) => {
@@ -132,11 +130,10 @@ export default function WorkoutOverview({
   };
 
   // Create new workout
-  // const handleAddWorkout = () => dispatch(createTraining({
-  //   date: selectedDate,
-  // }
-  //   ));
-  const handleAddWorkout = () => handleOpenCreateWorkoutDialog();
+  const handleAddWorkout = () => dispatch(createTraining({
+    date: selectedDate,
+  }
+    ));
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -244,7 +241,7 @@ export default function WorkoutOverview({
           })}
         <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
           <Grid item>
-            <Button onClick={handleAddWorkout} variant="contained" sx={{ margin: "15px" }}>
+            <Button onClick={handleOpenCreateWorkoutDialog} variant="contained" sx={{ margin: "15px" }}>
               Add Workout
             </Button>
           </Grid>
@@ -257,13 +254,14 @@ export default function WorkoutOverview({
           <DialogTitle>{"Create a workout"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              Options
+              {/* Options */}
               {/* import from queue, custom set & reps per set (default: 4 X (4 X 10)) */}
+             - Default (more options coming soon)
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseCreateWorkoutDialog}>Cancel</Button>
-            <Button onClick={handleCloseCreateWorkoutDialog}>Submit</Button>
+            <Button onClick={()=> handleAddWorkout().then(()=> handleCloseCreateWorkoutDialog())}>Submit</Button>
           </DialogActions>
         </Dialog>
       </>
