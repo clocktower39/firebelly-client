@@ -16,6 +16,7 @@ export default function MyAccount() {
   );
   const [height, setHeight] = useState(user.height || "");
   const [sex, setSex] = useState(user.sex || "");
+  const [gymBarcode, setGymBarcode] = useState(user.gymBarcode || "");
   
   const [profilePictureDialog, setProfilePictureDialog] = useState(false);
   const handleProfilePictureDialog = () => setProfilePictureDialog((prev) => !prev);
@@ -30,6 +31,7 @@ export default function MyAccount() {
     setDateOfBirth(user.dateOfBirth.substr(0, 10) || "");
     setHeight(user.height);
     setSex(user.sex);
+    setGymBarcode(user.gymBarcode);
   };
 
   const saveChanges = () => {
@@ -44,6 +46,7 @@ export default function MyAccount() {
           dateOfBirth,
           height,
           sex,
+          gymBarcode,
         })
       );
     }
@@ -137,6 +140,14 @@ export default function MyAccount() {
               <MenuItem value="female">Female</MenuItem>
               <MenuItem value="N/A">Prefer not to answer</MenuItem>
             </TextField>
+          </Grid>
+          <Grid container item xs={12}>
+            <TextField
+              label="Gym Barcode"
+              value={gymBarcode}
+              onChange={(e) => handleChange(e.target.value, setGymBarcode)}
+              fullWidth
+            />
           </Grid>
           <Grid container sx={{ justifyContent: "center" }} item xs={12} spacing={2}>
             <Grid item>

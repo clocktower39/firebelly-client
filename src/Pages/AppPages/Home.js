@@ -25,7 +25,7 @@ function Home() {
   const formatDate = (date) => {
     return dayjs(date, "YYYYMMDD").format("YYYY-MM-DD");
   };
-  
+
   const today = dayjs().format("YYYY-MM-DD");
   const initialDate = isValidDate(date) ? formatDate(date) : today;
 
@@ -37,9 +37,9 @@ function Home() {
     setLocalWorkouts([...workouts]);
   };
 
-  const [openModal, setOpenModal] = useState(false);
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
+  const [openCreateWorkoutDialog, setOpenCreateWorkoutDialog] = useState(false);
+  const handleOpenCreateWorkoutDialog = () => setOpenCreateWorkoutDialog(true);
+  const handleCloseCreateWorkoutDialog = () => setOpenCreateWorkoutDialog(false);
 
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalToggle = () => {
@@ -57,11 +57,9 @@ function Home() {
   useEffect(() => {
     if (selectedDate !== null) {
       setLoading(true);
-      dispatch(requestWorkoutsByDate(selectedDate, "client", user._id)).then(
-        () => {
-          setLoading(false);
-        }
-      );
+      dispatch(requestWorkoutsByDate(selectedDate, "client", user._id)).then(() => {
+        setLoading(false);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, workouts.length]);
@@ -70,21 +68,27 @@ function Home() {
     <LoadingPage PropComponent={Loading} />
   ) : (
     <>
-        <SelectedDate
+      <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      {localWorkouts && (
+        <WorkoutOverview
+          localWorkouts={localWorkouts}
+          setLocalWorkouts={setLocalWorkouts}
           selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
+          handleCancelEdit={handleCancelEdit}
+          workoutOptionModalViewProps={{
+            modalOpen,
+            handleModalToggle,
+            handleSetModalAction,
+            modalActionType,
+            openCreateWorkoutDialog,
+            handleOpenCreateWorkoutDialog,
+            handleCloseCreateWorkoutDialog,
+            setSelectedDate,
+          }}
         />
-        <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-        {localWorkouts && (
-          <WorkoutOverview
-            localWorkouts={localWorkouts}
-            setLocalWorkouts={setLocalWorkouts}
-            selectedDate={selectedDate}
-            handleCancelEdit={handleCancelEdit}
-            workoutOptionModalViewProps={{ modalOpen, handleModalToggle, handleSetModalAction, modalActionType, openModal, handleOpenModal, handleCloseModal, setSelectedDate, }}
-          />
-        )}
-        </>
+      )}
+    </>
   );
 }
 

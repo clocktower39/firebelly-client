@@ -31,9 +31,9 @@ export default function WorkoutOverview({
     handleModalToggle,
     handleSetModalAction,
     modalActionType,
-    openModal,
-    // handleOpenModal,
-    handleCloseModal,
+    openCreateWorkoutDialog,
+    handleOpenCreateWorkoutDialog,
+    handleCloseCreateWorkoutDialog,
     setSelectedDate,
   } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
@@ -102,6 +102,7 @@ export default function WorkoutOverview({
 
       const movedItem = updatedSourceWorkout[sourceSetIndex].splice(source.index, 1)[0];
       updatedDestinationWorkout[destinationSetIndex].splice(destination.index, 0, movedItem);
+      updatedDestinationWorkout[destinationSetIndex].splice(destination.index, 0, movedItem);
 
       const updatedWorkouts = localWorkouts.map((w) => {
         if (w._id === sourceWorkoutId) {
@@ -131,7 +132,11 @@ export default function WorkoutOverview({
   };
 
   // Create new workout
-  const handleAddWorkout = () => dispatch(createTraining(selectedDate));
+  // const handleAddWorkout = () => dispatch(createTraining({
+  //   date: selectedDate,
+  // }
+  //   ));
+  const handleAddWorkout = () => handleOpenCreateWorkoutDialog();
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -142,7 +147,7 @@ export default function WorkoutOverview({
             const handleSelectWorkout = () => {
               setSelectedWorkout(workout);
               handleModalToggle();
-            }
+            };
 
             return (
               <React.Fragment key={`workout-${index}`}>
@@ -245,8 +250,8 @@ export default function WorkoutOverview({
           </Grid>
         </Grid>
         <Dialog
-          open={openModal}
-          onClose={handleCloseModal}
+          open={openCreateWorkoutDialog}
+          onClose={handleCloseCreateWorkoutDialog}
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle>{"Create a workout"}</DialogTitle>
@@ -257,8 +262,8 @@ export default function WorkoutOverview({
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button onClick={handleCloseModal}>Submit</Button>
+            <Button onClick={handleCloseCreateWorkoutDialog}>Cancel</Button>
+            <Button onClick={handleCloseCreateWorkoutDialog}>Submit</Button>
           </DialogActions>
         </Dialog>
       </>

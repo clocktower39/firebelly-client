@@ -116,7 +116,6 @@ export const loginJWT = () => {
   };
 };
 
-
 export function logoutUser() {
   return async (dispatch) => {
     localStorage.removeItem("JWT_AUTH_TOKEN");
@@ -129,29 +128,29 @@ export function logoutUser() {
 
 export function changePassword(currentPassword, newPassword) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/changePassword`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ currentPassword, newPassword }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     const data = await response.json();
     if (data.error) return data;
 
     const accessToken = data.accessToken;
     const decodedAccessToken = jwt(accessToken);
 
-    localStorage.setItem('JWT_AUTH_TOKEN', accessToken);
+    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
     return dispatch({
       type: LOGIN_USER,
       agent: decodedAccessToken,
     });
-  }
+  };
 }
 
 export function editUser(user) {
@@ -229,7 +228,7 @@ export function addDateToTaskHistory(taskDateObject) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        history: newHistory
+        history: newHistory,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -435,14 +434,14 @@ export function requestTraining(trainingId) {
 }
 
 // Fetches workouts by date
-export function requestWorkoutsByDate(date, requestedBy = 'client', client) {
+export function requestWorkoutsByDate(date, requestedBy = "client", client) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     let url = `${serverURL}/workouts`;
     let requestbody = { date, client: null };
 
-    if(requestedBy === 'trainer'){
+    if (requestedBy === "trainer") {
       url = `${serverURL}/getClientTraining`;
       requestbody.client = client;
     }
@@ -461,28 +460,30 @@ export function requestWorkoutsByDate(date, requestedBy = 'client', client) {
     if (!data || data.length < 1) {
       return dispatch({
         type: EDIT_HOME_WORKOUTS,
-        workouts: [ ...data ],
+        workouts: [...data],
       });
     } else {
-      data.map(workout => workout.training.map((set) => {
-        set.map((exercise) => {
-          if (!exercise.achieved.weight) {
-            exercise.achieved.weight = [0];
-          }
-          return exercise;
-        });
-        return set;
-      }));
+      data.map((workout) =>
+        workout.training.map((set) => {
+          set.map((exercise) => {
+            if (!exercise.achieved.weight) {
+              exercise.achieved.weight = [0];
+            }
+            return exercise;
+          });
+          return set;
+        })
+      );
       return dispatch({
         type: EDIT_HOME_WORKOUTS,
-        workouts: [ ...data ],
+        workouts: [...data],
       });
     }
   };
 }
 
 // Creates new daily training workouts
-export function createTraining(date) {
+export function createTraining(training) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -490,28 +491,28 @@ export function createTraining(date) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        date,
-        category: [],
-        training: [
+        date: training.date,
+        category: training.category || [],
+        training: training.training || [
           [
             {
               exercise: "",
               exerciseType: "Reps",
               goals: {
                 sets: 4,
-                minReps: [0,0,0,0],
-                maxReps: [0,0,0,0],
-                exactReps: [0,0,0,0],
-                weight: [0,0,0,0],
-                percent: [0,0,0,0],
-                seconds: [0,0,0,0],
+                minReps: [0, 0, 0, 0],
+                maxReps: [0, 0, 0, 0],
+                exactReps: [10, 10, 10, 10],
+                weight: [0, 0, 0, 0],
+                percent: [0, 0, 0, 0],
+                seconds: [0, 0, 0, 0],
               },
               achieved: {
                 sets: 0,
-                reps: [0,0,0,0],
-                weight: [0,0,0,0],
-                percent: [0,0,0,0],
-                seconds: [0,0,0,0],
+                reps: [0, 0, 0, 0],
+                weight: [0, 0, 0, 0],
+                percent: [0, 0, 0, 0],
+                seconds: [0, 0, 0, 0],
               },
             },
           ],
@@ -598,14 +599,14 @@ export function updateWorkoutDateById(training, newDate) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...training, date: newDate },
-        workouts: [...state.workouts.filter(workout => workout._id !== training._id)],
+        workouts: [...state.workouts.filter((workout) => workout._id !== training._id)],
       });
     }
   };
 }
 
 // Updates training date
-export function copyWorkoutById(trainingId, newDate, copyOption = 'exact', newTitle) {
+export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTitle) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -660,7 +661,7 @@ export function deleteWorkoutById(trainingId) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { training: [] },
-        workouts: [ ...state.workouts.filter(workout => workout._id !== trainingId) ],
+        workouts: [...state.workouts.filter((workout) => workout._id !== trainingId)],
       });
     }
   };
@@ -811,7 +812,8 @@ export function upateExerciseName(incorrectExercise, correctExercise) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        incorrectExercise, correctExercise,
+        incorrectExercise,
+        correctExercise,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -819,14 +821,14 @@ export function upateExerciseName(incorrectExercise, correctExercise) {
       },
     });
     let status = await response.json();
-    
-    if(status.error) {
+
+    if (status.error) {
       return dispatch({
         type: ERROR,
-        error: status.error
+        error: status.error,
       });
     } else {
-      const newExerciseLibrary = state.progress.exerciseList.filter(e => e !== incorrectExercise);
+      const newExerciseLibrary = state.progress.exerciseList.filter((e) => e !== incorrectExercise);
       return dispatch({
         type: EDIT_PROGRESS_EXERCISE_LIST,
         exerciseList: newExerciseLibrary,
@@ -837,32 +839,32 @@ export function upateExerciseName(incorrectExercise, correctExercise) {
 
 export function updateThemeMode(mode) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const response = await fetch(`${serverURL}/updateUser`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ themeMode: mode }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     const data = await response.json();
     if (data.error) {
       return dispatch({
         type: ERROR,
-        error: data.error
+        error: data.error,
       });
     }
     const accessToken = data.accessToken;
     const decodedAccessToken = jwt(accessToken);
 
-    localStorage.setItem('JWT_AUTH_TOKEN', accessToken);
+    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
     return dispatch({
       type: LOGIN_USER,
       user: decodedAccessToken,
     });
-  }
+  };
 }
 
 export function requestMyTrainers() {
@@ -908,16 +910,14 @@ export function changeRelationshipStatus(client, accepted) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     fetch(`${serverURL}/changeRelationshipStatus`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ client, accepted }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
-    .then(() => dispatch(requestClients()));
-
+        Authorization: bearer,
+      },
+    }).then(() => dispatch(requestClients()));
   };
 }
 
@@ -945,16 +945,16 @@ export function requestTrainer(trainer) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/manageRelationship`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ trainer }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
+        Authorization: bearer,
+      },
     });
     let data = await response.json();
-    if(data.status === 'success'){
+    if (data.status === "success") {
       dispatch(requestMyTrainers());
     }
   };
@@ -965,44 +965,42 @@ export function removeTrainer(trainer) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/removeRelationship`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ trainer }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
+        Authorization: bearer,
+      },
     });
-    if(response.status === 200){
+    if (response.status === 200) {
       dispatch(requestMyTrainers());
     }
   };
 }
 
-export function getGoals({ requestedBy = 'client', client, }) {
+export function getGoals({ requestedBy = "client", client }) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
-    
     let url = `${serverURL}/goals`;
     let response;
 
-    if(requestedBy === 'trainer'){
+    if (requestedBy === "trainer") {
       url = `${serverURL}/clientGoals`;
       response = await fetch(url, {
         method: "post",
         dataType: "json",
         body: JSON.stringify({
           requestedBy,
-          client
+          client,
         }),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
           Authorization: bearer,
         },
       });
-    }
-    else {
+    } else {
       response = await fetch(url, {
         headers: {
           "Content-type": "application/json; charset=UTF-8",
@@ -1010,8 +1008,6 @@ export function getGoals({ requestedBy = 'client', client, }) {
         },
       });
     }
-
-
 
     let goals = await response.json();
 
@@ -1027,14 +1023,14 @@ export function updateGoal(updatedGoal) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/updateGoal`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify(updatedGoal),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     let goal = await response.json();
 
     return dispatch({
@@ -1049,14 +1045,14 @@ export function addNewGoal(newGoal) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/createGoal`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify(newGoal),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     let goal = await response.json();
 
     return dispatch({
@@ -1071,23 +1067,22 @@ export function deleteGoal(goalId) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/removeGoal`, {
-      method: 'post',
-      dataType: 'json',
+      method: "post",
+      dataType: "json",
       body: JSON.stringify({ goalId }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     let results = await response.json();
 
-    if(results.status === 'Record deleted'){
+    if (results.status === "Record deleted") {
       return dispatch({
         type: DELETE_GOAL,
         goalId,
       });
     }
-
   };
 }
 
@@ -1096,32 +1091,31 @@ export function addGoalComment(goalId, newComment) {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/commentGoal`, {
-      method: 'post',
-      dataType: 'json',
-      body: JSON.stringify({ _id: goalId, comment: newComment}),
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: goalId, comment: newComment }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
-      }
-    })
+        Authorization: bearer,
+      },
+    });
     let goal = await response.json();
 
     return dispatch({
       type: UPDATE_GOAL,
-      goal
+      goal,
     });
   };
 }
 
-
 export function getConversations() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/conversation/getConversations`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
+        Authorization: bearer,
       },
     });
     const data = await response.json();
@@ -1134,14 +1128,14 @@ export function getConversations() {
 
     return dispatch({
       type: UPDATE_CONVERSATIONS,
-      conversations: data
+      conversations: data,
     });
-  }
+  };
 }
 
 export function sendMessage(conversationId, message) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/conversation/message/send`, {
       method: "post",
@@ -1149,7 +1143,7 @@ export function sendMessage(conversationId, message) {
       body: JSON.stringify({ conversationId, message }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
+        Authorization: bearer,
       },
     });
     const data = await response.json();
@@ -1159,26 +1153,26 @@ export function sendMessage(conversationId, message) {
         error: data.error,
       });
     }
-    
+
     return dispatch({
       type: UPDATE_CONVERSATION_MESSAGES,
-      conversation: { ...data }
+      conversation: { ...data },
     });
-  }
+  };
 }
 
 export function socketMessage(conversation) {
   return async (dispatch) => {
     return dispatch({
       type: UPDATE_CONVERSATION_MESSAGES,
-      conversation
-    })
-  }
+      conversation,
+    });
+  };
 }
 
 export function deleteMessage(conversationId, messageId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/conversation/message/delete`, {
       method: "post",
@@ -1186,7 +1180,7 @@ export function deleteMessage(conversationId, messageId) {
       body: JSON.stringify({ conversationId, messageId }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
-        "Authorization": bearer,
+        Authorization: bearer,
       },
     });
     const data = await response.json();
@@ -1196,24 +1190,26 @@ export function deleteMessage(conversationId, messageId) {
         error: data.error,
       });
     }
-    
+
     return dispatch({
       type: UPDATE_CONVERSATION_MESSAGES,
-      conversation: { ...data }
+      conversation: { ...data },
     });
-  }
+  };
 }
 
 export function uploadProfilePicture(formData) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem('JWT_AUTH_TOKEN')}`;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     axios
-      .post(`${serverURL}/user/upload/profilePicture`, formData, { headers: { Authorization: bearer } })
+      .post(`${serverURL}/user/upload/profilePicture`, formData, {
+        headers: { Authorization: bearer },
+      })
       .then(async (res) => {
         const accessToken = res.data.accessToken;
         const decodedAccessToken = jwt(accessToken);
-    
+
         localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
         return dispatch({
           type: LOGIN_USER,
@@ -1223,5 +1219,5 @@ export function uploadProfilePicture(formData) {
       .catch((err) => {
         console.log(err);
       });
-  }
+  };
 }

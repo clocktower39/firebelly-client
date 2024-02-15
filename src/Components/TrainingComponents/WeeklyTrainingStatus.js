@@ -4,11 +4,12 @@ import {
   Box,
   Button,
   CircularProgress,
-  Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Divider,
   Grid,
   IconButton,
-  Paper,
-  Popper,
   Typography,
 } from "@mui/material";
 import { Cancel as CloseIcon, Today as MoveToDateIcon } from "@mui/icons-material";
@@ -75,7 +76,7 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
           />
         ))}
       </Grid>
-      <DayPopperOverview
+      <DayDialogOverview
         selectedWorkout={selectedWorkout}
         setSelectedWorkout={setSelectedWorkout}
         anchorEl={anchorEl}
@@ -86,127 +87,135 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
   );
 }
 
-const DayPopperOverview = (props) => {
-  const { selectedWorkout, setSelectedWorkout, anchorEl, setAnchorEl, setSelectedDate } = props;
-
+const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDate }) => {
+  // Handle close function updates to work with Dialog
   const handleClose = () => {
     setSelectedWorkout(null);
-    setAnchorEl(null);
   };
 
   const handleMoveToDate = () => {
     setSelectedDate(dayjs(selectedWorkout.date).format("YYYY-MM-DD"));
   };
+
   return (
-    <Popper
-      open={selectedWorkout ? true : false}
-      anchorEl={anchorEl}
-      placement="bottom"
-      disablePortal={false}
-      sx={{ maxWidth: "95%" }}
-      modifiers={[
-        {
-          name: "flip",
-          enabled: false,
-          options: {
-            altBoundary: true,
-            rootBoundary: "document",
-            padding: 8,
-          },
+    <Dialog
+      open={selectedWorkout && selectedWorkout.workouts.length > 0 ? true : false}
+      onClose={handleClose}
+      PaperProps={{
+        sx: {
+          padding: "20px",
         },
-        {
-          name: "preventOverflow",
-          enabled: true,
-          options: {
-            altAxis: true,
-            altBoundary: true,
-            tether: true,
-            rootBoundary: "document",
-            padding: 8,
-          },
-        },
-        {
-          name: "arrow",
-          enabled: true,
-        },
-      ]}
+      }}
+      maxWidth="md"
     >
-      {selectedWorkout &&
-        selectedWorkout.workouts.map((workout, workoutIndex) => {
-          const to = `/workout/${workout._id}`;
-          
-          return (
-            <Container key={workout._id}>
-              <Paper sx={{ padding: "25px" }} elevation={5}>
-                {workoutIndex === 0 && (
-                  <>
-                    <Grid container>
-                      <Grid container item xs={6}>
-                        <IconButton onClick={handleClose}>
-                          <CloseIcon />
-                        </IconButton>
-                      </Grid>
-                      <Grid container item xs={6} sx={{ justifyContent: "flex-end", alignItems: "center" }}>
-                        <Typography variant="subtitle">{dayjs.utc(workout.date).format("MM-DD-YYYY")}</Typography>
-                        <IconButton onClick={handleMoveToDate}>
-                          <MoveToDateIcon />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                    <Typography variant="h5" textAlign="center">
-                      Workout Complete
-                    </Typography>
-                    <Typography variant="h6" textAlign="center" sx={{ paddingBottom: '15px', }}>
-                      Reps & Weight Achieved:
-                    </Typography>
+      {selectedWorkout && (
+        <>
+          <DialogTitle disableTypography>
+            <Typography variant="h6" style={{ fontWeight: "bold", marginBottom: "10px" }}>
+              Achieved Data
+            </Typography>
+            <IconButton
+              aria-label="close"
+              onClick={handleClose}
+              style={{ position: "absolute", right: "10px", top: "10px", color: "#FFF" }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <IconButton
+              aria-label="date"
+              onClick={handleMoveToDate}
+              style={{ position: "absolute", right: "50px", top: "10px", color: "#FFF" }}
+            >
+              <MoveToDateIcon />
+            </IconButton>
+            <Typography
+              variant="caption"
+              style={{ position: "absolute", right: "10px", top: "50px", fontSize: "0.8rem" }}
+            >
+              {dayjs(selectedWorkout.date).format("MM-DD-YYYY")}
+            </Typography>
+          </DialogTitle>
 
-                  </>
-                )}
-                <Typography variant="h6">{workout.title}</Typography>
-                <Typography variant="body1">{workout.category.join(", ")}</Typography>
-
-                {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
-                  return (
-                    <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
-                      <Grid item xs={12} sx={{ marginLeft: "8px" }}>
-                        <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
+          <DialogContent dividers>
+            {selectedWorkout.workouts.map((workout, workoutIndex, thisArray) => {
+              const to = `/workout/${workout._id}`;
+              return (
+                <Fragment key={workout._id}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: "bold",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {workout.title}
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: "bold",
+                      marginBottom: "5px", 
+                    }}
+                  >
+                    {workout.category.join(", ")}
+                  </Typography>
+                  {workout.training.map((circuit, index) => (
+                    <Grid container key={index} spacing={2} style={{ marginBottom: "15px" }}>
+                      <Grid item xs={12}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ fontWeight: "bold", }}
+                        >
+                          - Circuit {index + 1}
+                        </Typography>
                       </Grid>
-                      {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
-                        return (
-                          <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
-                            <Grid item xs={12} sm={6}>
-                              <Typography variant="caption" sx={{ marginLeft: "16px" }}>{exercise.exercise}</Typography>
+                      {circuit.map((exercise, exerciseIndex) => (
+                        <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
+                          <Grid item xs={12} sm={6}>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ marginLeft: "16px", fontWeight: "bold" }}
+                            >
+                              {exercise.exercise}
+                            </Typography>
+                          </Grid>
+
+                          <Grid container item xs={12} sm={6}>
+                            <Grid item xs={12}>
+                              <Typography variant="body2" sx={{ marginLeft: "32px" }}>
+                                Reps: {exercise.achieved.reps.join(", ")}
+                              </Typography>
                             </Grid>
 
-                            <Grid container item xs={12} sm={6}>
-                              <Grid item xs={12}>
-                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                  Reps: {exercise.achieved.reps.join(", ")}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                  Weight: {exercise.achieved.weight.join(", ")}
-                                </Typography>
-                              </Grid>
+                            <Grid item xs={12}>
+                              <Typography variant="body2" sx={{ marginLeft: "32px" }}>
+                                Weight: {exercise.achieved.weight.join(", ")}
+                              </Typography>
                             </Grid>
-                          </Fragment>
-                        );
-                      })}
+                          </Grid>
+                        </Fragment>
+                      ))}
                     </Grid>
-                  );
-                })}
-                <Grid container item xs={12} sx={{ justifyContent: 'center', alignItems: 'center',  }}>
-                  <Button variant="outlined" component={Link} to={to}>
-                    Open
-                  </Button>
-                </Grid>
-              </Paper>
-            </Container>
-          );
-        })}
-    </Popper>
+                  ))}
+
+                  <Grid
+                    container
+                    item
+                    xs={12}
+                    sx={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <Button variant="contained" component={Link} to={to}>
+                      Open
+                    </Button>
+                  </Grid>
+                  {workoutIndex < thisArray.length - 1 && <Divider sx={{ padding: "15px" }} />}
+                </Fragment>
+              );
+            })}
+          </DialogContent>
+        </>
+      )}
+    </Dialog>
   );
 };
 

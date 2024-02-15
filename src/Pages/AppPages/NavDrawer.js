@@ -6,15 +6,21 @@ import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Divider,
   Drawer,
   Grid,
   IconButton,
   List,
-  Divider,
   ListItem,
   ListItemIcon,
   ListItemButton,
   ListItemText,
+  Menu,
+  MenuItem,
+  Typography,
 } from "@mui/material";
 import {
   List as NavIcon,
@@ -29,9 +35,11 @@ import {
   Task as TasksIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
+  QrCodeScanner as QrCodeScannerIcon,
 } from "@mui/icons-material";
 import logo48 from "../../img/logo48.png";
 import { serverURL } from "../../Redux/actions";
+import Barcode from "react-barcode";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
@@ -106,8 +114,21 @@ export default function NavDrawer() {
   ];
 
   const [open, setOpen] = useState(false);
-
   const toggleDrawer = () => setOpen((prev) => !prev);
+
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const [openGymBarCodeDialog, setOpenGymBarCodeDialog] = useState(false);
+  const handleOpenGymBarCodeDialog = () => setOpenGymBarCodeDialog(true);
+  const handleCloseGymBarCodeDialog = () => setOpenGymBarCodeDialog(false);
 
   const list = (anchor) => (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer} onKeyDown={toggleDrawer}>
@@ -179,11 +200,7 @@ export default function NavDrawer() {
               </Button>
             </Grid>
             <Grid container item xs={6} sx={{ justifyContent: "flex-end" }}>
-              <IconButton
-                component={Link}
-                to="/account"
-                sx={{ maxHeight: "40px", maxWidth: "40px" }}
-              >
+              <IconButton onClick={handleMenu} sx={{ maxHeight: "40px", maxWidth: "40px" }}>
                 <Avatar
                   src={
                     user.profilePicture && `${serverURL}/user/profilePicture/${user.profilePicture}`
@@ -192,10 +209,53 @@ export default function NavDrawer() {
                   alt={`${user.firstName} ${user.lastName}`}
                 />
               </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                MenuListProps={{
+                  "aria-labelledby": "account-menu-button",
+                }}
+              >
+                <MenuItem component={Link} to="/account" onClick={handleMenuClose}>
+                  <ListItemIcon>
+                    <AccountIcon />
+                  </ListItemIcon>
+                  <Typography variant="inherit">Account Settings</Typography>
+                </MenuItem>
+                <MenuItem onClick={handleOpenGymBarCodeDialog}>
+                  <ListItemIcon>
+                    <QrCodeScannerIcon />
+                  </ListItemIcon>
+                  <Typography variant="inherit">Gym Barcode</Typography>
+                </MenuItem>
+                {/* Add more MenuItems here as needed */}
+              </Menu>
             </Grid>
           </Grid>
         </Container>
       </Box>
+
+      <Dialog
+        open={openGymBarCodeDialog}
+        onClose={handleCloseGymBarCodeDialog}
+        PaperProps={{
+          style: {
+            width: '100vw',
+            height: '90vh',
+          },
+        }}
+      >
+        <DialogContent>
+          <Grid container sx={{ justifyContent: 'center', alignItems: 'center', }}>
+            <Barcode value={user.gymBarcode}  />
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={handleCloseGymBarCodeDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       <Drawer anchor="left" open={open} onClose={toggleDrawer}>
         {list("left")}
       </Drawer>
