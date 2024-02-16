@@ -8,7 +8,7 @@ export default function Workshops() {
       <WebsiteNavbar />
       <Container>
         <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
-          <Typography variant="h2" sx={{ textAlign: "center" }} gutterBottom>
+          <Typography variant="h4" textAlign="center" gutterBottom>
             Workshops
           </Typography>
           <Typography>

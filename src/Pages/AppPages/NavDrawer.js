@@ -248,7 +248,7 @@ export default function NavDrawer() {
         }}
       >
         <DialogTitle>
-          <Typography variant="h2">Gym Barcode</Typography>
+          <Typography variant="h3" textAlign="center" >Gym Barcode</Typography>
         </DialogTitle>
         <DialogContent>
           <Grid container sx={{ justifyContent: "center", alignItems: "center", height: "100%" }}>

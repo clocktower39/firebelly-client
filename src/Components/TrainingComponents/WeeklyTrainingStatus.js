@@ -111,8 +111,11 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
       {selectedWorkout && (
         <>
           <DialogTitle disableTypography>
-            <Typography variant="h6" style={{ fontWeight: "bold", marginBottom: "10px" }}>
+            <Typography variant="h5" style={{ fontWeight: "bold", marginBottom: "10px" }}>
               Achieved Data
+            </Typography>
+            <Typography variant="h6" style={{ fontWeight: "bold", marginBottom: "10px" }}>
+              {dayjs(selectedWorkout.date).format("dddd - MMMM Do, YYYY")}
             </Typography>
             <IconButton
               aria-label="close"
@@ -144,17 +147,15 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
                   <Typography
                     variant="h5"
                     sx={{
-                      fontWeight: "bold",
                       marginBottom: "10px",
                     }}
                   >
                     {workout.title}
                   </Typography>
                   <Typography
-                    variant="h3"
+                    variant="h6"
                     sx={{
-                      fontWeight: "bold",
-                      marginBottom: "5px", 
+                      marginBottom: "5px",
                     }}
                   >
                     {workout.category.join(", ")}
@@ -162,10 +163,7 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
                   {workout.training.map((circuit, index) => (
                     <Grid container key={index} spacing={2} style={{ marginBottom: "15px" }}>
                       <Grid item xs={12}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: "bold", }}
-                        >
+                        <Typography variant="subtitle1" >
                           - Circuit {index + 1}
                         </Typography>
                       </Grid>
@@ -174,7 +172,7 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
                           <Grid item xs={12} sm={6}>
                             <Typography
                               variant="subtitle2"
-                              sx={{ marginLeft: "16px", fontWeight: "bold" }}
+                              sx={{ marginLeft: "16px",}}
                             >
                               {exercise.exercise}
                             </Typography>

@@ -1,8 +1,6 @@
 import { createTheme } from "@mui/material";
 import { store } from "./Redux/store";
 
-const initTheme = createTheme();
-
 const darkTheme = {
   palette: {
     mode: "dark",
@@ -25,47 +23,6 @@ const darkTheme = {
     },
   },
   typography: {
-    h1: {
-      fontSize: "2.1rem",
-      fontWeight: 600,
-    },
-    h2: {
-      fontSize: "1.8rem",
-      fontWeight: "600",
-    },
-    h3: {
-      fontWeight: "600",
-      fontSize: "1.3rem",
-    },
-    h4: {},
-    h5: {
-      [initTheme.breakpoints.down("md")]: {},
-    },
-    h6: {
-      fontSize: "1.2rem",
-      [initTheme.breakpoints.down("sm")]: {
-        fontSize: "1rem",
-      },
-    },
-    body1: {
-      fontSize: "1rem",
-      [initTheme.breakpoints.down("md")]: {
-        fontSize: "1rem",
-      },
-      [initTheme.breakpoints.down("sm")]: {
-        fontSize: "1rem",
-      },
-    },
-    body2: {
-      fontSize: ".8rem",
-    },
-    subtitle1: {
-      fontWeight: 500,
-    },
-    subtitle2: {
-      fontSize: ".8rem",
-      fontWeight: 500,
-    },
   },
   props: {
     MuiTextField: {
@@ -94,38 +51,6 @@ const darkTheme = {
 //     },
 //   },
 //   typography: {
-//     h1: {
-//       fontSize: "2.1rem",
-//       fontWeight: 600,
-//     },
-//     h2: {
-//       fontSize: "1.8rem",
-//       fontWeight: "600",
-//     },
-//     h3: {
-//       fontWeight: "600",
-//       fontSize: "1.3rem",
-//     },
-//     h4: {},
-//     h5: {
-//       [initTheme.breakpoints.down("md")]: {},
-//     },
-//     body1: {
-//       fontSize: "1rem",
-//       [initTheme.breakpoints.down("md")]: {
-//         fontSize: ".9rem",
-//       },
-//       [initTheme.breakpoints.down("sm")]: {
-//         fontSize: "0.9rem",
-//       },
-//     },
-//     subtitle1: {
-//       fontWeight: 500,
-//     },
-//     subtitle2: {
-//       fontSize: ".8rem",
-//       fontWeight: 500,
-//     },
 //   },
 //   props: {
 //     MuiTextField: {

@@ -57,36 +57,37 @@ export default function WebsiteNavbar() {
   return (
     <AppBar position="sticky">
       <Toolbar sx={classes.Toolbar}>
-        <Box
-          sx={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+        <IconButton
+          color="inherit"
+          component={Link}
+          to="/"
+          sx={{ position: "relative", zIndex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
-          <IconButton
-            color="inherit"
-            component={Link}
-            to="/"
-            sx={{ position: "relative", zIndex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-          >
-            <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
-          </IconButton>
-          <Typography
-            variant="caption"
+          <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: "75px", height: "75px" }} />
+          <Box
             sx={{
-              position: "absolute",
-              zIndex: 2,
-              textAlign: "center",
-              color: "white",
-              "&:hover": { cursor: "default" },
-              userSelect: "none",
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            Firebelly Fitness
-          </Typography>
-        </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                position: "absolute",
+                zIndex: 2,
+                textAlign: "center",
+                color: "white",
+                "&:hover": { cursor: "default" },
+                userSelect: "none",
+                marginRight: '75px',
+              }}
+            >
+              Firebelly Fitness
+            </Typography>
+          </Box>
+        </IconButton>
         <Stack
           direction="row"
           divider={

@@ -8,10 +8,9 @@ export default function TrainingInfo() {
       <WebsiteNavbar />
       <Container>
         <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
-          <Typography variant="h2" sx={{ textAlign: "center" }} gutterBottom>
+          <Typography variant="h4" textAlign="center" gutterBottom>
             Training
           </Typography>
-
           <Typography>
             There are online programs for anyone that wants just their program written for them, but
             doesn’t want any coaching.

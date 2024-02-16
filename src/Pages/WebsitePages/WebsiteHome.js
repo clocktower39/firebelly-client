@@ -47,7 +47,7 @@ export default function Home() {
       <Grid>
         <Container maxWidth="sm" sx={classes.AboutSite}>
           <Grid>
-            <Typography variant="h4" textAlign="center" sx={{ fontFamily: "Rockwell" }}>
+            <Typography variant="h4" textAlign="center" >
               About Firebelly Fitness
             </Typography>
           </Grid>
@@ -90,7 +90,7 @@ export default function Home() {
             <Grid container>
               <Grid container item xs={12} md={6}>
                 <Grid>
-                  <Typography variant="h4" textAlign="center" sx={{ fontFamily: "Rockwell" }}>
+                  <Typography variant="h4" textAlign="center" >
                     About Me
                   </Typography>
                 </Grid>
