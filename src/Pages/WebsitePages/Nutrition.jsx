@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@mui/material";
 import WebsiteNavbar from "./WebsiteNavbar";
+import Footer from "../../Components/Footer";
 
 const classes = {
   root: {},
@@ -28,7 +29,7 @@ export default function Nutrition() {
   return (
     <>
       <WebsiteNavbar />
-      <Container>
+      <Container >
         <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
           <Typography variant="h4" textAlign="center" gutterBottom>
             Nutrition
@@ -193,6 +194,8 @@ export default function Nutrition() {
           </Typography>
         </Paper>
       </Container>
+      <div style={{ height: "20px" }} />
+      <Footer />
     </>
   );
 }

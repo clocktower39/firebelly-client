@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { loginJWT } from "../../Redux/actions";
 import { Box, Container, Grid, List, ListItem, Typography } from "@mui/material";
 import WebsiteNavbar from "./WebsiteNavbar";
+import Footer from "../../Components/Footer";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import DeadliftImg from "../../img/deadlift.jpg";
 import BryceFlagpole from "../../img/bryce_flagpole.jpg";
@@ -47,7 +48,7 @@ export default function Home() {
       <Grid>
         <Container maxWidth="sm" sx={classes.AboutSite}>
           <Grid>
-            <Typography variant="h4" textAlign="center" >
+            <Typography variant="h4" textAlign="center">
               About Firebelly Fitness
             </Typography>
           </Grid>
@@ -90,7 +91,7 @@ export default function Home() {
             <Grid container>
               <Grid container item xs={12} md={6}>
                 <Grid>
-                  <Typography variant="h4" textAlign="center" >
+                  <Typography variant="h4" textAlign="center">
                     About Me
                   </Typography>
                 </Grid>
@@ -141,6 +142,8 @@ export default function Home() {
           </Container>
         </Container>
       </Grid>
+      <div style={{ height: "20px" }} />
+      <Footer />
     </>
   );
 }

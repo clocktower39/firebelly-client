@@ -1,5 +1,6 @@
 import React from "react";
 import WebsiteNavbar from "./WebsiteNavbar";
+import Footer from "../../Components/Footer";
 import { Container, List, ListItem, Paper, Typography } from "@mui/material";
 
 export default function Workshops() {
@@ -29,6 +30,8 @@ export default function Workshops() {
           </List>
         </Paper>
       </Container>
+      <div style={{ height: "20px" }} />
+      <Footer />
     </>
   );
 }

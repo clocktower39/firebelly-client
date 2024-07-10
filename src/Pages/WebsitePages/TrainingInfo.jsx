@@ -1,6 +1,7 @@
 import React from "react";
 import WebsiteNavbar from "./WebsiteNavbar";
 import { Container, List, ListItem, Paper, Typography } from "@mui/material";
+import Footer from "../../Components/Footer";
 
 export default function TrainingInfo() {
   return (
@@ -34,6 +35,8 @@ export default function TrainingInfo() {
           </List>
         </Paper>
       </Container>
+      <div style={{ height: "20px" }} />
+      <Footer />
     </>
   );
 }
