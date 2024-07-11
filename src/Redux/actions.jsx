@@ -606,7 +606,7 @@ export function updateWorkoutDateById(training, newDate) {
 }
 
 // Updates training date
-export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTitle) {
+export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTitle, newAccount) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -618,6 +618,7 @@ export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTi
         newDate,
         newTitle,
         option: copyOption,
+        newAccount,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

@@ -7,8 +7,10 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
   Chip,
   Divider,
+  FormControlLabel,
   Grid,
   IconButton,
   Modal,
@@ -87,10 +89,10 @@ export default function Workout(props) {
   const training = useSelector((state) => state.training);
   const [size = 900, setBorderHighlight] = useOutletContext();
 
-  const isPersonalWorkout = useCallback(() => user._id.toString() === training?.user?._id?.toString(), [
-    user._id,
-    training?.user?._id,
-  ]);
+  const isPersonalWorkout = useCallback(
+    () => user._id.toString() === training?.user?._id?.toString(),
+    [user._id, training?.user?._id]
+  );
 
   const [localTraining, setLocalTraining] = useState([]);
   const [trainingCategory, setTrainingCategory] = useState([]);
@@ -250,7 +252,7 @@ export default function Workout(props) {
     setLocalTraining(training.training || []);
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
-    if(training?.user?._id){
+    if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
   }, [isPersonalWorkout, setBorderHighlight, training]);
@@ -291,7 +293,7 @@ export default function Workout(props) {
                         training.user.profilePicture &&
                         `${serverURL}/user/profilePicture/${training.user.profilePicture}`
                       }
-                      sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px"}}
+                      sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
                       alt={`${training.user.firstName[0]} ${training.user.lastName[0]}`}
                     />
                     <Typography variant="h5">
@@ -454,8 +456,12 @@ export function ModalAction(props) {
   } = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+  const clients = useSelector((state) => state.clients);
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
+  const [copyToOtherAccount, setCopyToOtherAccount] = useState(false);
+  const [newAccount, setNewAccount] = useState(null);
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
 
@@ -486,7 +492,7 @@ export function ModalAction(props) {
   };
 
   const handleCopy = () => {
-    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle)).then(() => {
+    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle, newAccount.value)).then(() => {
       setActionError(false);
       handleModalToggle();
       setSelectedDate
@@ -523,18 +529,20 @@ export function ModalAction(props) {
     });
     handleModalToggle();
   };
-  
+
   const handleExport = () => {
     // Convert the data to a JSON string
     const jsonString = JSON.stringify(training);
     // Create a Blob with the JSON data
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    const blob = new Blob([jsonString], { type: "application/json" });
     // Create a URL for the blob
     const url = URL.createObjectURL(blob);
     // Create a temporary anchor tag and trigger the download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `${dayjs(training.date).format("DD-MMM-YYYY")}_${training.user}_workout_data.json`; // Name of the file to be downloaded
+    link.download = `${dayjs(training.date).format("DD-MMM-YYYY")}_${
+      training.user
+    }_workout_data.json`; // Name of the file to be downloaded
     document.body.appendChild(link);
     link.click();
     // Cleanup: remove the temporary link
@@ -589,13 +597,38 @@ export function ModalAction(props) {
         { label: "Copy achieved as the new goal", value: "achievedToNewGoal" },
         { label: "Copy goal only", value: "copyGoalOnly" },
       ];
+      let accountOptions = clients.map((client) => ({
+        label: `${client.client.firstName} ${client.client.lastName}`,
+        value: client.client._id,
+      }));
 
       const handleOptionChange = (e, getTagProps) => {
         setCopyOption(getTagProps);
       };
+
+      const handleNewAccountChange = (e, getTagProps) => {
+        setNewAccount(getTagProps);
+      };
+
       return (
         <>
           <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
+
+          {user.isTrainer && (
+            <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
+              <FormControlLabel label="Copy to Different Account" control={<Checkbox checked={copyToOtherAccount} onClick={() => setCopyToOtherAccount(prev => !prev)} />} />
+              <Autocomplete
+                disabled={!copyToOtherAccount}
+                disablePortal
+                options={accountOptions}
+                isOptionEqualToValue={(option, value) => option.value === value.value}
+                renderInput={(params) => <TextField {...params} label="Client List" />}
+                sx={{ width: "100%" }}
+                onChange={handleNewAccountChange}
+              />
+            </Grid>
+          )}
+
           <TextField
             fullWidth
             label="Copied Workout Title"
@@ -676,8 +709,7 @@ export function ModalAction(props) {
           <Grid container>
             <Grid container>
               <Typography color="text.primary">
-                Export training from {" "}
-                {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
+                Export training from {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
               </Typography>
             </Grid>
             <Grid container sx={{ justifyContent: "center" }}>
