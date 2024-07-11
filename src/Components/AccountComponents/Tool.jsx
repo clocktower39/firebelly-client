@@ -42,7 +42,9 @@ export default function AccountSettings() {
     }
   };
 
-  useEffect(() => dispatch(requestMyExerciseList()), [dispatch]);
+  useEffect(() => {
+    dispatch(requestMyExerciseList());
+  }, [dispatch]);
 
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
@@ -53,9 +55,20 @@ export default function AccountSettings() {
       </Grid>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
+          <Grid container item xs={12} sx={{ }}>
+            <Typography color="primary.contrastText" variant="caption" sx={{ padding: '5px', fontWeight: '600', fontSize: '8px',}}>Body Position (Elevated, Hanging, Inverted, Kneeling, Lying, Prone, Seated, Standing, Stationary, Walking, etc.)</Typography>
+            <Typography color="primary.contrastText" variant="caption" sx={{ padding: '5px', fontWeight: '600', fontSize: '8px',}}>Equipment Used (Barbell, Dumbbell, Cable, etc.)</Typography>
+            <Typography color="primary.contrastText" variant="caption" sx={{ padding: '5px', fontWeight: '600', fontSize: '8px',}}>Extremity Position (Overhand-Grip, Neutral-Grip, Narrow-Stance, etc.)</Typography>
+            <Typography color="primary.contrastText" variant="caption" sx={{ padding: '5px', fontWeight: '600', fontSize: '8px',}}>Movement Pattern (Alternating, Unilateral)</Typography>
+            <Typography color="primary.contrastText" variant="caption" sx={{ padding: '5px', fontWeight: '600', fontSize: '8px',}}>Base Exercise Name (Squat, Chest Press, Deadlift, etc.)</Typography>
+          </Grid>
+
           <Grid container item xs={12} sx={{ justifyContent: "center" }}>
-            <Typography color="primary.contrastText" variant="body1">Be exetremly careful. <br />If you make a mistake each entry must be manually fixed.</Typography>
-            </Grid>
+            <Typography color="primary.contrastText" variant="body1">
+              Be exetremly careful. <br />
+              If you make a mistake each entry must be manually fixed.
+            </Typography>
+          </Grid>
           <Grid container item xs={12} sx={{ justifyContent: "center" }}>
             <Autocomplete
               id="tags-filled"
