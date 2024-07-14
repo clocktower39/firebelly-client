@@ -492,7 +492,7 @@ export function ModalAction(props) {
   };
 
   const handleCopy = () => {
-    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle, newAccount.value)).then(() => {
+    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle, newAccount?.value)).then(() => {
       setActionError(false);
       handleModalToggle();
       setSelectedDate
