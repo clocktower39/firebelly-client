@@ -10,7 +10,6 @@ import {
   Checkbox,
   Chip,
   Divider,
-  FormControlLabel,
   Grid,
   IconButton,
   Modal,
@@ -460,8 +459,7 @@ export function ModalAction(props) {
   const clients = useSelector((state) => state.clients);
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
-  const [copyToOtherAccount, setCopyToOtherAccount] = useState(false);
-  const [newAccount, setNewAccount] = useState(null);
+  const [newAccount, setNewAccount] = useState({ label: `${user.firstName} ${user.lastName}`, value: user._id });
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
 
@@ -602,6 +600,11 @@ export function ModalAction(props) {
         value: client.client._id,
       }));
 
+      accountOptions.unshift({
+        label: `${user.firstName} ${user.lastName}`,
+        value: user._id,
+      });
+
       const handleOptionChange = (e, getTagProps) => {
         setCopyOption(getTagProps);
       };
@@ -616,15 +619,15 @@ export function ModalAction(props) {
 
           {user.isTrainer && (
             <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
-              <FormControlLabel label="Copy to Different Account" control={<Checkbox checked={copyToOtherAccount} onClick={() => setCopyToOtherAccount(prev => !prev)} />} />
               <Autocomplete
-                disabled={!copyToOtherAccount}
                 disablePortal
                 options={accountOptions}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
-                renderInput={(params) => <TextField {...params} label="Client List" />}
+                renderInput={(params) => <TextField {...params} label="Copy to account" />}
                 sx={{ width: "100%" }}
                 onChange={handleNewAccountChange}
+                value={newAccount}
+                defaultValue={newAccount}
               />
             </Grid>
           )}
