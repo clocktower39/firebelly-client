@@ -99,6 +99,11 @@ export default function NavDrawer() {
       to: "/nutrition",
       icon: <NutritionIcon />,
     },
+    {
+      title: "Exercises",
+      to: "/exercises",
+      icon: <GoalsIcon />,
+    },
   ];
 
   const noAuthPages = [

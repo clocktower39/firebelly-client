@@ -804,6 +804,40 @@ export function requestExerciseLibrary() {
   };
 }
 
+export function updateMasterExerciseName(incorrectExercise, correctExercise) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
+
+    const response = await fetch(`${serverURL}/updateMasterExerciseName`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        incorrectExercise,
+        correctExercise,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let status = await response.json();
+
+    if (status.error) {
+      return dispatch({
+        type: ERROR,
+        error: status.error,
+      });
+    } else {
+      const newExerciseLibrary = state.progress.exerciseList.filter((e) => e !== incorrectExercise);
+      return dispatch({
+        type: EDIT_PROGRESS_EXERCISE_LIST,
+        exerciseList: newExerciseLibrary,
+      });
+    }
+  };
+}
+
 export function upateExerciseName(incorrectExercise, correctExercise) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;

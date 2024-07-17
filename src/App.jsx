@@ -18,6 +18,7 @@ import History from "./Pages/AppPages/History";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
 import WorkoutQueue from "./Pages/AppPages/WorkoutQueue";
+import Exercises from "./Pages/AppPages/Exercises";
 import Nutrition from "./Pages/AppPages/Nutrition";
 import Clients from "./Pages/AppPages/Clients";
 import Progress from "./Pages/AppPages/Progress";
@@ -142,6 +143,12 @@ function App({ socket }) {
               <Route exact path="/goals" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Goals />} />
+                </Route>
+              </Route>
+
+              <Route exact path="/exercises" element={<AuthRoute />}>
+                <Route element={<ActivityTrackerContainer />} >
+                  <Route exact path="" element={<Exercises />} />
                 </Route>
               </Route>
 
