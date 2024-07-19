@@ -88,7 +88,8 @@ export default function WorkoutHistory(props) {
     });
   };
 
-  const [scrollToDate, setScrollToDate] = useState(null);
+  const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
+  
   const handleDateCalanderChange = (e) => {
     setScrollToDate(e.utc().format("YYYY-MM-DD"));
   };
@@ -98,6 +99,7 @@ export default function WorkoutHistory(props) {
         {/* DateCalendar takes 20% of the available height */}
         <Box sx={{ flex: "0 0 20%" }}>
           <DateCalendar
+            defaultValue={dayjs()}
             onChange={handleDateCalanderChange}
             loading={isLoading}
             renderLoading={() => <DayCalendarSkeleton />}
