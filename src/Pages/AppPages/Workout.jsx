@@ -372,8 +372,7 @@ export default function Workout(props) {
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            label="Training Category"
-                            placeholder="Categories"
+                            label="Muscle Groups"
                             sx={classes.textFieldRoot}
                             InputProps={{
                               ...params.InputProps,
