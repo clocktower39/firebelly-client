@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { requestClients, changeRelationshipStatus, serverURL } from '../../Redux/actions';
-import { Avatar, Button, Card, CardHeader, Dialog, Grid, IconButton, Typography } from "@mui/material";
+import { Avatar, Button, Card, CardHeader, Dialog, Grid, IconButton, TextField, Typography } from "@mui/material";
 import { Delete, Done, PendingActions, } from "@mui/icons-material";
 import History from "./History";
 import Goals from "./Goals";
@@ -11,6 +11,8 @@ export default function Clients() {
   const user = useSelector((state) => state.user);
   const clients = useSelector((state) => state.clients);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredClients, setFilteredClients] = useState([]);
   const [openHistory, setOpenHistory] = useState(false);
   const [openGoals, setOpenGoals] = useState(false);
   const [selectedClient, setSelectedClient] = useState('');
@@ -38,6 +40,19 @@ export default function Clients() {
   const handleRelationshipStatus = (clientId, accepted) => {
     dispatch(changeRelationshipStatus(clientId, accepted));
   }
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSort = (key) => {
+    const sortedClients = [...filteredClients].sort((a, b) => {
+      const nameA = a.client[key].toLowerCase();
+      const nameB = b.client[key].toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+    setFilteredClients(sortedClients);
+  };
 
   const ClientCard = (props) => {
     const { clientRelationship } = props;
@@ -85,8 +100,14 @@ export default function Clients() {
 
   useEffect(() => {
     dispatch(requestClients());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [dispatch]);  // Only run once when the component mounts
+
+  useEffect(() => {
+    const filtered = clients.filter(client => 
+      `${client.client.firstName} ${client.client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredClients(filtered);
+  }, [searchTerm, clients]);
 
   return user.isTrainer ? (
     <>
@@ -101,7 +122,17 @@ export default function Clients() {
           flex: "initial",
         }}
       >
-        <Typography variant="h4">Training Clients</Typography>
+        <Typography variant="h4" sx={{ padding: '25px 0', }} >Training Clients</Typography>
+        <TextField
+          label="Search Clients"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={handleSearchChange}
+          sx={{ mb: 2 }}
+        />
+        <Button onClick={() => handleSort('lastName')} variant="outlined" >Last Name</Button>
+        <Button onClick={() => handleSort('firstName')} variant="outlined" >First Name</Button>
       </Grid>
 
       <Grid
@@ -117,7 +148,7 @@ export default function Clients() {
           flex: "auto",
         }}
       >
-        {clients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
+        {filteredClients.map((clientRelationship) => <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />)}
       </Grid>
       <Dialog open={openHistory} onClose={handleCloseHistory} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><History view="trainer" clientId={selectedClient} /> </Dialog>
       <Dialog open={openGoals} onClose={handleCloseGoals} sx={{ '& .MuiDialog-paper': { padding: '5px', width: "100%", minHeight: '80%' } }} ><Goals view="trainer" clientId={selectedClient} /> </Dialog>
