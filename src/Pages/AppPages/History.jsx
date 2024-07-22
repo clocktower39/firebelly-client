@@ -231,7 +231,7 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
 
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ ml: 2 }}>
-                    Category: {workout?.category?.join(", ")}
+                    Muscle Group: {workout?.category?.join(", ")}
                   </Typography>
                 </Grid>
               </Grid>
