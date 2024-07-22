@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { AddCircle, Delete, Done, Message as MessageIcon, PendingActions } from "@mui/icons-material";
-import { requestMyTrainers, removeTrainer } from "../../Redux/actions";
+import { requestMyTrainers, removeRelationship, serverURL } from "../../Redux/actions";
 import SearchTrainerDialog from "./SearchTrainerDialog";
 import Messages from "../Messages";
 
@@ -25,10 +25,11 @@ import Messages from "../Messages";
 export default function Trainers({ socket }) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
+  const user = useSelector(state => state.user);
   const myTrainers = useSelector((state) => state.myTrainers);
   const [openSearch, setOpenSearch] = useState(false);
 
-  const currentRelationshipIds = myTrainers.map((trainer) => trainer.trainerId);
+  const currentRelationshipIds = myTrainers.map((trainer) => trainer.trainer);
 
   const handleOpenSearch = () => setOpenSearch(true);
   const handleCloseSearch = () => setOpenSearch(false);
@@ -54,7 +55,10 @@ export default function Trainers({ socket }) {
         <Card sx={{ width: "100%" }}>
           <CardHeader
             avatar={
-              <Avatar aria-label="recipe">
+              <Avatar 
+              src={
+                trainer.profilePicture && `${serverURL}/user/profilePicture/${trainer.profilePicture}`
+              }>
                 {trainer.firstName[0]}
                 {trainer.lastName[0]}
               </Avatar>
@@ -98,7 +102,7 @@ export default function Trainers({ socket }) {
                   </Button>
                 </Grid>
                 <Grid item>
-                  <Button variant="contained" onClick={() => dispatch(removeTrainer(trainer.trainerId))}>
+                  <Button variant="contained" onClick={() => dispatch(removeRelationship(trainer.trainer, user._id))}>
                     Confirm
                   </Button>
                 </Grid>
@@ -126,7 +130,7 @@ export default function Trainers({ socket }) {
                 <LinearProgress />
               </Box>
             ) : (
-              myTrainers?.map((t) => <RelationshipTrainerCard key={t.trainerId} trainer={t} />)
+              myTrainers?.map((t) => <RelationshipTrainerCard key={t.trainer} trainer={t} />)
             )}
           </Grid>
           <Grid container sx={{ justifyContent: "center" }}>

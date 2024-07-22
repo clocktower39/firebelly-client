@@ -995,14 +995,14 @@ export function requestTrainer(trainer) {
   };
 }
 
-export function removeTrainer(trainer) {
+export function removeRelationship(trainer, client) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/removeRelationship`, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({ trainer }),
+      body: JSON.stringify({ trainer, client }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -1010,6 +1010,7 @@ export function removeTrainer(trainer) {
     });
     if (response.status === 200) {
       dispatch(requestMyTrainers());
+      dispatch(requestClients());
     }
   };
 }

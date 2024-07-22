@@ -12,13 +12,13 @@ import {
   TextField,
 } from "@mui/material";
 import { AddCircle } from '@mui/icons-material';
-import { getTrainers, requestTrainer } from '../../Redux/actions';
+import { getTrainers, requestTrainer, serverURL } from '../../Redux/actions';
 
 export default function SearchTrainerDialog({ open, handleClose, currentRelationships }) {
   const dispatch = useDispatch();
   const trainers = useSelector(state => state.trainers);
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState(trainers.filter(trainer => currentRelationships.includes(trainer.trainerId)));
+  const [searchResults, setSearchResults] = useState(trainers.filter(trainer => currentRelationships.includes(trainer.trainer)));
 
   const handleChange = (e, setter) => setter(e.target.value);
 
@@ -26,7 +26,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
     const { trainer } = props;
 
     const handleRequestTrainer = () => {
-      dispatch(requestTrainer(trainer.trainerId))
+      dispatch(requestTrainer(trainer.trainer))
     }
 
     return (
@@ -34,7 +34,10 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
         <Card sx={{ width: '100%' }} >
           <CardHeader
             avatar={
-              <Avatar aria-label="recipe">
+              <Avatar
+                src={
+                  trainer.profilePicture && `${serverURL}/user/profilePicture/${trainer.profilePicture}`
+                }>
                 {trainer.firstName[0]}{trainer.lastName[0]}
               </Avatar>
             }
@@ -63,7 +66,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
 
   useEffect(() => {
     setSearchResults(trainers
-      .filter(trainer => !currentRelationships.includes(trainer.trainerId))
+      .filter(trainer => !currentRelationships.includes(trainer.trainer))
       .filter(trainer => new RegExp(search, "i").test(trainer.firstName) || new RegExp(search, "i").test(trainer.lastName)))
   }, [search, trainers, currentRelationships])
 
@@ -97,7 +100,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
           <Grid item container xs={12} >
             <Grid container item xs={12} spacing={1} >
               {searchResults.map(trainer => {
-                return (<SearchResultsTrainerCard key={trainer.trainerId} trainer={trainer} />);
+                return (<SearchResultsTrainerCard key={trainer} trainer={trainer} />);
               })}
             </Grid>
           </Grid>
