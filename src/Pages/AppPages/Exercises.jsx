@@ -61,9 +61,10 @@ export default function Exercises() {
   const handleSubmit = async () => {
     if (selectedExercise?.exercise && editName !== "") {
       setConfirmDialogLoading(true);
+      const trainingIdList = selectedExercise.dates.map(date => date.trainingId);      
 
       try {
-        await dispatch(updateMasterExerciseName(selectedExercise.exercise, editName));
+        await dispatch(updateMasterExerciseName(selectedExercise.exercise, editName, trainingIdList));
 
         // Update selectedExercise.exercise to editName
         // if new exercise title already exists in the list, spread the ...dates, merge the users, add to the count
@@ -156,6 +157,7 @@ export default function Exercises() {
                   })
                   .map((u) => (
                     <Avatar
+                      key={u._id}
                       src={
                         u.profilePicture && `${serverURL}/user/profilePicture/${u.profilePicture}`
                       }
@@ -194,7 +196,7 @@ export default function Exercises() {
                 onChange={(e, getTagProps) => setEditName(getTagProps)}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                    <Chip key={index} variant="outlined" label={option} {...getTagProps({ index })} />
                   ))
                 }
                 renderInput={(params) => (
@@ -234,6 +236,7 @@ export default function Exercises() {
                   })
                   .map((u) => (
                     <Avatar
+                      key={u._id}
                       src={
                         u.profilePicture && `${serverURL}/user/profilePicture/${u.profilePicture}`
                       }
@@ -259,9 +262,9 @@ export default function Exercises() {
                 <AccordionDetails>
                   <List>
                     {selectedExercise.dates.map((date, index) => (
-                      <ListItem key={index}>
+                      <ListItem key={index} dense >
                         <ListItemText
-                          primary={`Date: ${new Date(date.date).toLocaleDateString()}, User: ${
+                          primary={`Date: ${new Date(date.date).toLocaleDateString()}, Training Id: ${date.trainingId}, User: ${
                             date.user.firstName
                           } ${date.user.lastName}`}
                         />
@@ -271,7 +274,7 @@ export default function Exercises() {
                 </AccordionDetails>
               </Accordion>
             </Box>
-            <ExerciseLibrarySection selectedExercise={selectedExercise.exercise} />
+            {/* <ExerciseLibrarySection selectedExercise={selectedExercise.exercise} /> */}
           </>
         )}
       </Paper>

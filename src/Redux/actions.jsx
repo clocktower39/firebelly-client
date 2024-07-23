@@ -804,7 +804,7 @@ export function requestExerciseLibrary() {
   };
 }
 
-export function updateMasterExerciseName(incorrectExercise, correctExercise) {
+export function updateMasterExerciseName(incorrectExercise, correctExercise, trainingIdList) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -815,6 +815,7 @@ export function updateMasterExerciseName(incorrectExercise, correctExercise) {
       body: JSON.stringify({
         incorrectExercise,
         correctExercise,
+        trainingIdList,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
