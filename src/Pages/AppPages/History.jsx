@@ -28,6 +28,7 @@ export default function WorkoutHistory(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedDays, setHighlightedDays] = useState([1, 2, 2, 3, 3, 3, 30]);
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const getWorkoutMonthData = (e) => {
     setIsLoading(true);
@@ -91,7 +92,9 @@ export default function WorkoutHistory(props) {
   const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
   
   const handleDateCalanderChange = (e) => {
-    setScrollToDate(e.utc().format("YYYY-MM-DD"));
+    const newDate = e.utc(e)
+    setScrollToDate(newDate.format("YYYY-MM-DD"));
+    setSelectedDate(newDate);
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -99,7 +102,7 @@ export default function WorkoutHistory(props) {
         {/* DateCalendar takes 20% of the available height */}
         <Box sx={{ flex: "0 0 20%" }}>
           <DateCalendar
-            defaultValue={dayjs()}
+            value={selectedDate}
             onChange={handleDateCalanderChange}
             loading={isLoading}
             renderLoading={() => <DayCalendarSkeleton />}
@@ -231,7 +234,7 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
 
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ ml: 2 }}>
-                    Muscle Group: {workout?.category?.join(", ")}
+                    Muscle Group{workout?.category?.length > 1 && 's'}: {workout?.category?.join(", ")}
                   </Typography>
                 </Grid>
               </Grid>
