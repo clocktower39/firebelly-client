@@ -280,7 +280,9 @@ export default function Progress(props) {
   }, [searchValue]);
 
   useEffect(() => {
-    dispatch(requestMyExerciseList());
+    if(exerciseList.length < 1){
+      dispatch(requestMyExerciseList());
+    }
     if (props.searchExercise) {
       loadExerciseProgress(props.searchExercise);
     }

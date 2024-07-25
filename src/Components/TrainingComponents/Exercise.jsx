@@ -24,7 +24,7 @@ import {
   MoreVertSharp,
 } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestMyExerciseList, requestExerciseProgess, serverURL } from "../../Redux/actions";
+import { requestExerciseProgess, serverURL } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
 import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
@@ -250,11 +250,6 @@ export default function Exercise(props) {
   const handleTypeChange = (e) => setExerciseType(e.target.value);
 
   const handleSetChange = (e) => setSets(Number(e.target.value));
-
-  useEffect(() => {
-    dispatch(requestMyExerciseList());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     // Ensures each proptery array length matches the amount of sets

@@ -43,7 +43,9 @@ export default function AccountSettings() {
   };
 
   useEffect(() => {
-    dispatch(requestMyExerciseList());
+    if(exerciseList.length < 1){
+      dispatch(requestMyExerciseList());
+    }
   }, [dispatch]);
 
   return (

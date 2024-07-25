@@ -35,6 +35,7 @@ import {
   updateWorkoutDateById,
   copyWorkoutById,
   deleteWorkoutById,
+  requestMyExerciseList,
   serverURL,
 } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
@@ -97,6 +98,8 @@ export default function Workout(props) {
   const [trainingCategory, setTrainingCategory] = useState([]);
   const [trainingTitle, setTrainingTitle] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
@@ -237,6 +240,12 @@ export default function Workout(props) {
       })
     );
   };
+
+  useEffect(() => {
+    if(exerciseList.length < 1){
+      dispatch(requestMyExerciseList());
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     setLocalTraining([]);
