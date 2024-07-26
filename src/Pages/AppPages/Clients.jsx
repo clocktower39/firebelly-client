@@ -176,7 +176,11 @@ export default function Clients() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
     );
-    setFilteredClients(filtered);
+    setFilteredClients(filtered.sort((a, b) => {
+      const nameA = a.client['firstName'].toLowerCase();
+      const nameB = b.client['firstName'].toLowerCase();
+      return nameA.localeCompare(nameB);
+    }));
   }, [searchTerm, clients]);
 
   return user.isTrainer ? (
