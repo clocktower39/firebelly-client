@@ -292,7 +292,7 @@ const WorkoutSet = (props) => {
       case "Time":
         return (
           <Typography variant="body1">
-            {goals.exactReps.length} sets: {goals.exactReps.join(", ")} seconds
+            {goals.seconds.length} sets: {goals.seconds.join(", ")} seconds
           </Typography>
         );
       case "Reps with %":

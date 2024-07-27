@@ -87,6 +87,74 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
   );
 }
 
+const exerciseTypeFields = (exerciseType) => {
+  switch (exerciseType) {
+    case "Rep Range":
+      return {
+        repeating: [
+          {
+            goalAttribute: "weight",
+            label: "Weight",
+          },
+          {
+            goalAttribute: "minReps",
+            label: "Min Reps",
+          },
+          {
+            goalAttribute: "maxReps",
+            label: "Max Reps",
+          },
+        ],
+        nonRepeating: [],
+      };
+    case "Reps":
+      return {
+        repeating: [
+          {
+            goalAttribute: "weight",
+            label: "Weight",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [],
+      };
+    case "Reps with %":
+      return {
+        repeating: [
+          {
+            goalAttribute: "percent",
+            label: "Percent",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [
+          {
+            goalAttribute: "maxWeight",
+            label: "One Rep Max",
+          },
+        ],
+      };
+    case "Time":
+      return {
+        repeating: [
+          {
+            goalAttribute: "seconds",
+            label: "Seconds",
+          },
+        ],
+        nonRepeating: [],
+      };
+    default:
+      return <Typography color="text.primary">Type Error</Typography>;
+  }
+};
+
 const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDate }) => {
   // Handle close function updates to work with Dialog
   const handleClose = () => {
@@ -177,20 +245,19 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
                               {exercise.exercise}
                             </Typography>
                           </Grid>
-
+                          
                           <Grid container item xs={12} sm={6}>
-                            <Grid item xs={12}>
-                              <Typography variant="body2" sx={{ marginLeft: "32px" }}>
-                                Reps: {exercise.achieved.reps.join(", ")}
-                              </Typography>
-                            </Grid>
-
-                            <Grid item xs={12}>
-                              <Typography variant="body2" sx={{ marginLeft: "32px" }}>
-                                Weight: {exercise.achieved.weight.join(", ")}
-                              </Typography>
-                            </Grid>
+                            {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
+                                return (
+                                <Grid item xs={12}>
+                                  <Typography variant="body2" sx={{ marginLeft: "32px" }}>
+                                    {field.label}: {exercise.achieved[field.goalAttribute]?.join(", ")}
+                                  </Typography>
+                                </Grid> )
+                              }
+                            )}
                           </Grid>
+
                         </Fragment>
                       ))}
                     </Grid>

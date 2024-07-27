@@ -22,6 +22,75 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 
+
+const exerciseTypeFields = (exerciseType) => {
+  switch (exerciseType) {
+    case "Rep Range":
+      return {
+        repeating: [
+          {
+            goalAttribute: "weight",
+            label: "Weight",
+          },
+          {
+            goalAttribute: "minReps",
+            label: "Min Reps",
+          },
+          {
+            goalAttribute: "maxReps",
+            label: "Max Reps",
+          },
+        ],
+        nonRepeating: [],
+      };
+    case "Reps":
+      return {
+        repeating: [
+          {
+            goalAttribute: "weight",
+            label: "Weight",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [],
+      };
+    case "Reps with %":
+      return {
+        repeating: [
+          {
+            goalAttribute: "percent",
+            label: "Percent",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [
+          {
+            goalAttribute: "maxWeight",
+            label: "One Rep Max",
+          },
+        ],
+      };
+    case "Time":
+      return {
+        repeating: [
+          {
+            goalAttribute: "seconds",
+            label: "Seconds",
+          },
+        ],
+        nonRepeating: [],
+      };
+    default:
+      return <Typography color="text.primary">Type Error</Typography>;
+  }
+};
+
 export default function WorkoutHistory(props) {
   const { view = "client", clientId } = props;
   const [history, setHistory] = useState([]);
@@ -261,6 +330,18 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
                             </Grid>
 
                             <Grid container item xs={12} sm={6}>
+                            {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
+                                return (
+                                <Grid item xs={12}>
+                                  <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                    {field.label}: {exercise.achieved[field.goalAttribute]?.join(", ")}
+                                  </Typography>
+                                </Grid> )
+                              }
+                            )}
+                          </Grid>
+                          
+                            {/* <Grid container item xs={12} sm={6}>
                               <Grid item xs={12}>
                                 <Typography variant="caption" sx={{ marginLeft: "32px" }}>
                                   Reps: {exercise.achieved.reps.join(", ")}
@@ -272,7 +353,8 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
                                   Weight: {exercise.achieved.weight.join(", ")}
                                 </Typography>
                               </Grid>
-                            </Grid>
+                            </Grid> */}
+                            
                           </Fragment>
                         );
                       })}
