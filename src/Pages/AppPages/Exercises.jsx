@@ -159,10 +159,10 @@ export default function Exercises() {
                     <Avatar
                       key={u._id}
                       src={
-                        u.profilePicture && `${serverURL}/user/profilePicture/${u.profilePicture}`
+                        u?.profilePicture && `${serverURL}/user/profilePicture/${u?.profilePicture}`
                       }
                       sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-                      alt={`${u.firstName} ${u.lastName}`}
+                      alt={`${u?.firstName} ${u?.lastName}`}
                     />
                   ))}
               </AvatarGroup>
@@ -238,13 +238,13 @@ export default function Exercises() {
                     <Avatar
                       key={u._id}
                       src={
-                        u.profilePicture && `${serverURL}/user/profilePicture/${u.profilePicture}`
+                        u?.profilePicture && `${serverURL}/user/profilePicture/${u.profilePicture}`
                       }
                       sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-                      alt={`${u.firstName} ${u.lastName}`}
+                      alt={`${u?.firstName} ${u?.lastName}`}
                     >
-                      {u.firstName[0]}
-                      {u.lastName[0]}
+                      {u?.firstName[0]}
+                      {u?.lastName[0]}
                     </Avatar>
                   ))}
               </AvatarGroup>

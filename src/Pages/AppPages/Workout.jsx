@@ -298,14 +298,14 @@ export default function Workout(props) {
                   >
                     <Avatar
                       src={
-                        training.user.profilePicture &&
+                        training?.user?.profilePicture &&
                         `${serverURL}/user/profilePicture/${training.user.profilePicture}`
                       }
                       sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-                      alt={`${training.user.firstName[0]} ${training.user.lastName[0]}`}
+                      alt={`${training?.user.firstName[0]} ${training?.user.lastName[0]}`}
                     />
                     <Typography variant="h5">
-                      {training.user.firstName} {training.user.lastName}
+                      {training?.user.firstName} {training?.user.lastName}
                     </Typography>
                   </Grid>
                 )}
@@ -467,7 +467,7 @@ export function ModalAction(props) {
   const clients = useSelector((state) => state.clients);
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
-  const [newAccount, setNewAccount] = useState({ label: `${user.firstName} ${user.lastName}`, value: user._id });
+  const [newAccount, setNewAccount] = useState({ label: `${user?.firstName} ${user?.lastName}`, value: user?._id });
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
 
