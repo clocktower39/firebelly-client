@@ -30,6 +30,57 @@ const modalStyle = () => ({
   p: 4,
 });
 
+const exerciseTypeFields = (exerciseType) => {
+  switch (exerciseType) {
+    case "Reps":
+    case "Rep Range":
+      return {
+        repeating: [
+          {
+            goalAttribute: "weight",
+            label: "Weight",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [],
+      };
+    case "Reps with %":
+      return {
+        repeating: [
+          {
+            goalAttribute: "percent",
+            label: "Percent",
+          },
+          {
+            goalAttribute: "reps",
+            label: "Reps",
+          },
+        ],
+        nonRepeating: [
+          {
+            goalAttribute: "maxWeight",
+            label: "One Rep Max",
+          },
+        ],
+      };
+    case "Time":
+      return {
+        repeating: [
+          {
+            goalAttribute: "seconds",
+            label: "Seconds",
+          },
+        ],
+        nonRepeating: [],
+      };
+    default:
+      return <Typography color="text.primary">Type Error</Typography>;
+  }
+};
+
 export const ModalBarChartHistory = (props) => {
   const { targetExerciseHistory, open, handleClose } = props;
   return (
@@ -50,10 +101,8 @@ export const ModalBarChartHistory = (props) => {
 export const BarChartHistory = (props) => {
   const [size] = useOutletContext();
   const { targetExerciseHistory } = props;
-  let totalMaxWeight = 0;
-  let totalMaxReps = 0;
-  let exerciseTitle = "";
-  let exerciseIndex = 0;
+  let totalMaxValues = {};
+  let exerciseTitle = '';
   let exercise = [];
   let historyCount = targetExerciseHistory.length;
   let [range, setRange] = useState([
@@ -83,43 +132,41 @@ export const BarChartHistory = (props) => {
     setRange([historyCount > 5 ? historyCount - 6 : 0, historyCount]);
   }, [historyCount]);
 
-  if (targetExerciseHistory) {
+  if (targetExerciseHistory && targetExerciseHistory.length > 0) {
     exercise = targetExerciseHistory
       .filter((e, i) => i >= range[0] && i <= range[1])
       .map((e, i) => {
-        const reps = e.achieved.reps;
-        const weight = e.achieved.weight;
+        const exerciseFields = exerciseTypeFields(e.exerciseType);
+        const data = { date: e.date.substr(0, 10) };
 
-        const sortedReps = [...e.achieved.reps].sort((a, b) => a - b);
-        const sortedWeight = [...e.achieved.weight].sort((a, b) => a - b);
+        exerciseFields.repeating.forEach((field) => {
+          const fieldRange = `${field.goalAttribute}Range`;
+          data[fieldRange] = e.achieved[field.goalAttribute] || [];
 
-        let minReps = parseInt(sortedReps[0]);
-        let maxReps = parseInt(sortedReps[sortedReps.length - 1]);
-        let minWeight = parseInt(sortedWeight[0]);
-        let maxWeight = parseInt(sortedWeight[sortedWeight.length - 1]);
+          if (!totalMaxValues[fieldRange]) {
+            totalMaxValues[fieldRange] = 0;
+          }
+          const maxFieldValue = Math.max(...e.achieved[field.goalAttribute]);
+          if (totalMaxValues[fieldRange] < maxFieldValue) {
+            totalMaxValues[fieldRange] = maxFieldValue;
+          }
+        });
 
-        if (totalMaxWeight < maxWeight) {
-          totalMaxWeight = maxWeight;
-        }
-        if (totalMaxReps < maxReps) {
-          totalMaxReps = maxReps;
-        }
-        if (exerciseTitle === "") {
+        if (exerciseTitle === '') {
           exerciseTitle = e.exercise;
         }
 
-        let newE = {
-          date: e.date.substr(0, 10),
-          weightRange: [minWeight, maxWeight],
-          repRange: [minReps, maxReps],
-          weight,
-          reps,
-        };
-        return newE;
+        return data;
       });
-    exerciseIndex = exercise
+
+    // Determine which field to use for sorting
+    const firstRepeatingField = exerciseTypeFields(
+      targetExerciseHistory[0].exerciseType
+    ).repeating[0].goalAttribute;
+
+    let exerciseIndex = exercise
       .slice()
-      .sort((a, b) => a.reps.length < b.reps.length)[0];
+      .sort((a, b) => a[`${firstRepeatingField}Range`].length < b[`${firstRepeatingField}Range`].length)[0];
   }
 
   const RenderToolTip = ({ payload, unit, fill }) => {
@@ -138,7 +185,7 @@ export const BarChartHistory = (props) => {
         <Typography textAlign="center" sx={{ color: fill }}>
           {unit}
         </Typography>
-        {payload?.[0]?.payload[unit.toLowerCase()]?.map((u, i) => (
+        {payload?.[0]?.payload[`${unit.toLowerCase()}Range`]?.map((u, i) => (
           <Typography
             key={`${u}-${i}`}
             textAlign="center"
@@ -159,13 +206,13 @@ export const BarChartHistory = (props) => {
       <Typography
         variant="h4"
         color="primary.contrastText"
-        sx={{ textAlign: "center" }}
+        sx={{ textAlign: 'center' }}
       >
         {exerciseTitle}
       </Typography>
-      <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+      <Grid container item xs={12} sx={{ justifyContent: 'center' }}>
         <Slider
-          getAriaLabel={() => "Temperature range"}
+          getAriaLabel={() => 'Temperature range'}
           value={range}
           onChange={handleRangeChange}
           valueLabelDisplay="off"
@@ -173,60 +220,78 @@ export const BarChartHistory = (props) => {
           disableSwap
         />
       </Grid>
-      <BarChart width={size * 0.85} height={size * 0.3} data={exercise}>
-        {exerciseIndex?.weight?.map((w, i) => (
-          <Bar
-            key={`bar-weight-${exerciseIndex}-${i}`}
-            dataKey={`weight[${i}]`}
-            fill={theme().palette.secondary.main}
-          />
-        ))}
-        <XAxis dataKey="date" />
-        <YAxis
-          domain={[0, totalMaxWeight]}
-          label={{
-            value: "Weight",
-            angle: -90,
-            position: "insideLeft",
-            fill: theme().palette.secondary.main,
-          }}
-        />
-        <Tooltip
-          content={<RenderToolTip />}
-          unit={"Weight"}
-          fill={theme().palette.secondary.main}
-          cursor={false}
-        />
-      </BarChart>
-
-      <BarChart width={size * 0.85} height={size * 0.3} data={exercise}>
-        {exerciseIndex?.reps?.map((w, i) => (
-          <Bar
-            key={`bar-reps-${exerciseIndex}-${i}`}
-            dataKey={`reps[${i}]`}
-            fill={theme().palette.error.main}
-          />
-        ))}
-        <XAxis dataKey="date" />
-        <YAxis
-          domain={[0, totalMaxReps]}
-          label={{
-            value: "Reps",
-            angle: -90,
-            position: "insideLeft",
-            fill: theme().palette.error.main,
-          }}
-        />
-        <Tooltip
-          content={<RenderToolTip />}
-          unit={"Reps"}
-          fill={theme().palette.error.main}
-          cursor={false}
-        />
-      </BarChart>
+      {targetExerciseHistory.length > 0 &&
+        exerciseTypeFields(targetExerciseHistory[0].exerciseType).repeating.map(
+          (field, i) => (
+            <BarChart
+              key={`chart-${field.goalAttribute}`}
+              width={size * 0.85}
+              height={size * 0.3}
+              data={exercise}
+            >
+              {exercise.length > 0 &&
+                exercise[0][`${field.goalAttribute}Range`]?.map((_, index) => (
+                  <Bar
+                    key={`bar-${field.goalAttribute}-${index}`}
+                    dataKey={`${field.goalAttribute}Range[${index}]`}
+                    fill={i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main}
+                  />
+                ))}
+              <XAxis dataKey="date" />
+              <YAxis
+                domain={[0, totalMaxValues[`${field.goalAttribute}Range`]]}
+                label={{
+                  value: field.label,
+                  angle: -90,
+                  position: 'insideLeft',
+                  fill: i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main
+                }}
+              />
+              <Tooltip
+                content={<RenderToolTip label={field.label} />}
+                unit={field.label}
+                fill={i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main}
+                cursor={false}
+              />
+            </BarChart>
+          )
+        )}
+      {targetExerciseHistory.length > 0 &&
+        exerciseTypeFields(targetExerciseHistory[0].exerciseType).nonRepeating.map(
+          (field, i) => (
+            <BarChart
+              key={`chart-${field.goalAttribute}`}
+              width={size * 0.85}
+              height={size * 0.3}
+              data={exercise}
+            >
+              <Bar
+                key={`bar-${field.goalAttribute}-${i}`}
+                dataKey={`${field.goalAttribute}`}
+                fill={theme().palette.error.main}
+              />
+              <XAxis dataKey="date" />
+              <YAxis
+                domain={[0, totalMaxValues[`${field.goalAttribute}`]]}
+                label={{
+                  value: field.label,
+                  angle: -90,
+                  position: 'insideLeft',
+                  fill: theme().palette.error.main,
+                }}
+              />
+              <Tooltip
+                content={<RenderToolTip label={field.label} />}
+                fill={theme().palette.error.main}
+                cursor={false}
+              />
+            </BarChart>
+          )
+        )}
     </>
   );
 };
+
 
 const ExerciseListAutocomplete = (props) => {
   const { exerciseList, exercise } = props;
@@ -283,7 +348,7 @@ export default function Progress(props) {
     if(exerciseList.length < 1){
       dispatch(requestMyExerciseList());
     }
-    if (props.searchExercise) {
+    if (props.searchExercise && props.searchExercise !== "") {
       loadExerciseProgress(props.searchExercise);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
