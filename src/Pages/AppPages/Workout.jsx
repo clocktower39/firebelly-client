@@ -61,23 +61,6 @@ const classes = {
   TrainingCategoryInputContainer: {
     marginBottom: "20px",
   },
-  textFieldRoot: {
-    "& .MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']": {
-      // default paddingRight was 39px since clear icon was positioned absolute
-      paddingRight: "9px",
-
-      // Search icon
-      "& button": {
-        order: 3, // order 3 means the search icon will appear after the clear icon which has an order of 2
-      },
-
-      // Clear icon
-      "& .MuiAutocomplete-endAdornment": {
-        position: "relative", // default was absolute. we make it relative so that it is now within the flow of the other two elements
-        order: 2,
-      },
-    },
-  },
 };
 
 export default function Workout(props) {
@@ -382,7 +365,6 @@ export default function Workout(props) {
                           <TextField
                             {...params}
                             label="Muscle Groups"
-                            sx={classes.textFieldRoot}
                             InputProps={{
                               ...params.InputProps,
                               endAdornment: <>{params.InputProps.endAdornment}</>,
