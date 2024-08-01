@@ -482,6 +482,12 @@ export default function Exercise(props) {
     handleConfirmDialogClose();
   };
 
+  const matchWords = (option, inputValue) => {
+    if(!option) return false;
+    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
+    return words.every((word) => option.toLowerCase().includes(word));
+  };
+
   useEffect(() => {
     setHeightToggle((prev) => !prev);
   }, [editMode, setHeightToggle]);
@@ -504,6 +510,9 @@ export default function Exercise(props) {
                   .sort((a, b) => a > b)
                   .map((option) => option)}
                 onChange={(e, getTagProps) => setTitle(getTagProps.replace(/\s+/g, " ").trim())}
+                filterOptions={(options, { inputValue }) => 
+                  options.filter(option => matchWords(option, inputValue))
+                }
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip variant="outlined" label={option} {...getTagProps({ index })} />

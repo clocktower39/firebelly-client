@@ -296,6 +296,13 @@ export const BarChartHistory = (props) => {
 const ExerciseListAutocomplete = (props) => {
   const { exerciseList, exercise } = props;
   const [title, setTitle] = useState(exercise.exercise || "");
+
+  const matchWords = (option, inputValue) => {
+    if(!option) return false;
+    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
+    return words.every((word) => option.toLowerCase().includes(word));
+  };
+
   useEffect(() => {
     exercise.set(title);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -313,6 +320,9 @@ const ExerciseListAutocomplete = (props) => {
         .sort((a, b) => a > b)
         .map((option) => option)}
       onChange={(e, getTagProps) => setTitle(getTagProps)}
+      filterOptions={(options, { inputValue }) => 
+        options.filter(option => matchWords(option, inputValue))
+      }
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip variant="outlined" label={option} {...getTagProps({ index })} />

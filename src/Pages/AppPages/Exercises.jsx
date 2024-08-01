@@ -61,10 +61,12 @@ export default function Exercises() {
   const handleSubmit = async () => {
     if (selectedExercise?.exercise && editName !== "") {
       setConfirmDialogLoading(true);
-      const trainingIdList = selectedExercise.dates.map(date => date.trainingId);      
+      const trainingIdList = selectedExercise.dates.map((date) => date.trainingId);
 
       try {
-        await dispatch(updateMasterExerciseName(selectedExercise.exercise, editName, trainingIdList));
+        await dispatch(
+          updateMasterExerciseName(selectedExercise.exercise, editName, trainingIdList)
+        );
 
         // Update selectedExercise.exercise to editName
         // if new exercise title already exists in the list, spread the ...dates, merge the users, add to the count
@@ -110,6 +112,12 @@ export default function Exercises() {
     }
   };
 
+  const matchWords = (option, inputValue) => {
+    if(!option.exercise) return false;
+    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
+    return words.every((word) => option.exercise.toLowerCase().includes(word));
+  };
+
   useEffect(() => {
     fetch(`${serverURL}/exerciseList`, {
       headers: {
@@ -135,6 +143,9 @@ export default function Exercises() {
             setSelectedExercise(newValue);
             setEditName(newValue);
           }}
+          filterOptions={(options, { inputValue }) => 
+            options.filter(option => matchWords(option, inputValue))
+          }
           renderOption={(props, option) => (
             <Box component="li" {...props}>
               <Typography variant="body1">{option.exercise}</Typography>
@@ -191,12 +202,20 @@ export default function Exercises() {
                 freeSolo
                 value={editName}
                 defaultValue={editName}
-                options={exerciseList.map((option) => option.exercise)}
-                getOptionLabel={(option) => (typeof option === "string" ? option : option.exercise)}
+                options={exerciseList}
+                getOptionLabel={(option) => (option.exercise)}
                 onChange={(e, getTagProps) => setEditName(getTagProps)}
+                filterOptions={(options, { inputValue }) => 
+                  options.filter(option => matchWords(option, inputValue))
+                }
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
-                    <Chip key={index} variant="outlined" label={option} {...getTagProps({ index })} />
+                    <Chip
+                      key={index}
+                      variant="outlined"
+                      label={option}
+                      {...getTagProps({ index })}
+                    />
                   ))
                 }
                 renderInput={(params) => (
@@ -262,9 +281,11 @@ export default function Exercises() {
                 <AccordionDetails>
                   <List>
                     {selectedExercise.dates.map((date, index) => (
-                      <ListItem key={index} dense >
+                      <ListItem key={index} dense>
                         <ListItemText
-                          primary={`Date: ${new Date(date.date).toLocaleDateString()}, Training Id: ${date.trainingId}, User: ${
+                          primary={`Date: ${new Date(
+                            date.date
+                          ).toLocaleDateString()}, Training Id: ${date.trainingId}, User: ${
                             date.user.firstName
                           } ${date.user.lastName}`}
                         />
