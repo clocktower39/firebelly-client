@@ -46,41 +46,41 @@ export default function Exercises() {
   const dispatch = useDispatch();
   const [exerciseList, setExerciseList] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
-  const [editName, setEditName] = useState("");
+  const [editName, setEditName] = useState({exercise: '',});
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmDialogLoading, setConfirmDialogLoading] = useState(false);
 
   const handleConfirmDialogOpen = () => {
     // open dialog and then confirm save before fetch
-    if (selectedExercise !== "" && editName !== "") {
+    if (selectedExercise.exercise !== "" && editName.exercise !== "") {
       setConfirmDialogOpen((prev) => true);
     }
   };
   const handleConfirmDialogClose = () => setConfirmDialogOpen((prev) => false);
 
   const handleSubmit = async () => {
-    if (selectedExercise?.exercise && editName !== "") {
+    if (selectedExercise?.exercise && editName.exercise !== "") {
       setConfirmDialogLoading(true);
       const trainingIdList = selectedExercise.dates.map((date) => date.trainingId);
 
       try {
         await dispatch(
-          updateMasterExerciseName(selectedExercise.exercise, editName, trainingIdList)
+          updateMasterExerciseName(selectedExercise.exercise, editName.exercise, trainingIdList)
         );
 
         // Update selectedExercise.exercise to editName
         // if new exercise title already exists in the list, spread the ...dates, merge the users, add to the count
         // if new exercise title does not exist, only rename the exercise
         setExerciseList((prev) => {
-          const doesExerciseExist = prev.some((e) => e.exercise === editName);
+          const doesExerciseExist = prev.some((e) => e.exercise === editName.exercise);
 
           const updatedList = prev.map((e) => {
             if (!doesExerciseExist) {
               if (e === selectedExercise) {
-                return { ...e, exercise: editName }; // Return a new object with updated exercise name
+                return { ...e, exercise: editName.exercise }; // Return a new object with updated exercise name
               }
             } else {
-              if (e.exercise === editName) {
+              if (e.exercise === editName.exercise) {
                 return {
                   ...e,
                   dates: [...e.dates, ...selectedExercise.dates],
@@ -106,7 +106,7 @@ export default function Exercises() {
       } finally {
         setConfirmDialogLoading(false); // Ensure this runs after the dispatch completes
         setSelectedExercise(null);
-        setEditName("");
+        setEditName({exercise: '',});
         handleConfirmDialogClose();
       }
     }
@@ -200,11 +200,13 @@ export default function Exercises() {
                 disableCloseOnSelect
                 fullWidth
                 freeSolo
-                value={editName}
-                defaultValue={editName}
+                value={editName.exercise}
+                defaultValue={editName.exercise}
                 options={exerciseList}
-                getOptionLabel={(option) => (option.exercise)}
-                onChange={(e, getTagProps) => setEditName(getTagProps)}
+                getOptionLabel={(option) => (typeof option === 'string' ? option : option.exercise)}
+                onChange={(e, getTagProps) => {
+                  setEditName(typeof getTagProps === 'string' ? {exercise: getTagProps} : getTagProps)}
+                }
                 filterOptions={(options, { inputValue }) => 
                   options.filter(option => matchWords(option, inputValue))
                 }
@@ -325,7 +327,7 @@ export default function Exercises() {
               </Grid>
               <Grid item container xs={12}>
                 <Typography variant="body2" sx={{ color: "red" }}>
-                  {editName}
+                  {editName?.exercise}
                 </Typography>
               </Grid>
               <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
