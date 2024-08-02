@@ -26,7 +26,6 @@ import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
-import Tool from "./Components/AccountComponents/Tool";
 import Trainers from "./Components/AccountComponents/Trainers";
 import ChangePassword from "./Components/AccountComponents/ChangePassword";
 import LogoutConfirmation from "./Components/AccountComponents/LogoutConfirmation";
@@ -159,7 +158,6 @@ function App({ socket }) {
                     <Route index={true} exact path="theme" element={<ThemeSettings />} />
                     <Route index={true} exact path="trainers" element={<Trainers socket={socket} />} />
                     <Route index={true} exact path="password" element={<ChangePassword />} />
-                    <Route index={true} exact path="exerciseTitleMergeTool" element={<Tool />} />
                     <Route index={true} exact path="logout" element={<LogoutConfirmation />} />
                   </Route>
                 </Route>
