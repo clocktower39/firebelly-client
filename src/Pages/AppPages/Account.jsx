@@ -33,14 +33,6 @@ export default function Account() {
         <ListItem button component={Link} to="/account/password">
           <ListItemText primary="Change Password" sx={{ color: "white" }} />
         </ListItem>
-        {user.isTrainer && (
-          <>
-            <Divider />
-            <ListItem button component={Link} to="/account/exerciseTitleMergeTool">
-              <ListItemText primary="Exercise Title Merge Tool" sx={{ color: "white" }} />
-            </ListItem>
-          </>
-        )}
         <Divider />
         <ListItem button component={Link} to="/account/logout">
           <ListItemText primary="Logout" sx={{ color: "white" }} />
