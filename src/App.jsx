@@ -12,7 +12,6 @@ import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
-import Dashboard from "./Pages/AppPages/Dashboard";
 import Tasks from "./Pages/AppPages/Tasks";
 import History from "./Pages/AppPages/History";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
@@ -82,12 +81,6 @@ function App({ socket }) {
               <Route exact path="/" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
                   <Route exact path="" element={<Home />} />
-                </Route>
-              </Route>
-              
-              <Route exact path="/dashboard" element={<AuthRoute />}>
-                <Route element={<ActivityTrackerContainer />} >
-                  <Route exact path="" element={<Dashboard />} />
                 </Route>
               </Route>
 

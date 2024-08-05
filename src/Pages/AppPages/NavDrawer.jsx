@@ -85,11 +85,6 @@ export default function NavDrawer() {
       icon: <DashboardIcon />,
     },
     {
-      title: "Dashboard",
-      to: "/dashboard",
-      icon: <DashboardIcon />,
-    },
-    {
       title: "Daily Tasks",
       to: "/tasks",
       icon: <TasksIcon />,
