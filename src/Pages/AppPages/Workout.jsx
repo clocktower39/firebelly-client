@@ -81,7 +81,7 @@ export default function Workout(props) {
   const [trainingCategory, setTrainingCategory] = useState([]);
   const [trainingTitle, setTrainingTitle] = useState("");
   const [loading, setLoading] = useState(true);
-  
+
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
@@ -225,7 +225,7 @@ export default function Workout(props) {
   };
 
   useEffect(() => {
-    if(exerciseList.length < 1){
+    if (exerciseList.length < 1) {
       dispatch(requestMyExerciseList());
     }
   }, [dispatch]);
@@ -449,7 +449,10 @@ export function ModalAction(props) {
   const clients = useSelector((state) => state.clients);
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
-  const [newAccount, setNewAccount] = useState({ label: `${user?.firstName} ${user?.lastName}`, value: user?._id });
+  const [newAccount, setNewAccount] = useState({
+    label: `${user?.firstName} ${user?.lastName}`,
+    value: user?._id,
+  });
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
 
@@ -480,7 +483,9 @@ export function ModalAction(props) {
   };
 
   const handleCopy = () => {
-    dispatch(copyWorkoutById(training._id, newDate, copyOption.value, newTitle, newAccount?.value)).then(() => {
+    dispatch(
+      copyWorkoutById(training._id, newDate, copyOption.value, newTitle, newAccount?.value)
+    ).then(() => {
       setActionError(false);
       handleModalToggle();
       setSelectedDate
@@ -662,12 +667,24 @@ export function ModalAction(props) {
         <>
           <Grid container>
             <Grid container>
-              <Typography color="text.primary">
-                Are you sure you would like the delete the training from{" "}
-                {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
-              </Typography>
+              <Grid item container>
+                <Typography color="text.primary">
+                  Are you sure you would like to delete the following training:
+                </Typography>
+              </Grid>
+              <Grid item container justifyContent="center" >
+                <Typography color="text.primary">{training?.title}</Typography>
+              </Grid>
+              <Grid item container justifyContent="center" >
+                <Typography color="text.primary">
+                  {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
+                </Typography>
+              </Grid>
+              <Grid item container justifyContent="center" >
+                <Typography color="text.primary">{training.category.join(", ")}</Typography>
+              </Grid>
             </Grid>
-            <Grid container sx={{ justifyContent: "center" }}>
+            <Grid item container justifyContent="center" >
               <Button variant="contained" onClick={handleDelete}>
                 Confrim
               </Button>
@@ -681,7 +698,7 @@ export function ModalAction(props) {
           <Grid container>
             <Grid container>
               <Typography color="text.primary">
-                Are you sure you would like the autofill this workout?
+                Are you sure you would like to autofill this workout?
               </Typography>
               <Typography color="text.primary" variant="caption">
                 This will copy all goals to achieved, overwriting any previous achieved data

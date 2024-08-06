@@ -156,7 +156,7 @@ export default function Goals({ view = "client", clientId, }) {
           <DialogContent>
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
               <Grid item container xs={12}>
-                <Typography variant="body1" >Are you sure you would like the permanently delete this goal?</Typography>
+                <Typography variant="body1" >Are you sure you would like to permanently delete this goal?</Typography>
               </Grid>
               <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
                 <Grid item>
