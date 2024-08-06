@@ -24,7 +24,7 @@ import {
 } from "@mui/icons-material";
 import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
 
-export default function Goals({ view = "client", clientId, }) {
+export default function Goals({ view = "client", client, }) {
   const dispatch = useDispatch();
   const goals = useSelector((state) => state.goals);
 
@@ -50,7 +50,7 @@ export default function Goals({ view = "client", clientId, }) {
   }, [goals]);
 
   useEffect(() => {
-    dispatch(getGoals({ requestedBy: view, client: clientId }));
+    dispatch(getGoals({ requestedBy: view, client: client._id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

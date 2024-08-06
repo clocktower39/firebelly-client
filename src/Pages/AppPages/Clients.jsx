@@ -35,7 +35,7 @@ export default function Clients() {
   const [selectedClient, setSelectedClient] = useState("");
 
   const handleOpenHistory = (client) => {
-    setSelectedClient(client._id);
+    setSelectedClient(client);
     setOpenHistory(true);
   };
 
@@ -45,7 +45,7 @@ export default function Clients() {
   };
 
   const handleOpenGoals = (client) => {
-    setSelectedClient(client._id);
+    setSelectedClient(client);
     setOpenGoals(true);
   };
 
@@ -237,14 +237,14 @@ export default function Clients() {
         onClose={handleCloseHistory}
         sx={{ "& .MuiDialog-paper": { padding: "5px", width: "100%", minHeight: "80%" } }}
       >
-        <History view="trainer" clientId={selectedClient} />{" "}
+        <History view="trainer" client={selectedClient} />{" "}
       </Dialog>
       <Dialog
         open={openGoals}
         onClose={handleCloseGoals}
         sx={{ "& .MuiDialog-paper": { padding: "5px", width: "100%", minHeight: "80%" } }}
       >
-        <Goals view="trainer" clientId={selectedClient} />{" "}
+        <Goals view="trainer" client={selectedClient} />{" "}
       </Dialog>
     </>
   ) : (

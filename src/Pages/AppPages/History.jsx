@@ -4,6 +4,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Avatar,
   Badge,
   Box,
   Button,
@@ -21,7 +22,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
-
 
 const exerciseTypeFields = (exerciseType) => {
   switch (exerciseType) {
@@ -92,7 +92,7 @@ const exerciseTypeFields = (exerciseType) => {
 };
 
 export default function WorkoutHistory(props) {
-  const { view = "client", clientId } = props;
+  const { view = "client", client } = props;
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedDays, setHighlightedDays] = useState([1, 2, 2, 3, 3, 3, 30]);
@@ -108,7 +108,7 @@ export default function WorkoutHistory(props) {
 
       const payload = JSON.stringify({
         date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
-        client: clientId,
+        client,
       });
 
       const response = await fetch(`${serverURL}/${endpoint}`, {
@@ -159,14 +159,28 @@ export default function WorkoutHistory(props) {
   };
 
   const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
-  
+
   const handleDateCalanderChange = (e) => {
-    const newDate = e.utc(e)
+    const newDate = e.utc(e);
     setScrollToDate(newDate.format("YYYY-MM-DD"));
     setSelectedDate(newDate);
   };
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
+      {view === "trainer" && (
+        <Grid container item xs={12} sx={{ justifyContent: "center", padding: '15px 0' }}>
+          <Avatar
+            src={
+              client?.profilePicture && `${serverURL}/user/profilePicture/${client.profilePicture}`
+            }
+            sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
+            alt={`${client?.firstName?.[0]} ${client?.lastName?.[0]}`}
+          />
+          <Typography variant="h5">
+            {client?.firstName} {client?.lastName}
+          </Typography>
+        </Grid>
+      )}
       <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
         {/* DateCalendar takes 20% of the available height */}
         <Box sx={{ flex: "0 0 20%" }}>
@@ -195,7 +209,7 @@ export default function WorkoutHistory(props) {
             history={history}
             scrollToDate={scrollToDate}
             view={view}
-            clientId={clientId}
+            client={client}
           />
         </Box>
       </Box>
@@ -219,7 +233,7 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate, view, clientId }) => {
+const Workouts = ({ currentMonth, history, scrollToDate, view, client }) => {
   return (
     <List>
       {history
@@ -232,7 +246,7 @@ const Workouts = ({ currentMonth, history, scrollToDate, view, clientId }) => {
                 workout={workout}
                 scrollToDate={scrollToDate}
                 view={view}
-                clientId={clientId}
+                client={client}
               />
             );
           }
@@ -242,7 +256,7 @@ const Workouts = ({ currentMonth, history, scrollToDate, view, clientId }) => {
   );
 };
 
-const Workout = ({ workout, scrollToDate, view, clientId }) => {
+const Workout = ({ workout, scrollToDate, view, client }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id; // Update this line based on your actual workout ID retrieval logic
   const to = `/workout/${workoutId}`;
@@ -303,7 +317,8 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
 
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ ml: 2 }}>
-                    Muscle Group{workout?.category?.length > 1 && 's'}: {workout?.category?.join(", ")}
+                    Muscle Group{workout?.category?.length > 1 && "s"}:{" "}
+                    {workout?.category?.join(", ")}
                   </Typography>
                 </Grid>
               </Grid>
@@ -330,31 +345,17 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
                             </Grid>
 
                             <Grid container item xs={12} sm={6}>
-                            {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
+                              {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
                                 return (
-                                <Grid item xs={12}>
-                                  <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                    {field.label}: {exercise.achieved[field.goalAttribute]?.join(", ")}
-                                  </Typography>
-                                </Grid> )
-                              }
-                            )}
-                          </Grid>
-                          
-                            {/* <Grid container item xs={12} sm={6}>
-                              <Grid item xs={12}>
-                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                  Reps: {exercise.achieved.reps.join(", ")}
-                                </Typography>
-                              </Grid>
-
-                              <Grid item xs={12}>
-                                <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                  Weight: {exercise.achieved.weight.join(", ")}
-                                </Typography>
-                              </Grid>
-                            </Grid> */}
-                            
+                                  <Grid item xs={12}>
+                                    <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                                      {field.label}:{" "}
+                                      {exercise.achieved[field.goalAttribute]?.join(", ")}
+                                    </Typography>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
                           </Fragment>
                         );
                       })}
@@ -362,7 +363,7 @@ const Workout = ({ workout, scrollToDate, view, clientId }) => {
                   );
                 })}
               </Grid>
-              <Grid container item xs={12} sx={{ justifyContent: 'center', alignItems: 'center',  }}>
+              <Grid container item xs={12} sx={{ justifyContent: "center", alignItems: "center" }}>
                 <Button variant="outlined" component={Link} to={to}>
                   Open
                 </Button>
