@@ -741,11 +741,16 @@ export function requestTrainingWeek(startDate, endDate) {
 }
 
 // Fetches entire exercise list for the user
-export function requestMyExerciseList() {
+export function requestMyExerciseList(user) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/myExerciseList`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        user,
+      }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -761,7 +766,7 @@ export function requestMyExerciseList() {
 }
 
 // Fetches entire history of a specific exercise
-export function requestExerciseProgess(targetExercise) {
+export function requestExerciseProgress(targetExercise, user) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -770,6 +775,7 @@ export function requestExerciseProgess(targetExercise) {
       dataType: "json",
       body: JSON.stringify({
         targetExercise,
+        user,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

@@ -24,7 +24,7 @@ import {
   MoreVertSharp,
 } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestExerciseProgess, serverURL } from "../../Redux/actions";
+import { requestExerciseProgress, serverURL } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
 import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
@@ -210,6 +210,7 @@ export const NotesDialog = (props) => {
 
 export default function Exercise(props) {
   const {
+    workoutUser,
     exercise,
     setLocalTraining,
     exerciseIndex,
@@ -228,7 +229,7 @@ export default function Exercise(props) {
   const handleClose = () => setOpen(false);
   const handleModalToggle = () => setOpen((prev) => !prev);
   const handleModalExercise = () => {
-    dispatch(requestExerciseProgess(title)).then(() => handleModalToggle());
+    dispatch(requestExerciseProgress(title, workoutUser)).then(() => handleModalToggle());
   };
   const [anchorEl, setAnchorEl] = useState(null);
   const exerciseOptionsOpen = Boolean(anchorEl);

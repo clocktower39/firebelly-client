@@ -22,6 +22,7 @@ import Exercise from "./Exercise";
 
 function SwipeableSet(props) {
   const {
+    workoutUser,
     localTraining,
     newSet,
     removeSet,
@@ -140,6 +141,7 @@ function SwipeableSet(props) {
                 group.map((exercise, exerciseIndex) => (
                   <Exercise
                     key={`exercise-${exercise._id}-${exerciseIndex}`}
+                    workoutUser={workoutUser}
                     exercise={exercise}
                     setIndex={index}
                     exerciseIndex={exerciseIndex}

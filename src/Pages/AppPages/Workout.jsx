@@ -225,8 +225,8 @@ export default function Workout(props) {
   };
 
   useEffect(() => {
-    if (exerciseList.length < 1) {
-      dispatch(requestMyExerciseList());
+    if (training.user) {
+      dispatch(requestMyExerciseList(training.user));
     }
   }, [dispatch]);
 
@@ -380,6 +380,7 @@ export default function Workout(props) {
                 </Grid>
                 {training.training.length > 0 && (
                   <SwipeableSet
+                    workoutUser={training.user}
                     newExercise={newExercise}
                     newSet={newSet}
                     removeSet={removeSet}

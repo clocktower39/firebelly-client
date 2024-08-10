@@ -13,7 +13,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import {
   requestMyExerciseList,
-  requestExerciseProgess,
+  requestExerciseProgress,
 } from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { theme } from "../../theme";
@@ -338,13 +338,14 @@ const ExerciseListAutocomplete = (props) => {
 export default function Progress(props) {
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
+  const user = useSelector((state) => state.user);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
   const targetExerciseHistory = useSelector(
     (state) => state.progress.targetExerciseHistory
   );
 
   const loadExerciseProgress = (exercise) => {
-    dispatch(requestExerciseProgess(exercise));
+    dispatch(requestExerciseProgress(exercise, user));
   };
 
   useEffect(() => {
@@ -356,7 +357,7 @@ export default function Progress(props) {
 
   useEffect(() => {
     if(exerciseList.length < 1){
-      dispatch(requestMyExerciseList());
+      dispatch(requestMyExerciseList(user));
     }
     if (props.searchExercise && props.searchExercise !== "") {
       loadExerciseProgress(props.searchExercise);
