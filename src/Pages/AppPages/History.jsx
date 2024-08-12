@@ -98,6 +98,7 @@ export default function WorkoutHistory(props) {
   const [highlightedDays, setHighlightedDays] = useState([1, 2, 2, 3, 3, 3, 30]);
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [expandedWorkout, setExpandedWorkout] = useState(null); // State for managing which accordion is expanded
 
   const getWorkoutMonthData = (e) => {
     setIsLoading(true);
@@ -158,17 +159,16 @@ export default function WorkoutHistory(props) {
     });
   };
 
-  const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
-
   const handleDateCalanderChange = (e) => {
     const newDate = e.utc(e);
-    setScrollToDate(newDate.format("YYYY-MM-DD"));
     setSelectedDate(newDate);
+    setExpandedWorkout(null); // Collapse all accordions first
   };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       {view === "trainer" && (
-        <Grid container item xs={12} sx={{ justifyContent: "center", padding: '15px 0' }}>
+        <Grid container item xs={12} sx={{ justifyContent: "center", padding: "15px 0" }}>
           <Avatar
             src={
               client?.profilePicture && `${serverURL}/user/profilePicture/${client.profilePicture}`
@@ -207,7 +207,9 @@ export default function WorkoutHistory(props) {
           <Workouts
             currentMonth={currentMonth}
             history={history}
-            scrollToDate={scrollToDate}
+            scrollToDate={selectedDate.format("YYYY-MM-DD")}
+            expandedWorkout={expandedWorkout} // Pass down the expanded state
+            setExpandedWorkout={setExpandedWorkout} // Pass down the function to set the expanded workout
             view={view}
             client={client}
           />
@@ -233,7 +235,7 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate, view, client }) => {
+const Workouts = ({ currentMonth, history, scrollToDate, expandedWorkout, setExpandedWorkout }) => {
   return (
     <List>
       {history
@@ -245,8 +247,8 @@ const Workouts = ({ currentMonth, history, scrollToDate, view, client }) => {
                 key={workout._id}
                 workout={workout}
                 scrollToDate={scrollToDate}
-                view={view}
-                client={client}
+                expandedWorkout={expandedWorkout}
+                setExpandedWorkout={setExpandedWorkout}
               />
             );
           }
@@ -256,65 +258,77 @@ const Workouts = ({ currentMonth, history, scrollToDate, view, client }) => {
   );
 };
 
-const Workout = ({ workout, scrollToDate, view, client }) => {
+const Workout = ({ workout, scrollToDate, expandedWorkout, setExpandedWorkout }) => {
   const workoutRef = useRef(null);
-  const workoutId = workout._id; // Update this line based on your actual workout ID retrieval logic
+  const workoutId = workout._id;
   const to = `/workout/${workoutId}`;
   const theme = useTheme();
+  const isSelected = dayjs(workout.date).utc().format("YYYY-MM-DD") === scrollToDate;
 
-  // State to track if the workout date matches scrollToDate
-  const [isDateSelected, setIsDateSelected] = useState(false);
+  const handleScroll = () => {
+    const scrollContainer = workoutRef.current.parentElement.parentElement;
+    const elementTop = workoutRef.current.offsetTop;
+    const elementHeight = workoutRef.current.offsetHeight;
+    const containerHeight = scrollContainer.clientHeight;
 
-  const handleScroll = (ref) => {
-    const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
-    const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
+    let scrollPosition = elementTop - (containerHeight / 2) + (elementHeight / 2);
 
-    if (testDate === scrollDate) {
-      ref.current.parentElement.parentElement.scrollTo({
-        top: ref.current.offsetTop,
-        left: 0,
-        behavior: "smooth",
-      });
-      setIsDateSelected(true); // Set true when dates match
-    } else {
-      setIsDateSelected(false); // Set false otherwise
+    if (scrollPosition < 0) {
+      scrollPosition = 0;
+    } else if (scrollPosition > scrollContainer.scrollHeight - containerHeight) {
+      scrollPosition = scrollContainer.scrollHeight - containerHeight;
     }
+
+    scrollContainer.scrollTo({
+      top: scrollPosition,
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
-    // When scrollToDate changes, call handleScroll to scroll to the workout
-    if (scrollToDate) {
-      handleScroll(workoutRef);
+    if (isSelected) {
+      setExpandedWorkout(workoutId); // Expand this workout
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
+
+  useEffect(() => {
+    if (expandedWorkout === workoutId) {
+      const handleTransitionEnd = () => {
+        handleScroll(); // Scroll after the transition ends
+      };
+
+      const element = workoutRef.current;
+      element.addEventListener('transitionend', handleTransitionEnd);
+
+      return () => {
+        element.removeEventListener('transitionend', handleTransitionEnd);
+      };
+    }
+  }, [expandedWorkout]);
 
   return (
     <ListItem sx={{ justifyContent: "center" }} ref={workoutRef}>
       <Box
         sx={{
-          border: isDateSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
+          border: isSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
           borderRadius: "5px",
           padding: "2.5px",
           width: "100%",
         }}
       >
-        <Accordion sx={{}}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="workout-content"
-            id="workout-header"
-          >
+        <Accordion
+          expanded={expandedWorkout === workoutId}
+          onChange={() => setExpandedWorkout(expandedWorkout === workoutId ? null : workoutId)}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Grid container>
               <Grid item xs={12}>
                 <Typography variant="h6">{workout?.title}</Typography>
               </Grid>
-
               <Grid item xs={12}>
                 <Typography variant="caption" sx={{ ml: 2 }}>
                   {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
                 </Typography>
-
                 <Grid item xs={12}>
                   <Typography variant="caption" sx={{ ml: 2 }}>
                     Muscle Group{workout?.category?.length > 1 && "s"}:{" "}
@@ -326,43 +340,31 @@ const Workout = ({ workout, scrollToDate, view, client }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              {/* Workout details here */}
-              <Grid item xs={12}>
-                {/* You can iterate over workout data here to display more details */}
-                {workout.training.map((workoutSet, workoutSetIndex, allWorkoutSetsArray) => {
-                  return (
-                    <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
-                      <Grid item xs={12} sx={{ marginLeft: "8px" }}>
-                        <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
+              {workout.training.map((workoutSet, workoutSetIndex) => (
+                <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
+                  <Grid item xs={12} sx={{ marginLeft: "8px" }}>
+                    <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
+                  </Grid>
+                  {workoutSet.map((exercise, exerciseIndex) => (
+                    <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant="caption" sx={{ marginLeft: "16px" }}>
+                          {exercise.exercise}
+                        </Typography>
                       </Grid>
-                      {workoutSet.map((exercise, exerciseIndex, workoutSetArray) => {
-                        return (
-                          <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
-                            <Grid item xs={12} sm={6}>
-                              <Typography variant="caption" sx={{ marginLeft: "16px" }}>
-                                {exercise.exercise}
-                              </Typography>
-                            </Grid>
-
-                            <Grid container item xs={12} sm={6}>
-                              {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
-                                return (
-                                  <Grid item xs={12}>
-                                    <Typography variant="caption" sx={{ marginLeft: "32px" }}>
-                                      {field.label}:{" "}
-                                      {exercise.achieved[field.goalAttribute]?.join(", ")}
-                                    </Typography>
-                                  </Grid>
-                                );
-                              })}
-                            </Grid>
-                          </Fragment>
-                        );
-                      })}
-                    </Grid>
-                  );
-                })}
-              </Grid>
+                      <Grid container item xs={12} sm={6}>
+                        {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => (
+                          <Grid item xs={12} key={field.goalAttribute}>
+                            <Typography variant="caption" sx={{ marginLeft: "32px" }}>
+                              {field.label}: {exercise.achieved[field.goalAttribute]?.join(", ")}
+                            </Typography>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Fragment>
+                  ))}
+                </Grid>
+              ))}
               <Grid container item xs={12} sx={{ justifyContent: "center", alignItems: "center" }}>
                 <Button variant="outlined" component={Link} to={to}>
                   Open
