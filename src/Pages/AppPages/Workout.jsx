@@ -451,7 +451,7 @@ export function ModalAction(props) {
   const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
   const [copyOption, setCopyOption] = useState(null);
   const [newAccount, setNewAccount] = useState({
-    label: `${training?.user?.firstName} ${training?.user?.lastName}`,
+    label: `${training?.user?.lastName}, ${training?.user?.firstName}`,
     value: training?.user?._id,
   });
   const [actionError, setActionError] = useState(false);
@@ -591,13 +591,14 @@ export function ModalAction(props) {
         { label: "Copy achieved as the new goal", value: "achievedToNewGoal" },
         { label: "Copy goal only", value: "copyGoalOnly" },
       ];
+      
       let accountOptions = clients.map((client) => ({
-        label: `${client.client.firstName} ${client.client.lastName}`,
+        label: `${client.client.lastName}, ${client.client.firstName}`,
         value: client.client._id,
       }));
 
       accountOptions.unshift({
-        label: `${user.firstName} ${user.lastName}`,
+        label: `${user.lastName}, ${user.firstName}`,
         value: user._id,
       });
 
@@ -617,7 +618,7 @@ export function ModalAction(props) {
             <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
               <Autocomplete
                 disablePortal
-                options={accountOptions}
+                options={accountOptions.sort((a,b) => a.label > b.label)}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
                 renderInput={(params) => <TextField {...params} label="Copy to account" />}
                 sx={{ width: "100%" }}
