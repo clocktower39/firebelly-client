@@ -303,7 +303,7 @@ export default function Workout(props) {
                             : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`;
                         // Navigate after saving
                         save();
-                        navigate(link);
+                        navigate(isPersonalWorkout() ? link : "/clients");
                       }}
                     >
                       <ArrowBack />
@@ -444,6 +444,7 @@ export function ModalAction(props) {
     setSelectedDate,
     setLocalTraining,
   } = props;
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
@@ -456,6 +457,11 @@ export function ModalAction(props) {
   });
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
+  
+  const isPersonalWorkout = useCallback(
+    () => user._id.toString() === training?.user?._id?.toString(),
+    [user._id, training?.user?._id]
+  );
 
   const handleTitleChange = (e) => setNewTitle(e.target.value);
 
@@ -489,7 +495,9 @@ export function ModalAction(props) {
     ).then(() => {
       setActionError(false);
       handleModalToggle();
-      setSelectedDate
+      !isPersonalWorkout()
+        ? navigate("/clients")
+        : setSelectedDate
         ? setSelectedDate(dayjs.utc(newDate).format("YYYY-MM-DD"))
         : dayjs.utc(newDate).format("YYYY-MM-DD") === dayjs(new Date()).format("YYYY-MM-DD")
         ? navigate("/")
@@ -591,7 +599,7 @@ export function ModalAction(props) {
         { label: "Copy achieved as the new goal", value: "achievedToNewGoal" },
         { label: "Copy goal only", value: "copyGoalOnly" },
       ];
-      
+
       let accountOptions = clients.map((client) => ({
         label: `${client.client.lastName}, ${client.client.firstName}`,
         value: client.client._id,
@@ -618,7 +626,7 @@ export function ModalAction(props) {
             <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
               <Autocomplete
                 disablePortal
-                options={accountOptions.sort((a,b) => a.label > b.label)}
+                options={accountOptions.sort((a, b) => a.label > b.label)}
                 isOptionEqualToValue={(option, value) => option.value === value.value}
                 renderInput={(params) => <TextField {...params} label="Copy to account" />}
                 sx={{ width: "100%" }}
@@ -674,19 +682,19 @@ export function ModalAction(props) {
                   Are you sure you would like to delete the following training:
                 </Typography>
               </Grid>
-              <Grid item container justifyContent="center" >
+              <Grid item container justifyContent="center">
                 <Typography color="text.primary">{training?.title}</Typography>
               </Grid>
-              <Grid item container justifyContent="center" >
+              <Grid item container justifyContent="center">
                 <Typography color="text.primary">
                   {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                 </Typography>
               </Grid>
-              <Grid item container justifyContent="center" >
+              <Grid item container justifyContent="center">
                 <Typography color="text.primary">{training.category.join(", ")}</Typography>
               </Grid>
             </Grid>
-            <Grid item container justifyContent="center" >
+            <Grid item container justifyContent="center">
               <Button variant="contained" onClick={handleDelete}>
                 Confrim
               </Button>
