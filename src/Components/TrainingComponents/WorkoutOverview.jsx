@@ -14,6 +14,8 @@ import {
   Paper,
   Tooltip,
   Typography,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
@@ -38,6 +40,13 @@ export default function WorkoutOverview({
   } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
   const [selectedWorkout, setSelectedWorkout] = useState({});
+  const [viewMode, setViewMode] = useState("goals"); // 'goals' or 'achieved'
+
+  const handleViewToggleChange = (event, newViewMode) => {
+    if (newViewMode !== null) {
+      setViewMode(newViewMode);
+    }
+  };
 
   const onDragEnd = (result) => {
     if (!result.destination) {
@@ -63,16 +72,12 @@ export default function WorkoutOverview({
         setLocalWorkouts(updatedWorkouts);
       } else {
         // Moving sets between workouts
-        const updatedSourceWorkout = localWorkouts.find(
-          (w) => w._id === source.droppableId
-        );
+        const updatedSourceWorkout = localWorkouts.find((w) => w._id === source.droppableId);
         const updatedDestinationWorkout = localWorkouts.find(
           (w) => w._id === destination.droppableId
         );
         const updatedSourceTraining = Array.from(updatedSourceWorkout.training);
-        const updatedDestinationTraining = Array.from(
-          updatedDestinationWorkout.training
-        );
+        const updatedDestinationTraining = Array.from(updatedDestinationWorkout.training);
         const [movedItem] = updatedSourceTraining.splice(source.index, 1);
         updatedDestinationTraining.splice(destination.index, 0, movedItem);
         const updatedWorkouts = localWorkouts.map((workout) => {
@@ -130,10 +135,12 @@ export default function WorkoutOverview({
   };
 
   // Create new workout
-  const handleAddWorkout = () => dispatch(createTraining({
-    date: selectedDate,
-  }
-    ));
+  const handleAddWorkout = () =>
+    dispatch(
+      createTraining({
+        date: selectedDate,
+      })
+    );
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -167,6 +174,21 @@ export default function WorkoutOverview({
                     </Grid>
                   </Grid>
                   <Typography variant="h6">{workout.category.join(", ")}</Typography>
+
+                  <ToggleButtonGroup
+                    value={viewMode}
+                    exclusive
+                    onChange={handleViewToggleChange}
+                    aria-label="goals or achieved"
+                    size="small"
+                  >
+                    <ToggleButton value="goals" aria-label="goals">
+                      Goals
+                    </ToggleButton>
+                    <ToggleButton value="achieved" aria-label="achieved">
+                      Achieved
+                    </ToggleButton>
+                  </ToggleButtonGroup>
                   <Droppable droppableId={workout._id} type="workoutSet">
                     {
                       // This creates the droppable area to move sets around, it is the parent container before mapping each set out
@@ -210,6 +232,7 @@ export default function WorkoutOverview({
                                                   workoutSet={set}
                                                   provided={exerciseDraggableProvided}
                                                   workoutSetProvided={workoutSetProvided}
+                                                  viewMode={viewMode}
                                                 />
                                               </Grid>
                                               {exerciseDraggableProvided.placeholder}
@@ -241,7 +264,11 @@ export default function WorkoutOverview({
           })}
         <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
           <Grid item>
-            <Button onClick={handleOpenCreateWorkoutDialog} variant="contained" sx={{ margin: "15px" }}>
+            <Button
+              onClick={handleOpenCreateWorkoutDialog}
+              variant="contained"
+              sx={{ margin: "15px" }}
+            >
               Add Workout
             </Button>
           </Grid>
@@ -255,13 +282,15 @@ export default function WorkoutOverview({
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
               {/* Options */}
-              {/* import from queue, custom set & reps per set (default: 4 X (4 X 10)) */}
-             - Default (more options coming soon)
+              {/* import from queue, custom set & reps per set (default: 4 X (4 X 10)) */}- Default
+              (more options coming soon)
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseCreateWorkoutDialog}>Cancel</Button>
-            <Button onClick={()=> handleAddWorkout().then(()=> handleCloseCreateWorkoutDialog())}>Submit</Button>
+            <Button onClick={() => handleAddWorkout().then(() => handleCloseCreateWorkoutDialog())}>
+              Submit
+            </Button>
           </DialogActions>
         </Dialog>
       </>
@@ -278,26 +307,34 @@ export default function WorkoutOverview({
 }
 
 const WorkoutSet = (props) => {
-  const { workout, workoutSet, provided, workoutSetProvided } = props;
+  const { workout, workoutSet, provided, workoutSetProvided, viewMode } = props;
 
   const renderType = (exercise) => {
-    const { exerciseType, goals } = exercise;
+    const { exerciseType, goals, achieved } = exercise;
+
     switch (exerciseType) {
       case "Reps":
-        return (
+        return viewMode === "goals" ? (
           <Typography variant="body1">
             {goals.exactReps.length} sets: {goals.exactReps.join(", ")} reps
           </Typography>
+        ) : (
+          <Typography variant="body1">
+            {achieved.reps.length} sets: {achieved.reps.join(", ")} reps
+          </Typography>
         );
       case "Time":
-        return (
+        return viewMode === "goals" ? (
           <Typography variant="body1">
             {goals.seconds.length} sets: {goals.seconds.join(", ")} seconds
           </Typography>
+        ) : (
+          <Typography variant="body1">
+            {achieved.seconds.length} sets: {achieved.seconds.join(", ")} seconds
+          </Typography>
         );
       case "Reps with %":
-        // const repAtPercentText = goals.exactReps.map((repGoal, index) => `${goals.percent[index]}% for ${repGoal}`).join(", ");
-        return (
+        return viewMode === "goals" ? (
           <>
             <Grid container>
               <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
@@ -308,11 +345,23 @@ const WorkoutSet = (props) => {
               </Typography>
             </Grid>
           </>
+        ) : (
+          <>
+            <Grid container>
+              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+            </Grid>
+            <Grid container>
+              <Typography variant="body1">
+                {achieved.percent.length} sets: {achieved.reps.join(", ")} reps
+              </Typography>
+            </Grid>
+          </>
         );
       default:
         break;
     }
   };
+
   return (
     <>
       <Paper sx={{ padding: "0 5px" }}>
