@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./theme";
+import { serverURL } from "./Redux/actions";
+import socketIOClient from "socket.io-client";
 import AuthRoute from "./Components/AuthRoute";
 import WebsiteHome from "./Pages/WebsitePages/WebsiteHome";
 import NutritionInfo from "./Pages/WebsitePages/Nutrition";
@@ -32,9 +34,26 @@ import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer"
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
-function App({ socket }) {
+function App({ }) {
   const themeMode = useSelector(state => state.user.themeMode);
   const [themeSelection, setThemeSelection] = useState(theme());
+
+  const userId = useSelector(state => state.user._id);
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    if (userId) {
+      const newSocket = socketIOClient(serverURL, {
+        query: { userId },
+        transports: ["websocket"],
+        upgrade: false,
+      });
+      setSocket(newSocket);
+
+      return () => newSocket.disconnect();  // Cleanup on unmount
+    }
+  }, [userId]);
+
   const checkSubDomain = () => {
     let host = window.location.host;
     let parts = host.split(".");
@@ -158,7 +177,7 @@ function App({ socket }) {
 
               <Route exact path="/clients" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
-                  <Route exact path="" element={<Clients />} />
+                  <Route exact path="" element={<Clients  socket={socket} />} />
                 </Route>
               </Route>
 
