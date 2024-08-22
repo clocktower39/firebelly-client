@@ -8,6 +8,7 @@ import {
 } from "../../Redux/actions";
 import {
   Avatar,
+  Badge,
   Button,
   Card,
   CardHeader,
@@ -22,11 +23,42 @@ import {
 import { Delete, Done, PendingActions } from "@mui/icons-material";
 import History from "./History";
 import Goals from "./Goals";
+import { styled } from "@mui/material/styles";
 
-export default function Clients() {
+const StyledBadge = styled(Badge)(({ theme, status }) => ({
+  "& .MuiBadge-badge": {
+    backgroundColor: status === "online" ? "#44b700" : "grey",
+    color: status === "online" ? "#44b700" : "grey",
+    boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
+    "&::after": {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      borderRadius: "50%",
+      animation: status === "online" ? "ripple 1.2s infinite ease-in-out" : "none",
+      border: "1px solid currentColor",
+      content: '""',
+    },
+  },
+  "@keyframes ripple": {
+    "0%": {
+      transform: "scale(.8)",
+      opacity: 1,
+    },
+    "100%": {
+      transform: "scale(2.4)",
+      opacity: 0,
+    },
+  },
+}));
+
+export default function Clients({ socket }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const clients = useSelector((state) => state.clients);
+  const [clientStatuses, setClientStatuses] = useState({});
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredClients, setFilteredClients] = useState([]);
@@ -72,7 +104,7 @@ export default function Clients() {
   };
 
   const ClientCard = (props) => {
-    const { clientRelationship } = props;
+    const { clientRelationship, isOnline } = props;
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
     const handleDeleteConfirmationOpen = () => setDeleteConfirmationOpen(true);
@@ -83,17 +115,24 @@ export default function Clients() {
         <Card sx={{ width: "100%" }}>
           <CardHeader
             avatar={
-              <Avatar
-                alt={`${clientRelationship.client.firstName[0]}${clientRelationship.client.lastName[0]}`}
-                src={
-                  clientRelationship.client.profilePicture
-                    ? `${serverURL}/user/profilePicture/${clientRelationship.client.profilePicture}`
-                    : null
-                }
+              <StyledBadge
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                variant="dot"
+                status={isOnline ? "online" : "offline"}
               >
-                {clientRelationship.client.firstName[0]}
-                {clientRelationship.client.lastName[0]}
-              </Avatar>
+                <Avatar
+                  alt={`${clientRelationship.client.firstName[0]}${clientRelationship.client.lastName[0]}`}
+                  src={
+                    clientRelationship.client.profilePicture
+                      ? `${serverURL}/user/profilePicture/${clientRelationship.client.profilePicture}`
+                      : null
+                  }
+                >
+                  {clientRelationship.client.firstName[0]}
+                  {clientRelationship.client.lastName[0]}
+                </Avatar>
+              </StyledBadge>
             }
             action={
               <>
@@ -153,7 +192,9 @@ export default function Clients() {
                 <Grid item>
                   <Button
                     variant="contained"
-                    onClick={() => dispatch(removeRelationship(user._id, clientRelationship.client._id))}
+                    onClick={() =>
+                      dispatch(removeRelationship(user._id, clientRelationship.client._id))
+                    }
                   >
                     Confirm
                   </Button>
@@ -168,7 +209,33 @@ export default function Clients() {
 
   useEffect(() => {
     dispatch(requestClients());
-  }, [dispatch]); // Only run once when the component mounts
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (socket) {
+      // Listen for current client statuses
+      socket.on('currentClientStatuses', (statuses) => {
+        setClientStatuses(statuses);
+      });
+  
+      // Listen for individual client status changes
+      socket.on('clientStatusChanged', ({ userId, status }) => {
+        setClientStatuses(prevStatuses => ({
+          ...prevStatuses,
+          [userId]: status,
+        }));
+      });
+  
+      // Request current online statuses from the server
+      socket.emit('requestClientStatuses');
+  
+      // Clean up socket listeners on unmount
+      return () => {
+        socket.off('currentClientStatuses');
+        socket.off('clientStatusChanged');
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     const filtered = clients.filter((client) =>
@@ -176,11 +243,13 @@ export default function Clients() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
     );
-    setFilteredClients(filtered.sort((a, b) => {
-      const nameA = a.client['firstName'].toLowerCase();
-      const nameB = b.client['firstName'].toLowerCase();
-      return nameA.localeCompare(nameB);
-    }));
+    setFilteredClients(
+      filtered.sort((a, b) => {
+        const nameA = a.client["firstName"].toLowerCase();
+        const nameB = b.client["firstName"].toLowerCase();
+        return nameA.localeCompare(nameB);
+      })
+    );
   }, [searchTerm, clients]);
 
   return user.isTrainer ? (
@@ -229,7 +298,11 @@ export default function Clients() {
         }}
       >
         {filteredClients.map((clientRelationship) => (
-          <ClientCard key={clientRelationship._id} clientRelationship={clientRelationship} />
+          <ClientCard
+            key={clientRelationship._id}
+            clientRelationship={clientRelationship}
+            isOnline={clientStatuses[clientRelationship.client._id] === "online"}
+          />
         ))}
       </Grid>
       <Dialog
