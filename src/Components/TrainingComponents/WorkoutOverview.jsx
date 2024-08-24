@@ -40,11 +40,20 @@ export default function WorkoutOverview({
   } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
   const [selectedWorkout, setSelectedWorkout] = useState({});
-  const [viewMode, setViewMode] = useState("goals"); // 'goals' or 'achieved'
+  const [viewModes, setViewModes] = useState(
+    localWorkouts.reduce((acc, workout) => {
+      acc[workout._id] = workout.complete ? "achieved" : "goals";
+      return acc;
+    }, {})
+  );
+  
 
-  const handleViewToggleChange = (event, newViewMode) => {
+  const handleViewToggleChange = (workoutId, newViewMode) => {
     if (newViewMode !== null) {
-      setViewMode(newViewMode);
+      setViewModes((prev) => ({
+        ...prev,
+        [workoutId]: newViewMode,
+      }));
     }
   };
 
@@ -153,6 +162,8 @@ export default function WorkoutOverview({
               handleModalToggle();
             };
 
+            const currentViewMode = viewModes[workout._id] || "goals"; // Default to 'goals' if not set
+
             return (
               <React.Fragment key={`workout-${index}`}>
                 <Paper key={workout._id} elevation={5} sx={{ margin: "5px", padding: "5px" }}>
@@ -176,9 +187,11 @@ export default function WorkoutOverview({
                   <Typography variant="h6">{workout.category.join(", ")}</Typography>
 
                   <ToggleButtonGroup
-                    value={viewMode}
+                    value={currentViewMode}
                     exclusive
-                    onChange={handleViewToggleChange}
+                    onChange={(event, newViewMode) =>
+                      handleViewToggleChange(workout._id, newViewMode)
+                    }
                     aria-label="goals or achieved"
                     size="small"
                   >
@@ -232,7 +245,7 @@ export default function WorkoutOverview({
                                                   workoutSet={set}
                                                   provided={exerciseDraggableProvided}
                                                   workoutSetProvided={workoutSetProvided}
-                                                  viewMode={viewMode}
+                                                  viewMode={currentViewMode}
                                                 />
                                               </Grid>
                                               {exerciseDraggableProvided.placeholder}
