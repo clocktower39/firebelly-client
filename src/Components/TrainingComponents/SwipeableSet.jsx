@@ -3,9 +3,12 @@ import {
   Box,
   Grid,
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogTitle,
+  FormGroup,
+  FormControlLabel,
   Typography,
   IconButton,
   MobileStepper,
@@ -34,6 +37,8 @@ function SwipeableSet(props) {
     maxSteps,
     selectedDate,
     size,
+    workoutCompleteStatus,
+    setWorkoutCompleteStatus,
   } = props;
   const [activeStep, setActiveStep] = useState(0);
   const [heightToggle, setHeightToggle] = useState(true);
@@ -55,14 +60,14 @@ function SwipeableSet(props) {
   const [confirmDialogData, setConfirmDialogData] = useState({
     confirmFuction: null,
     index: null,
-  })
+  });
 
   const handleConfirmDialogOpen = (removeSet, index) => {
     setConfirmDialogData({
-        confirmFunction: removeSet,
-        index,
-      })
-      setConfirmDialogOpen((prev) => true);
+      confirmFunction: removeSet,
+      index,
+    });
+    setConfirmDialogOpen((prev) => true);
   };
   const handleConfirmDialogClose = () => setConfirmDialogOpen((prev) => false);
 
@@ -70,6 +75,8 @@ function SwipeableSet(props) {
     confirmDialogData.confirmFunction(confirmDialogData.index);
     handleConfirmDialogClose();
   };
+
+  const handleWorkoutCompleteCheckbox = () => setWorkoutCompleteStatus(prev => !prev);
 
   useEffect(() => {
     ref.current.updateHeight();
@@ -164,6 +171,44 @@ function SwipeableSet(props) {
             </Grid>
           </div>
         ))}
+        <Box>
+          <Grid item xs={12}>
+            <Grid container item xs={12}>
+              <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+                <FormGroup>
+                  <FormControlLabel control={<Checkbox checked={workoutCompleteStatus} onClick={handleWorkoutCompleteCheckbox} />} label="Workout Complete" />
+                </FormGroup>
+              </Grid>
+              <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+                <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+                  <Typography variant="h6">Feedback:</Typography>
+                </Grid>
+                <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+                  <Typography variant="caption">(Coming soon)</Typography>
+                </Grid>
+                {/* {localTraining.map((group, index) => (
+                  <Grid container item xs={12}>
+                    {group.length > 0 &&
+                      group.map((exercise, exerciseIndex) => (
+                        <>
+                          <Grid
+                            container
+                            item
+                            xs={8}
+                            sx={{ justifyContent: "flex-start", alignContent: "center" }}
+                          >
+                            <Typography color="text.primary" variant="h6">
+                              {exercise.exercise}
+                            </Typography>
+                          </Grid>
+                        </>
+                      ))}
+                  </Grid>
+                ))} */}
+              </Grid>
+            </Grid>
+          </Grid>
+        </Box>
       </SwipeableViews>
 
       {confirmDialogOpen && (

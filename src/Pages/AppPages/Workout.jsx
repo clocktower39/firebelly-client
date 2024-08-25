@@ -80,6 +80,7 @@ export default function Workout(props) {
   const [localTraining, setLocalTraining] = useState([]);
   const [trainingCategory, setTrainingCategory] = useState([]);
   const [trainingTitle, setTrainingTitle] = useState("");
+  const [workoutCompleteStatus, setWorkoutCompleteStatus] = useState(training?.complete || false);
   const [loading, setLoading] = useState(true);
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
@@ -220,6 +221,7 @@ export default function Workout(props) {
         title: trainingTitle,
         category: [...trainingCategory],
         training: localTraining,
+        complete: workoutCompleteStatus,
       })
     );
   };
@@ -243,6 +245,7 @@ export default function Workout(props) {
     setLocalTraining(training.training || []);
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
+    setWorkoutCompleteStatus(training?.complete || false);
     if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
@@ -390,9 +393,11 @@ export default function Workout(props) {
                     save={save}
                     toggleNewSet={toggleNewSet}
                     toggleRemoveSet={toggleRemoveSet}
-                    maxSteps={localTraining.length}
+                    maxSteps={localTraining.length + 1}
                     selectedDate={training.date}
                     size={size}
+                    workoutCompleteStatus={workoutCompleteStatus}
+                    setWorkoutCompleteStatus={setWorkoutCompleteStatus}
                   />
                 )}
               </Grid>
