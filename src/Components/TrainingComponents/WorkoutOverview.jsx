@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -150,6 +150,15 @@ export default function WorkoutOverview({
         date: selectedDate,
       })
     );
+
+    useEffect(()=> {
+      setViewModes(
+        localWorkouts.reduce((acc, workout) => {
+          acc[workout._id] = workout.complete ? "achieved" : "goals";
+          return acc;
+        }, {})
+      );
+    },[localWorkouts])
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
