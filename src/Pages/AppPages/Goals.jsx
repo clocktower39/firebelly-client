@@ -50,7 +50,7 @@ export default function Goals({ view = "client", client, }) {
   }, [goals]);
 
   useEffect(() => {
-    dispatch(getGoals({ requestedBy: view, client: client._id }));
+    dispatch(getGoals({ requestedBy: view, client: client?._id }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
