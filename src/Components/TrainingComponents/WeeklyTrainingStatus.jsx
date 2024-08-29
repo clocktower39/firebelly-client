@@ -72,6 +72,7 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
             day={day}
             key={day.date}
             setSelectedWorkout={setSelectedWorkout}
+            setSelectedDate={setSelectedDate}
             setAnchorEl={setAnchorEl}
           />
         ))}
@@ -284,7 +285,7 @@ const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDat
   );
 };
 
-const DayStatusView = ({ day, setSelectedWorkout, setAnchorEl }) => {
+const DayStatusView = ({ day, setSelectedWorkout, setSelectedDate, setAnchorEl }) => {
   const handleClick = (e) => {
     setSelectedWorkout((prev) =>
       prev
@@ -295,11 +296,14 @@ const DayStatusView = ({ day, setSelectedWorkout, setAnchorEl }) => {
     );
     setAnchorEl(e.currentTarget.parentElement);
   };
+  const handleMoveToDate = () => {
+    setSelectedDate(dayjs(day.date).format("YYYY-MM-DD"));
+  };
   return (
     <Box
       sx={{ position: "relative", color: "primary" }}
       key={day.date}
-      onClick={handleClick}
+      onClick={handleMoveToDate}
       component={Button}
     >
       <CircularProgress
