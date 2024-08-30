@@ -14,7 +14,11 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
+import {
+  ExpandMore as ExpandMoreIcon,
+  CheckBox as CheckBoxIcon,
+  CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+} from "@mui/icons-material";
 import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -23,67 +27,37 @@ import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 
+// Function to determine the fields based on exercise type
 const exerciseTypeFields = (exerciseType) => {
   switch (exerciseType) {
     case "Rep Range":
       return {
         repeating: [
-          {
-            goalAttribute: "weight",
-            label: "Weight",
-          },
-          {
-            goalAttribute: "minReps",
-            label: "Min Reps",
-          },
-          {
-            goalAttribute: "maxReps",
-            label: "Max Reps",
-          },
+          { goalAttribute: "weight", label: "Weight" },
+          { goalAttribute: "minReps", label: "Min Reps" },
+          { goalAttribute: "maxReps", label: "Max Reps" },
         ],
         nonRepeating: [],
       };
     case "Reps":
       return {
         repeating: [
-          {
-            goalAttribute: "weight",
-            label: "Weight",
-          },
-          {
-            goalAttribute: "reps",
-            label: "Reps",
-          },
+          { goalAttribute: "weight", label: "Weight" },
+          { goalAttribute: "reps", label: "Reps" },
         ],
         nonRepeating: [],
       };
     case "Reps with %":
       return {
         repeating: [
-          {
-            goalAttribute: "percent",
-            label: "Percent",
-          },
-          {
-            goalAttribute: "reps",
-            label: "Reps",
-          },
+          { goalAttribute: "percent", label: "Percent" },
+          { goalAttribute: "reps", label: "Reps" },
         ],
-        nonRepeating: [
-          {
-            goalAttribute: "maxWeight",
-            label: "One Rep Max",
-          },
-        ],
+        nonRepeating: [{ goalAttribute: "maxWeight", label: "One Rep Max" }],
       };
     case "Time":
       return {
-        repeating: [
-          {
-            goalAttribute: "seconds",
-            label: "Seconds",
-          },
-        ],
+        repeating: [{ goalAttribute: "seconds", label: "Seconds" }],
         nonRepeating: [],
       };
     default:
@@ -95,18 +69,18 @@ export default function WorkoutHistory(props) {
   const { view = "client", client } = props;
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [highlightedDays, setHighlightedDays] = useState([1, 2, 2, 3, 3, 3, 30]);
+  const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [expandedWorkout, setExpandedWorkout] = useState(null); // State for managing which accordion is expanded
+  const [expandedWorkout, setExpandedWorkout] = useState(null);
 
+  // Function to fetch workout month data
   const getWorkoutMonthData = (e) => {
     setIsLoading(true);
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const fetchData = async () => {
       const endpoint = "workoutMonth";
-
       const payload = JSON.stringify({
         date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
         client,
@@ -114,7 +88,6 @@ export default function WorkoutHistory(props) {
 
       const response = await fetch(`${serverURL}/${endpoint}`, {
         method: "post",
-        dataType: "json",
         body: payload,
         headers: {
           "Content-type": "application/json; charset=UTF-8",
@@ -133,20 +106,19 @@ export default function WorkoutHistory(props) {
     const fetchData = getWorkoutMonthData();
 
     fetchData().then((data) => {
-      setHistory((prev) => data);
+      setHistory(data);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setHighlightedDays(() => {
-      return history.map((item) => {
-        const itemMonth = dayjs.utc(item.date).month();
-        if (currentMonth === itemMonth) {
-          return dayjs.utc(item.date).date();
-        }
-        return null;
-      });
+      return history
+        .filter((item) => dayjs.utc(item.date).month() === currentMonth)
+        .map((item) => ({
+          date: dayjs.utc(item.date).date(),
+          complete: item.complete,
+        }));
     });
   }, [history, currentMonth]);
 
@@ -155,12 +127,12 @@ export default function WorkoutHistory(props) {
     const fetchData = getWorkoutMonthData(e);
 
     fetchData().then((data) => {
-      setHistory((prev) => data);
+      setHistory(data);
     });
   };
 
-  const handleDateCalanderChange = (e) => {
-    const newDate = e.utc(e);
+  const handleDateCalendarChange = (e) => {
+    const newDate = dayjs.utc(e);
     setSelectedDate(newDate);
     setExpandedWorkout(null); // Collapse all accordions first
   };
@@ -182,34 +154,28 @@ export default function WorkoutHistory(props) {
         </Grid>
       )}
       <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
-        {/* DateCalendar takes 20% of the available height */}
+      {/* DateCalendar takes 20% of the available height */}
         <Box sx={{ flex: "0 0 20%" }}>
           <DateCalendar
             value={selectedDate}
-            onChange={handleDateCalanderChange}
+            onChange={handleDateCalendarChange}
             loading={isLoading}
             renderLoading={() => <DayCalendarSkeleton />}
             views={["month", "day"]}
-            slots={{
-              day: ServerDay,
-            }}
-            slotProps={{
-              day: {
-                highlightedDays,
-              },
-            }}
-            onMonthChange={(e) => handleMonthChange(e)}
+            slots={{ day: ServerDay }}
+            slotProps={{ day: { highlightedDays } }}
+            onMonthChange={handleMonthChange}
           />
         </Box>
 
-        {/* Workouts List takes the remaining space */}
+{/* Workouts List takes the remaining space */}
         <Box sx={{ flex: "1", overflow: "auto" }}>
           <Workouts
             currentMonth={currentMonth}
             history={history}
             scrollToDate={selectedDate.format("YYYY-MM-DD")}
-            expandedWorkout={expandedWorkout} // Pass down the expanded state
-            setExpandedWorkout={setExpandedWorkout} // Pass down the function to set the expanded workout
+            expandedWorkout={expandedWorkout}
+            setExpandedWorkout={setExpandedWorkout}
             view={view}
             client={client}
           />
@@ -222,13 +188,22 @@ export default function WorkoutHistory(props) {
 function ServerDay(props) {
   const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props;
 
-  const isSelected = !props.outsideCurrentMonth && highlightedDays.indexOf(props.day.date()) >= 0;
+  const highlightedDay = highlightedDays.find((highlight) => highlight.date === day.date());
+  const isSelected = !outsideCurrentMonth && highlightedDay;
 
   return (
     <Badge
-      key={props.day.toString()}
+      key={day.toString()}
       overlap="circular"
-      badgeContent={isSelected ? "✅" : undefined}
+      badgeContent={
+        isSelected ? (
+          highlightedDay.complete ? (
+            <CheckBoxIcon fontSize="small" sx={{ color: "green" }} />
+          ) : (
+            <CheckBoxOutlineBlankIcon fontSize="small" sx={{ color: "red" }} />
+          )
+        ) : undefined
+      }
     >
       <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
     </Badge>
@@ -271,7 +246,7 @@ const Workout = ({ workout, scrollToDate, expandedWorkout, setExpandedWorkout })
     const elementHeight = workoutRef.current.offsetHeight;
     const containerHeight = scrollContainer.clientHeight;
 
-    let scrollPosition = elementTop - (containerHeight / 2) + (elementHeight / 2);
+    let scrollPosition = elementTop - containerHeight / 2 + elementHeight / 2;
 
     if (scrollPosition < 0) {
       scrollPosition = 0;
@@ -287,21 +262,21 @@ const Workout = ({ workout, scrollToDate, expandedWorkout, setExpandedWorkout })
 
   useEffect(() => {
     if (isSelected) {
-      setExpandedWorkout(workoutId); // Expand this workout
+      setExpandedWorkout(workoutId);
     }
   }, [scrollToDate]);
 
   useEffect(() => {
     if (expandedWorkout === workoutId) {
       const handleTransitionEnd = () => {
-        handleScroll(); // Scroll after the transition ends
+        handleScroll();
       };
 
       const element = workoutRef.current;
-      element.addEventListener('transitionend', handleTransitionEnd);
+      element.addEventListener("transitionend", handleTransitionEnd);
 
       return () => {
-        element.removeEventListener('transitionend', handleTransitionEnd);
+        element.removeEventListener("transitionend", handleTransitionEnd);
       };
     }
   }, [expandedWorkout]);
