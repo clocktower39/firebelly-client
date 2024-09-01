@@ -15,7 +15,7 @@ import SignUp from "./Pages/SignUp";
 import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Tasks from "./Pages/AppPages/Tasks";
-import History from "./Pages/AppPages/History";
+import Calendar from "./Pages/AppPages/Calendar";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
 import WorkoutQueue from "./Pages/AppPages/WorkoutQueue";
@@ -109,9 +109,9 @@ function App({ }) {
                 </Route>
               </Route>
 
-              <Route exact path="/history" element={<AuthRoute />}>
+              <Route exact path="/calendar" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
-                  <Route exact path="" element={<History />} />
+                  <Route exact path="" element={<Calendar />} />
                 </Route>
               </Route>
 

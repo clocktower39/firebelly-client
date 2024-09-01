@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Delete, Done, PendingActions } from "@mui/icons-material";
-import History from "./History";
+import Calendar from "./Calendar";
 import Goals from "./Goals";
 import { styled } from "@mui/material/styles";
 
@@ -62,17 +62,17 @@ export default function Clients({ socket }) {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredClients, setFilteredClients] = useState([]);
-  const [openHistory, setOpenHistory] = useState(false);
+  const [openCalendar, setOpenCalendar] = useState(false);
   const [openGoals, setOpenGoals] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
 
-  const handleOpenHistory = (client) => {
+  const handleOpenCalendar = (client) => {
     setSelectedClient(client);
-    setOpenHistory(true);
+    setOpenCalendar(true);
   };
 
-  const handleCloseHistory = () => {
-    setOpenHistory(false);
+  const handleCloseCalendar = () => {
+    setOpenCalendar(false);
     setSelectedClient("");
   };
 
@@ -157,7 +157,7 @@ export default function Clients({ socket }) {
           />
           {clientRelationship.accepted && (
             <>
-              <Button onClick={() => handleOpenHistory(clientRelationship.client)}>Calander</Button>
+              <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>Calander</Button>
               <Button onClick={() => handleOpenGoals(clientRelationship.client)}>Goals</Button>
               <Button disabled>Daily Tasks</Button>
               <Button disabled>Nutrition</Button>
@@ -306,11 +306,11 @@ export default function Clients({ socket }) {
         ))}
       </Grid>
       <Dialog
-        open={openHistory}
-        onClose={handleCloseHistory}
+        open={openCalendar}
+        onClose={handleCloseCalendar}
         sx={{ "& .MuiDialog-paper": { padding: "5px", width: "100%", minHeight: "80%" } }}
       >
-        <History view="trainer" client={selectedClient} />{" "}
+        <Calendar view="trainer" client={selectedClient} />{" "}
       </Dialog>
       <Dialog
         open={openGoals}

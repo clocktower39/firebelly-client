@@ -65,7 +65,7 @@ const exerciseTypeFields = (exerciseType) => {
   }
 };
 
-export default function WorkoutHistory(props) {
+export default function Calendar(props) {
   const { view = "client", client } = props;
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -28,7 +28,7 @@ import {
   Home as HomeIcon,
   GridView as DashboardIcon,
   Assessment as ProgressIcon,
-  History as HistoryIcon,
+  CalendarMonth as CalendarIcon,
   Assignment as GoalsIcon,
   Settings as AccountIcon,
   Groups as ClientsIcon,
@@ -52,9 +52,9 @@ export default function NavDrawer() {
       icon: <HomeIcon />,
     },
     {
-      title: "History",
-      to: "/history",
-      icon: <HistoryIcon />,
+      title: "Calendar",
+      to: "/calendar",
+      icon: <CalendarIcon />,
     },
     {
       title: "Goals",
