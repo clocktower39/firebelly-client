@@ -15,8 +15,10 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Grid,
   IconButton,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -65,6 +67,7 @@ export default function Clients({ socket }) {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGoals, setOpenGoals] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
+  const [showOnlyOnline, setShowOnlyOnline] = useState(false);
 
   const handleOpenCalendar = (client) => {
     setSelectedClient(client);
@@ -157,7 +160,9 @@ export default function Clients({ socket }) {
           />
           {clientRelationship.accepted && (
             <>
-              <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>Calander</Button>
+              <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>
+                Calander
+              </Button>
               <Button onClick={() => handleOpenGoals(clientRelationship.client)}>Goals</Button>
               <Button disabled>Daily Tasks</Button>
               <Button disabled>Nutrition</Button>
@@ -214,35 +219,40 @@ export default function Clients({ socket }) {
   useEffect(() => {
     if (socket) {
       // Listen for current client statuses
-      socket.on('currentClientStatuses', (statuses) => {
+      socket.on("currentClientStatuses", (statuses) => {
         setClientStatuses(statuses);
       });
-  
+
       // Listen for individual client status changes
-      socket.on('clientStatusChanged', ({ userId, status }) => {
-        setClientStatuses(prevStatuses => ({
+      socket.on("clientStatusChanged", ({ userId, status }) => {
+        setClientStatuses((prevStatuses) => ({
           ...prevStatuses,
           [userId]: status,
         }));
       });
-  
+
       // Request current online statuses from the server
-      socket.emit('requestClientStatuses');
-  
+      socket.emit("requestClientStatuses");
+
       // Clean up socket listeners on unmount
       return () => {
-        socket.off('currentClientStatuses');
-        socket.off('clientStatusChanged');
+        socket.off("currentClientStatuses");
+        socket.off("clientStatusChanged");
       };
     }
   }, [socket]);
 
   useEffect(() => {
-    const filtered = clients.filter((client) =>
+    let filtered = clients.filter((client) =>
       `${client.client.firstName} ${client.client.lastName}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
     );
+
+    if (showOnlyOnline) {
+      filtered = filtered.filter((client) => clientStatuses[client.client._id] === "online");
+    }
+
     setFilteredClients(
       filtered.sort((a, b) => {
         const nameA = a.client["firstName"].toLowerCase();
@@ -250,7 +260,7 @@ export default function Clients({ socket }) {
         return nameA.localeCompare(nameB);
       })
     );
-  }, [searchTerm, clients]);
+  }, [searchTerm, clients, clientStatuses, showOnlyOnline]);
 
   return user.isTrainer ? (
     <>
@@ -276,6 +286,19 @@ export default function Clients({ socket }) {
           onChange={handleSearchChange}
           sx={{ mb: 2 }}
         />
+        <Grid container item xs={12} justifyContent="center">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showOnlyOnline}
+                onChange={(event) => setShowOnlyOnline(event.target.checked)}
+                name="showOnlyOnline"
+                color="primary"
+              />
+            }
+            label="Online"
+          />
+        </Grid>
         <Button onClick={() => handleSort("lastName")} variant="outlined">
           Last Name
         </Button>
