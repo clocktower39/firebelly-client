@@ -276,7 +276,7 @@ export default function WorkoutOverview({
                   <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
                     <Link to={`/workout/${workout._id}`}>
                       <Button onClick={() => saveStart(workout)} variant="contained">
-                        Start
+                        {workout.complete ? 'Review' : 'Start'}
                       </Button>
                     </Link>
                   </Grid>
