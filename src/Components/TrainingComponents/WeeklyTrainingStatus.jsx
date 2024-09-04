@@ -25,8 +25,6 @@ import { serverURL } from "../../Redux/actions";
 export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) {
   const date = dayjs(selectedDate);
   const [weeklyData, setWeeklyData] = useState([]);
-  const [selectedWorkout, setSelectedWorkout] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   const fillData = [
     { workouts: [], date: date.subtract(6, "day").format("YYYY-MM-DD") },
@@ -90,19 +88,10 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
           <DayStatusView
             day={day}
             key={day.date}
-            setSelectedWorkout={setSelectedWorkout}
             setSelectedDate={setSelectedDate}
-            setAnchorEl={setAnchorEl}
           />
         ))}
       </Grid>
-      <DayDialogOverview
-        selectedWorkout={selectedWorkout}
-        setSelectedWorkout={setSelectedWorkout}
-        anchorEl={anchorEl}
-        setActionEl={setAnchorEl}
-        setSelectedDate={setSelectedDate}
-      />
     </>
   );
 }
@@ -175,142 +164,7 @@ const exerciseTypeFields = (exerciseType) => {
   }
 };
 
-const DayDialogOverview = ({ selectedWorkout, setSelectedWorkout, setSelectedDate }) => {
-  // Handle close function updates to work with Dialog
-  const handleClose = () => {
-    setSelectedWorkout(null);
-  };
-
-  const handleMoveToDate = () => {
-    setSelectedDate(dayjs(selectedWorkout.date).format("YYYY-MM-DD"));
-  };
-
-  return (
-    <Dialog
-      open={selectedWorkout && selectedWorkout.workouts.length > 0 ? true : false}
-      onClose={handleClose}
-      PaperProps={{
-        sx: {
-          padding: "20px",
-        },
-      }}
-      maxWidth="md"
-    >
-      {selectedWorkout && (
-        <>
-          <DialogTitle disableTypography>
-            <Typography variant="h5" style={{ fontWeight: "bold", marginBottom: "10px" }}>
-              Achieved Data
-            </Typography>
-            <Typography variant="h6" style={{ fontWeight: "bold", marginBottom: "10px" }}>
-              {dayjs(selectedWorkout.date).format("dddd - MMMM Do, YYYY")}
-            </Typography>
-            <IconButton
-              aria-label="close"
-              onClick={handleClose}
-              style={{ position: "absolute", right: "10px", top: "10px", color: "#FFF" }}
-            >
-              <CloseIcon />
-            </IconButton>
-            <IconButton
-              aria-label="date"
-              onClick={handleMoveToDate}
-              style={{ position: "absolute", right: "50px", top: "10px", color: "#FFF" }}
-            >
-              <MoveToDateIcon />
-            </IconButton>
-            <Typography
-              variant="caption"
-              style={{ position: "absolute", right: "10px", top: "50px", fontSize: "0.8rem" }}
-            >
-              {dayjs(selectedWorkout.date).format("MM-DD-YYYY")}
-            </Typography>
-          </DialogTitle>
-
-          <DialogContent dividers>
-            {selectedWorkout.workouts.map((workout, workoutIndex, thisArray) => {
-              const to = `/workout/${workout._id}`;
-              return (
-                <Fragment key={workout._id}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      marginBottom: "10px",
-                    }}
-                  >
-                    {workout.title}
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      marginBottom: "5px",
-                    }}
-                  >
-                    {workout.category.join(", ")}
-                  </Typography>
-                  {workout.training.map((circuit, index) => (
-                    <Grid container key={index} spacing={2} style={{ marginBottom: "15px" }}>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle1">- Circuit {index + 1}</Typography>
-                      </Grid>
-                      {circuit.map((exercise, exerciseIndex) => (
-                        <Fragment key={`${exercise.exercise}-${exerciseIndex}`}>
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="subtitle2" sx={{ marginLeft: "16px" }}>
-                              {exercise.exercise}
-                            </Typography>
-                          </Grid>
-
-                          <Grid container item xs={12} sm={6}>
-                            {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => {
-                              return (
-                                <Grid item xs={12}>
-                                  <Typography variant="body2" sx={{ marginLeft: "32px" }}>
-                                    {field.label}:{" "}
-                                    {exercise.achieved[field.goalAttribute]?.join(", ")}
-                                  </Typography>
-                                </Grid>
-                              );
-                            })}
-                          </Grid>
-                        </Fragment>
-                      ))}
-                    </Grid>
-                  ))}
-
-                  <Grid
-                    container
-                    item
-                    xs={12}
-                    sx={{ justifyContent: "center", alignItems: "center" }}
-                  >
-                    <Button variant="contained" component={Link} to={to}>
-                      Open
-                    </Button>
-                  </Grid>
-                  {workoutIndex < thisArray.length - 1 && <Divider sx={{ padding: "15px" }} />}
-                </Fragment>
-              );
-            })}
-          </DialogContent>
-        </>
-      )}
-    </Dialog>
-  );
-};
-
-const DayStatusView = ({ day, setSelectedWorkout, setSelectedDate, setAnchorEl }) => {
-  const handleClick = (e) => {
-    setSelectedWorkout((prev) =>
-      prev
-        ? dayjs.utc(prev.date).format("YYYY-MM-DD") !== dayjs.utc(day.date).format("YYYY-MM-DD")
-          ? day
-          : null
-        : day
-    );
-    setAnchorEl(e.currentTarget.parentElement);
-  };
-
+const DayStatusView = ({ day, setSelectedDate, }) => {
   const handleMoveToDate = () => {
     setSelectedDate(dayjs(day.date).format("YYYY-MM-DD"));
   };
