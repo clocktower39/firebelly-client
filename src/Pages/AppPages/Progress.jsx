@@ -4,7 +4,7 @@ import {
   Autocomplete,
   Box,
   Chip,
-  Unstable_Grid2 as Grid,
+  Grid,
   Modal,
   Slider,
   TextField,

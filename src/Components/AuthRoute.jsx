@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
-import jwtDecode from "jwt-decode"; // Import jwtDecode library
+import { jwtDecode } from "jwt-decode";
 import { loginJWT } from "../Redux/actions";
 import Loading from "./Loading";
 import LoadingPage from "./LoadingPage";
