@@ -12,6 +12,7 @@ import {
   Typography,
   IconButton,
   MobileStepper,
+  TextField,
   Tooltip,
 } from "@mui/material";
 import {
@@ -39,6 +40,8 @@ function SwipeableSet(props) {
     size,
     workoutCompleteStatus,
     setWorkoutCompleteStatus,
+    workoutFeedback,
+    setWorkoutFeedback,
   } = props;
   const [activeStep, setActiveStep] = useState(0);
   const [heightToggle, setHeightToggle] = useState(true);
@@ -77,6 +80,22 @@ function SwipeableSet(props) {
   };
 
   const handleWorkoutCompleteCheckbox = () => setWorkoutCompleteStatus(prev => !prev);
+
+  const handleFeedbackKeyDown = (e) => {
+    // Check if any of Enter, Shift+Enter, Backspace, or Delete is pressed to resize
+    if (
+      (e.key === 'Enter' && !e.shiftKey) || // Regular Enter
+      (e.key === 'Enter' && e.shiftKey) ||  // Shift + Enter
+      e.key === 'Backspace' ||              // Backspace
+      e.key === 'Delete'                    // Delete
+    ) {
+      setHeightToggle((prev) => !prev);
+    }
+  }   
+
+  const handleFeedbackChange = (e) => {
+    setWorkoutFeedback(e.target.value);
+  }
 
   useEffect(() => {
     ref.current.updateHeight();
@@ -171,7 +190,7 @@ function SwipeableSet(props) {
             </Grid>
           </div>
         ))}
-        <Box>
+        <Box sx={{ padding: '25px 0'}}>
           <Grid item xs={12}>
             <Grid container item xs={12}>
               <Grid item container xs={12} sx={{ justifyContent: "center" }}>
@@ -180,11 +199,8 @@ function SwipeableSet(props) {
                 </FormGroup>
               </Grid>
               <Grid item container xs={12} sx={{ justifyContent: "center" }}>
-                <Grid item container xs={12} sx={{ justifyContent: "center" }}>
-                  <Typography variant="h6">Feedback:</Typography>
-                </Grid>
-                <Grid item container xs={12} sx={{ justifyContent: "center" }}>
-                  <Typography variant="caption">(Coming soon)</Typography>
+                <Grid item container xs={12} sx={{ justifyContent: "center",}}>
+                  <TextField label="Feedback" value={workoutFeedback} fullWidth multiline minRows={5} onKeyDown={handleFeedbackKeyDown} onChange={handleFeedbackChange}/>
                 </Grid>
                 {/* {localTraining.map((group, index) => (
                   <Grid container item xs={12}>

@@ -82,6 +82,7 @@ export default function Workout(props) {
   const [trainingTitle, setTrainingTitle] = useState("");
   const [workoutCompleteStatus, setWorkoutCompleteStatus] = useState(training?.complete || false);
   const [loading, setLoading] = useState(true);
+  const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "")
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -398,6 +399,8 @@ export default function Workout(props) {
                     size={size}
                     workoutCompleteStatus={workoutCompleteStatus}
                     setWorkoutCompleteStatus={setWorkoutCompleteStatus}
+                    workoutFeedback={workoutFeedback}
+                    setWorkoutFeedback={setWorkoutFeedback}
                   />
                 )}
               </Grid>
