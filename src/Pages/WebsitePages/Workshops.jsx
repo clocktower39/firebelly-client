@@ -9,24 +9,24 @@ export default function Workshops() {
       <WebsiteNavbar />
       <Container>
         <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
-          <Typography variant="h4" textAlign="center" gutterBottom>
+          <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: 'Montserrat'}}>
             Workshops
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Workshops are used to educate proper form & movement mechanics for certain exercises and
             skills. This will be very useful for those that may not want one-on-one training, but
             are having problems with a particular lift.
           </Typography>
-          <Typography>These will include many movements such as:</Typography>
-          <List sx={{ listStyleType: "disc", pl: 4 }}>
-            <ListItem sx={{ display: "list-item" }}>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>These will include many movements such as:</Typography>
+          <List sx={{ listStyleType: "disc", pl: 4, fontFamily: "Source Sans Pro" }}>
+            <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
               Common Exercises (Squats, Deadlifts, Bench Press, & Overhead Press)
             </ListItem>
-            <ListItem sx={{ display: "list-item" }}>Olympic lifts (Snatch, Clean & Jerk)</ListItem>
-            <ListItem sx={{ display: "list-item" }}>
+            <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Olympic lifts (Snatch, Clean & Jerk)</ListItem>
+            <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
               Calisthenics (Handstands, Human Flagpoles, Levers, Muscle-ups, Planches)
             </ListItem>
-            <ListItem sx={{ display: "list-item" }}>Stretching</ListItem>
+            <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Stretching</ListItem>
           </List>
         </Paper>
       </Container>

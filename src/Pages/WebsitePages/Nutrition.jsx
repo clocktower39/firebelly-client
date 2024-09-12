@@ -31,48 +31,48 @@ export default function Nutrition() {
       <WebsiteNavbar />
       <Container >
         <Paper sx={{ margin: "15px 0", padding: "5px 25px" }}>
-          <Typography variant="h4" textAlign="center" gutterBottom>
+          <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: 'Montserrat'}}>
             Nutrition
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             This Nutrition page will lay out the most important information that you need to know in
             order to be successful. Remember to take things step-by-step to ensure that you can
             understand what you are trying to do and why!
           </Typography>
           <br />
           <br />
-          <Typography variant="h5">
+          <Typography variant="h5" sx={{ fontFamily: "Source Sans Pro" }}>
             <Box sx={classes.MainCategory} display="inline">
               CALORIES
             </Box>
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             A simplified definition: A Calorie is a Unit of Energy
             <br /> How do we measure the amount of energy we consume when we eat, or the amount of
             energy we expend during exercise?
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             <span sx={{ backgroundColor: "green" }}>- IT IS MEASURED IN CALORIES</span>
           </Typography>
           <br />
           <br />
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontFamily: "Source Sans Pro" }}>
             <Box sx={classes.SubCategory} display="inline">
               Why is this important?
             </Box>
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Having a measurable number for how much energy we expend compared to how much we intake
             allows us to control our Weight.
           </Typography>
           <br />
 
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontFamily: "Source Sans Pro" }}>
             <Box sx={classes.SubCategory} display="inline">
               How do we control weight with calories?
             </Box>
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             3500 Calories = 1 Pound of weight. (This is the standard, everyone may be slightly
             different)
             <br />
@@ -84,12 +84,12 @@ export default function Nutrition() {
           </Typography>
           <br />
 
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontFamily: "Source Sans Pro" }}>
             <Box sx={classes.SubCategory} display="inline">
               Tracking Caloric Intake
             </Box>
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Tracking your caloric intake has become very easy with many different food tracking apps
             such as MyFitnessPal, Fitbit, and others. You can simply scan barcodes of many packaged
             meals; or for homemade meals, figure out the calories content yourself and plug it in
@@ -98,12 +98,12 @@ export default function Nutrition() {
           </Typography>
           <br />
 
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontFamily: "Source Sans Pro" }}>
             <Box sx={classes.SubCategory} display="inline">
               Finding Caloric Expenditure
             </Box>
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             When trying to figure out how many calories you are normally burning throughout the day,
             you must first find your BASAL METABOLIC RATE (BMR) BMR is also frequently referred to
             as "Resting Metabolism", meaning the amount of energy (in calories) that your body
@@ -113,7 +113,7 @@ export default function Nutrition() {
           </Typography>
           <br />
 
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Of course, BMR only gives us the calories that you burn at rest, so we still need to
             figure out how many more active calories you are burning to figure out your Total Energy
             Expenditure (TEE). Fitness tracking watches are a great way to help figure out your TEE,
@@ -122,7 +122,7 @@ export default function Nutrition() {
           </Typography>
           <br />
           {/*table*/}
-          <TableContainer>
+          <TableContainer sx={{ fontFamily: "Source Sans Pro" }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -167,15 +167,15 @@ export default function Nutrition() {
             </Table>
           </TableContainer>
           <br />
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Using this system is a rough estimate, but with proper caloric and weight tracking, you
             will be able to figure out your average total energy expenditure (also known as
             maintenance level).
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             Once we have this number we can use it to control our weight, lets use an example:
           </Typography>
-          <Typography>
+          <Typography sx={{ fontFamily: "Source Sans Pro" }}>
             {" "}
             Jon wants to lose 10 pounds of body weight over a 10 week period. His BMR is 2000
             Calories, he has a full-time desk job, and works out 0-1 times per week. We would use
