@@ -12,6 +12,7 @@ import Workshops from "./Pages/WebsitePages/Workshops";
 import TrainingInfo from "./Pages/WebsitePages/TrainingInfo";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
+import VerifyEmail from "./Pages/VerifyEmail";
 import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Tasks from "./Pages/AppPages/Tasks";
@@ -91,11 +92,10 @@ function App({ }) {
             
               <Route element={<ActivityTrackerContainer />} >
                 <Route exact path="/login" element={<Login />} />
+                <Route exact path="/signup" element={<SignUp />} />
+                <Route exact path="/verify-email" element={<VerifyEmail />} />
               </Route>
               
-              <Route element={<ActivityTrackerContainer />} >
-                <Route exact path="/signup" element={<SignUp />} />
-              </Route>
               {/* Must be logged in and have JWT token to authenticate */}
               <Route exact path="/" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
@@ -177,7 +177,7 @@ function App({ }) {
 
               <Route exact path="/clients" element={<AuthRoute />}>
                 <Route element={<ActivityTrackerContainer />} >
-                  <Route exact path="" element={<Clients  socket={socket} />} />
+                  <Route exact path="" element={<Clients socket={socket} />} />
                 </Route>
               </Route>
 
