@@ -72,7 +72,6 @@ export default function Calendar(props) {
   const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [expandedWorkout, setExpandedWorkout] = useState(null);
 
   // Function to fetch workout month data
   const getWorkoutMonthData = (e) => {
@@ -123,6 +122,7 @@ export default function Calendar(props) {
   }, [history, currentMonth]);
 
   const handleMonthChange = (e) => {
+  setSelectedDate(null); // Reset the selected date
     setCurrentMonth(dayjs(e).month());
     const fetchData = getWorkoutMonthData(e);
 
@@ -131,10 +131,12 @@ export default function Calendar(props) {
     });
   };
 
+  const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
+
   const handleDateCalendarChange = (e) => {
-    const newDate = dayjs.utc(e);
+    const newDate = dayjs(e);
+    setScrollToDate(newDate.format("YYYY-MM-DD"));
     setSelectedDate(newDate);
-    setExpandedWorkout(null); // Collapse all accordions first
   };
 
   return (
@@ -173,9 +175,7 @@ export default function Calendar(props) {
           <Workouts
             currentMonth={currentMonth}
             history={history}
-            scrollToDate={selectedDate.format("YYYY-MM-DD")}
-            expandedWorkout={expandedWorkout}
-            setExpandedWorkout={setExpandedWorkout}
+            scrollToDate={scrollToDate}
             view={view}
             client={client}
           />
@@ -210,7 +210,7 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate, expandedWorkout, setExpandedWorkout }) => {
+const Workouts = ({ currentMonth, history, scrollToDate, }) => {
   return (
     <List>
       {history
@@ -222,8 +222,6 @@ const Workouts = ({ currentMonth, history, scrollToDate, expandedWorkout, setExp
                 key={workout._id}
                 workout={workout}
                 scrollToDate={scrollToDate}
-                expandedWorkout={expandedWorkout}
-                setExpandedWorkout={setExpandedWorkout}
               />
             );
           }
@@ -233,67 +231,48 @@ const Workouts = ({ currentMonth, history, scrollToDate, expandedWorkout, setExp
   );
 };
 
-const Workout = ({ workout, scrollToDate, expandedWorkout, setExpandedWorkout }) => {
+const Workout = ({ workout, scrollToDate }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id;
   const to = `/workout/${workoutId}`;
   const theme = useTheme();
-  const isSelected = dayjs(workout.date).utc().format("YYYY-MM-DD") === scrollToDate;
+  const [isDateSelected, setIsDateSelected] = useState(false);
 
-  const handleScroll = () => {
-    const scrollContainer = workoutRef.current.parentElement.parentElement;
-    const elementTop = workoutRef.current.offsetTop;
-    const elementHeight = workoutRef.current.offsetHeight;
-    const containerHeight = scrollContainer.clientHeight;
+  const handleScroll = (ref) => {
+    const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
+    const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
 
-    let scrollPosition = elementTop - containerHeight / 2 + elementHeight / 2;
-
-    if (scrollPosition < 0) {
-      scrollPosition = 0;
-    } else if (scrollPosition > scrollContainer.scrollHeight - containerHeight) {
-      scrollPosition = scrollContainer.scrollHeight - containerHeight;
+    if (testDate === scrollDate) {
+      ref.current.parentElement.parentElement.scrollTo({
+        top: ref.current.offsetTop,
+        left: 0,
+        behavior: "smooth",
+      });
+      setIsDateSelected(true); // Set true when dates match
+    } else {
+      setIsDateSelected(false); // Set false otherwise
     }
-
-    scrollContainer.scrollTo({
-      top: scrollPosition,
-      behavior: "smooth",
-    });
   };
 
   useEffect(() => {
-    if (isSelected) {
-      setExpandedWorkout(workoutId);
+    // When scrollToDate changes, call handleScroll to scroll to the workout
+    if (scrollToDate) {
+      handleScroll(workoutRef);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
-
-  useEffect(() => {
-    if (expandedWorkout === workoutId) {
-      const handleTransitionEnd = () => {
-        handleScroll();
-      };
-
-      const element = workoutRef.current;
-      element.addEventListener("transitionend", handleTransitionEnd);
-
-      return () => {
-        element.removeEventListener("transitionend", handleTransitionEnd);
-      };
-    }
-  }, [expandedWorkout]);
-
+  
   return (
     <ListItem sx={{ justifyContent: "center" }} ref={workoutRef}>
       <Box
         sx={{
-          border: isSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
+          border: isDateSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
           borderRadius: "5px",
           padding: "2.5px",
           width: "100%",
         }}
       >
         <Accordion
-          expanded={expandedWorkout === workoutId}
-          onChange={() => setExpandedWorkout(expandedWorkout === workoutId ? null : workoutId)}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Grid container>
