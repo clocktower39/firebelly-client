@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { loginJWT } from "../Redux/actions";
 import Loading from "./Loading";
@@ -9,11 +9,12 @@ import NavDrawer from "../Pages/AppPages/NavDrawer";
 import Footer from "./Footer";
 
 export const AuthRoute = (props) => {
-  const { socket } = props;
-
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
+
+  // Receive context from parent
+  const context = useOutletContext();
 
   const checkTokenExpiry = (token) => {
     try {
@@ -54,7 +55,7 @@ export const AuthRoute = (props) => {
       <Footer />
     </>
   ) : user.email ? (
-    <Outlet socket={socket} />
+    <Outlet context={context} />
   ) : (
     <Navigate to={{ pathname: "/login" }} />
   );
