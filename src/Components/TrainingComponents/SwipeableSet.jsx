@@ -103,13 +103,16 @@ function SwipeableSet(props) {
 
   useEffect(() => {
     if (activeStep >= maxSteps - 1) {
-      handleStepChange(maxSteps - 1);
+      handleStepChange(maxSteps - 2);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toggleRemoveSet]);
 
   useEffect(() => {
-    handleStepChange(maxSteps - 1);
+    // maxSteps -2 
+    //  -1 for index correlation
+    //  -1 for workout complete page
+    handleStepChange(maxSteps - 2);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toggleNewSet]);
 
@@ -200,7 +203,11 @@ function SwipeableSet(props) {
               </Grid>
               <Grid item container xs={12} sx={{ justifyContent: "center" }}>
                 <Grid item container xs={12} sx={{ justifyContent: "center",}}>
-                  <TextField label="Feedback" value={workoutFeedback} fullWidth multiline minRows={5} onKeyDown={handleFeedbackKeyDown} onChange={handleFeedbackChange}/>
+                  {/* <TextField label="Feedback" value={workoutFeedback} fullWidth multiline minRows={5} onKeyDown={handleFeedbackKeyDown} onChange={handleFeedbackChange}/> */}
+                  <Typography variant="body1">Feedback:</Typography>
+                </Grid>
+                <Grid item container xs={12} sx={{ justifyContent: "center",}}>
+                  <Typography variant="caption">(Coming soon)</Typography>
                 </Grid>
                 {/* {localTraining.map((group, index) => (
                   <Grid container item xs={12}>
