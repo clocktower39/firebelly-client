@@ -53,6 +53,7 @@ function SortableItem({ id, children, isPlaceholder }) {
     zIndex: isDragging ? 1000 : "auto",
     opacity: isDragging ? 0.5 : 1,
     textAlign: isPlaceholder ? "center" : "left",
+    visibility: isDragging && isPlaceholder ? "visible" : "inherit",
   };
 
   return (
@@ -136,6 +137,19 @@ export default function WorkoutOverview({
   );
 
   const [draggedItem, setDraggedItem] = useState(null);
+
+  const flattenedCircuits =  () => localWorkouts.reduce((acc, workout) => {
+    const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
+    return acc.concat(workoutCircuits);
+  }, []);
+  
+  const flattenedExercises = () => localWorkouts.flatMap((workout) =>
+    workout.training.flatMap((circuit, circuitIndex) =>
+      circuit.length > 0
+        ? circuit.map((exercise) => `exercise-${exercise._id}`)
+        : [`placeholder-${workout._id}-${circuitIndex}`]
+    )
+  );  
 
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
@@ -309,29 +323,30 @@ export default function WorkoutOverview({
                 </ToggleButtonGroup>
                 <div style={{ padding: "10px 0px" }}>
                   <SortableContext
-                    items={workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`)}
+                    items={flattenedCircuits()}
                     strategy={verticalListSortingStrategy}
                   >
                     {
                       // iterates through each workout set (supersets)
                       workout.training.map((circuit, circuitIndex) => {
                         return (
-                          <SortableItem
-                            key={`circuit-${workout._id}-${circuitIndex}`}
-                            id={`circuit-${workout._id}-${circuitIndex}`}
-                          >
-                            <Grid container>
-                              <Grid item xs={12}>
+                          <Grid container>
+                            <Grid item xs={12}>
+                              <SortableItem
+                                key={`circuit-${workout._id}-${circuitIndex}`}
+                                id={`circuit-${workout._id}-${circuitIndex}`}
+                              >
                                 <WorkoutSet
                                   workout={workout}
                                   circuit={circuit}
                                   circuitIndex={circuitIndex}
                                   viewMode={currentViewMode}
                                   activeId={activeId}
+                                  flattenedExercises={flattenedExercises}
                                 />
-                              </Grid>
+                              </SortableItem>
                             </Grid>
-                          </SortableItem>
+                          </Grid>
                         );
                       })
                     }
@@ -392,7 +407,7 @@ export default function WorkoutOverview({
 }
 
 const WorkoutSet = (props) => {
-  const { workout, circuit, circuitIndex, viewMode, activeId } = props;
+  const { workout, circuit, circuitIndex, viewMode, activeId, flattenedExercises } = props;
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -458,50 +473,47 @@ const WorkoutSet = (props) => {
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
         <SortableContext
-          items={
-            circuit.length > 0
-              ? circuit.map((exercise) => `exercise-${exercise._id}`)
-              : [`placeholder-${workout._id}-${circuitIndex}`]
-          }
+          items={flattenedExercises()}
           strategy={verticalListSortingStrategy}
         >
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-            <SortableItem  key={`exercise-${exercise._id}`} id={`exercise-${exercise._id}`} >
-              <Grid
-                container
-                component={Paper}
-              >
-                <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  <DragHandleIcon />
-                </Grid>
-                <Grid container item xs={11} sx={{ padding: "5px" }}>
-                  <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
-                    <Typography variant="body1">{exercise.exercise}</Typography>
+              <SortableItem key={`exercise-${exercise._id}`} id={`exercise-${exercise._id}`}>
+                <Grid container component={Paper}>
+                  <Grid
+                    container
+                    item
+                    xs={1}
+                    sx={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <DragHandleIcon />
                   </Grid>
-                  <Grid container item xs={12} sm={6}>
-                    {renderType(exercise)}
+                  <Grid container item xs={11} sx={{ padding: "5px" }}>
+                    <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
+                      <Typography variant="body1">{exercise.exercise}</Typography>
+                    </Grid>
+                    <Grid container item xs={12} sm={6}>
+                      {renderType(exercise)}
+                    </Grid>
                   </Grid>
                 </Grid>
-              </Grid>
-            </SortableItem>
-          )
-        )) : (
-          <SortableItem
-            key={`placeholder-${workout._id}-${circuitIndex}`}
-            id={`placeholder-${workout._id}-${circuitIndex}`}
-            isPlaceholder
-          >
-            <div
-              style={{
-                color: "#aaa",
-              }}
+              </SortableItem>
+            ))
+          ) : (
+            <SortableItem
+              key={`placeholder-${workout._id}-${circuitIndex}`}
+              id={`placeholder-${workout._id}-${circuitIndex}`}
+              isPlaceholder
             >
-              
-              Empty Circuit : Drag here to add exercise
-            </div>
-          </SortableItem>
-        )}
+              <div
+                style={{
+                  color: "#aaa",
+                }}
+              >
+                Empty Circuit : Drag here to add exercise
+              </div>
+            </SortableItem>
+          )}
         </SortableContext>
       </div>
     </Paper>
