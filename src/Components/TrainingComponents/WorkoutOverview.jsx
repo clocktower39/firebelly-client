@@ -1,21 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   Button,
   Dialog,
@@ -31,9 +16,51 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
+
+function SortableItem({ id, children, isPlaceholder }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, over } =
+    useSortable({
+      id,
+    });
+
+  const isOverPlaceholder = isPlaceholder && over && over.id === id;
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    backgroundColor: isPlaceholder ? (isOverPlaceholder ? "#444" : "#555") : "#333",
+    color: "#fff",
+    zIndex: isDragging ? 1000 : "auto",
+    opacity: isDragging ? 0.5 : 1,
+    textAlign: isPlaceholder ? "center" : "left",
+  };
+
+  return (
+    <div ref={setNodeRef} {...attributes} {...listeners}>
+      <div style={style}>{children}</div>
+    </div>
+  );
+}
 
 export default function WorkoutOverview({
   selectedDate,
@@ -60,14 +87,7 @@ export default function WorkoutOverview({
       return acc;
     }, {})
   );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
+  const [activeId, setActiveId] = useState(null);
 
   const handleViewToggleChange = (workoutId, newViewMode) => {
     if (newViewMode !== null) {
@@ -76,52 +96,6 @@ export default function WorkoutOverview({
         [workoutId]: newViewMode,
       }));
     }
-  };
-
-  const handleDragEnd = ({ active, over }) => {
-    if (!over) return;
-
-    if (active.id !== over.id) {
-      setLocalWorkouts((prevWorkouts) => {
-        const oldIndex = prevWorkouts.findIndex(
-          (workout) => workout._id === active.id
-        );
-        const newIndex = prevWorkouts.findIndex(
-          (workout) => workout._id === over.id
-        );
-        return arrayMove(prevWorkouts, oldIndex, newIndex);
-      });
-    }
-  };
-
-  const handleExerciseDragEnd = ({ active, over }) => {
-    if (!over) return;
-
-    const [activeWorkoutId, activeCircuitIndex, activeExerciseIndex] = active.id.split("-");
-    const [overWorkoutId, overCircuitIndex, overExerciseIndex] = over.id.split("-");
-
-    setLocalWorkouts((prevWorkouts) => {
-      return prevWorkouts.map((workout) => {
-        if (workout._id !== activeWorkoutId && workout._id !== overWorkoutId) {
-          return workout;
-        }
-
-        const updatedWorkout = { ...workout };
-
-        if (workout._id === activeWorkoutId) {
-          const activeCircuit = updatedWorkout.training[activeCircuitIndex];
-          const [movedExercise] = activeCircuit.splice(activeExerciseIndex, 1);
-
-          if (workout._id === overWorkoutId) {
-            updatedWorkout.training[overCircuitIndex].splice(overExerciseIndex, 0, movedExercise);
-          } else {
-            updatedWorkout.training[activeCircuitIndex] = activeCircuit;
-          }
-        }
-
-        return updatedWorkout;
-      });
-    });
   };
 
   // Save and start workout
@@ -154,118 +128,226 @@ export default function WorkoutOverview({
     );
   }, [localWorkouts]);
 
-  return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={localWorkouts} strategy={verticalListSortingStrategy}>
-        {localWorkouts?.length > 0 &&
-          localWorkouts.map((workout, index) => {
-            const handleSelectWorkout = () => {
-              setSelectedWorkout(workout);
-              handleModalToggle();
-            };
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-            const currentViewMode = viewModes[workout._id] || "goals"; // Default to 'goals' if not set
+  const [draggedItem, setDraggedItem] = useState(null);
 
-            return (
-              <SortableItem key={workout._id} id={workout._id} index={index}>
-                <Paper elevation={5} sx={{ margin: "5px", padding: "5px" }}>
-                  <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-                    <Grid item xs={11} container>
-                      <Typography variant="h6">{workout.title}</Typography>
-                    </Grid>
-                    <Grid
-                      item
-                      xs={1}
-                      container
-                      sx={{ justifyContent: "center", alignItems: "center" }}
-                    >
-                      <Tooltip title="Workout Settings">
-                        <IconButton variant="contained" onClick={handleSelectWorkout}>
-                          <Settings />
-                        </IconButton>
-                      </Tooltip>
-                    </Grid>
-                  </Grid>
-                  <Typography variant="h6">{workout.category.join(", ")}</Typography>
+  const handleDragStart = ({ active }) => {
+    setDraggedItem(active.id);
+  };
 
-                  <ToggleButtonGroup
-                    value={currentViewMode}
-                    exclusive
-                    onChange={(event, newViewMode) =>
-                      handleViewToggleChange(workout._id, newViewMode)
-                    }
-                    aria-label="goals or achieved"
-                    size="small"
-                  >
-                    <ToggleButton value="goals" aria-label="goals">
-                      Goals
-                    </ToggleButton>
-                    <ToggleButton value="achieved" aria-label="achieved">
-                      Achieved
-                    </ToggleButton>
-                  </ToggleButtonGroup>
+  const handleDragEnd = ({ active, over }) => {
+    setDraggedItem(null);
+    if (!over || active.id === over.id) return;
 
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleExerciseDragEnd}
-                  >
-                    <SortableContext
-                      items={workout.training.flatMap((circuit, circuitIndex) =>
-                        circuit.map((exercise, exerciseIndex) =>
-                          `${workout._id}-${circuitIndex}-${exerciseIndex}`
-                        )
-                      )}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <Grid container spacing={2} sx={{ marginTop: "10px" }}>
-                        {workout.training.map((circuit, circuitIndex) => (
-                          <Grid item xs={12} key={`circuit-${circuitIndex}`}>
-                            <Paper elevation={3} sx={{ padding: "10px" }}>
-                              <Typography variant="subtitle1" gutterBottom>
-                                Circuit {circuitIndex + 1}
-                              </Typography>
-                              {circuit.map((exercise, exerciseIndex) => (
-                                <SortableItem
-                                  key={`${workout._id}-${circuitIndex}-${exerciseIndex}`}
-                                  id={`${workout._id}-${circuitIndex}-${exerciseIndex}`}
-                                >
-                                  <Grid
-                                    container
-                                    alignItems="center"
-                                    sx={{ marginBottom: "10px" }}
-                                  >
-                                    <Grid item xs={1} sx={{ textAlign: "center" }}>
-                                      <DragHandleIcon />
-                                    </Grid>
-                                    <Grid item xs={11}>
-                                      <Typography variant="body1">
-                                        {exercise.exercise} - {exercise.goals.sets} sets: {exercise.goals.exactReps.join(", ")} reps
-                                      </Typography>
-                                    </Grid>
-                                  </Grid>
-                                </SortableItem>
-                              ))}
-                            </Paper>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </SortableContext>
-                  </DndContext>
+    if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
+      handleCircuitDragEnd(active, over);
+    } else if (
+      active.id.startsWith("exercise-") &&
+      (over.id.startsWith("exercise-") || over.id.startsWith("placeholder-"))
+    ) {
+      handleExerciseDragEnd(active, over);
+    }
+  };
 
-                  <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
-                    <Link to={`/workout/${workout._id}`}>
-                      <Button onClick={() => saveStart(workout)} variant="contained">
-                        {workout.complete ? "Review" : "Start"}
-                      </Button>
-                    </Link>
-                  </Grid>
-                </Paper>
-              </SortableItem>
+  const handleCircuitDragEnd = (active, over) => {
+    const [activeWorkoutId, activeCircuitIndex] = active.id.split("-").slice(1);
+    const [overWorkoutId, overCircuitIndex] = over.id.split("-").slice(1);
+
+    setLocalWorkouts((prevData) => {
+      const updatedData = [...prevData];
+      const activeWorkoutIndex = updatedData.findIndex((w) => w._id === activeWorkoutId);
+      const overWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
+
+      if (activeWorkoutIndex === -1 || overWorkoutIndex === -1) return updatedData;
+
+      if (activeWorkoutIndex === overWorkoutIndex) {
+        // Reorder circuits within the same workout
+        updatedData[activeWorkoutIndex].training = arrayMove(
+          updatedData[activeWorkoutIndex].training,
+          parseInt(activeCircuitIndex),
+          parseInt(overCircuitIndex)
+        );
+      } else {
+        // Moving circuits between workouts
+        const [movedCircuit] = updatedData[activeWorkoutIndex].training.splice(
+          parseInt(activeCircuitIndex),
+          1
+        );
+        updatedData[overWorkoutIndex].training.splice(parseInt(overCircuitIndex), 0, movedCircuit);
+      }
+
+      return updatedData;
+    });
+  };
+
+  const handleExerciseDragEnd = (active, over) => {
+    setLocalWorkouts((prevData) => {
+      const updatedData = [...prevData];
+      let activeWorkoutIndex, activeCircuitIndex, activeItemIndex;
+      let overWorkoutIndex, overCircuitIndex, overItemIndex;
+
+      // Locate the active exercise
+      for (let workoutIndex = 0; workoutIndex < updatedData.length; workoutIndex++) {
+        const workout = updatedData[workoutIndex];
+        for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
+          const circuit = workout.training[circuitIndex];
+          const itemIndex = circuit.findIndex(
+            (exercise) => `exercise-${exercise._id}` === active.id
+          );
+          if (itemIndex !== -1) {
+            activeWorkoutIndex = workoutIndex;
+            activeCircuitIndex = circuitIndex;
+            activeItemIndex = itemIndex;
+          }
+        }
+      }
+
+      // Locate the target position for the exercise
+      if (over.id.startsWith("exercise-")) {
+        for (let workoutIndex = 0; workoutIndex < updatedData.length; workoutIndex++) {
+          const workout = updatedData[workoutIndex];
+          for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
+            const circuit = workout.training[circuitIndex];
+            const itemIndex = circuit.findIndex(
+              (exercise) => `exercise-${exercise._id}` === over.id
             );
-          })}
-      </SortableContext>
-      <DragOverlay>{/* Add DragOverlay content if needed */}</DragOverlay>
+            if (itemIndex !== -1) {
+              overWorkoutIndex = workoutIndex;
+              overCircuitIndex = circuitIndex;
+              overItemIndex = itemIndex;
+            }
+          }
+        }
+      } else if (over.id.startsWith("placeholder-")) {
+        const [overWorkoutId, overCircuitIndexStr] = over.id.split("-").slice(1);
+        overWorkoutIndex = updatedData.findIndex((workout) => workout._id === overWorkoutId);
+        overCircuitIndex = parseInt(overCircuitIndexStr);
+        overItemIndex = 0; // Since it's an empty circuit, we insert at position 0.
+      }
+
+      if (
+        activeWorkoutIndex === undefined ||
+        overWorkoutIndex === undefined ||
+        activeCircuitIndex === undefined ||
+        overCircuitIndex === undefined ||
+        activeItemIndex === undefined
+      ) {
+        return updatedData;
+      }
+
+      // Moving the item
+      const [movedItem] = updatedData[activeWorkoutIndex].training[activeCircuitIndex].splice(
+        activeItemIndex,
+        1
+      );
+      updatedData[overWorkoutIndex].training[overCircuitIndex].splice(overItemIndex, 0, movedItem);
+
+      return updatedData;
+    });
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      {localWorkouts?.length > 0 &&
+        // Each day may have multiple workouts, this separates the workouts
+        localWorkouts.map((workout, index) => {
+          const handleSelectWorkout = () => {
+            setSelectedWorkout(workout);
+            handleModalToggle();
+          };
+
+          const currentViewMode = viewModes[workout._id] || "goals"; // Default to 'goals' if not set
+
+          return (
+            <React.Fragment key={`workout-${index}`}>
+              <Paper elevation={5} sx={{ margin: "5px", padding: "5px" }}>
+                <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
+                  <Grid item xs={11} container>
+                    <Typography variant="h6">{workout.title}</Typography>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={1}
+                    container
+                    sx={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <Tooltip title="Workout Settings">
+                      <IconButton variant="contained" onClick={handleSelectWorkout}>
+                        <Settings />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
+                </Grid>
+                <Typography variant="h6">{workout.category.join(", ")}</Typography>
+
+                <ToggleButtonGroup
+                  value={currentViewMode}
+                  exclusive
+                  onChange={(event, newViewMode) =>
+                    handleViewToggleChange(workout._id, newViewMode)
+                  }
+                  aria-label="goals or achieved"
+                  size="small"
+                >
+                  <ToggleButton value="goals" aria-label="goals">
+                    Goals
+                  </ToggleButton>
+                  <ToggleButton value="achieved" aria-label="achieved">
+                    Achieved
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                <div style={{ padding: "10px 0px" }}>
+                  <SortableContext
+                    items={workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {
+                      // iterates through each workout set (supersets)
+                      workout.training.map((circuit, circuitIndex) => {
+                        return (
+                          <SortableItem
+                            key={`circuit-${workout._id}-${circuitIndex}`}
+                            id={`circuit-${workout._id}-${circuitIndex}`}
+                          >
+                            <Grid container>
+                              <Grid item xs={12}>
+                                <WorkoutSet
+                                  workout={workout}
+                                  circuit={circuit}
+                                  circuitIndex={circuitIndex}
+                                  viewMode={currentViewMode}
+                                  activeId={activeId}
+                                />
+                              </Grid>
+                            </Grid>
+                          </SortableItem>
+                        );
+                      })
+                    }
+                  </SortableContext>
+                </div>
+                <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
+                  <Link to={`/workout/${workout._id}`}>
+                    <Button onClick={() => saveStart(workout)} variant="contained">
+                      {workout.complete ? "Review" : "Start"}
+                    </Button>
+                  </Link>
+                </Grid>
+              </Paper>
+            </React.Fragment>
+          );
+        })}
       <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
         <Grid item>
           <Button
@@ -309,25 +391,119 @@ export default function WorkoutOverview({
   );
 }
 
-function SortableItem({ id, children }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+const WorkoutSet = (props) => {
+  const { workout, circuit, circuitIndex, viewMode, activeId } = props;
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  const renderType = (exercise) => {
+    const { exerciseType, goals, achieved } = exercise;
+
+    switch (exerciseType) {
+      case "Reps":
+        return viewMode === "goals" ? (
+          <Typography variant="body1">
+            {goals.exactReps.length} sets: {goals.exactReps.join(", ")} reps
+          </Typography>
+        ) : (
+          <Typography variant="body1">
+            {achieved.reps.length} sets: {achieved.reps.join(", ")} reps
+          </Typography>
+        );
+      case "Time":
+        return viewMode === "goals" ? (
+          <Typography variant="body1">
+            {goals.seconds.length} sets: {goals.seconds.join(", ")} seconds
+          </Typography>
+        ) : (
+          <Typography variant="body1">
+            {achieved.seconds.length} sets: {achieved.seconds.join(", ")} seconds
+          </Typography>
+        );
+      case "Reps with %":
+        return viewMode === "goals" ? (
+          <>
+            <Grid container>
+              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+            </Grid>
+            <Grid container>
+              <Typography variant="body1">
+                {goals.percent.length} sets: {goals.exactReps.join(", ")} reps
+              </Typography>
+            </Grid>
+          </>
+        ) : (
+          <>
+            <Grid container>
+              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+            </Grid>
+            <Grid container>
+              <Typography variant="body1">
+                {achieved.percent.length} sets: {achieved.reps.join(", ")} reps
+              </Typography>
+            </Grid>
+          </>
+        );
+      default:
+        break;
+    }
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
-    </div>
+    <Paper sx={{ padding: "0 5px", marginBottom: "10px" }}>
+      <Grid container alignItems="center">
+        <Grid item xs={12}>
+          <Typography variant="h6">
+            <span>Circuit {circuitIndex + 1}</span>
+          </Typography>
+        </Grid>
+      </Grid>
+      <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
+        <SortableContext
+          items={
+            circuit.length > 0
+              ? circuit.map((exercise) => `exercise-${exercise._id}`)
+              : [`placeholder-${workout._id}-${circuitIndex}`]
+          }
+          strategy={verticalListSortingStrategy}
+        >
+          {circuit.length > 0 ? (
+            circuit.map((exercise, index) => (
+            <SortableItem  key={`exercise-${exercise._id}`} id={`exercise-${exercise._id}`} >
+              <Grid
+                container
+                component={Paper}
+              >
+                <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
+                  <DragHandleIcon />
+                </Grid>
+                <Grid container item xs={11} sx={{ padding: "5px" }}>
+                  <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
+                    <Typography variant="body1">{exercise.exercise}</Typography>
+                  </Grid>
+                  <Grid container item xs={12} sm={6}>
+                    {renderType(exercise)}
+                  </Grid>
+                </Grid>
+              </Grid>
+            </SortableItem>
+          )
+        )) : (
+          <SortableItem
+            key={`placeholder-${workout._id}-${circuitIndex}`}
+            id={`placeholder-${workout._id}-${circuitIndex}`}
+            isPlaceholder
+          >
+            <div
+              style={{
+                color: "#aaa",
+              }}
+            >
+              
+              Empty Circuit : Drag here to add exercise
+            </div>
+          </SortableItem>
+        )}
+        </SortableContext>
+      </div>
+    </Paper>
   );
-}
+};
