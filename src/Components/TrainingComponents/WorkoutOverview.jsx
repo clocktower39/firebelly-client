@@ -37,28 +37,40 @@ import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
 
-function SortableItem({ id, children, isPlaceholder }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging, over } =
-    useSortable({
-      id,
-    });
-
-  const isOverPlaceholder = isPlaceholder && over && over.id === id;
+function SortableExercise({ id, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    backgroundColor: isPlaceholder ? (isOverPlaceholder ? "#444" : "#555") : "#333",
-    color: "#fff",
-    zIndex: isDragging ? 1000 : "auto",
-    opacity: isDragging ? 0.5 : 1,
-    textAlign: isPlaceholder ? "center" : "left",
-    visibility: isDragging && isPlaceholder ? "visible" : "inherit",
+    zIndex: isDragging ? 1000 : undefined,
+    opacity: isDragging ? 0.8 : 1,
   };
 
   return (
-    <div ref={setNodeRef} {...attributes} {...listeners}>
-      <div style={style}>{children}</div>
+    <div ref={setNodeRef} style={style} >
+      {children(listeners, attributes)}
+    </div>
+  );
+}
+
+function SortableCircuit({ id, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1000 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      {children}
     </div>
   );
 }
@@ -138,18 +150,20 @@ export default function WorkoutOverview({
 
   const [draggedItem, setDraggedItem] = useState(null);
 
-  const flattenedCircuits =  () => localWorkouts.reduce((acc, workout) => {
-    const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
-    return acc.concat(workoutCircuits);
-  }, []);
-  
-  const flattenedExercises = () => localWorkouts.flatMap((workout) =>
-    workout.training.flatMap((circuit, circuitIndex) =>
-      circuit.length > 0
-        ? circuit.map((exercise) => `exercise-${exercise._id}`)
-        : [`placeholder-${workout._id}-${circuitIndex}`]
-    )
-  );  
+  const flattenedCircuits = () =>
+    localWorkouts.reduce((acc, workout) => {
+      const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
+      return acc.concat(workoutCircuits);
+    }, []);
+
+  const flattenedExercises = () =>
+    localWorkouts.flatMap((workout) =>
+      workout.training.flatMap((circuit, circuitIndex) =>
+        circuit.length > 0
+          ? circuit.map((exercise) => `exercise-${exercise._id}`)
+          : [`placeholder-${workout._id}-${circuitIndex}`]
+      )
+    );
 
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
@@ -332,19 +346,19 @@ export default function WorkoutOverview({
                         return (
                           <Grid container>
                             <Grid item xs={12}>
-                              <SortableItem
+                              <SortableCircuit
                                 key={`circuit-${workout._id}-${circuitIndex}`}
                                 id={`circuit-${workout._id}-${circuitIndex}`}
                               >
-                                <WorkoutSet
-                                  workout={workout}
-                                  circuit={circuit}
-                                  circuitIndex={circuitIndex}
-                                  viewMode={currentViewMode}
-                                  activeId={activeId}
-                                  flattenedExercises={flattenedExercises}
-                                />
-                              </SortableItem>
+                              <WorkoutSet
+                                workout={workout}
+                                circuit={circuit}
+                                circuitIndex={circuitIndex}
+                                viewMode={currentViewMode}
+                                activeId={activeId}
+                                flattenedExercises={flattenedExercises}
+                              />
+                              </SortableCircuit>
                             </Grid>
                           </Grid>
                         );
@@ -472,47 +486,52 @@ const WorkoutSet = (props) => {
         </Grid>
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
-        <SortableContext
-          items={flattenedExercises()}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={flattenedExercises()} strategy={verticalListSortingStrategy}>
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              <SortableItem key={`exercise-${exercise._id}`} id={`exercise-${exercise._id}`}>
-                <Grid container component={Paper}>
-                  <Grid
-                    container
-                    item
-                    xs={1}
-                    sx={{ justifyContent: "center", alignItems: "center" }}
-                  >
-                    <DragHandleIcon />
-                  </Grid>
-                  <Grid container item xs={11} sx={{ padding: "5px" }}>
-                    <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
-                      <Typography variant="body1">{exercise.exercise}</Typography>
+              // <SortableExercise id={`exercise-${exercise._id}`}>
+              //   {(listeners, attributes) => (
+                  <Grid container component={Paper}>
+                    <Grid
+                      container
+                      item
+                      xs={1}
+                      sx={{ justifyContent: "center", alignItems: "center" }}
+                    >
+                      {/* Drag handle */}
+                      <div>
+                        <DragHandleIcon />
+                      </div>
                     </Grid>
-                    <Grid container item xs={12} sm={6}>
-                      {renderType(exercise)}
+                    <Grid container item xs={11} sx={{ padding: "5px" }}>
+                      {/* Rest of your item content */}
+                      <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
+                        <Typography variant="body1">{exercise.exercise}</Typography>
+                      </Grid>
+                      <Grid container item xs={12} sm={6}>
+                        {renderType(exercise)}
+                      </Grid>
                     </Grid>
                   </Grid>
-                </Grid>
-              </SortableItem>
+              //   )}
+              // </SortableExercise>
             ))
           ) : (
-            <SortableItem
-              key={`placeholder-${workout._id}-${circuitIndex}`}
-              id={`placeholder-${workout._id}-${circuitIndex}`}
-              isPlaceholder
-            >
-              <div
-                style={{
-                  color: "#aaa",
-                }}
-              >
-                Empty Circuit : Drag here to add exercise
-              </div>
-            </SortableItem>
+            // <SortableExercise
+            //   key={`placeholder-${workout._id}-${circuitIndex}`}
+            //   id={`placeholder-${workout._id}-${circuitIndex}`}
+            //   isPlaceholder
+            // >
+            //   {(listeners, attributes) => (
+                <div
+                  style={{
+                    color: "#aaa",
+                  }}
+                >
+                  Empty Circuit : Drag here to add exercise
+                </div>
+            //   )}
+            // </SortableExercise>
           )}
         </SortableContext>
       </div>
