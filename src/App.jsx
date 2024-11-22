@@ -33,6 +33,7 @@ import ChangePassword from "./Components/AccountComponents/ChangePassword";
 import LogoutConfirmation from "./Components/AccountComponents/LogoutConfirmation";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
 import NotFoundPage from "./Pages/NotFoundPage";
+import TestPage from "./Pages/TestPage";
 import "./App.css";
 
 function App({}) {
@@ -129,6 +130,7 @@ function App({}) {
                   </Route>
 
                   <Route exact path="/clients" element={<Clients socket={socket} />} />
+                  <Route exact path="/test" element={<TestPage socket={socket} />} />
                 </Route>
               </Route>
             </>

@@ -18,12 +18,12 @@ import {
 } from "@mui/material";
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   DragOverlay,
+  rectIntersection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -37,14 +37,14 @@ import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
 
-function SortableExercise({ id, children }) {
+function SortableExercise({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
+    id, index,
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    // transition,
     zIndex: isDragging ? 1000 : undefined,
     opacity: isDragging ? 0.8 : 1,
   };
@@ -56,14 +56,14 @@ function SortableExercise({ id, children }) {
   );
 }
 
-function SortableCircuit({ id, children }) {
+function SortableCircuit({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
+    id, index,
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    // transition,
     zIndex: isDragging ? 1000 : undefined,
     opacity: isDragging ? 0.8 : 1,
   };
@@ -283,7 +283,7 @@ export default function WorkoutOverview({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={rectIntersection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
@@ -349,6 +349,7 @@ export default function WorkoutOverview({
                               <SortableCircuit
                                 key={`circuit-${workout._id}-${circuitIndex}`}
                                 id={`circuit-${workout._id}-${circuitIndex}`}
+                                index={circuitIndex}
                               >
                               <WorkoutSet
                                 workout={workout}
@@ -489,8 +490,8 @@ const WorkoutSet = (props) => {
         <SortableContext items={flattenedExercises()} strategy={verticalListSortingStrategy}>
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              // <SortableExercise id={`exercise-${exercise._id}`}>
-              //   {(listeners, attributes) => (
+              <SortableExercise id={`exercise-${exercise._id}` } index={index} >
+                {(listeners, attributes) => (
                   <Grid container component={Paper}>
                     <Grid
                       container
@@ -499,7 +500,7 @@ const WorkoutSet = (props) => {
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
                       {/* Drag handle */}
-                      <div>
+                      <div {...listeners} {...attributes}>
                         <DragHandleIcon />
                       </div>
                     </Grid>
@@ -513,16 +514,16 @@ const WorkoutSet = (props) => {
                       </Grid>
                     </Grid>
                   </Grid>
-              //   )}
-              // </SortableExercise>
+                )}
+              </SortableExercise>
             ))
           ) : (
-            // <SortableExercise
-            //   key={`placeholder-${workout._id}-${circuitIndex}`}
-            //   id={`placeholder-${workout._id}-${circuitIndex}`}
-            //   isPlaceholder
-            // >
-            //   {(listeners, attributes) => (
+            <SortableExercise
+              key={`placeholder-${workout._id}-${circuitIndex}`}
+              id={`placeholder-${workout._id}-${circuitIndex}`}
+              isPlaceholder
+            >
+              {(listeners, attributes) => (
                 <div
                   style={{
                     color: "#aaa",
@@ -530,8 +531,8 @@ const WorkoutSet = (props) => {
                 >
                   Empty Circuit : Drag here to add exercise
                 </div>
-            //   )}
-            // </SortableExercise>
+              )}
+            </SortableExercise>
           )}
         </SortableContext>
       </div>
