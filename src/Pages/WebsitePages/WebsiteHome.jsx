@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { loginJWT } from "../../Redux/actions";
-import { Box, Container, Grid, List, ListItem, Typography } from "@mui/material";
+import { Box, Container, Divider, Grid, List, ListItem, Typography } from "@mui/material";
 import WebsiteNavbar from "./WebsiteNavbar";
 import Footer from "../../Components/Footer";
 import useWindowWidth from "../../Hooks/WindowWidth";
@@ -15,7 +15,10 @@ const classes = {
   },
   WideMainImg: { width: "100%", height: "auto" },
   NonWideMainImg: { width: "100%", height: "55vh", objectFit: "cover" },
-  AboutSite: { padding: "25px 15px" },
+  AboutSite: {
+    padding: "25px 15px",
+    color: "white",
+  },
 };
 
 export default function Home() {
@@ -45,10 +48,15 @@ export default function Home() {
           />
         </Container>
       </Box>
-      <Grid>
+      <Grid sx={{ backgroundColor: "black" }}>
         <Container maxWidth="sm" sx={classes.AboutSite}>
           <Grid>
-            <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: 'Montserrat'}}>
+            <Typography
+              variant="h4"
+              textAlign="center"
+              gutterBottom
+              sx={{ fontFamily: "Montserrat" }}
+            >
               About Firebelly Fitness
             </Typography>
           </Grid>
@@ -60,23 +68,32 @@ export default function Home() {
             </Typography>
           </Grid>
           <Grid>
-            <Typography sx={{ fontFamily: "Source Sans Pro" }}>On this website, you will find:</Typography>
-            <List sx={{ listStyleType: "disc", pl: 4, fontFamily: "Source Sans Pro", }}>
-              <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
+            <Typography sx={{ fontFamily: "Source Sans Pro" }}>
+              On this website, you will find:
+            </Typography>
+            <List sx={{ listStyleType: "disc", pl: 4, fontFamily: "Source Sans Pro" }}>
+              <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
                 Consolidated information about Fitness & Nutrition, it will contain some of the most
                 important basic information that you need to understand to be successful. (Please
                 read it, it's free, we just want everyone to have the most accurate information
                 possible)
               </ListItem>
-              <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
+              <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
                 Workshops for specific exercises or skills with step by step instructions for proper
                 form and advancements
               </ListItem>
-              <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Training Program Options</ListItem>
-              <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
+              <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                Training Program Options
+              </ListItem>
+              <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
                 Fitness Application with our free programs, online programs, and custom programs
               </ListItem>
             </List>
+          </Grid>
+        </Container>
+        <Container maxWidth="lg">
+          <Grid item xs={12}>
+            <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
           </Grid>
         </Container>
         <Container maxWidth="false" sx={{ backgroundColor: "black" }}>
@@ -89,12 +106,17 @@ export default function Home() {
             }}
           >
             <Grid container>
+              <Grid container item xs={12} justifyContent="center">
+                <Typography
+                  variant="h4"
+                  textAlign="center"
+                  gutterBottom
+                  sx={{ fontFamily: "Montserrat", paddingBottom: '15px', }}
+                >
+                  About Me
+                </Typography>
+              </Grid>
               <Grid container item xs={12} md={6}>
-                <Grid>
-                  <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: 'Montserrat'}}>
-                    About Me
-                  </Typography>
-                </Grid>
                 <Grid>
                   <Typography sx={{ fontFamily: "Source Sans Pro" }}>
                     I have always had a passion for understanding, never able to accept "that’s just
@@ -110,18 +132,32 @@ export default function Home() {
                   </Typography>
                 </Grid>
                 <Grid>
-                  <Typography sx={{ fontFamily: "Source Sans Pro" }}>My hobbies include:</Typography>
-                  <List sx={{ listStyleType: "disc", pl: 4, fontFamily: "Source Sans Pro", }}>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>
+                  <Typography sx={{ fontFamily: "Source Sans Pro" }}>
+                    My hobbies include:
+                  </Typography>
+                  <List sx={{ listStyleType: "disc", pl: 4, fontFamily: "Source Sans Pro" }}>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
                       Calisthenics (Handstands, Flagpoles, Lever, Planche, etc)
                     </ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Hiking</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Jiu Jitsu</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Strength Training</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Stunting</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Tumbling</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Longboarding</ListItem>
-                    <ListItem sx={{ display: "list-item", fontFamily: 'inherit', }}>Videogames</ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>Hiking</ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Jiu Jitsu
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Strength Training
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Stunting
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Tumbling
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Longboarding
+                    </ListItem>
+                    <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>
+                      Video games
+                    </ListItem>
                   </List>
                 </Grid>
               </Grid>
