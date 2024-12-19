@@ -65,7 +65,7 @@ export default function Exercises() {
 
       try {
         await dispatch(
-          updateMasterExerciseName(selectedExercise.exercise.exerciseTitle, editName.exercise, trainingIdList)
+          updateMasterExerciseName(selectedExercise.exercise.exercise.exerciseTitle, editName.exercise, trainingIdList)
         );
 
         // Update selectedExercise.exercise to editName
@@ -270,7 +270,7 @@ export default function Exercises() {
                   ))}
               </AvatarGroup>
               <Typography variant="h5">Exercise Details</Typography>
-              <Typography>Name: {selectedExercise.exercise.exerciseTitle}</Typography>
+              <Typography>Name: {selectedExercise.exercise.exercise.exerciseTitle}</Typography>
               <Typography>Occurrences: {selectedExercise.count}</Typography>
               <Accordion>
                 <AccordionSummary
@@ -297,7 +297,7 @@ export default function Exercises() {
                 </AccordionDetails>
               </Accordion>
             </Box>
-            <ExerciseLibrarySection selectedExercise={selectedExercise.exercise.exerciseTitle} />
+            <ExerciseLibrarySection selectedExercise={selectedExercise.exercise.exercise.exerciseTitle} />
           </>
         )}
       </Paper>

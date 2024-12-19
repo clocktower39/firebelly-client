@@ -229,7 +229,7 @@ export default function Exercise(props) {
   const handleClose = () => setOpen(false);
   const handleModalToggle = () => setOpen((prev) => !prev);
   const handleModalExercise = () => {
-    dispatch(requestExerciseProgress(title, workoutUser)).then(() => handleModalToggle());
+    dispatch(requestExerciseProgress(exercise.exercise, workoutUser)).then(() => handleModalToggle());
   };
   const [anchorEl, setAnchorEl] = useState(null);
   const exerciseOptionsOpen = Boolean(anchorEl);
