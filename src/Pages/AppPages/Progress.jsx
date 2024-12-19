@@ -295,7 +295,7 @@ export const BarChartHistory = (props) => {
 
 const ExerciseListAutocomplete = (props) => {
   const { exerciseList, exercise } = props;
-  const [title, setTitle] = useState(exercise.exercise || "");
+  const [title, setTitle] = useState(exercise.exercise.exerciseTitle || "");
 
   const matchWords = (option, inputValue) => {
     if(!option) return false;

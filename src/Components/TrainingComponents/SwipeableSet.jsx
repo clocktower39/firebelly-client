@@ -221,7 +221,7 @@ function SwipeableSet(props) {
                             sx={{ justifyContent: "flex-start", alignContent: "center" }}
                           >
                             <Typography color="text.primary" variant="h6">
-                              {exercise.exercise}
+                              {exercise.exerciseTitle}
                             </Typography>
                           </Grid>
                         </>

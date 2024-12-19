@@ -52,27 +52,27 @@ export default function Exercises() {
 
   const handleConfirmDialogOpen = () => {
     // open dialog and then confirm save before fetch
-    if (selectedExercise.exercise !== "" && editName.exercise !== "") {
+    if (selectedExercise.exercise.exerciseTitle !== "" && editName.exercise !== "") {
       setConfirmDialogOpen((prev) => true);
     }
   };
   const handleConfirmDialogClose = () => setConfirmDialogOpen((prev) => false);
 
   const handleSubmit = async () => {
-    if (selectedExercise?.exercise && editName.exercise !== "") {
+    if (selectedExercise?.exercise?.exercise && editName.exercise !== "") {
       setConfirmDialogLoading(true);
       const trainingIdList = selectedExercise.dates.map((date) => date.trainingId);
 
       try {
         await dispatch(
-          updateMasterExerciseName(selectedExercise.exercise, editName.exercise, trainingIdList)
+          updateMasterExerciseName(selectedExercise.exercise.exerciseTitle, editName.exercise, trainingIdList)
         );
 
         // Update selectedExercise.exercise to editName
         // if new exercise title already exists in the list, spread the ...dates, merge the users, add to the count
         // if new exercise title does not exist, only rename the exercise
         setExerciseList((prev) => {
-          const doesExerciseExist = prev.some((e) => e.exercise === editName.exercise);
+          const doesExerciseExist = prev.some((e) => e.exerciseTitle === editName.exercise);
 
           const updatedList = prev.map((e) => {
             if (!doesExerciseExist) {
@@ -270,7 +270,7 @@ export default function Exercises() {
                   ))}
               </AvatarGroup>
               <Typography variant="h5">Exercise Details</Typography>
-              <Typography>Name: {selectedExercise.exercise}</Typography>
+              <Typography>Name: {selectedExercise.exercise.exerciseTitle}</Typography>
               <Typography>Occurrences: {selectedExercise.count}</Typography>
               <Accordion>
                 <AccordionSummary
@@ -297,7 +297,7 @@ export default function Exercises() {
                 </AccordionDetails>
               </Accordion>
             </Box>
-            {/* <ExerciseLibrarySection selectedExercise={selectedExercise.exercise} /> */}
+            <ExerciseLibrarySection selectedExercise={selectedExercise.exercise.exerciseTitle} />
           </>
         )}
       </Paper>
@@ -424,7 +424,7 @@ const ExerciseLibrarySection = ({ selectedExercise, onSave }) => {
         setExercise(data);
         setLoading(false);
       });
-  }, []);
+  }, [selectedExercise]);
 
   return (
     <Box sx={{ padding: "15px", border: "3px solid green" }}>
@@ -433,14 +433,14 @@ const ExerciseLibrarySection = ({ selectedExercise, onSave }) => {
       </Typography>
       {loading
         ? "loading"
-        : exercise && (
+        : exercise._id && (
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Exercise Title"
                   name="exerciseTitle"
-                  value={exercise.exerciseTitle}
+                  value={exercise.exercise.exerciseTitle}
                   onChange={handleChange}
                   variant="outlined"
                 />

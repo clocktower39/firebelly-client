@@ -221,7 +221,7 @@ export default function Exercise(props) {
   } = props;
   const dispatch = useDispatch();
 
-  const [title, setTitle] = useState(exercise.exercise || "");
+  const [title, setTitle] = useState(exercise.exercise.exerciseTitle || "");
   const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
   const [sets, setSets] = useState(exercise.goals.sets || 0);
   const [editMode, setEditMode] = useState(false);
@@ -265,7 +265,7 @@ export default function Exercise(props) {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              exercise.exercise = title;
+              exercise.exercise.exerciseTitle = title;
               exercise.exerciseType = exerciseType;
               exercise.goals = {
                 ...exercise.goals,
