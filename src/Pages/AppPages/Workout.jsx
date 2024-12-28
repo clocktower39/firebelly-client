@@ -9,6 +9,9 @@ import {
   Button,
   Checkbox,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -35,7 +38,7 @@ import {
   updateWorkoutDateById,
   copyWorkoutById,
   deleteWorkoutById,
-  requestMyExerciseList,
+  getExerciseList,
   serverURL,
 } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
@@ -82,7 +85,10 @@ export default function Workout(props) {
   const [trainingTitle, setTrainingTitle] = useState("");
   const [workoutCompleteStatus, setWorkoutCompleteStatus] = useState(training?.complete || false);
   const [loading, setLoading] = useState(true);
-  const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "")
+  const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "");
+  const [addExerciseOpen, setAddExerciseOpen] = useState(false);
+  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [activeStep, setActiveStep] = useState(0);
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -106,6 +112,9 @@ export default function Workout(props) {
   const [modalActionType, setModalActionType] = useState("");
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
+  const handleAddExerciseOpen = () => setAddExerciseOpen(true);
+  const handleAddExerciseClose = () => setAddExerciseOpen(false);
+
   const categories = [
     "Abdominals",
     "Back",
@@ -122,67 +131,54 @@ export default function Workout(props) {
     "Triceps",
   ];
 
-  // Create a new exercise on the current set
   const newExercise = (index) => {
-    const newTraining = localTraining.map((group, i) => {
-      if (index === i) {
-        group.push({
-          exercise: "",
-          exerciseType: "Reps",
-          goals: {
-            sets: 4,
-            minReps: [0, 0, 0, 0],
-            maxReps: [0, 0, 0, 0],
-            exactReps: [0, 0, 0, 0],
-            weight: [0, 0, 0, 0],
-            percent: [0, 0, 0, 0],
-            seconds: [0, 0, 0, 0],
-          },
-          achieved: {
-            sets: 0,
-            reps: [0, 0, 0, 0],
-            weight: [0, 0, 0, 0],
-            percent: [0, 0, 0, 0],
-            seconds: [0, 0, 0, 0],
-          },
-        });
-      }
-      return group;
-    });
-    dispatch(
-      updateTraining(training._id, {
-        ...training,
-        category: [...trainingCategory],
-        training: [...newTraining],
-      })
-    );
+    handleAddExerciseOpen();
+  };
+
+  // Create a new exercise on the current set
+  const confirmedNewExercise = (index) => {
+    if (selectedExercises.length > 0) {
+      const newTraining = localTraining.map((group, i) => {
+        if (index === i) {
+          selectedExercises.forEach((exercise) => {
+            group.push({
+              exercise: exercise,
+              exerciseType: "Reps",
+              goals: {
+                sets: 4,
+                minReps: [0, 0, 0, 0],
+                maxReps: [0, 0, 0, 0],
+                exactReps: [0, 0, 0, 0],
+                weight: [0, 0, 0, 0],
+                percent: [0, 0, 0, 0],
+                seconds: [0, 0, 0, 0],
+              },
+              achieved: {
+                sets: 0,
+                reps: [0, 0, 0, 0],
+                weight: [0, 0, 0, 0],
+                percent: [0, 0, 0, 0],
+                seconds: [0, 0, 0, 0],
+              },
+            });
+          });
+        }
+        return group;
+      });
+      dispatch(
+        updateTraining(training._id, {
+          ...training,
+          category: [...trainingCategory],
+          training: [...newTraining],
+        })
+      );
+    }
   };
 
   // Create a new set on the current day
   const newSet = () => {
     setLocalTraining((prev) => {
-      prev.push([
-        {
-          exercise: "",
-          exerciseType: "Reps",
-          goals: {
-            sets: 4,
-            minReps: [0, 0, 0, 0],
-            maxReps: [0, 0, 0, 0],
-            exactReps: [0, 0, 0, 0],
-            weight: [0, 0, 0, 0],
-            percent: [0, 0, 0, 0],
-            seconds: [0, 0, 0, 0],
-          },
-          achieved: {
-            sets: 0,
-            reps: [0, 0, 0, 0],
-            weight: [0, 0, 0, 0],
-            percent: [0, 0, 0, 0],
-            seconds: [0, 0, 0, 0],
-          },
-        },
-      ]);
+      prev.push([]);
       return prev;
     });
     setToggleNewSet((prev) => !prev);
@@ -228,9 +224,7 @@ export default function Workout(props) {
   };
 
   useEffect(() => {
-    if (training.user) {
-      dispatch(requestMyExerciseList(training.user));
-    }
+      dispatch(getExerciseList());
   }, [dispatch]);
 
   useEffect(() => {
@@ -401,6 +395,8 @@ export default function Workout(props) {
                     setWorkoutCompleteStatus={setWorkoutCompleteStatus}
                     workoutFeedback={workoutFeedback}
                     setWorkoutFeedback={setWorkoutFeedback}
+                    activeStep={activeStep}
+                    setActiveStep={setActiveStep}
                   />
                 )}
               </Grid>
@@ -418,6 +414,45 @@ export default function Workout(props) {
                   Save
                 </Button>
               </Grid>
+              <Dialog open={addExerciseOpen} onClose={handleAddExerciseClose}>
+                <DialogTitle id="alert-dialog-title">
+                  <Grid container>
+                    <Grid container item xs={12}>
+                      Add Exercise
+                    </Grid>
+                  </Grid>
+                </DialogTitle>
+                <DialogContent>
+                  <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+                    <Grid item container xs={12}>
+                      <ExerciseListAutocomplete
+                        exerciseList={exerciseList}
+                        selectedExercises={selectedExercises}
+                        setSelectedExercises={setSelectedExercises}
+                      />
+                    </Grid>
+                    <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
+                      <Grid item>
+                        <Button
+                          color="secondaryButton"
+                          variant="contained"
+                          onClick={handleAddExerciseClose}
+                        >
+                          Cancel
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        <Button
+                          variant="contained"
+                          onClick={() => confirmedNewExercise(activeStep)}
+                        >
+                          Confirm
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </DialogContent>
+              </Dialog>
             </>
           ) : (
             <Grid
@@ -452,7 +487,7 @@ export function ModalAction(props) {
     setSelectedDate,
     setLocalTraining,
   } = props;
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
@@ -465,7 +500,7 @@ export function ModalAction(props) {
   });
   const [actionError, setActionError] = useState(false);
   const [newTitle, setNewTitle] = useState(training?.title);
-  
+
   const isPersonalWorkout = useCallback(
     () => user._id.toString() === training?.user?._id?.toString(),
     [user._id, training?.user?._id]
@@ -815,3 +850,38 @@ export function WorkoutOptionModalView(props) {
     </Modal>
   );
 }
+
+const ExerciseListAutocomplete = (props) => {
+  const { exerciseList, selectedExercises, setSelectedExercises } = props;
+
+  return (
+    <Autocomplete
+      multiple
+      fullWidth
+      disableCloseOnSelect
+      value={selectedExercises}
+      // Convert the source data into objects with `_id` and `label`.
+      options={exerciseList
+        .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
+        .map((option) => option)}
+      // compare the selected item with the list of options.
+      isOptionEqualToValue={(option, value) => option._id === value._id}
+      // Tells Autocomplete what text to display for each option.
+      getOptionLabel={(option) => option.exerciseTitle}
+      onChange={(e, newSelection) => {
+        setSelectedExercises(newSelection);
+      }}
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) => (
+          <Chip
+            key={option._id}
+            variant="outlined"
+            label={option.exerciseTitle}
+            {...getTagProps({ index })}
+          />
+        ))
+      }
+      renderInput={(params) => <TextField {...params} label="Search" placeholder="Exercises" />}
+    />
+  );
+};
