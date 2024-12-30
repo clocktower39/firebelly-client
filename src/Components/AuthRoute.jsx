@@ -50,8 +50,7 @@ export const AuthRoute = (props) => {
 
   return loading ? (
     <>
-      <NavDrawer />
-        <LoadingPage PropComponent={Loading} />
+      <LoadingPage PropComponent={Loading} />
       <Footer />
     </>
   ) : user.email ? (

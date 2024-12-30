@@ -14,6 +14,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   requestMyExerciseList,
   requestExerciseProgress,
+  getExerciseList,
 } from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { theme } from "../../theme";
@@ -153,7 +154,7 @@ export const BarChartHistory = (props) => {
         });
 
         if (exerciseTitle === '') {
-          exerciseTitle = e.exercise;
+          exerciseTitle = e.exercise.exerciseTitle;
         }
 
         return data;
@@ -295,7 +296,7 @@ export const BarChartHistory = (props) => {
 
 const ExerciseListAutocomplete = (props) => {
   const { exerciseList, exercise } = props;
-  const [title, setTitle] = useState(exercise.exercise || "");
+  const [title, setTitle] = useState(exercise?.exercise?.exerciseTitle || "");
 
   const matchWords = (option, inputValue) => {
     if(!option) return false;
@@ -316,9 +317,9 @@ const ExerciseListAutocomplete = (props) => {
       value={title}
       defaultValue={title}
       options={exerciseList
-        .filter((a) => a !== "")
-        .sort((a, b) => a > b)
-        .map((option) => option)}
+        .filter((a) => a.exerciseTitle !== "")
+        .sort((a, b) => a.exerciseTitle > b.exerciseTitle)
+        .map((option) => option.exerciseTitle)}
       onChange={(e, getTagProps) => setTitle(getTagProps)}
       filterOptions={(options, { inputValue }) => 
         options.filter(option => matchWords(option, inputValue))
@@ -349,15 +350,20 @@ export default function Progress(props) {
   };
 
   useEffect(() => {
-    if (exerciseList.includes(searchValue)) {
-      loadExerciseProgress(searchValue);
+    const matchedExercise = exerciseList.find(item => item.exerciseTitle === searchValue);
+    if (matchedExercise) {
+      const id = matchedExercise._id;
+      console.log("Found _id:", id);
+      loadExerciseProgress(matchedExercise);
+    } else {
+      console.log("No matching exercise found");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
   useEffect(() => {
     if(exerciseList.length < 1){
-      dispatch(requestMyExerciseList(user));
+      dispatch(getExerciseList());
     }
     if (props.searchExercise && props.searchExercise !== "") {
       loadExerciseProgress(props.searchExercise);

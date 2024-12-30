@@ -421,7 +421,7 @@ const WorkoutSet = (props) => {
                     </Grid>
                     <Grid container xs={11} sx={{ padding: "5px" }}>
                       <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
-                        <Typography variant="body1">{exercise.exercise}</Typography>
+                        <Typography variant="body1">{exercise.exercise.exerciseTitle}</Typography>
                       </Grid>
                       <Grid container item xs={12} sm={6}>
                         {renderType(exercise)}

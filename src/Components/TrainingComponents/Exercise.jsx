@@ -192,9 +192,13 @@ export const NotesDialog = (props) => {
           flexDirection: "column",
         }}
       >
-        {notes.length > 0 ? notes.map((note, i) => (
-          <CommentCard key={note._id || i} i={i} comment={note} />
-        )) : <Typography textAlign="center" variant="h5" >No comments</Typography>}
+        {notes.length > 0 ? (
+          notes.map((note, i) => <CommentCard key={note._id || i} i={i} comment={note} />)
+        ) : (
+          <Typography textAlign="center" variant="h5">
+            No comments
+          </Typography>
+        )}
       </div>
       <div
         style={{
@@ -221,7 +225,7 @@ export default function Exercise(props) {
   } = props;
   const dispatch = useDispatch();
 
-  const [title, setTitle] = useState(exercise.exercise || "");
+  const [title, setTitle] = useState(exercise.exercise);
   const [exerciseType, setExerciseType] = useState(exercise.exerciseType || "Reps");
   const [sets, setSets] = useState(exercise.goals.sets || 0);
   const [editMode, setEditMode] = useState(false);
@@ -229,7 +233,9 @@ export default function Exercise(props) {
   const handleClose = () => setOpen(false);
   const handleModalToggle = () => setOpen((prev) => !prev);
   const handleModalExercise = () => {
-    dispatch(requestExerciseProgress(title, workoutUser)).then(() => handleModalToggle());
+    dispatch(requestExerciseProgress(exercise.exercise, workoutUser)).then(() =>
+      handleModalToggle()
+    );
   };
   const [anchorEl, setAnchorEl] = useState(null);
   const exerciseOptionsOpen = Boolean(anchorEl);
@@ -483,12 +489,6 @@ export default function Exercise(props) {
     handleConfirmDialogClose();
   };
 
-  const matchWords = (option, inputValue) => {
-    if(!option) return false;
-    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
-    return words.every((word) => option.toLowerCase().includes(word));
-  };
-
   useEffect(() => {
     setHeightToggle((prev) => !prev);
   }, [editMode, setHeightToggle]);
@@ -500,20 +500,17 @@ export default function Exercise(props) {
           <Grid container item xs={12} spacing={1}>
             <Grid item xs={12}>
               <Autocomplete
-                id="tags-filled"
                 disableCloseOnSelect
                 fullWidth
-                freeSolo
                 value={title}
-                defaultValue={title}
                 options={exerciseList
-                  .filter((a) => a !== "")
-                  .sort((a, b) => a > b)
+                  .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
                   .map((option) => option)}
-                onChange={(e, getTagProps) => setTitle(getTagProps.replace(/\s+/g, " ").trim())}
-                filterOptions={(options, { inputValue }) => 
-                  options.filter(option => matchWords(option, inputValue))
-                }
+                  // compare the selected item with the list of options
+                isOptionEqualToValue={(option, value) => option._id === value._id}
+                // Tells Autocomplete what text to display for each option
+                getOptionLabel={(option) => option.exerciseTitle}
+                onChange={(e, newSelection) => setTitle(newSelection)}
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip variant="outlined" label={option} {...getTagProps({ index })} />
@@ -653,7 +650,7 @@ export default function Exercise(props) {
               sx={{ justifyContent: "flex-start", alignContent: "center" }}
             >
               <Typography color="text.primary" variant="h6">
-                {title || "Enter an exercise"}
+                {title.exerciseTitle || "Enter an exercise"}
               </Typography>
             </Grid>
             <Grid

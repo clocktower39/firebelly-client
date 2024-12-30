@@ -5,7 +5,6 @@ import NavDrawer from "./NavDrawer";
 import Footer from "../../Components/Footer";
 
 export default function ActivityTrackerContainer(props) {
-  const { socket } = props;
   const location = useLocation(); // Get the current location
 
   const [size, setSize] = useState(null);
@@ -52,7 +51,7 @@ export default function ActivityTrackerContainer(props) {
             border: borderHighlight ? "1px solid red" : "",
           }}
         >
-          <Outlet socket={socket} context={[size, setBorderHighlight]} />
+          <Outlet context={[size, setBorderHighlight]} />
         </Paper>
         <div style={{ height: "20px" }} />
       </Container>

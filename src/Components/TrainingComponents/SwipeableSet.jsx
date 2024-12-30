@@ -42,8 +42,9 @@ function SwipeableSet(props) {
     setWorkoutCompleteStatus,
     workoutFeedback,
     setWorkoutFeedback,
+    activeStep,
+    setActiveStep,
   } = props;
-  const [activeStep, setActiveStep] = useState(0);
   const [heightToggle, setHeightToggle] = useState(true);
   const ref = useRef(null);
 
@@ -221,7 +222,7 @@ function SwipeableSet(props) {
                             sx={{ justifyContent: "flex-start", alignContent: "center" }}
                           >
                             <Typography color="text.primary" variant="h6">
-                              {exercise.exercise}
+                              {exercise.exerciseTitle}
                             </Typography>
                           </Grid>
                         </>
