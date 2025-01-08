@@ -65,6 +65,98 @@ export default function Exercises() {
 const ExerciseLibrarySection = ({ selectedExercise }) => {
   const dispatch = useDispatch();
   const [exercise, setExercise] = useState(selectedExercise);
+  const exercisePropertyOptions = [
+    {
+      fieldName: "equipment",
+      options: [
+        "Ab Wheel",
+        "Band",
+        "Barbell",
+        "Baseblocks",
+        "Battle Rope",
+        "Bodyweight",
+        "Bosu-Ball",
+        "Box",
+        "Cable",
+        "Chain Belt",
+        "Dumbbell",
+        "Endless Rope",
+        "EZ-Bar",
+        "Kettlebell",
+        "Landmine",
+        "Loop-Band",
+        "Machine",
+        "P-Bar",
+        "Plate Loaded Machine",
+        "Pull-up Bar",
+        "Rings",
+        "Safety Squat Bar",
+        "Slam Ball",
+        "Smith Machine",
+        "Stability Ball",
+        "Swiss Bar",
+        "Trap Bar",
+        "TRX",
+      ],
+    },
+    {
+      fieldName: "attachments",
+      options: [ 
+        "Velcro Straps",
+        "EZ-Bar",
+        "MAG",
+        "Rope",
+        "Straight-Bar",
+        "Triangle",
+        "Uni-Grip",
+      ],
+    },
+    {
+      fieldName: "anatomicalHandPosition",
+      options: ["Neutral-Grip", "Overhand-Grip", "Underhand-Grip"],
+    },
+    {
+      fieldName: "handSetup",
+      options: ["Narrow-Grip", "Wide-Grip"],
+    },
+    {
+      fieldName: "footsetup",
+      options: ["B-Stance", "Narrow-Stance", "Wide-Stance"],
+    },
+    {
+      fieldName: "bodyPosition",
+      options: [
+        "Decline",
+        "Elevated",
+        "Hanging",
+        "Incline",
+        "Inverted",
+        "Kneeling",
+        "Lying",
+        "Preacher",
+        "Prone",
+        "Renegade",
+        "Seated",
+        "Standing",
+        "Walking",
+      ],
+    },
+    {
+      fieldName: "movementPattern",
+      options: ["Alternating", "Uni-Lateral"],
+    },
+    {
+      fieldName: "generalVariation",
+      options: [
+        "Behind-the-Head",
+        "Crossover",
+        "High-to-Low",
+        "Low-to-High",
+        "Overhead",
+        "Twisting",
+      ],
+    },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -128,7 +220,20 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
           </Grid>
           <Grid item xs={12}>
             <Autocomplete
-              options={[]}
+              options={[
+                "Abdominals",
+                "Back",
+                "Biceps",
+                "Calves",
+                "Chest",
+                "Forearms",
+                "Glutes",
+                "Hamstrings",
+                "Neck",
+                "Quadriceps",
+                "Shoulders",
+                "Triceps",
+              ]}
               multiple
               disableCloseOnSelect
               value={exercise.muscleGroups.primary}
@@ -153,7 +258,20 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
             <Autocomplete
               multiple
               disableCloseOnSelect
-              options={[]}
+              options={[
+                "Abdominals",
+                "Back",
+                "Biceps",
+                "Calves",
+                "Chest",
+                "Forearms",
+                "Glutes",
+                "Hamstrings",
+                "Neck",
+                "Quadriceps",
+                "Shoulders",
+                "Triceps",
+              ]}
               freeSolo
               value={exercise.muscleGroups.secondary}
               onChange={(e, getTagProps) => handleMuscleGroupChange("secondary", getTagProps)}
@@ -172,23 +290,13 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               )}
             />
           </Grid>
-          {[
-            "tags",
-            "equipment",
-            "generalVariation",
-            "tempo",
-            "anatomicalHandPosition",
-            "footSetup",
-            "handSetup",
-            "movementPattern",
-            "bodyPosition",
-          ].map((field) => (
-            <Grid item xs={12} key={field}>
+          {exercisePropertyOptions.map((field) => (
+            <Grid item xs={12} key={field.fieldName}>
               <Autocomplete
                 multiple
-                options={[]} // You should replace this with your actual data sources
-                value={exercise[field]}
-                onChange={handleArrayChange(field)}
+                options={field.options} // You should replace this with your actual data sources
+                value={exercise[field.fieldName]}
+                onChange={handleArrayChange(field.fieldName)}
                 freeSolo
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
@@ -199,10 +307,10 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
                   <TextField
                     {...params}
                     variant="outlined"
-                    label={field
+                    label={field.fieldName
                       .replace(/([A-Z])/g, " $1")
                       .replace(/^./, (str) => str.toUpperCase())} // Convert camelCase to Start Case
-                    placeholder={`Add ${field}`}
+                    placeholder={`Add ${field.fieldName}`}
                   />
                 )}
               />
