@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Avatar, Button, CardMedia, Container, Dialog, Input, MenuItem, Paper, TextField, Typography, Grid } from "@mui/material";
+// InputMask relies on findDOMNode, which was deprecated in React 18. Need to find alternative
 import InputMask from "react-input-mask";
 import { editUser, uploadProfilePicture, serverURL, } from "../../Redux/actions";
 
@@ -94,15 +95,15 @@ export default function MyAccount() {
             />
           </Grid>
           <Grid container item xs={12}>
-            <InputMask
+            <TextField
               mask="+1 (999) 999-9999"
               value={phoneNumber}
               onChange={(e) => handleChange(e.target.value, setPhoneNumber)}
               disabled={false}
-              maskChar=" "
+              // maskChar=" "
             >
               {() => <TextField label="Phone Number" fullWidth type="tel" />}
-            </InputMask>
+            </TextField>
           </Grid>
           <Grid container item xs={12}>
             <TextField
@@ -117,16 +118,16 @@ export default function MyAccount() {
             />
           </Grid>
           <Grid container item xs={12}>
-            <InputMask
+            <TextField
               mask={`9' ?9"`}
-              formatChars={{ 9: "[0-9]", "?": "[0-9 ]" }}
+              // formatChars={{ 9: "[0-9]", "?": "[0-9 ]" }}
               value={height}
               onChange={(e) => handleChange(e.target.value, setHeight)}
               disabled={false}
-              maskChar=" "
+              // maskChar=" "
             >
               {() => <TextField label="Height" fullWidth type="tel" />}
-            </InputMask>
+            </TextField>
           </Grid>
           <Grid container item xs={12}>
             <TextField
