@@ -20,6 +20,8 @@ import {
   DndContext,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
+  MouseSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -33,13 +35,38 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  restrictToVerticalAxis,
+  restrictToWindowEdges,
+} from '@dnd-kit/modifiers';
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
 
 function SortableExercise({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id, index,
+    id,
+    index,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    // transition,
+    zIndex: isDragging ? 1000 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(listeners, attributes)}
+    </div>
+  );
+}
+
+function SortableCircuit({ id, index, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    index,
   });
 
   const style = {
@@ -52,25 +79,6 @@ function SortableExercise({ id, index, children }) {
   return (
     <div ref={setNodeRef} style={style} >
       {children(listeners, attributes)}
-    </div>
-  );
-}
-
-function SortableCircuit({ id, index, children }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id, index,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    // transition,
-    zIndex: isDragging ? 1000 : undefined,
-    opacity: isDragging ? 0.8 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-      {children}
     </div>
   );
 }
@@ -142,6 +150,8 @@ export default function WorkoutOverview({
   }, [localWorkouts]);
 
   const sensors = useSensors(
+    useSensor(TouchSensor),
+    useSensor(MouseSensor),
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -286,6 +296,7 @@ export default function WorkoutOverview({
       collisionDetection={rectIntersection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      modifiers={[restrictToVerticalAxis]}
     >
       {localWorkouts?.length > 0 &&
         // Each day may have multiple workouts, this separates the workouts
@@ -351,14 +362,18 @@ export default function WorkoutOverview({
                                 id={`circuit-${workout._id}-${circuitIndex}`}
                                 index={circuitIndex}
                               >
-                              <WorkoutSet
-                                workout={workout}
-                                circuit={circuit}
-                                circuitIndex={circuitIndex}
-                                viewMode={currentViewMode}
-                                activeId={activeId}
-                                flattenedExercises={flattenedExercises}
-                              />
+                                {(listeners, attributes) => (
+                                  <WorkoutSet
+                                    workout={workout}
+                                    circuit={circuit}
+                                    circuitIndex={circuitIndex}
+                                    viewMode={currentViewMode}
+                                    activeId={activeId}
+                                    flattenedExercises={flattenedExercises}
+                                    listeners={listeners}
+                                    attributes={attributes}
+                                  />
+                                )}
                               </SortableCircuit>
                             </Grid>
                           </Grid>
@@ -422,7 +437,7 @@ export default function WorkoutOverview({
 }
 
 const WorkoutSet = (props) => {
-  const { workout, circuit, circuitIndex, viewMode, activeId, flattenedExercises } = props;
+  const { workout, circuit, circuitIndex, viewMode, activeId, flattenedExercises, listeners, attributes, } = props;
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -478,19 +493,23 @@ const WorkoutSet = (props) => {
   };
 
   return (
-    <Paper sx={{ padding: "0 5px", marginBottom: "10px" }}>
+    <Paper sx={{ padding: "0 5px", marginBottom: "10px", touchAction: "none",  }}>
       <Grid container alignItems="center">
         <Grid item xs={12}>
-          <Typography variant="h6">
+          <Typography variant="h6" {...listeners} {...attributes} >
             <span>Circuit {circuitIndex + 1}</span>
           </Typography>
         </Grid>
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
-        <SortableContext items={flattenedExercises()} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={flattenedExercises()}
+          strategy={verticalListSortingStrategy}
+          style={{ touchAction: "none" }}
+        >
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              <SortableExercise id={`exercise-${exercise._id}` } index={index} >
+              <SortableExercise id={`exercise-${exercise._id}`} index={index}>
                 {(listeners, attributes) => (
                   <Grid container component={Paper}>
                     <Grid

@@ -495,26 +495,26 @@ export function createTraining(training) {
         category: training.category || [],
         training: training.training || [
           [
-            {
-              exercise: "",
-              exerciseType: "Reps",
-              goals: {
-                sets: 4,
-                minReps: [0, 0, 0, 0],
-                maxReps: [0, 0, 0, 0],
-                exactReps: [10, 10, 10, 10],
-                weight: [0, 0, 0, 0],
-                percent: [0, 0, 0, 0],
-                seconds: [0, 0, 0, 0],
-              },
-              achieved: {
-                sets: 0,
-                reps: [0, 0, 0, 0],
-                weight: [0, 0, 0, 0],
-                percent: [0, 0, 0, 0],
-                seconds: [0, 0, 0, 0],
-              },
-            },
+            // {
+            //   exercise: "",
+            //   exerciseType: "Reps",
+            //   goals: {
+            //     sets: 4,
+            //     minReps: [0, 0, 0, 0],
+            //     maxReps: [0, 0, 0, 0],
+            //     exactReps: [10, 10, 10, 10],
+            //     weight: [0, 0, 0, 0],
+            //     percent: [0, 0, 0, 0],
+            //     seconds: [0, 0, 0, 0],
+            //   },
+            //   achieved: {
+            //     sets: 0,
+            //     reps: [0, 0, 0, 0],
+            //     weight: [0, 0, 0, 0],
+            //     percent: [0, 0, 0, 0],
+            //     seconds: [0, 0, 0, 0],
+            //   },
+            // },
           ],
         ],
       }),
@@ -765,6 +765,26 @@ export function requestMyExerciseList(user) {
   };
 }
 
+export function getExerciseList() {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/exerciseLibrary`, {
+      dataType: "json",
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let exerciseList = await response.json();
+
+    return dispatch({
+      type: EDIT_PROGRESS_EXERCISE_LIST,
+      exerciseList,
+    });
+  };
+}
+
 // Fetches entire history of a specific exercise
 export function requestExerciseProgress(targetExercise, user) {
   return async (dispatch, getState) => {
@@ -810,19 +830,15 @@ export function requestExerciseLibrary() {
   };
 }
 
-export function updateMasterExerciseName(incorrectExercise, correctExercise, trainingIdList) {
+export function updateExercise(exercise) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
 
-    const response = await fetch(`${serverURL}/updateMasterExerciseName`, {
+    const response = await fetch(`${serverURL}/updateExercise`, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({
-        incorrectExercise,
-        correctExercise,
-        trainingIdList,
-      }),
+      body: JSON.stringify({ exercise, }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -836,7 +852,12 @@ export function updateMasterExerciseName(incorrectExercise, correctExercise, tra
         error: status.error,
       });
     } else {
-      const newExerciseLibrary = state.progress.exerciseList.filter((e) => e !== incorrectExercise);
+      const newExerciseLibrary = state.progress.exerciseList.map((e) => {
+        if(e._id === exercise._id){
+          e = exercise;
+        }
+        return e;
+      });
       return dispatch({
         type: EDIT_PROGRESS_EXERCISE_LIST,
         exerciseList: newExerciseLibrary,

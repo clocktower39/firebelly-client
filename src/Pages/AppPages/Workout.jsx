@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import {
+  AppBar,
   Autocomplete,
   Avatar,
   Box,
@@ -16,13 +17,16 @@ import {
   Grid,
   IconButton,
   Modal,
+  Slide,
   TextField,
+  Toolbar,
   Tooltip,
   Typography,
 } from "@mui/material";
 import {
   ArrowBack,
   CheckCircle,
+  Close as CloseIcon,
   ContentCopy,
   Delete,
   DoubleArrow,
@@ -66,6 +70,10 @@ const classes = {
   },
 };
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export default function Workout(props) {
   const dispatch = useDispatch();
   const params = useParams();
@@ -87,8 +95,11 @@ export default function Workout(props) {
   const [loading, setLoading] = useState(true);
   const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "");
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
-  const [selectedExercises, setSelectedExercises] = useState([]);
   const [activeStep, setActiveStep] = useState(0);
+  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
+
+  const handleSelectedExercisesSetCountChange = (e) => setSelectedExercisesSetCount(Number(e.target.value))
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -136,7 +147,7 @@ export default function Workout(props) {
   };
 
   // Create a new exercise on the current set
-  const confirmedNewExercise = (index) => {
+  const confirmedNewExercise = (index, setCount) => {
     if (selectedExercises.length > 0) {
       const newTraining = localTraining.map((group, i) => {
         if (index === i) {
@@ -145,20 +156,20 @@ export default function Workout(props) {
               exercise: exercise,
               exerciseType: "Reps",
               goals: {
-                sets: 4,
-                minReps: [0, 0, 0, 0],
-                maxReps: [0, 0, 0, 0],
-                exactReps: [0, 0, 0, 0],
-                weight: [0, 0, 0, 0],
-                percent: [0, 0, 0, 0],
-                seconds: [0, 0, 0, 0],
+                sets: setCount,
+                minReps: Array(setCount).fill(0),
+                maxReps: Array(setCount).fill(0),
+                exactReps: Array(setCount).fill(0),
+                weight: Array(setCount).fill(0),
+                percent: Array(setCount).fill(0),
+                seconds: Array(setCount).fill(0),
               },
               achieved: {
                 sets: 0,
-                reps: [0, 0, 0, 0],
-                weight: [0, 0, 0, 0],
-                percent: [0, 0, 0, 0],
-                seconds: [0, 0, 0, 0],
+                reps: Array(setCount).fill(0),
+                weight: Array(setCount).fill(0),
+                percent: Array(setCount).fill(0),
+                seconds: Array(setCount).fill(0),
               },
             });
           });
@@ -173,6 +184,9 @@ export default function Workout(props) {
         })
       );
     }
+    setSelectedExercises([]);
+    setSelectedExercisesSetCount(4);
+    handleAddExerciseClose();
   };
 
   // Create a new set on the current day
@@ -224,7 +238,7 @@ export default function Workout(props) {
   };
 
   useEffect(() => {
-      dispatch(getExerciseList());
+    dispatch(getExerciseList());
   }, [dispatch]);
 
   useEffect(() => {
@@ -414,14 +428,26 @@ export default function Workout(props) {
                   Save
                 </Button>
               </Grid>
-              <Dialog open={addExerciseOpen} onClose={handleAddExerciseClose}>
-                <DialogTitle id="alert-dialog-title">
-                  <Grid container>
-                    <Grid container item xs={12}>
-                      Add Exercise
-                    </Grid>
-                  </Grid>
-                </DialogTitle>
+
+              <Dialog fullScreen open={addExerciseOpen} TransitionComponent={Transition}>
+                <AppBar sx={{ position: "relative" }}>
+                  <Toolbar>
+                    <IconButton
+                      edge="start"
+                      color="inherit"
+                      onClick={handleAddExerciseClose}
+                      aria-label="close"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                    <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                      Add Exercises
+                    </Typography>
+                    <Button variant="contained" onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}>
+                      Confirm
+                    </Button>
+                  </Toolbar>
+                </AppBar>
                 <DialogContent>
                   <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
                     <Grid item container xs={12}>
@@ -431,24 +457,22 @@ export default function Workout(props) {
                         setSelectedExercises={setSelectedExercises}
                       />
                     </Grid>
-                    <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
-                      <Grid item>
-                        <Button
-                          color="secondaryButton"
-                          variant="contained"
-                          onClick={handleAddExerciseClose}
-                        >
-                          Cancel
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        <Button
-                          variant="contained"
-                          onClick={() => confirmedNewExercise(activeStep)}
-                        >
-                          Confirm
-                        </Button>
-                      </Grid>
+                    <Grid item container xs={12}>
+                      <TextField
+                        label="Sets"
+                        select
+                        SelectProps={{ native: true }}
+                        fullWidth
+                        value={selectedExercisesSetCount}
+                        onChange={handleSelectedExercisesSetCountChange}
+                      >
+                        {[...Array(21)].map((x, i) => (
+                          <option key={i} value={i}>
+                            {i}
+                          </option>
+                        ))}
+                      </TextField>
+                      {/* {selectedExercises.map(exercise => <p>{exercise?.exerciseTitle}</p>)} */}
                     </Grid>
                   </Grid>
                 </DialogContent>
