@@ -99,7 +99,8 @@ export default function Workout(props) {
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
 
-  const handleSelectedExercisesSetCountChange = (e) => setSelectedExercisesSetCount(Number(e.target.value))
+  const handleSelectedExercisesSetCountChange = (e) =>
+    setSelectedExercisesSetCount(Number(e.target.value));
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -443,7 +444,10 @@ export default function Workout(props) {
                     <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
                       Add Exercises
                     </Typography>
-                    <Button variant="contained" onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}>
+                    <Button
+                      variant="contained"
+                      onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}
+                    >
                       Confirm
                     </Button>
                   </Toolbar>
@@ -533,7 +537,7 @@ export function ModalAction(props) {
   const handleTitleChange = (e) => setNewTitle(e.target.value);
 
   const handleMove = () => {
-    dispatch(updateWorkoutDateById(training, newDate)).then((res) => {
+    dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
       if (res?.error !== undefined) {
         setActionError(res.error);
       } else {
@@ -630,6 +634,12 @@ export function ModalAction(props) {
         <>
           <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
           <Grid container sx={{ justifyContent: "center" }}>
+            <TextField
+              fullWidth
+              label="Update Workout Title"
+              value={newTitle}
+              onChange={handleTitleChange}
+            />
             <Button variant="contained" onClick={handleMove}>
               Move
             </Button>

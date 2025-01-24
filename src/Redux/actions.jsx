@@ -572,7 +572,7 @@ export function updateTraining(trainingId, updatedTraining) {
 }
 
 // Updates training date
-export function updateWorkoutDateById(training, newDate) {
+export function updateWorkoutDateById(training, newDate, newTitle) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -583,6 +583,7 @@ export function updateWorkoutDateById(training, newDate) {
       body: JSON.stringify({
         _id: training._id,
         newDate,
+        newTitle,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
