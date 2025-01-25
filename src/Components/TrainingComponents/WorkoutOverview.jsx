@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -24,8 +24,8 @@ import {
   MouseSensor,
   useSensor,
   useSensors,
-  DragOverlay,
-  rectIntersection,
+  rectIntersection, // works better for circuits
+  closestCorners,   // works better for exercises
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -160,20 +160,20 @@ export default function WorkoutOverview({
 
   const [draggedItem, setDraggedItem] = useState(null);
 
-  const flattenedCircuits = () =>
+  const flattenedCircuits = useMemo(() =>
     localWorkouts.reduce((acc, workout) => {
       const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
       return acc.concat(workoutCircuits);
-    }, []);
+    }, []), [localWorkouts]);
 
-  const flattenedExercises = () =>
+  const flattenedExercises =  useMemo(() =>
     localWorkouts.flatMap((workout) =>
       workout.training.flatMap((circuit, circuitIndex) =>
         circuit.length > 0
           ? circuit.map((exercise) => `exercise-${exercise._id}`)
           : [`placeholder-${workout._id}-${circuitIndex}`]
       )
-    );
+    ), [localWorkouts]);
 
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
@@ -293,7 +293,7 @@ export default function WorkoutOverview({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={rectIntersection}
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       modifiers={[restrictToVerticalAxis]}
@@ -348,17 +348,16 @@ export default function WorkoutOverview({
                 </ToggleButtonGroup>
                 <div style={{ padding: "10px 0px" }}>
                   <SortableContext
-                    items={flattenedCircuits()}
+                    items={flattenedCircuits}
                     strategy={verticalListSortingStrategy}
                   >
                     {
                       // iterates through each workout set (supersets)
                       workout.training.map((circuit, circuitIndex) => {
                         return (
-                          <Grid container>
+                          <Grid container key={`circuit-${workout._id}-${circuitIndex}`}>
                             <Grid item xs={12}>
                               <SortableCircuit
-                                key={`circuit-${workout._id}-${circuitIndex}`}
                                 id={`circuit-${workout._id}-${circuitIndex}`}
                                 index={circuitIndex}
                               >
@@ -503,13 +502,13 @@ const WorkoutSet = (props) => {
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
         <SortableContext
-          items={flattenedExercises()}
+          items={flattenedExercises}
           strategy={verticalListSortingStrategy}
           style={{ touchAction: "none" }}
         >
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              <SortableExercise id={`exercise-${exercise._id}`} index={index}>
+              <SortableExercise id={`exercise-${exercise._id}`} key={`exercise-${exercise._id}`} index={index}>
                 {(listeners, attributes) => (
                   <Grid container component={Paper}>
                     <Grid
