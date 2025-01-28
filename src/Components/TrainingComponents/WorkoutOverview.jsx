@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
+  Box,
   Button,
   Dialog,
   DialogTitle,
@@ -492,11 +493,13 @@ const WorkoutSet = (props) => {
   };
 
   return (
-    <Paper sx={{ padding: "0 5px", marginBottom: "10px", touchAction: "none",  }}>
+    <Paper sx={{ padding: "0 5px", marginBottom: "10px", }}>
       <Grid container alignItems="center">
         <Grid item xs={12}>
-          <Typography variant="h6" {...listeners} {...attributes} >
-            <span>Circuit {circuitIndex + 1}</span>
+          <Typography variant="h6">
+            <Box {...listeners} {...attributes} sx={{ touchAction: "none", display: 'inline-block' }} >
+              <span>Circuit {circuitIndex + 1}</span>
+            </Box>
           </Typography>
         </Grid>
       </Grid>
@@ -504,13 +507,12 @@ const WorkoutSet = (props) => {
         <SortableContext
           items={flattenedExercises}
           strategy={verticalListSortingStrategy}
-          style={{ touchAction: "none" }}
         >
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
               <SortableExercise id={`exercise-${exercise._id}`} key={`exercise-${exercise._id}`} index={index}>
                 {(listeners, attributes) => (
-                  <Grid container component={Paper}>
+                  <Grid container component={Paper} >
                     <Grid
                       container
                       item
@@ -518,7 +520,7 @@ const WorkoutSet = (props) => {
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
                       {/* Drag handle */}
-                      <div {...listeners} {...attributes}>
+                      <div {...listeners} {...attributes} style={{ touchAction: "none", }} >
                         <DragHandleIcon />
                       </div>
                     </Grid>
