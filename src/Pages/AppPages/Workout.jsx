@@ -527,7 +527,7 @@ export function ModalAction(props) {
     value: training?.user?._id,
   });
   const [actionError, setActionError] = useState(false);
-  const [newTitle, setNewTitle] = useState(training?.title);
+  const [newTitle, setNewTitle] = useState(training.title || "");
 
   const isPersonalWorkout = useCallback(
     () => user._id.toString() === training?.user?._id?.toString(),
@@ -537,6 +537,7 @@ export function ModalAction(props) {
   const handleTitleChange = (e) => setNewTitle(e.target.value);
 
   const handleMove = () => {
+    console.log(newTitle)
     dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
       if (res?.error !== undefined) {
         setActionError(res.error);

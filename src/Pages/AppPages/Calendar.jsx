@@ -9,6 +9,7 @@ import {
   Box,
   Button,
   Grid,
+  IconButton,
   List,
   ListItem,
   Typography,
@@ -18,6 +19,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
@@ -26,6 +28,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
+import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
 
 // Function to determine the fields based on exercise type
 const exerciseTypeFields = (exerciseType) => {
@@ -72,6 +75,15 @@ export default function Calendar(props) {
   const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
   const [selectedDate, setSelectedDate] = useState(dayjs());
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleModalToggle = () => {
+    setModalOpen((prev) => !prev);
+    setModalActionType("");
+  };
+  const [modalActionType, setModalActionType] = useState("");
+  const handleSetModalAction = (actionType) => setModalActionType(actionType);
+  const [selectedWorkout, setSelectedWorkout] = useState({});
 
   // Function to fetch workout month data
   const getWorkoutMonthData = (e) => {
@@ -122,7 +134,7 @@ export default function Calendar(props) {
   }, [history, currentMonth]);
 
   const handleMonthChange = (e) => {
-  setSelectedDate(null); // Reset the selected date
+    setSelectedDate(null); // Reset the selected date
     setCurrentMonth(dayjs(e).month());
     const fetchData = getWorkoutMonthData(e);
 
@@ -156,7 +168,7 @@ export default function Calendar(props) {
         </Grid>
       )}
       <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
-      {/* DateCalendar takes 20% of the available height */}
+        {/* DateCalendar takes 20% of the available height */}
         <Box sx={{ flex: "0 0 20%" }}>
           <DateCalendar
             value={selectedDate}
@@ -170,7 +182,7 @@ export default function Calendar(props) {
           />
         </Box>
 
-{/* Workouts List takes the remaining space */}
+        {/* Workouts List takes the remaining space */}
         <Box sx={{ flex: "1", overflow: "auto" }}>
           <Workouts
             currentMonth={currentMonth}
@@ -178,9 +190,18 @@ export default function Calendar(props) {
             scrollToDate={scrollToDate}
             view={view}
             client={client}
+            setSelectedWorkout={setSelectedWorkout}
+            handleModalToggle={handleModalToggle} 
           />
         </Box>
       </Box>
+      <WorkoutOptionModalView
+        modalOpen={modalOpen}
+        handleModalToggle={handleModalToggle}
+        handleSetModalAction={handleSetModalAction}
+        modalActionType={modalActionType}
+        training={selectedWorkout}
+      />
     </LocalizationProvider>
   );
 }
@@ -210,20 +231,14 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate, }) => {
+const Workouts = ({ currentMonth, history, scrollToDate, setSelectedWorkout, handleModalToggle, }) => {
   return (
     <List>
       {history
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
           if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
-            return (
-              <Workout
-                key={workout._id}
-                workout={workout}
-                scrollToDate={scrollToDate}
-              />
-            );
+            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} setSelectedWorkout={setSelectedWorkout} handleModalToggle={handleModalToggle} />;
           }
           return null;
         })}
@@ -231,7 +246,7 @@ const Workouts = ({ currentMonth, history, scrollToDate, }) => {
   );
 };
 
-const Workout = ({ workout, scrollToDate }) => {
+const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle, }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id;
   const to = `/workout/${workoutId}`;
@@ -254,6 +269,11 @@ const Workout = ({ workout, scrollToDate }) => {
     }
   };
 
+  const handleSelectWorkout = () => {
+    setSelectedWorkout(workout);
+    handleModalToggle();
+  };
+
   useEffect(() => {
     // When scrollToDate changes, call handleScroll to scroll to the workout
     if (scrollToDate) {
@@ -261,7 +281,7 @@ const Workout = ({ workout, scrollToDate }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
-  
+
   return (
     <ListItem sx={{ justifyContent: "center" }} ref={workoutRef}>
       <Box
@@ -272,8 +292,7 @@ const Workout = ({ workout, scrollToDate }) => {
           width: "100%",
         }}
       >
-        <Accordion
-        >
+        <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Grid container>
               <Grid item xs={12}>
@@ -294,6 +313,11 @@ const Workout = ({ workout, scrollToDate }) => {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
+              <Grid container item justifyContent="flex-end">
+                <IconButton onClick={handleSelectWorkout}>
+                  <SettingsIcon />
+                </IconButton>
+              </Grid>
               {workout.training.map((workoutSet, workoutSetIndex) => (
                 <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
                   <Grid item xs={12} sx={{ marginLeft: "8px" }}>
