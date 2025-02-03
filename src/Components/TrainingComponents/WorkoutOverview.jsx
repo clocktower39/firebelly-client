@@ -42,7 +42,7 @@ import {
 } from '@dnd-kit/modifiers';
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
-import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
+import { WorkoutOptionModalView } from "../WorkoutOptionModal";
 
 function SortableExercise({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({

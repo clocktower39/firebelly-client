@@ -28,7 +28,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
 import { PickersDay } from "@mui/x-date-pickers/PickersDay";
-import { WorkoutOptionModalView } from "../../Pages/AppPages/Workout";
+import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 
 // Function to determine the fields based on exercise type
 const exerciseTypeFields = (exerciseType) => {
