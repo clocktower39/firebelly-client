@@ -171,7 +171,7 @@ export default function WorkoutOverview({
     localWorkouts.flatMap((workout) =>
       workout.training.flatMap((circuit, circuitIndex) =>
         circuit.length > 0
-          ? circuit.map((exercise) => `exercise-${exercise._id}`)
+          ? circuit.map((exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`)
           : [`placeholder-${workout._id}-${circuitIndex}`]
       )
     ), [localWorkouts]);
@@ -237,7 +237,7 @@ export default function WorkoutOverview({
         for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
           const circuit = workout.training[circuitIndex];
           const itemIndex = circuit.findIndex(
-            (exercise) => `exercise-${exercise._id}` === active.id
+            (exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === active.id
           );
           if (itemIndex !== -1) {
             activeWorkoutIndex = workoutIndex;
@@ -254,7 +254,7 @@ export default function WorkoutOverview({
           for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
             const circuit = workout.training[circuitIndex];
             const itemIndex = circuit.findIndex(
-              (exercise) => `exercise-${exercise._id}` === over.id
+              (exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === over.id
             );
             if (itemIndex !== -1) {
               overWorkoutIndex = workoutIndex;
@@ -510,7 +510,7 @@ const WorkoutSet = (props) => {
         >
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              <SortableExercise id={`exercise-${exercise._id}`} key={`exercise-${exercise._id}`} index={index}>
+              <SortableExercise id={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`} key={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`} index={index}>
                 {(listeners, attributes) => (
                   <Grid container component={Paper} >
                     <Grid
