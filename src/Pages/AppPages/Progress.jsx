@@ -310,7 +310,6 @@ const ExerciseListAutocomplete = (props) => {
   }, [title]);
   return (
     <Autocomplete
-      id="tags-filled"
       disableCloseOnSelect
       fullWidth
       freeSolo
@@ -318,7 +317,7 @@ const ExerciseListAutocomplete = (props) => {
       defaultValue={title}
       options={exerciseList
         .filter((a) => a.exerciseTitle !== "")
-        .sort((a, b) => a.exerciseTitle > b.exerciseTitle)
+        .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
         .map((option) => option.exerciseTitle)}
       onChange={(e, getTagProps) => setTitle(getTagProps)}
       filterOptions={(options, { inputValue }) => 

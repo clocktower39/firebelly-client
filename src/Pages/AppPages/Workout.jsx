@@ -22,20 +22,11 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import {
-  ArrowBack,
-  Close as CloseIcon,
-  Settings,
-} from "@mui/icons-material";
+import { ArrowBack, Close as CloseIcon, Settings } from "@mui/icons-material";
 import SelectedDate from "../../Components/SelectedDate";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
-import {
-  requestTraining,
-  updateTraining,
-  getExerciseList,
-  serverURL,
-} from "../../Redux/actions";
+import { requestTraining, updateTraining, getExerciseList, serverURL } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import LoadingPage from "../../Components/LoadingPage";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -89,6 +80,16 @@ export default function Workout(props) {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
+  const [fullWidth, setFullWidth] = useState(true);
+  const [maxWidth, setMaxWidth] = useState("sm");
+
+  const handleMaxWidthChange = (event) => {
+    setMaxWidth(event.target.value);
+  };
+
+  const handleFullWidthChange = (event) => {
+    setFullWidth(event.target.checked);
+  };
 
   const handleSelectedExercisesSetCountChange = (e) =>
     setSelectedExercisesSetCount(Number(e.target.value));
@@ -421,7 +422,17 @@ export default function Workout(props) {
                 </Button>
               </Grid>
 
-              <Dialog fullScreen open={addExerciseOpen} TransitionComponent={Transition}>
+              <Dialog
+                open={addExerciseOpen}
+                TransitionComponent={Transition}
+                fullWidth={fullWidth}
+                maxWidth={maxWidth}
+                PaperProps={{
+                  sx: {
+                    height: "80%",
+                  },
+                }}
+              >
                 <AppBar sx={{ position: "relative" }}>
                   <Toolbar>
                     <IconButton
@@ -504,7 +515,6 @@ const ExerciseListAutocomplete = (props) => {
     <Autocomplete
       multiple
       fullWidth
-      disableCloseOnSelect
       value={selectedExercises}
       // Convert the source data into objects with `_id` and `label`.
       options={exerciseList
