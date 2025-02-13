@@ -34,6 +34,7 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
   arrayMove,
+  defaultAnimateLayoutChanges,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -48,11 +49,12 @@ function SortableExercise({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     index,
+    animateLayoutChanges: (args) => (args.isSorting ? false : defaultAnimateLayoutChanges(args)),
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    // transition,
+    transition: isDragging ? "none" : transition,
     zIndex: isDragging ? 1000 : undefined,
     opacity: isDragging ? 0.8 : 1,
   };
@@ -68,11 +70,12 @@ function SortableCircuit({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     index,
+    animateLayoutChanges: (args) => (args.isSorting ? false : defaultAnimateLayoutChanges(args)),
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    // transition,
+    transition: isDragging ? "none" : transition,
     zIndex: isDragging ? 1000 : undefined,
     opacity: isDragging ? 0.8 : 1,
   };
@@ -291,10 +294,23 @@ export default function WorkoutOverview({
     });
   };
 
+  const customCollisionDetection = (args) => {
+    const { active } = args;
+    if (active.id.startsWith("exercise-")) {
+      // Use closestCorners for exercises
+      return closestCorners(args);
+    } else if (active.id.startsWith("circuit-")) {
+      // Use rectIntersection for circuits
+      return rectIntersection(args);
+    }
+    // Fallback (if needed)
+    return closestCorners(args);
+  };
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       modifiers={[restrictToVerticalAxis]}
