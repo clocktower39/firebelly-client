@@ -62,6 +62,7 @@ export default function Workout({ socket }) {
   const params = useParams();
   const navigate = useNavigate();
   const isLocalUpdate = useRef(true);
+  const hasSynced = useRef(false);
 
   const user = useSelector((state) => state.user);
   const training = useSelector((state) => state.training);
@@ -229,7 +230,12 @@ export default function Workout({ socket }) {
         training: localTraining,
         complete: workoutCompleteStatus,
       })
-    );
+    ).then(() => {
+      socket.emit("liveTrainingUpdate", {
+        workoutId: params._id,
+        updatedTraining: localTraining,
+      });
+    });
   };
 
   useEffect(() => {
@@ -255,24 +261,68 @@ export default function Workout({ socket }) {
     }
   }, [isPersonalWorkout, setBorderHighlight, training]);
 
+  ///////////////////////////////
+  // 1. Join Room & Request State
+  ///////////////////////////////
   useEffect(() => {
     if (socket && params._id) {
-      // Join the workout room
+      // Join the workout room.
       socket.emit("joinWorkout", { workoutId: params._id });
+      // Immediately ask any existing clients for their current state.
+      socket.emit("requestCurrentState", { workoutId: params._id });
     }
     return () => {
       if (socket && params._id) {
-        // Leave the room on unmount
         socket.emit("leaveWorkout", { workoutId: params._id });
       }
     };
   }, [socket, params._id]);
 
+  ///////////////////////////////
+  // 2. Handshake: Listen for Current State
+  ///////////////////////////////
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCurrentState = (currentState) => {
+      // Only update if we haven’t already synced.
+      if (!hasSynced.current) {
+        setLocalTraining(currentState);
+        hasSynced.current = true;
+        // You can also log here if needed.
+        console.log("Synced from handshake:", currentState);
+      }
+    };
+
+    socket.on("currentState", handleCurrentState);
+    return () => {
+      socket.off("currentState", handleCurrentState);
+    };
+  }, [socket]);
+
+  ///////////////////////////////
+  // 3. Timeout: Mark as Synced If No Handshake Arrives
+  ///////////////////////////////
+  useEffect(() => {
+    if (!socket || !params._id) return;
+    // If no handshake is received within 2 seconds, allow local emissions.
+    const timer = setTimeout(() => {
+      if (!hasSynced.current) {
+        hasSynced.current = true;
+        console.log("No handshake received, marking as synced.");
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [socket, params._id]);
+
+  ///////////////////////////////
+  // 4. Listen for Live Training Updates
+  ///////////////////////////////
   useEffect(() => {
     if (!socket) return;
 
     const handleLiveUpdate = (updatedTraining) => {
-      // Mark that this update came from a remote source
+      // This update is coming from another client.
       isLocalUpdate.current = false;
       setLocalTraining(updatedTraining);
     };
@@ -281,23 +331,29 @@ export default function Workout({ socket }) {
     return () => {
       socket.off("liveTrainingUpdate", handleLiveUpdate);
     };
-  }, [socket, params._id]);
+  }, [socket]);
 
+  ///////////////////////////////
+  // 5. Debounced Emission for Local Updates
+  ///////////////////////////////
   useEffect(() => {
     if (!socket || !params._id) return;
 
-    // If the change did not originate locally, skip emitting
+    // If the change came from a remote update, skip emitting.
     if (!isLocalUpdate.current) {
-      isLocalUpdate.current = true; // reset for future local changes
+      isLocalUpdate.current = true;
       return;
     }
+    // If we haven't yet been synced by an existing client, do not emit.
+    if (!hasSynced.current) return;
 
     const debouncedEmit = debounce(() => {
       socket.emit("liveTrainingUpdate", {
         workoutId: params._id,
         updatedTraining: localTraining,
       });
-    }, 1000); // 1 second debounce
+      console.log("Emitted live update", localTraining);
+    }, 1000); // 1-second debounce
 
     debouncedEmit();
 

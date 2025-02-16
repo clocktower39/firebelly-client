@@ -24,7 +24,7 @@ export default defineConfig({
           charts: ["recharts"],
           socket: ["socket.io-client"],
           "date-utils": ["dayjs"],
-          utils: ["axios", "query-string", "jwt-decode", "history"],
+          utils: ["axios", "query-string", "jwt-decode", "history", "react-barcode", "lodash"],
         },
       },
     },
