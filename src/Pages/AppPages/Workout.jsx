@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import { debounce } from "lodash";
 import {
   AppBar,
   Autocomplete,
@@ -56,10 +57,11 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function Workout(props) {
+export default function Workout({ socket }) {
   const dispatch = useDispatch();
   const params = useParams();
   const navigate = useNavigate();
+  const isLocalUpdate = useRef(true);
 
   const user = useSelector((state) => state.user);
   const training = useSelector((state) => state.training);
@@ -252,6 +254,57 @@ export default function Workout(props) {
       setBorderHighlight(!isPersonalWorkout());
     }
   }, [isPersonalWorkout, setBorderHighlight, training]);
+
+  useEffect(() => {
+    if (socket && params._id) {
+      // Join the workout room
+      socket.emit("joinWorkout", { workoutId: params._id });
+    }
+    return () => {
+      if (socket && params._id) {
+        // Leave the room on unmount
+        socket.emit("leaveWorkout", { workoutId: params._id });
+      }
+    };
+  }, [socket, params._id]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleLiveUpdate = (updatedTraining) => {
+      // Mark that this update came from a remote source
+      isLocalUpdate.current = false;
+      setLocalTraining(updatedTraining);
+    };
+
+    socket.on("liveTrainingUpdate", handleLiveUpdate);
+    return () => {
+      socket.off("liveTrainingUpdate", handleLiveUpdate);
+    };
+  }, [socket, params._id]);
+
+  useEffect(() => {
+    if (!socket || !params._id) return;
+
+    // If the change did not originate locally, skip emitting
+    if (!isLocalUpdate.current) {
+      isLocalUpdate.current = true; // reset for future local changes
+      return;
+    }
+
+    const debouncedEmit = debounce(() => {
+      socket.emit("liveTrainingUpdate", {
+        workoutId: params._id,
+        updatedTraining: localTraining,
+      });
+    }, 1000); // 1 second debounce
+
+    debouncedEmit();
+
+    return () => {
+      debouncedEmit.cancel();
+    };
+  }, [localTraining, socket, params._id]);
 
   return (
     <>

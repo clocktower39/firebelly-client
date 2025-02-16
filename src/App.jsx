@@ -106,7 +106,7 @@ function App({}) {
                   <Route exact path="/" element={<Home />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
-                  <Route exact path="/workout/:_id" element={<Workout />} />
+                  <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
                   {/* <Route exact path="/queue" element={<WorkoutQueue />} /> */}
                   <Route exact path="/builder" element={<WorkoutBuilder />} />
                   <Route exact path="/tasks" element={<Tasks />} />
