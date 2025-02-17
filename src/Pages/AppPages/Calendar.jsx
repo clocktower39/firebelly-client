@@ -175,7 +175,7 @@ export default function Calendar(props) {
             onChange={handleDateCalendarChange}
             loading={isLoading}
             renderLoading={() => <DayCalendarSkeleton />}
-            views={["month", "day"]}
+            views={["year", "month", "day"]}
             slots={{ day: ServerDay }}
             slotProps={{ day: { highlightedDays } }}
             onMonthChange={handleMonthChange}
