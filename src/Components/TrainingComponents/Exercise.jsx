@@ -650,7 +650,7 @@ export default function Exercise(props) {
               sx={{ justifyContent: "flex-start", alignContent: "center" }}
             >
               <Typography color="text.primary" variant="h6">
-                {title.exerciseTitle || "Enter an exercise"}
+                {title?.exerciseTitle || "Select an exercise"}
               </Typography>
             </Grid>
             <Grid

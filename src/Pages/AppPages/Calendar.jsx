@@ -324,10 +324,10 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
                     <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
                   </Grid>
                   {workoutSet.map((exercise, exerciseIndex) => (
-                    <Fragment key={`${exercise.exercise.exerciseTitle}-${exerciseIndex}`}>
+                    <Fragment key={`${exercise?.exercise?.exerciseTitle}-${exerciseIndex}`}>
                       <Grid item xs={12} sm={6}>
                         <Typography variant="caption" sx={{ marginLeft: "16px" }}>
-                          {exercise.exercise.exerciseTitle}
+                          {exercise?.exercise?.exerciseTitle || "Select an exercise"}
                         </Typography>
                       </Grid>
                       <Grid container item xs={12} sm={6}>
