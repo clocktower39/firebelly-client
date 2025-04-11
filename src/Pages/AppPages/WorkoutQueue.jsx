@@ -52,7 +52,7 @@ export default function WorkoutQueue() {
                 return (
                   <Draggable key={workout._id} draggableId={`${workout._id}-${i}`} index={i}>
                     {(dragProvided) => (
-                      <Grid container item lg={4} sm={6} xs={12} sx={{ justifyContent: "center" }} ref={dragProvided.innerRef} {...dragProvided.draggableProps} >
+                      <Grid container size={{ xs: 12, sm: 6, lg: 4, }} sx={{ justifyContent: "center" }} ref={dragProvided.innerRef} {...dragProvided.draggableProps} >
                         <Box
                           sx={{
                             width: "100%",
@@ -63,8 +63,7 @@ export default function WorkoutQueue() {
                         >
                         <Grid
                           container
-                          item
-                          xs={1}
+                          size={1}
                           sx={{ justifyContent: "center", alignItems: "center" }}
                           {...dragProvided.dragHandleProps}
                         >
@@ -218,12 +217,11 @@ const WorkoutOverview = ({
               <>
                 <Paper key={workout._id} elevation={5} sx={{ margin: "5px", padding: "5px" }}>
                   <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-                    <Grid item xs={11} container>
+                    <Grid size={11} container>
                       <Typography variant="h6">{workout.title}</Typography>
                     </Grid>
                     <Grid
-                      item
-                      xs={1}
+                      size={1}
                       container
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
@@ -275,7 +273,7 @@ const WorkoutOverview = ({
                                         >
                                           {(exerciseDraggableProvided) => (
                                             <Grid container>
-                                              <Grid item xs={12}>
+                                              <Grid size={12}>
                                                 <WorkoutSet
                                                   workout={workout}
                                                   workoutSet={set}
@@ -299,7 +297,7 @@ const WorkoutOverview = ({
                       )
                     }
                   </Droppable>
-                  <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
+                  <Grid container size={12} sx={{ justifyContent: "center", padding: "5px" }}>
                     <Link to={`/workout/${workout._id}`}>
                       <Button onClick={() => saveStart(workout)} variant="contained">
                         Open Workout
@@ -319,7 +317,7 @@ const WorkoutOverview = ({
             );
           })}
         <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-          <Grid item>
+          <Grid >
             {/* <Button onClick={handleAddWorkout} variant="contained" sx={{ margin: "15px" }}>
               Add Workout
             </Button> */}
@@ -412,18 +410,17 @@ const WorkoutSet = (props) => {
                   >
                     <Grid
                       container
-                      item
-                      xs={1}
+                      size={1}
                       sx={{ justifyContent: "center", alignItems: "center" }}
                       {...exerciseDraggableProvided.dragHandleProps}
                     >
                       <DragHandleIcon />
                     </Grid>
-                    <Grid container xs={11} sx={{ padding: "5px" }}>
-                      <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
+                    <Grid container size={11} sx={{ padding: "5px" }}>
+                      <Grid container size={{ xs: 12, sm: 6, }} sx={{ alignItems: "center" }}>
                         <Typography variant="body1">{exercise.exercise.exerciseTitle}</Typography>
                       </Grid>
-                      <Grid container item xs={12} sm={6}>
+                      <Grid container size={{ xs: 12, sm: 6, }} >
                         {renderType(exercise)}
                       </Grid>
                     </Grid>

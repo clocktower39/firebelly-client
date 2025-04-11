@@ -154,7 +154,7 @@ export default function Calendar(props) {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       {view === "trainer" && (
-        <Grid container item xs={12} sx={{ justifyContent: "center", padding: "15px 0" }}>
+        <Grid container size={12} sx={{ justifyContent: "center", padding: "15px 0" }}>
           <Avatar
             src={
               client?.profilePicture && `${serverURL}/user/profilePicture/${client.profilePicture}`
@@ -295,14 +295,14 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Grid container>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="h6">{workout?.title}</Typography>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="caption" sx={{ ml: 2 }}>
                   {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
                 </Typography>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="caption" sx={{ ml: 2 }}>
                     Muscle Group{workout?.category?.length > 1 && "s"}:{" "}
                     {workout?.category?.join(", ")}
@@ -312,27 +312,27 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
             </Grid>
           </AccordionSummary>
           <AccordionDetails>
-            <Grid container spacing={2}>
-              <Grid container item justifyContent="flex-end">
+            <Grid container justifyContent="flex-end">
+              <Grid container >
                 <IconButton onClick={handleSelectWorkout}>
                   <SettingsIcon />
                 </IconButton>
               </Grid>
               {workout.training.map((workoutSet, workoutSetIndex) => (
                 <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
-                  <Grid item xs={12} sx={{ marginLeft: "8px" }}>
+                  <Grid size={12} sx={{ marginLeft: "8px" }}>
                     <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
                   </Grid>
                   {workoutSet.map((exercise, exerciseIndex) => (
                     <Fragment key={`${exercise?.exercise?.exerciseTitle}-${exerciseIndex}`}>
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6, }} >
                         <Typography variant="caption" sx={{ marginLeft: "16px" }}>
                           {exercise?.exercise?.exerciseTitle || "Select an exercise"}
                         </Typography>
                       </Grid>
-                      <Grid container item xs={12} sm={6}>
+                      <Grid container size={{ xs: 12, sm: 6, }} >
                         {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => (
-                          <Grid item xs={12} key={field.goalAttribute}>
+                          <Grid size={12} key={field.goalAttribute}>
                             <Typography variant="caption" sx={{ marginLeft: "32px" }}>
                               {field.label}: {exercise.achieved[field.goalAttribute]?.join(", ")}
                             </Typography>
@@ -343,7 +343,7 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
                   ))}
                 </Grid>
               ))}
-              <Grid container item xs={12} sx={{ justifyContent: "center", alignItems: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
                 <Button variant="outlined" component={Link} to={to}>
                   Open
                 </Button>

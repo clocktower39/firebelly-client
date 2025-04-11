@@ -59,10 +59,7 @@ export default function Goals({ view = "client", client, }) {
     return (
       <Grid
         container
-        item
-        md={4}
-        sm={6}
-        xs={12}
+        size={{ xs: 12, sm: 6, md: 4, }} 
         sx={{ justifyContent: "center" }}
       >
         <Box sx={{ width: "100%" }}>
@@ -148,23 +145,23 @@ export default function Goals({ view = "client", client, }) {
         >
           <DialogTitle id="alert-dialog-title">
             <Grid container  >
-              <Grid container item xs={12} >
+              <Grid container size={12} >
                 Delete Confirmation
               </Grid>
             </Grid>
           </DialogTitle>
           <DialogContent>
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-              <Grid item container xs={12}>
+              <Grid container size={12}>
                 <Typography variant="body1" >Are you sure you would like to permanently delete this goal?</Typography>
               </Grid>
-              <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
-                <Grid item>
+              <Grid container size={12} spacing={2} sx={{ justifyContent: 'center' }}>
+                <Grid >
                   <Button color='secondaryButton' variant="contained" onClick={onClose} >
                     Cancel
                   </Button>
                 </Grid>
-                <Grid item>
+                <Grid >
                   <Button variant="contained" onClick={submitDelete} >
                     Confirm
                   </Button>
@@ -197,10 +194,10 @@ export default function Goals({ view = "client", client, }) {
       >
         <DialogTitle id="alert-dialog-title">
           <Grid container  >
-            <Grid container item xs={6} >
+            <Grid container size={6} >
               Goal Details
             </Grid>
-            <Grid container item xs={6} justifyContent="flex-end" >
+            <Grid container size={6} justifyContent="flex-end" >
               <Tooltip title="Delete">
                 <IconButton variant="contained" onClick={handleOpenDeleteConfirmation} >
                   <Delete />
@@ -211,7 +208,7 @@ export default function Goals({ view = "client", client, }) {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-            <Grid item container xs={12}>
+            <Grid container size={12}>
               <TextField
                 type="text"
                 fullWidth
@@ -221,7 +218,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} sm={6} >
+            <Grid container size={{ xs: 12, sm: 6, }} >
               <TextField
                 type="date"
                 fullWidth
@@ -231,7 +228,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} sm={6} >
+            <Grid container size={{ xs: 12, sm: 6, }} >
               <TextField
                 type="date"
                 fullWidth
@@ -241,7 +238,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12}>
+            <Grid container size={12}>
               <TextField
                 type="text"
                 fullWidth
@@ -252,13 +249,13 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
-              <Grid item>
+            <Grid container size={12} spacing={2} sx={{ justifyContent: 'center' }}>
+              <Grid >
                 <Button color='secondaryButton' variant="contained" onClick={resetEdit} >
                   Reset
                 </Button>
               </Grid>
-              <Grid item>
+              <Grid >
                 <Button variant="contained" onClick={saveTask} >
                   Save
                 </Button>
@@ -268,21 +265,21 @@ export default function Goals({ view = "client", client, }) {
             <DialogTitle id="alert-dialog-title">
               Comments
             </DialogTitle>
-            <Grid container spacing={1} item sx={{ padding: "10px 0px", justifyContent: 'center', }}>
+            <Grid container spacing={1} sx={{ padding: "10px 0px", justifyContent: 'center', }}>
               {goal.comments && goal.comments.length > 0
                 ? goal.comments.map(comment => (
                   <Grid key={comment._id} container sx={{ padding: "12px 0px" }}>
-                    <Grid container item xs={2} sx={{ justifyContent: 'center', alignItems: 'center', }}>
+                    <Grid container size={2} sx={{ justifyContent: 'center', alignItems: 'center', }}>
                       <AccountCircle />
                     </Grid>
-                    <Grid container item xs={10}>
-                      <Grid container item xs={12}>
+                    <Grid container size={10}>
+                      <Grid container size={12}>
                         <Typography variant="body1">
                           {/* {comment.firstName} {comment.lastName} */}
                         </Typography>
                         <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>{comment.createdDate.substr(0, 10)}</Typography>
                       </Grid>
-                      <Grid item xs={11}>
+                      <Grid size={11}>
                         <Typography variant="body2">{comment.comment}</Typography>
                       </Grid>
                     </Grid>
@@ -290,7 +287,7 @@ export default function Goals({ view = "client", client, }) {
                 ))
                 : <Typography variant="body1" >No comments</Typography>}
             </Grid>
-            <Grid container item xs={12} sx={{ flexGrow: 1, alignContent: 'flex-end', flex: 'initial', }}>
+            <Grid container size={12} sx={{ flexGrow: 1, alignContent: 'flex-end', flex: 'initial', }}>
               <TextField
                 fullWidth
                 multiline
@@ -358,7 +355,7 @@ export default function Goals({ view = "client", client, }) {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={1} sx={{ padding: "10px 0px" }} >
-            <Grid item container xs={12} >
+            <Grid container size={12} >
               <TextField
                 type="text"
                 fullWidth
@@ -368,7 +365,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} sm={6} >
+            <Grid container size={{ xs: 12, sm: 6, }} >
               <TextField
                 type="date"
                 fullWidth
@@ -378,7 +375,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} sm={6} >
+            <Grid container size={{ xs: 12, sm: 6, }} >
               <TextField
                 type="date"
                 fullWidth
@@ -388,7 +385,7 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12}>
+            <Grid container size={12}>
               <TextField
                 type="text"
                 fullWidth
@@ -399,13 +396,13 @@ export default function Goals({ view = "client", client, }) {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item container xs={12} spacing={2} sx={{ justifyContent: 'center' }}>
-              <Grid item>
+            <Grid container size={12} spacing={2} sx={{ justifyContent: 'center' }}>
+              <Grid >
                 <Button color='secondaryButton' variant="contained" onClick={resetForm} >
                   Reset
                 </Button>
               </Grid>
-              <Grid item>
+              <Grid >
                 <Button variant="contained" onClick={submitNewGoal} >
                   Save
                 </Button>
@@ -422,7 +419,7 @@ export default function Goals({ view = "client", client, }) {
       <Container maxWidth="md" sx={{ height: "100%", padding: "15px 0px" }}>
         <Paper sx={{ padding: "5px 15px", borderRadius: "15px", minHeight: "100%", }}>
 
-          <Grid container item xs={12} sx={{ justifyContent: 'center', paddingBottom: "15px", alignSelf: 'flex-start', flex: 'initial', }}>
+          <Grid container size={12} sx={{ justifyContent: 'center', paddingBottom: "15px", alignSelf: 'flex-start', flex: 'initial', }}>
             <Typography variant="h4">
               Goals
             </Typography>
@@ -431,7 +428,7 @@ export default function Goals({ view = "client", client, }) {
             </ Tooltip>
           </Grid>
 
-          <Grid container item xs={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
+          <Grid container size={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
             {goals && goals.map((goal) => <GoalCard key={goal._id} goal={goal} handleOpenGoalDetails={handleOpenGoalDetails} />)}
           </Grid>
 

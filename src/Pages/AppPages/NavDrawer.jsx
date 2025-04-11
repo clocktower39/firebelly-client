@@ -192,7 +192,7 @@ export default function NavDrawer() {
       >
         <Container maxWidth="md">
           <Grid container>
-            <Grid container item xs={6}>
+            <Grid container size={6}>
               <IconButton onClick={toggleDrawer}>
                 <NavIcon />
               </IconButton>
@@ -200,7 +200,7 @@ export default function NavDrawer() {
                 <img src={logo48} alt="Firebelly Fitness Logo" style={{ maxHeight: "40px" }} />
               </Button>
             </Grid>
-            <Grid container item xs={6} sx={{ justifyContent: "flex-end" }}>
+            <Grid container size={6} sx={{ justifyContent: "flex-end" }}>
               <IconButton onClick={handleMenu} sx={{ maxHeight: "40px", maxWidth: "40px" }}>
                 <Avatar
                   src={

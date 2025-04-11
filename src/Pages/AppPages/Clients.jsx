@@ -114,7 +114,7 @@ export default function Clients({ socket }) {
     const handleDeleteConfirmationClose = () => setDeleteConfirmationOpen(false);
 
     return (
-      <Grid container item xs={12}>
+      <Grid container size={12}>
         <Card sx={{ width: "100%" }}>
           <CardHeader
             avatar={
@@ -172,20 +172,20 @@ export default function Clients({ socket }) {
         <Dialog open={deleteConfirmationOpen} onClose={handleDeleteConfirmationClose}>
           <DialogTitle id="alert-dialog-title">
             <Grid container>
-              <Grid container item xs={12}>
+              <Grid container size={12}>
                 Delete Confirmation
               </Grid>
             </Grid>
           </DialogTitle>
           <DialogContent>
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-              <Grid item container xs={12}>
+              <Grid container size={12}>
                 <Typography variant="body1">
                   Are you sure you would like to remove this trainer?
                 </Typography>
               </Grid>
-              <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
-                <Grid item>
+              <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                <Grid >
                   <Button
                     color="secondaryButton"
                     variant="contained"
@@ -266,8 +266,7 @@ export default function Clients({ socket }) {
     <>
       <Grid
         container
-        item
-        xs={12}
+        size={12}
         sx={{
           justifyContent: "center",
           paddingBottom: "15px",
@@ -286,7 +285,7 @@ export default function Clients({ socket }) {
           onChange={handleSearchChange}
           sx={{ mb: 2 }}
         />
-        <Grid container item xs={12} justifyContent="center">
+        <Grid container size={12} justifyContent="center">
           <FormControlLabel
             control={
               <Switch
@@ -309,15 +308,11 @@ export default function Clients({ socket }) {
 
       <Grid
         container
-        item
-        xs={12}
+        size={12}
         spacing={1}
         sx={{
-          alignSelf: "flex-start",
-          alignContent: "flex-start",
           overflowY: "scroll",
           scrollbarWidth: "none",
-          flex: "auto",
         }}
       >
         {filteredClients.map((clientRelationship) => (

@@ -27,7 +27,7 @@ export default function SelectedDate(props) {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%", paddingTop: "25px", maxWidth: "100%" }}>
-      <Grid item xs={12} container sx={{ justifyContent: "center", flexWrap: "nowrap" }}>
+      <Grid size={12} container sx={{ justifyContent: "center", flexWrap: "nowrap" }}>
         {/* Go back one day */}
         <Button onClick={() => changeDate(-1)} sx={classes.ArrowButton}>
           <ArrowBack sx={classes.ArrowIcons} />

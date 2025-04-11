@@ -14,14 +14,14 @@ const MessageList = ({ users, conversationId, messages, handleMessageDrawerClose
 
   return (
     <Container maxWidth="sm" sx={{ padding: "0 0 95px 0", }}>
-      <Grid container item >
-        <Grid container item xs={1} >
+      <Grid container >
+        <Grid container size={1} >
           <IconButton onClick={handleMessageDrawerClose} ><ArrowBackIosNew /></IconButton>
         </Grid>
-        <Grid container item xs={11} sx={{ alignContent: 'center', }} >
+        <Grid container size={11} sx={{ alignContent: 'center', }} >
           <Typography variant="h5">{users?.map(u => u.username).join(' ')}</Typography>
         </Grid>
-        <Grid container item xs={12} >
+        <Grid container size={12} >
           {messages?.map((message, i) => {
             return (
               <Grid
@@ -48,13 +48,12 @@ const MessageList = ({ users, conversationId, messages, handleMessageDrawerClose
                     }
                 }
                 container
-                item
-                xs={12}
+                size={12}
               >
-                <Grid container item xs={2} sx={{ justifyContent: 'center', }}>
+                <Grid container size={2} sx={{ justifyContent: 'center', }}>
                   <Avatar src={message.user.profilePicture ? `${serverURL}/user/profilePicture/${message.user.profilePicture}` : null} />
                 </Grid>
-                <Grid item xs={8}>
+                <Grid size={8}>
                   <Typography variant="h6" display="inline">
                     {message.user.username}{" "}
                   </Typography>
@@ -80,7 +79,7 @@ const MessageList = ({ users, conversationId, messages, handleMessageDrawerClose
                     {message.message}
                   </Typography>
                 </Grid>
-                <Grid item xs={2}>
+                <Grid size={2}>
                   {message.user.username === user.username && (
                     <IconButton onClick={() => handleMessageDelete(message._id)} >
                       <Delete />
@@ -125,7 +124,7 @@ const MessageInput = ({ conversationId }) => {
           padding: '12.5px 0px'
         }}
       >
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             error={error === true ? true : false}

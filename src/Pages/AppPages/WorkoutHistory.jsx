@@ -49,15 +49,14 @@ export default function WorkoutHistory() {
 
   return (
     <Grid container>
-      <Grid xs={12}>
+      <Grid size={12}>
         <Typography variant="h5" textAlign="center" sx={{ padding: "15px" }}>
           Workout History
         </Typography>
       </Grid>
       <Grid
         container
-        item
-        xs={12}
+        size={12}
         spacing={2}
         sx={{
           alignSelf: "flex-start",
@@ -72,10 +71,7 @@ export default function WorkoutHistory() {
             <Grid
               key={workout._id}
               container
-              item
-              lg={4}
-              sm={6}
-              xs={12}
+              size={{ xs: 12, sm: 6, lg: 4, }} 
               sx={{ justifyContent: "center" }}
             >
               <Box

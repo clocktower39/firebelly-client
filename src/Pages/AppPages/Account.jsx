@@ -46,7 +46,7 @@ export default function Account() {
       <Container maxWidth="md" sx={{ height: "100%", paddingTop: "25px", paddingBottom: "75px" }}>
         <Grid container>
 
-          <Grid container item xs={12} sx={{ justifyContent: "space-between" }}>
+          <Grid container size={12} sx={{ justifyContent: "space-between" }}>
 
             <Box sx={{ display: "flex", flexDirection: "row" }}>
               <Typography onClick={handleOutletLists} variant="h5" sx={{ color: "#fff" }}>
@@ -56,11 +56,11 @@ export default function Account() {
 
           </Grid>
 
-          <Grid container item xs={12} sm={4} sx={{ display: openOutletList ? "flex" : "none" }}>
+          <Grid container size={{ xs: 12, sm: 4, }} sx={{ display: openOutletList ? "flex" : "none" }}>
             <OutletList />
           </Grid>
 
-          <Grid container item xs={12} sm={openOutletList ? 8 : 12}>
+          <Grid container size={{ xs: 12, sm: openOutletList ? 8 : 12, }} >
             <Outlet />
           </Grid>
 

@@ -54,7 +54,7 @@ const LoggedField = (props) => {
   };
 
   return (
-    <Grid item xs={amountOfFields % 2 === 0 ? 6 : amountOfFields === 1 ? 12 : 4}>
+    <Grid size={amountOfFields % 2 === 0 ? 6 : amountOfFields === 1 ? 12 : 4}>
       <TextField
         label={field.label}
         value={exercise.goals[field.goalAttribute][exerciseSetIndex] || 0}
@@ -105,13 +105,12 @@ export default function EditLoader(props) {
   }
 
   return (
-    <Grid container item xs={12} spacing={1}>
+    <Grid container size={12} spacing={1}>
       {fields?.nonRepeating?.map((field) => (
         <Grid
           key={`nonRepeating-${field.label}`}
           container
-          item
-          xs={12}
+          size={12}
           sx={{ justifyContent: "center" }}
         >
           <TextField label="One Rep Max" value={oneRepMax} onChange={handleOneRepMaxChange} fullWidth />
@@ -121,12 +120,11 @@ export default function EditLoader(props) {
         return (
           <Grid
             container
-            item
-            xs={12}
+            size={12}
             spacing={2}
             key={`exercise-Set-${count}-${exerciseSetIndex}`}
           >
-            <Grid item xs={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
+            <Grid size={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
               <Button
                 sx={{
                   color: "#fff",
@@ -141,7 +139,7 @@ export default function EditLoader(props) {
                 </Typography>
               </Button>
             </Grid>
-            <Grid container item xs={10} spacing={1}>
+            <Grid container size={10} spacing={1}>
               {fields.repeating.map((field) => {
                 return (
                   <LoggedField

@@ -55,14 +55,14 @@ export default function MyAccount() {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
-      <Grid container item xs={12} sx={{ padding: "15px" }}>
+      <Grid container size={12} sx={{ padding: "15px" }}>
         <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
           My Account
         </Typography>
       </Grid>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
-          <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+          <Grid container size={12} sx={{ justifyContent: "center" }}>
             <Avatar
               alt="Profile Picture"
               src={user.profilePicture && `${serverURL}/user/profilePicture/${user.profilePicture}`}
@@ -70,7 +70,7 @@ export default function MyAccount() {
               onClick={handleProfilePictureDialog}
             />
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               label="First Name"
               value={firstName}
@@ -78,7 +78,7 @@ export default function MyAccount() {
               fullWidth
             />
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               label="Last Name"
               value={lastName}
@@ -86,7 +86,7 @@ export default function MyAccount() {
               fullWidth
             />
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               label="Email"
               value={email}
@@ -94,7 +94,7 @@ export default function MyAccount() {
               fullWidth
             />
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               mask="+1 (999) 999-9999"
               value={phoneNumber}
@@ -105,7 +105,7 @@ export default function MyAccount() {
               {() => <TextField label="Phone Number" fullWidth type="tel" />}
             </TextField>
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               label="Date of Birth"
               type="date"
@@ -117,7 +117,7 @@ export default function MyAccount() {
               }}
             />
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               mask={`9' ?9"`}
               // formatChars={{ 9: "[0-9]", "?": "[0-9 ]" }}
@@ -129,7 +129,7 @@ export default function MyAccount() {
               {() => <TextField label="Height" fullWidth type="tel" />}
             </TextField>
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               select
               label="Sex"
@@ -142,7 +142,7 @@ export default function MyAccount() {
               <MenuItem value="N/A">Prefer not to answer</MenuItem>
             </TextField>
           </Grid>
-          <Grid container item xs={12}>
+          <Grid container size={12}>
             <TextField
               label="Gym Barcode"
               value={gymBarcode}
@@ -150,13 +150,13 @@ export default function MyAccount() {
               fullWidth
             />
           </Grid>
-          <Grid container sx={{ justifyContent: "center" }} item xs={12} spacing={2}>
-            <Grid item>
+          <Grid container sx={{ justifyContent: "center" }} size={12} spacing={2}>
+            <Grid >
               <Button color="secondaryButton" variant="contained" onClick={handleCancel}>
                 Cancel
               </Button>
             </Grid>
-            <Grid item>
+            <Grid >
               <Button variant="contained" onClick={saveChanges}>
                 Save
               </Button>
@@ -204,7 +204,7 @@ const ProfilePictureUpload = () => {
             id="hidden-input"
             sx={{ display: "none" }}
           />
-          <Grid item xs={12}>
+          <Grid size={12}>
             <label htmlFor="hidden-input">
               <CardMedia
                 sx={{
@@ -225,7 +225,7 @@ const ProfilePictureUpload = () => {
               </Typography>
             )}
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Button variant="contained" fullWidth type="submit">
               Upload
             </Button>

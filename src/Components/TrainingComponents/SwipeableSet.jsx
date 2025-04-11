@@ -149,9 +149,9 @@ function SwipeableSet(props) {
       >
         {localTraining.map((group, index) => (
           <div key={`training-indexes-${index}/${localTraining.length}`}>
-            <Grid item xs={12}>
-              <Grid container item xs={12}>
-                <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+            <Grid size={12}>
+              <Grid container size={12}>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Tooltip title="Remove circuit">
                       <IconButton onClick={() => handleConfirmDialogOpen(removeSet, index)}>
@@ -182,8 +182,8 @@ function SwipeableSet(props) {
                     size={size}
                   />
                 ))}
-              <Grid container item xs={12}>
-                <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Grid container size={12}>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Tooltip title="Add a new exercise to the current set">
                     <IconButton onClick={() => newExercise(index)}>
                       <AddCircle />
@@ -195,30 +195,29 @@ function SwipeableSet(props) {
           </div>
         ))}
         <Box sx={{ padding: '25px 0'}}>
-          <Grid item xs={12}>
-            <Grid container item xs={12}>
-              <Grid item container xs={12} sx={{ justifyContent: "center" }}>
+          <Grid size={12}>
+            <Grid container size={12}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <FormGroup>
                   <FormControlLabel control={<Checkbox checked={workoutCompleteStatus} onClick={handleWorkoutCompleteCheckbox} />} label="Workout Complete" />
                 </FormGroup>
               </Grid>
-              <Grid item container xs={12} sx={{ justifyContent: "center" }}>
-                <Grid item container xs={12} sx={{ justifyContent: "center",}}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
+                <Grid container size={12} sx={{ justifyContent: "center",}}>
                   {/* <TextField label="Feedback" value={workoutFeedback} fullWidth multiline minRows={5} onKeyDown={handleFeedbackKeyDown} onChange={handleFeedbackChange}/> */}
                   <Typography variant="body1">Feedback:</Typography>
                 </Grid>
-                <Grid item container xs={12} sx={{ justifyContent: "center",}}>
+                <Grid container size={12} sx={{ justifyContent: "center",}}>
                   <Typography variant="caption">(Coming soon)</Typography>
                 </Grid>
                 {/* {localTraining.map((group, index) => (
-                  <Grid container item xs={12}>
+                  <Grid container size={12}>
                     {group.length > 0 &&
                       group.map((exercise, exerciseIndex) => (
                         <>
                           <Grid
                             container
-                            item
-                            xs={8}
+                            size={8}
                             sx={{ justifyContent: "flex-start", alignContent: "center" }}
                           >
                             <Typography color="text.primary" variant="h6">
@@ -239,20 +238,20 @@ function SwipeableSet(props) {
         <Dialog open={confirmDialogOpen} onClose={handleConfirmDialogClose}>
           <DialogTitle>
             <Grid container>
-              <Grid container item xs={12}>
+              <Grid container size={12}>
                 Delete Confirmation
               </Grid>
             </Grid>
           </DialogTitle>
           <DialogContent>
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-              <Grid item container xs={12}>
+              <Grid container size={12}>
                 <Typography variant="body1">
                   Are you sure you would like to remove the circuit?
                 </Typography>
               </Grid>
-              <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
-                <Grid item>
+              <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                <Grid >
                   <Button
                     color="secondaryButton"
                     variant="contained"
@@ -261,7 +260,7 @@ function SwipeableSet(props) {
                     Cancel
                   </Button>
                 </Grid>
-                <Grid item>
+                <Grid >
                   <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
                     Confirm
                   </Button>

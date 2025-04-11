@@ -30,7 +30,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
     }
 
     return (
-      <Grid container item xs={12}>
+      <Grid container size={12}>
         <Card sx={{ width: '100%' }} >
           <CardHeader
             avatar={
@@ -87,7 +87,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
       </DialogTitle>
       <DialogContent>
         <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-          <Grid item container xs={12}>
+          <Grid container size={12}>
             <TextField
               type="text"
               value={search}
@@ -97,8 +97,8 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
               InputLabelProps={{ shrink: true }}
             />
           </Grid>
-          <Grid item container xs={12} >
-            <Grid container item xs={12} spacing={1} >
+          <Grid container size={12} >
+            <Grid container size={12} spacing={1} >
               {searchResults.map(trainer => {
                 return (<SearchResultsTrainerCard key={trainer} trainer={trainer} />);
               })}

@@ -51,8 +51,7 @@ const TaskCheckbox = ({ selectedDate, tasks, task, compareWithSelectedDate }) =>
   return (
     <Grid
       container
-      item
-      xs={12}
+      size={12}
       sx={{ justifyContent: "center" }}
     >
       <FormControl component="fieldset" disabled={disabled} >
@@ -157,12 +156,12 @@ const DefaultTasks = (props) => {
         {tempDefaultTasks &&
           tempDefaultTasks.map((task, index) => {
             return (
-              <Grid item xs={12} key={`defaultTask-${task.taskTitle}-${index}`}>
+              <Grid size={12} key={`defaultTask-${task.taskTitle}-${index}`}>
                 <TaskTextField task={task} index={index} />
               </Grid>
             );
           })}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             label="Add a new default task"
             value={newTask}
@@ -218,13 +217,13 @@ const DefaultTasks = (props) => {
             }}
           />
         </Grid>
-        <Grid container sx={{ justifyContent: "center" }} item xs={12} spacing={2}>
-          <Grid item>
+        <Grid container sx={{ justifyContent: "center" }} size={12} spacing={2}>
+          <Grid >
             <Button variant="contained" onClick={handleCancel}>
               Cancel
             </Button>
           </Grid>
-          <Grid item>
+          <Grid >
             <Button variant="contained" onClick={saveTasks}>
               Save
             </Button>
@@ -273,14 +272,14 @@ export default function Tasks(props) {
       <Modal open={isModalOpen}>
         <Paper >
           <Grid container spacing={3} alignContent="center" sx={{ height: "100%" }}>
-            <Grid item xs={12} container sx={{ justifyContent: "center" }}>
+            <Grid size={12} container sx={{ justifyContent: "center" }}>
               <TextField
                 label="New Task Title"
                 value={modalNewTaskTitle}
                 onChange={(e) => setModalNewTaskTitle(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} container sx={{ justifyContent: "center" }}>
+            <Grid size={12} container sx={{ justifyContent: "center" }}>
               <Button variant="outlined" onClick={cancelNewTask}>
                 Cancel
               </Button>
@@ -291,7 +290,7 @@ export default function Tasks(props) {
       </Modal>
       <Grid container alignItems="center">
         <SelectedDate setParentSelectedDate={setSelectedDate} />
-        <Grid container item xs={12} sx={{ padding: '7.5px 0px' }}>
+        <Grid container size={12} sx={{ padding: '7.5px 0px' }}>
           <Accordion sx={{ width: "100%", boxShadow: "none", backgroundColor: 'background.DashboardCard', }}>
             <AccordionSummary
               expandIcon={<ExpandMore />}
@@ -312,10 +311,10 @@ export default function Tasks(props) {
             </AccordionDetails>
           </Accordion>
         </Grid>
-        <Grid container item xs={3}>
+        <Grid container size={3}>
           <Typography sx={classes.heading} >Daily Tasks</Typography>
         </Grid>
-        <Grid item xs={9}>
+        <Grid size={9}>
           <LinearProgress
             variant="determinate"
             value={(dailyTasksAchieved / dailyTasksGoal) * 100}
@@ -347,8 +346,7 @@ export default function Tasks(props) {
         ) : (
           <Grid
             container
-            item
-            xs={12}
+            size={12}
             sx={{
               justifyContent: "center",
               alignContent: "center",

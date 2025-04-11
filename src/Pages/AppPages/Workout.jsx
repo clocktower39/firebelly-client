@@ -18,6 +18,9 @@ import {
   IconButton,
   Modal,
   Slide,
+  Stepper,
+  Step,
+  StepLabel,
   TextField,
   Toolbar,
   Tooltip,
@@ -136,6 +139,42 @@ export default function Workout({ socket }) {
     "Quadriceps",
     "Shoulders",
     "Triceps",
+  ];
+  
+  const addExerciseSteps = [
+    {
+      label: "Select Exercises",
+      childElement: (
+        <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+          <Grid container size={12}>
+            <ExerciseListAutocomplete
+              exerciseList={exerciseList}
+              selectedExercises={selectedExercises}
+              setSelectedExercises={setSelectedExercises}
+            />
+          </Grid>
+          <Grid container size={12}>
+            <TextField
+              label="Sets"
+              select
+              SelectProps={{ native: true }}
+              fullWidth
+              value={selectedExercisesSetCount}
+              onChange={handleSelectedExercisesSetCountChange}
+            >
+              {[...Array(21)].map((x, i) => (
+                <option key={i} value={i}>
+                  {i}
+                </option>
+              ))}
+            </TextField>
+            {/* {selectedExercises.map(exercise => <p>{exercise?.exerciseTitle}</p>)} */}
+          </Grid>
+        </Grid>
+      ),
+    },
+    { label: "Set Goals", childElement: null },
+    { label: "Confirm", childElement: null },
   ];
 
   const newExercise = (index) => {
@@ -389,8 +428,7 @@ export default function Workout({ socket }) {
                 {!isPersonalWorkout() && (
                   <Grid
                     container
-                    item
-                    xs={12}
+                    size={12}
                     sx={{ justifyContent: "center", alignItems: "center" }}
                   >
                     <Avatar
@@ -406,7 +444,7 @@ export default function Workout({ socket }) {
                     </Typography>
                   </Grid>
                 )}
-                <Grid container item xs={1} sx={{ justifyContent: "center", alignItems: "center" }}>
+                <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
                   {training.date ? (
                     <IconButton
                       onClick={() => {
@@ -433,14 +471,14 @@ export default function Workout({ socket }) {
                     </IconButton>
                   )}
                 </Grid>
-                <Grid item xs={10} container sx={{ justifyContent: "center" }}>
+                <Grid size={10} container sx={{ justifyContent: "center" }}>
                   <Typography variant="h5">
                     {training.date
                       ? dayjs.utc(training.date).format("MMMM Do, YYYY")
                       : "Queued Workout"}
                   </Typography>
                 </Grid>
-                <Grid item xs={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
+                <Grid size={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
                   <Tooltip title="Workout Settings">
                     <IconButton variant="contained" onClick={handleModalToggle}>
                       <Settings />
@@ -448,8 +486,8 @@ export default function Workout({ socket }) {
                   </Tooltip>
                 </Grid>
 
-                <Grid container spacing={2} sx={{ paddingTop: "15px" }}>
-                  <Grid item xs={12} container alignContent="center">
+                <Grid container size={12} spacing={2} sx={{ paddingTop: "15px" }}>
+                  <Grid size={12} container alignContent="center">
                     <TextField
                       label="Title"
                       placeholder="Workout Title"
@@ -458,8 +496,8 @@ export default function Workout({ socket }) {
                       fullWidth
                     />
                   </Grid>
-                  <Grid item xs={12} container sx={classes.TrainingCategoryInputContainer}>
-                    <Grid item xs={12} container alignContent="center">
+                  <Grid size={12} container sx={classes.TrainingCategoryInputContainer}>
+                    <Grid size={12} container alignContent="center">
                       <Autocomplete
                         disableCloseOnSelect
                         value={trainingCategory}
@@ -489,7 +527,7 @@ export default function Workout({ socket }) {
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Divider sx={{ margin: "25px 0px" }} />
                 </Grid>
                 {training.training.length > 0 && (
@@ -518,8 +556,7 @@ export default function Workout({ socket }) {
               </Grid>
               <Grid
                 container
-                item
-                xs={12}
+                size={12}
                 sx={{
                   alignContent: "flex-end",
                   "&.MuiGrid-root": { flexGrow: 1 },
@@ -565,14 +602,14 @@ export default function Workout({ socket }) {
                 </AppBar>
                 <DialogContent>
                   <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-                    <Grid item container xs={12}>
+                    <Grid container size={12}>
                       <ExerciseListAutocomplete
                         exerciseList={exerciseList}
                         selectedExercises={selectedExercises}
                         setSelectedExercises={setSelectedExercises}
                       />
                     </Grid>
-                    <Grid item container xs={12}>
+                    <Grid container size={12}>
                       <TextField
                         label="Sets"
                         select
@@ -596,8 +633,7 @@ export default function Workout({ socket }) {
           ) : (
             <Grid
               container
-              item
-              xs={12}
+              size={12}
               sx={{
                 justifyContent: "center",
                 alignContent: "center",

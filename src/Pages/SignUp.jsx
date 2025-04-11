@@ -19,7 +19,7 @@ const SignupInput = ({
   setFormData,
 }) => {
   return (
-    <Grid container item xs={12} sx={classes.JCcenter}>
+    <Grid container size={12} sx={classes.JCcenter}>
       <TextField
         color="secondary"
         sx={classes.textField}
@@ -143,21 +143,20 @@ export const SignUp = (props) => {
   };
 
   return user._id ? <Navigate to={{ pathname: "/" }} /> : (
-    <Grid container item >
+    <Grid container >
       <Grid
         container
-        item
-        xs={12}
+        size={12}
         sx={{ flexGrow: 0, justifyContent: "center", padding: "50px 0 25px 0" }}
       >
-        <Grid container item xs={12} sx={classes.JCcenter}>
+        <Grid container size={12} sx={classes.JCcenter}>
           <Typography variant="h4" gutterBottom>
             Sign Up
           </Typography>
         </Grid>
       </Grid>
 
-      <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
+      <Grid container spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
         {fieldProperties.map((fieldProperty) => (
           <SignupInput
             key={fieldProperty}
@@ -172,7 +171,7 @@ export const SignUp = (props) => {
           />
         ))}
 
-        <Grid container item xs={12} sx={classes.JCcenter}>
+        <Grid container size={12} sx={classes.JCcenter}>
           <Button
             variant="contained"
             color="primary"

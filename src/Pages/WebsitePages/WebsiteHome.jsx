@@ -92,7 +92,7 @@ export default function Home() {
           </Grid>
         </Container>
         <Container maxWidth="lg">
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
           </Grid>
         </Container>
@@ -106,7 +106,7 @@ export default function Home() {
             }}
           >
             <Grid container>
-              <Grid container item xs={12} justifyContent="center">
+              <Grid container size={12} justifyContent="center">
                 <Typography
                   variant="h4"
                   textAlign="center"
@@ -116,7 +116,7 @@ export default function Home() {
                   About Me
                 </Typography>
               </Grid>
-              <Grid container item xs={12} md={6}>
+              <Grid container size={{ xs: 12, md: 6, }}>
                 <Grid>
                   <Typography sx={{ fontFamily: "Source Sans Pro" }}>
                     I have always had a passion for understanding, never able to accept "that’s just
@@ -163,9 +163,7 @@ export default function Home() {
               </Grid>
               <Grid
                 container
-                item
-                xs={12}
-                md={6}
+                size={{ xs: 12, md: 6, }} 
                 sx={{ justifyContent: "center", alignItems: "center" }}
               >
                 <img

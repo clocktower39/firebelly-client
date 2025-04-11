@@ -18,7 +18,7 @@ const ChangePasswordInput = ({
   setFormData,
 }) => {
   return (
-    <Grid container item xs={12} sx={classes.JCcenter}>
+    <Grid container size={12} sx={classes.JCcenter}>
       <TextField
         color="secondary"
         sx={classes.textField}
@@ -136,7 +136,7 @@ export default function ChangePassword() {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
-      <Grid container item xs={12} sx={{ padding: "15px" }}>
+      <Grid container size={12} sx={{ padding: "15px" }}>
         <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
           Change Password
         </Typography>
@@ -156,14 +156,14 @@ export default function ChangePassword() {
               handleKeyDown={handleKeyDown}
             />
           ))}
-          <Grid item container xs={12} justifyContent="center" spacing="6">
-            <Grid item>
+          <Grid container size={12} justifyContent="center" spacing="6">
+            <Grid>
               <Button variant="contained" onClick={handleSubmitChange} autoFocus>
                 Submit
               </Button>
             </Grid>
             {successMessage && (
-              <Grid container item xs={12} justifyContent="center" >
+              <Grid container size={12} justifyContent="center" >
                 <Typography variant="caption"sx={{ color: (theme) => theme.palette.primary.main, }}>Password successfully updated.</Typography>
               </Grid>
             )}

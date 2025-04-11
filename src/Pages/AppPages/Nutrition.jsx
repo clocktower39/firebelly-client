@@ -69,7 +69,7 @@ const NutritionStat = (props) => {
   }, [task.achieved]);
 
   return (
-    <Grid item xs={12}>
+    <Grid size={12}>
       <TextField
         fullWidth
         variant="outlined"
@@ -133,10 +133,10 @@ export default function Nutrition() {
     <>
       <Grid container sx={{ alignItems: "center", paddingBottom: '15px', }}>
         <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-        <Grid item xs={3}>
+        <Grid size={3}>
           <Typography sx={classes.heading}>Nutrition</Typography>
         </Grid>
-        <Grid item xs={9}>
+        <Grid size={9}>
           <LinearProgress
             variant="determinate"
             value={(nutritionAchieved / nutritionGoal) * 100}
@@ -153,7 +153,7 @@ export default function Nutrition() {
               setLocalNutrition={setLocalNutrition}
             />
           ))}
-        <Grid xs={12} item container sx={{ justifyContent: "center" }}>
+        <Grid size={12} container sx={{ justifyContent: "center" }}>
           <Button variant="outlined" onClick={saveChanges}>
             Save
           </Button>

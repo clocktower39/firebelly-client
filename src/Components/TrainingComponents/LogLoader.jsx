@@ -63,7 +63,7 @@ const LoggedField = (props) => {
   };
 
   return (
-    <Grid item xs={5}>
+    <Grid size={5}>
       <TextField
         label={field.label}
         value={exercise.achieved[field.achievedAttribute][exerciseSetIndex] || 0}
@@ -176,17 +176,16 @@ export default function LogLoader(props) {
   };
 
   return (
-    <Grid container item xs={12} spacing={1}>
+    <Grid container size={12} spacing={1}>
       {exerciseSets.map((count, exerciseSetIndex) => {
         return (
           <Grid
             container
-            item
-            xs={12}
+            size={12}
             spacing={2}
             key={`exercise-Set-${count}-${exerciseSetIndex}`}
           >
-            <Grid item xs={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
+            <Grid size={2} container sx={{ justifyContent: "flex-end", alignContent: "center" }}>
               <Button
                 sx={{
                   color: "#fff",

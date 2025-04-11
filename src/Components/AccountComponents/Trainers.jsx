@@ -51,7 +51,7 @@ export default function Trainers({ socket }) {
     const handleDeleteConfirmationClose = () => setDeleteConfirmationOpen(false);
 
     return (
-      <Grid container item xs={12}>
+      <Grid container size={12}>
         <Card sx={{ width: "100%" }}>
           <CardHeader
             avatar={
@@ -83,25 +83,25 @@ export default function Trainers({ socket }) {
         <Dialog open={deleteConfirmationOpen} onClose={handleDeleteConfirmationClose}>
           <DialogTitle id="alert-dialog-title">
             <Grid container>
-              <Grid container item xs={12}>
+              <Grid container size={12}>
                 Delete Confirmation
               </Grid>
             </Grid>
           </DialogTitle>
           <DialogContent>
             <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-              <Grid item container xs={12}>
+              <Grid container size={12}>
                 <Typography variant="body1">
                   Are you sure you would like to remove this trainer?
                 </Typography>
               </Grid>
-              <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
-                <Grid item>
+              <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                <Grid >
                   <Button color="secondaryButton" variant="contained" onClick={handleDeleteConfirmationClose}>
                     Cancel
                   </Button>
                 </Grid>
-                <Grid item>
+                <Grid >
                   <Button variant="contained" onClick={() => dispatch(removeRelationship(trainer.trainer, user._id))}>
                     Confirm
                   </Button>
@@ -117,14 +117,14 @@ export default function Trainers({ socket }) {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
-      <Grid container item xs={12} sx={{ padding: "15px" }}>
+      <Grid container size={12} sx={{ padding: "15px" }}>
         <Typography color="primary.contrastText" variant="h5" gutterBottom>
           Trainers
         </Typography>
       </Grid>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
-          <Grid container item xs={12} sx={{ justifyContent: "center", paddingBottom: "15px" }}>
+          <Grid container size={12} sx={{ justifyContent: "center", paddingBottom: "15px" }}>
             {loading ? (
               <Box sx={{ width: "100%" }}>
                 <LinearProgress />
@@ -134,7 +134,7 @@ export default function Trainers({ socket }) {
             )}
           </Grid>
           <Grid container sx={{ justifyContent: "center" }}>
-            <Grid item>
+            <Grid >
               <IconButton onClick={handleOpenSearch}>
                 <AddCircle />
               </IconButton>

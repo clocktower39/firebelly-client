@@ -211,7 +211,7 @@ export const BarChartHistory = (props) => {
       >
         {exerciseTitle}
       </Typography>
-      <Grid container item xs={12} sx={{ justifyContent: 'center' }}>
+      <Grid container size={12} sx={{ justifyContent: 'center' }}>
         <Slider
           getAriaLabel={() => 'Temperature range'}
           value={range}
@@ -373,14 +373,14 @@ export default function Progress(props) {
   return (
     <>
       <Grid container sx={{ justifyContent: "center", marginTop: "25px" }}>
-        <Grid xs={12} sm={8} container>
+        <Grid size={{ xs: 12, sm: 8, }} container>
           <ExerciseListAutocomplete
             exercise={{ set: setSearchValue, exercise: searchValue }}
             exerciseList={exerciseList}
           />
         </Grid>
-        <Grid container xs={12}>
-          <Grid xs={12}>
+        <Grid container size={12}>
+          <Grid size={12}>
               <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
           </Grid>
         </Grid>

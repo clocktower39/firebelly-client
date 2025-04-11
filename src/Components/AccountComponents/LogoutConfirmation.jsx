@@ -10,22 +10,25 @@ export default function LogoutConfirmation() {
     <Container maxWidth="md" sx={{ height: "100%" }}>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
-          <Grid item container xs={12} justifyContent="center" spacing="2">
-            <Grid container item xs={12} >
+
+          <Grid container size={12} spacing="2">
+            <Grid container size={12}>
               <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
                 Logout
               </Typography>
             </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body1" gutterBottom sx={{ color: "#fff", paddingBottom: '25px', }}>
-                Are you sure you would like to logout?
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Button variant="contained" onClick={handleLogout} autoFocus>
-                Confirm
-              </Button>
-            </Grid>
+          </Grid>
+
+          <Grid container size={12} >
+            <Typography variant="body1" gutterBottom sx={{ color: "#fff", paddingBottom: "25px" }}>
+              Are you sure you would like to logout?
+            </Typography>
+          </Grid>
+
+          <Grid container size={12} justifyContent="center" >
+            <Button variant="contained" onClick={handleLogout} autoFocus>
+              Confirm
+            </Button>
           </Grid>
         </Grid>
       </Paper>

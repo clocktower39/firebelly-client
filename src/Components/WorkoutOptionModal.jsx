@@ -188,7 +188,7 @@ export function ModalAction(props) {
               </Button>
             </Grid>
             {actionError && (
-              <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Typography variant="caption" sx={{ color: "red" }}>
                   {actionError}
                 </Typography>
@@ -205,7 +205,7 @@ export function ModalAction(props) {
               </Button>
             </Grid>
             {actionError && (
-              <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Typography variant="caption" sx={{ color: "red" }}>
                   {actionError}
                 </Typography>
@@ -243,7 +243,7 @@ export function ModalAction(props) {
             <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
   
             {user.isTrainer && (
-              <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
+              <Grid container size={12} sx={{ paddingBottom: "15px" }}>
                 <Autocomplete
                   disablePortal
                   options={accountOptions.sort((a, b) => a.label > b.label)}
@@ -265,7 +265,7 @@ export function ModalAction(props) {
             />
   
             <Grid container sx={{ justifyContent: "center" }}>
-              <Grid container item xs={12} sx={{ paddingBottom: "15px" }}>
+              <Grid container size={12} sx={{ paddingBottom: "15px" }}>
                 <Autocomplete
                   disablePortal
                   options={copyOptions}
@@ -276,14 +276,14 @@ export function ModalAction(props) {
                 />
               </Grid>
   
-              <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Button variant="contained" onClick={handleCopy} disabled={!copyOption}>
                   Copy
                 </Button>
               </Grid>
   
               {actionError && (
-                <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography variant="caption" sx={{ color: "red" }}>
                     {actionError}
                   </Typography>
@@ -297,24 +297,24 @@ export function ModalAction(props) {
           <>
             <Grid container>
               <Grid container>
-                <Grid item container>
+                <Grid container>
                   <Typography color="text.primary">
                     Are you sure you would like to delete the following training:
                   </Typography>
                 </Grid>
-                <Grid item container justifyContent="center">
+                <Grid container justifyContent="center">
                   <Typography color="text.primary">{training?.title}</Typography>
                 </Grid>
-                <Grid item container justifyContent="center">
+                <Grid container justifyContent="center">
                   <Typography color="text.primary">
                     {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                   </Typography>
                 </Grid>
-                <Grid item container justifyContent="center">
+                <Grid container justifyContent="center">
                   <Typography color="text.primary">{training.category.join(", ")}</Typography>
                 </Grid>
               </Grid>
-              <Grid item container justifyContent="center">
+              <Grid container justifyContent="center">
                 <Button variant="contained" onClick={handleDelete}>
                   Confrim
                 </Button>

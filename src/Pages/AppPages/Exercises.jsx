@@ -196,7 +196,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
       </Typography>
       {exercise._id && (
         <Grid container spacing={2}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Exercise Title"
@@ -206,7 +206,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               variant="outlined"
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <TextField
               fullWidth
               label="Description"
@@ -218,7 +218,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               rows={4}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Autocomplete
               options={[
                 "Abdominals",
@@ -254,7 +254,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               )}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Autocomplete
               multiple
               disableCloseOnSelect
@@ -291,7 +291,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
             />
           </Grid>
           {exercisePropertyOptions.map((field) => (
-            <Grid item xs={12} key={field.fieldName}>
+            <Grid size={12} key={field.fieldName}>
               <Autocomplete
                 multiple
                 options={field.options} // You should replace this with your actual data sources
@@ -316,13 +316,13 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               />
             </Grid>
           ))}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={<Switch checked={exercise.verified} onChange={handleVerifiedChange} />}
               label="Verified"
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Button variant="contained" color="primary" onClick={handleSave}>
               {"Update Exercise"}
             </Button>

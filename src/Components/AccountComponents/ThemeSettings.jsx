@@ -23,14 +23,14 @@ export default function AccountSettings() {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
-      <Grid container item xs={12} sx={{ padding: "15px" }}>
+      <Grid container size={12} sx={{ padding: "15px" }}>
         <Typography color="primary.contrastText" variant="h5" gutterBottom>
           Theme
         </Typography>
       </Grid>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
-          <Grid container item xs={12} sx={{ justifyContent: "center" }}>
+          <Grid container size={12} sx={{ justifyContent: "center" }}>
             <Autocomplete
               fullWidth
               value={themeSelection}
@@ -50,8 +50,8 @@ export default function AccountSettings() {
               )}
             />
           </Grid>
-          <Grid container item xs={12} sx={{ justifyContent: "center" }} spacing={1}>
-            <Grid item>
+          <Grid container size={12} sx={{ justifyContent: "center" }} spacing={1}>
+            <Grid >
               <Button variant="contained" onClick={saveTheme}>
                 Save
               </Button>

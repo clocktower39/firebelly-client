@@ -329,12 +329,11 @@ export default function WorkoutOverview({
             <React.Fragment key={`workout-${index}`}>
               <Paper elevation={5} sx={{ margin: "5px", padding: "5px" }}>
                 <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-                  <Grid item xs={11} container>
+                  <Grid size={11} container>
                     <Typography variant="h6">{workout.title}</Typography>
                   </Grid>
                   <Grid
-                    item
-                    xs={1}
+                    size={1}
                     container
                     sx={{ justifyContent: "center", alignItems: "center" }}
                   >
@@ -373,7 +372,7 @@ export default function WorkoutOverview({
                       workout.training.map((circuit, circuitIndex) => {
                         return (
                           <Grid container key={`circuit-${workout._id}-${circuitIndex}`}>
-                            <Grid item xs={12}>
+                            <Grid size={12}>
                               <SortableCircuit
                                 id={`circuit-${workout._id}-${circuitIndex}`}
                                 index={circuitIndex}
@@ -398,7 +397,7 @@ export default function WorkoutOverview({
                     }
                   </SortableContext>
                 </div>
-                <Grid container item xs={12} sx={{ justifyContent: "center", padding: "5px" }}>
+                <Grid container size={12} sx={{ justifyContent: "center", padding: "5px" }}>
                   <Link to={`/workout/${workout._id}`}>
                     <Button onClick={() => saveStart(workout)} variant="contained">
                       {workout.complete ? "Review" : "Start"}
@@ -410,7 +409,7 @@ export default function WorkoutOverview({
           );
         })}
       <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-        <Grid item>
+        <Grid >
           <Button
             onClick={handleOpenCreateWorkoutDialog}
             variant="contained"
@@ -511,7 +510,7 @@ const WorkoutSet = (props) => {
   return (
     <Paper sx={{ padding: "0 5px", marginBottom: "10px", }}>
       <Grid container alignItems="center">
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h6">
             <Box {...listeners} {...attributes} sx={{ touchAction: "none", display: 'inline-block' }} >
               <span>Circuit {circuitIndex + 1}</span>
@@ -531,8 +530,7 @@ const WorkoutSet = (props) => {
                   <Grid container component={Paper} >
                     <Grid
                       container
-                      item
-                      xs={1}
+                      size={1}
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
                       {/* Drag handle */}
@@ -540,12 +538,12 @@ const WorkoutSet = (props) => {
                         <DragHandleIcon />
                       </div>
                     </Grid>
-                    <Grid container item xs={11} sx={{ padding: "5px" }}>
+                    <Grid container size={11} sx={{ padding: "5px" }}>
                       {/* Rest of your item content */}
-                      <Grid container item xs={12} sm={6} sx={{ alignItems: "center" }}>
+                      <Grid container size={{ xs: 12, sm: 6, }} sx={{ alignItems: "center" }}>
                         <Typography variant="body1">{exercise?.exercise?.exerciseTitle || "Select an exercise"}</Typography>
                       </Grid>
-                      <Grid container item xs={12} sm={6}>
+                      <Grid container size={{ xs: 12, sm: 6, }} >
                         {renderType(exercise)}
                       </Grid>
                     </Grid>

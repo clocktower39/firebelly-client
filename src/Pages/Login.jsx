@@ -20,7 +20,7 @@ const LoginInput = ({
   setFormData,
 }) => {
   return (
-    <Grid container item xs={12} sx={classes.JCcenter}>
+    <Grid container size={12} sx={classes.JCcenter}>
       <TextField
         color="secondary"
         sx={classes.textField}
@@ -169,25 +169,24 @@ export const Login = () => {
   return user._id ? (
     <Navigate to={{ pathname: "/" }} />
   ) : (
-    <Grid container item>
+    <Grid container>
       <Grid
         container
-        item
-        xs={12}
+        size={12}
         sx={{ flexGrow: 0, justifyContent: "center", padding: "50px 0 25px 0" }}
       >
-        <Grid container item xs={12} sx={classes.JCcenter}>
+        <Grid container size={12} sx={classes.JCcenter}>
           <Typography variant="h3" gutterBottom>
             Welcome!
           </Typography>
         </Grid>
-        <Grid container item xs={12} sx={classes.JCcenter}>
+        <Grid container size={12} sx={classes.JCcenter}>
           <Typography variant="h4" gutterBottom>
             Log in
           </Typography>
         </Grid>
       </Grid>
-      <Grid container item spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
+      <Grid container spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
         {fieldProperties.map((fieldProperty) => (
           <LoginInput
             key={fieldProperty}
@@ -202,7 +201,7 @@ export const Login = () => {
           />
         ))}
 
-        <Grid container item xs={12} sx={classes.JCcenter}>
+        <Grid container size={12} sx={classes.JCcenter}>
           <Button
             variant="contained"
             color="primary"

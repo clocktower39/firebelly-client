@@ -90,7 +90,7 @@ export const NotesDialog = (props) => {
         }
         container
       >
-        <Grid container item xs={2} sx={{ justifyContent: "center" }}>
+        <Grid container size={2} sx={{ justifyContent: "center" }}>
           <Avatar
             sx={classes.avatarComment}
             alt={`${comment.user.firstName[0]}${comment.user.lastName[0]}`}
@@ -101,7 +101,7 @@ export const NotesDialog = (props) => {
             }
           />
         </Grid>
-        <Grid item xs={8}>
+        <Grid size={8}>
           <Typography variant="h6" display="inline">
             {comment.user.username}{" "}
           </Typography>
@@ -126,7 +126,7 @@ export const NotesDialog = (props) => {
             {comment.text}
           </Typography>
         </Grid>
-        <Grid item xs={2}>
+        <Grid size={2}>
           {comment.user.username === user.username ? (
             <IconButton onClick={() => null}>
               <Delete />
@@ -164,7 +164,7 @@ export const NotesDialog = (props) => {
     };
     return (
       <Grid container alignItems="center">
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             label="Add a comment..."
             fullWidth
@@ -497,8 +497,8 @@ export default function Exercise(props) {
     <Grid container spacing={2} sx={{ marginBottom: "25px", justifyContent: "center" }}>
       {editMode ? (
         <>
-          <Grid container item xs={12} spacing={1}>
-            <Grid item xs={12}>
+          <Grid container size={12} spacing={1}>
+            <Grid size={12}>
               <Autocomplete
                 disableCloseOnSelect
                 fullWidth
@@ -543,7 +543,7 @@ export default function Exercise(props) {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6, }} >
               <TextField
                 label="Type"
                 select
@@ -558,7 +558,7 @@ export default function Exercise(props) {
                 <option value="Time">Time</option>
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6, }} >
               <TextField
                 label="Sets"
                 select
@@ -584,9 +584,9 @@ export default function Exercise(props) {
               setLocalTraining={setLocalTraining}
             />
           </Grid>
-          <Grid container item xs={12} sx={{ alignContent: "center" }}>
-            <Grid container item xs={12} sx={{ justifyContent: "center", alignContent: "center" }}>
-              <Grid item>
+          <Grid container size={12} sx={{ alignContent: "center" }}>
+            <Grid container size={12} sx={{ justifyContent: "center", alignContent: "center" }}>
+              <Grid >
                 <Tooltip title="Remove exercise">
                   <IconButton
                     onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}
@@ -601,20 +601,20 @@ export default function Exercise(props) {
             <Dialog open={confirmDialogOpen} onClose={handleConfirmDialogClose}>
               <DialogTitle>
                 <Grid container>
-                  <Grid container item xs={12}>
+                  <Grid container size={12}>
                     Delete Confirmation
                   </Grid>
                 </Grid>
               </DialogTitle>
               <DialogContent>
                 <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-                  <Grid item container xs={12}>
+                  <Grid container size={12}>
                     <Typography variant="body1">
                       Are you sure you would like to remove the exercise?
                     </Typography>
                   </Grid>
-                  <Grid item container xs={12} spacing={2} sx={{ justifyContent: "center" }}>
-                    <Grid item>
+                  <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                    <Grid >
                       <Button
                         color="secondaryButton"
                         variant="contained"
@@ -623,7 +623,7 @@ export default function Exercise(props) {
                         Cancel
                       </Button>
                     </Grid>
-                    <Grid item>
+                    <Grid >
                       <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
                         Confirm
                       </Button>
@@ -636,17 +636,15 @@ export default function Exercise(props) {
         </>
       ) : (
         <>
-          <Grid container item xs={12} spacing={2}>
+          <Grid container size={12} spacing={2}>
             <Grid
               container
-              item
-              xs={2}
+              size={2}
               sx={{ justifyContent: "flex-end", alignContent: "center" }}
             ></Grid>
             <Grid
               container
-              item
-              xs={8}
+              size={8}
               sx={{ justifyContent: "flex-start", alignContent: "center" }}
             >
               <Typography color="text.primary" variant="h6">
@@ -655,8 +653,7 @@ export default function Exercise(props) {
             </Grid>
             <Grid
               container
-              item
-              xs={2}
+              size={2}
               sx={{ justifyContent: "flex-start", alignContent: "center" }}
             >
               <Tooltip title="Exercise Options">
