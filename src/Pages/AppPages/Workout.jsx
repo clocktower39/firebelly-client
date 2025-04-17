@@ -656,22 +656,28 @@ export default function Workout({ socket }) {
 const ExerciseListAutocomplete = (props) => {
   const { exerciseList, selectedExercises, setSelectedExercises } = props;
 
+  const matchWords = (option, inputValue) => {
+    if(!option) return false;
+    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
+    return words.every((word) => option.toLowerCase().includes(word));
+  };
+
   return (
     <Autocomplete
       multiple
       fullWidth
       value={selectedExercises}
-      // Convert the source data into objects with `_id` and `label`.
       options={exerciseList
         .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
         .map((option) => option)}
-      // compare the selected item with the list of options.
       isOptionEqualToValue={(option, value) => option._id === value._id}
-      // Tells Autocomplete what text to display for each option.
       getOptionLabel={(option) => option.exerciseTitle}
       onChange={(e, newSelection) => {
         setSelectedExercises(newSelection);
       }}
+      filterOptions={(options, { inputValue }) => 
+        options.filter(option => matchWords(option.exerciseTitle, inputValue))
+      }
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip

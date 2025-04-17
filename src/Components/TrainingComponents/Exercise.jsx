@@ -488,6 +488,12 @@ export default function Exercise(props) {
     confirmDialogData.confirmFunction(confirmDialogData.setIndex, confirmDialogData.exerciseIndex);
     handleConfirmDialogClose();
   };
+  
+  const matchWords = (option, inputValue) => {
+    if(!option) return false;
+    const words = inputValue.toLowerCase().split(" ").filter(Boolean);
+    return words.every((word) => option.toLowerCase().includes(word));
+  };
 
   useEffect(() => {
     setHeightToggle((prev) => !prev);
@@ -506,11 +512,12 @@ export default function Exercise(props) {
                 options={exerciseList
                   .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
                   .map((option) => option)}
-                  // compare the selected item with the list of options
                 isOptionEqualToValue={(option, value) => option._id === value._id}
-                // Tells Autocomplete what text to display for each option
                 getOptionLabel={(option) => option.exerciseTitle}
                 onChange={(e, newSelection) => setTitle(newSelection)}
+                filterOptions={(options, { inputValue }) => 
+                  options.filter(option => matchWords(option.exerciseTitle, inputValue))
+                }
                 renderTags={(value, getTagProps) =>
                   value.map((option, index) => (
                     <Chip variant="outlined" label={option} {...getTagProps({ index })} />
