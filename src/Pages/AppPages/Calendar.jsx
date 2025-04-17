@@ -312,8 +312,8 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
             </Grid>
           </AccordionSummary>
           <AccordionDetails>
-            <Grid container justifyContent="flex-end">
-              <Grid container >
+            <Grid container size={12} >
+              <Grid container size={12} justifyContent="flex-end">
                 <IconButton onClick={handleSelectWorkout}>
                   <SettingsIcon />
                 </IconButton>
