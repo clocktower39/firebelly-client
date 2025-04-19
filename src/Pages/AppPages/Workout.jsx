@@ -16,6 +16,10 @@ import {
   Divider,
   Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
   Modal,
   Slide,
   Stepper,
@@ -140,7 +144,7 @@ export default function Workout({ socket }) {
     "Shoulders",
     "Triceps",
   ];
-  
+
   const addExerciseSteps = [
     {
       label: "Select Exercises",
@@ -426,11 +430,7 @@ export default function Workout({ socket }) {
                 }}
               >
                 {!isPersonalWorkout() && (
-                  <Grid
-                    container
-                    size={12}
-                    sx={{ justifyContent: "center", alignItems: "center" }}
-                  >
+                  <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
                     <Avatar
                       src={
                         training?.user?.profilePicture &&
@@ -624,7 +624,19 @@ export default function Workout({ socket }) {
                           </option>
                         ))}
                       </TextField>
-                      {/* {selectedExercises.map(exercise => <p>{exercise?.exerciseTitle}</p>)} */}
+
+                      <List sx={{ bgcolor: 'background.paper', width: '100%', }}>
+                        {selectedExercises.map((exercise, exerciseIndex, exercises) => {
+                          return (
+                            <>
+                            <ListItem>
+                              <ListItemText>{exercise?.exerciseTitle}</ListItemText>
+                            </ListItem>
+                            {(exerciseIndex !== exercises.length - 1) && <Divider component="li" />}
+                            </>
+                          );
+                        })}
+                      </List>
                     </Grid>
                   </Grid>
                 </DialogContent>
@@ -657,7 +669,7 @@ const ExerciseListAutocomplete = (props) => {
   const { exerciseList, selectedExercises, setSelectedExercises } = props;
 
   const matchWords = (option, inputValue) => {
-    if(!option) return false;
+    if (!option) return false;
     const words = inputValue.toLowerCase().split(" ").filter(Boolean);
     return words.every((word) => option.toLowerCase().includes(word));
   };
@@ -675,8 +687,8 @@ const ExerciseListAutocomplete = (props) => {
       onChange={(e, newSelection) => {
         setSelectedExercises(newSelection);
       }}
-      filterOptions={(options, { inputValue }) => 
-        options.filter(option => matchWords(option.exerciseTitle, inputValue))
+      filterOptions={(options, { inputValue }) =>
+        options.filter((option) => matchWords(option.exerciseTitle, inputValue))
       }
       renderTags={(value, getTagProps) =>
         value.map((option, index) => (
