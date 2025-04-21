@@ -176,7 +176,7 @@ export function ModalAction(props) {
         return (
           <>
             <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
-            <Grid container sx={{ justifyContent: "center" }}>
+            <Grid container spacing={1} sx={{ justifyContent: "center" }}>
               <TextField
                 fullWidth
                 label="Update Workout Title"
@@ -295,26 +295,26 @@ export function ModalAction(props) {
       case "delete":
         return (
           <>
-            <Grid container>
+            <Grid container spacing={1} >
               <Grid container>
-                <Grid container>
+                <Grid container size={12} >
                   <Typography color="text.primary">
                     Are you sure you would like to delete the following training:
                   </Typography>
                 </Grid>
-                <Grid container justifyContent="center">
+                <Grid container size={12} justifyContent="center">
                   <Typography color="text.primary">{training?.title}</Typography>
                 </Grid>
-                <Grid container justifyContent="center">
+                <Grid container size={12} justifyContent="center">
                   <Typography color="text.primary">
                     {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                   </Typography>
                 </Grid>
-                <Grid container justifyContent="center">
+                <Grid container size={12} justifyContent="center">
                   <Typography color="text.primary">{training.category.join(", ")}</Typography>
                 </Grid>
               </Grid>
-              <Grid container justifyContent="center">
+              <Grid container size={12} justifyContent="center">
                 <Button variant="contained" onClick={handleDelete}>
                   Confrim
                 </Button>
@@ -325,8 +325,8 @@ export function ModalAction(props) {
       case "autofill_workout":
         return (
           <>
-            <Grid container>
-              <Grid container>
+            <Grid container spacing={1} >
+              <Grid container size={12} >
                 <Typography color="text.primary">
                   Are you sure you would like to autofill this workout?
                 </Typography>
@@ -335,7 +335,7 @@ export function ModalAction(props) {
                   entered.
                 </Typography>
               </Grid>
-              <Grid container sx={{ justifyContent: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Button variant="contained" onClick={handleAutofillWorkout}>
                   Confrim
                 </Button>
@@ -346,13 +346,13 @@ export function ModalAction(props) {
       case "export":
         return (
           <>
-            <Grid container>
-              <Grid container>
+            <Grid container spacing={1} >
+              <Grid container size={12} justifyContent="center" >
                 <Typography color="text.primary">
                   Export training from {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                 </Typography>
               </Grid>
-              <Grid container sx={{ justifyContent: "center" }}>
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Button variant="contained" onClick={handleExport}>
                   Confrim
                 </Button>
