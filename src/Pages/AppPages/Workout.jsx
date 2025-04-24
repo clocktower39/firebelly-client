@@ -88,23 +88,6 @@ export default function Workout({ socket }) {
   const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "");
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedExercises, setSelectedExercises] = useState([]);
-  const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
-  const [fullWidth, setFullWidth] = useState(true);
-  const [maxWidth, setMaxWidth] = useState("sm");
-
-  const handleMaxWidthChange = (event) => {
-    setMaxWidth(event.target.value);
-  };
-
-  const handleFullWidthChange = (event) => {
-    setFullWidth(event.target.checked);
-  };
-
-  const handleSelectedExercisesSetCountChange = (e) =>
-    setSelectedExercisesSetCount(Number(e.target.value));
-
-  const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
@@ -143,42 +126,6 @@ export default function Workout({ socket }) {
     "Quadriceps",
     "Shoulders",
     "Triceps",
-  ];
-
-  const addExerciseSteps = [
-    {
-      label: "Select Exercises",
-      childElement: (
-        <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-          <Grid container size={12}>
-            <ExerciseListAutocomplete
-              exerciseList={exerciseList}
-              selectedExercises={selectedExercises}
-              setSelectedExercises={setSelectedExercises}
-            />
-          </Grid>
-          <Grid container size={12}>
-            <TextField
-              label="Sets"
-              select
-              SelectProps={{ native: true }}
-              fullWidth
-              value={selectedExercisesSetCount}
-              onChange={handleSelectedExercisesSetCountChange}
-            >
-              {[...Array(21)].map((x, i) => (
-                <option key={i} value={i}>
-                  {i}
-                </option>
-              ))}
-            </TextField>
-            {/* {selectedExercises.map(exercise => <p>{exercise?.exerciseTitle}</p>)} */}
-          </Grid>
-        </Grid>
-      ),
-    },
-    { label: "Set Goals", childElement: null },
-    { label: "Confirm", childElement: null },
   ];
 
   const newExercise = (index) => {
@@ -568,79 +515,10 @@ export default function Workout({ socket }) {
                 </Button>
               </Grid>
 
-              <Dialog
-                open={addExerciseOpen}
-                TransitionComponent={Transition}
-                fullWidth={fullWidth}
-                maxWidth={maxWidth}
-                PaperProps={{
-                  sx: {
-                    height: "80%",
-                  },
-                }}
-              >
-                <AppBar sx={{ position: "relative" }}>
-                  <Toolbar>
-                    <IconButton
-                      edge="start"
-                      color="inherit"
-                      onClick={handleAddExerciseClose}
-                      aria-label="close"
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                    <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                      Add Exercises
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}
-                    >
-                      Confirm
-                    </Button>
-                  </Toolbar>
-                </AppBar>
-                <DialogContent>
-                  <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-                    <Grid container size={12}>
-                      <ExerciseListAutocomplete
-                        exerciseList={exerciseList}
-                        selectedExercises={selectedExercises}
-                        setSelectedExercises={setSelectedExercises}
-                      />
-                    </Grid>
-                    <Grid container size={12}>
-                      <TextField
-                        label="Sets"
-                        select
-                        SelectProps={{ native: true }}
-                        fullWidth
-                        value={selectedExercisesSetCount}
-                        onChange={handleSelectedExercisesSetCountChange}
-                      >
-                        {[...Array(21)].map((x, i) => (
-                          <option key={i} value={i}>
-                            {i}
-                          </option>
-                        ))}
-                      </TextField>
-
-                      <List sx={{ bgcolor: 'background.paper', width: '100%', }}>
-                        {selectedExercises.map((exercise, exerciseIndex, exercises) => {
-                          return (
-                            <>
-                            <ListItem>
-                              <ListItemText>{exercise?.exerciseTitle}</ListItemText>
-                            </ListItem>
-                            {(exerciseIndex !== exercises.length - 1) && <Divider component="li" />}
-                            </>
-                          );
-                        })}
-                      </List>
-                    </Grid>
-                  </Grid>
-                </DialogContent>
-              </Dialog>
+              <AddExercisesDialog
+                addExerciseOpen={addExerciseOpen}
+                handleAddExerciseClose={handleAddExerciseClose}
+              />
             </>
           ) : (
             <Grid
@@ -665,8 +543,9 @@ export default function Workout({ socket }) {
   );
 }
 
-const ExerciseListAutocomplete = (props) => {
-  const { exerciseList, selectedExercises, setSelectedExercises } = props;
+const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) => {
+
+  const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const matchWords = (option, inputValue) => {
     if (!option) return false;
@@ -685,6 +564,7 @@ const ExerciseListAutocomplete = (props) => {
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.exerciseTitle}
       onChange={(e, newSelection) => {
+        console.log(newSelection)
         setSelectedExercises(newSelection);
       }}
       filterOptions={(options, { inputValue }) =>
@@ -702,5 +582,90 @@ const ExerciseListAutocomplete = (props) => {
       }
       renderInput={(params) => <TextField {...params} label="Search" placeholder="Exercises" />}
     />
+  );
+};
+
+const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, }) => {
+  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
+
+  const handleSelectedExercisesSetCountChange = (e) =>
+    setSelectedExercisesSetCount(Number(e.target.value));
+
+  return (
+    <Dialog
+      open={addExerciseOpen}
+      TransitionComponent={Transition}
+      fullWidth
+      maxWidth='sm'
+      PaperProps={{
+        sx: {
+          height: "80%",
+        },
+      }}
+    >
+      <AppBar sx={{ position: "relative" }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={handleAddExerciseClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Add Exercises
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}
+          >
+            Confirm
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <DialogContent>
+        <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+          <Grid container size={12}>
+            <ExerciseListAutocomplete
+              selectedExercises={selectedExercises}
+              setSelectedExercises={setSelectedExercises}
+            />
+          </Grid>
+          <Grid container size={12}>
+            <TextField
+              label="Sets"
+              select
+              SelectProps={{ native: true }}
+              fullWidth
+              value={selectedExercisesSetCount}
+              onChange={handleSelectedExercisesSetCountChange}
+            >
+              {[...Array(21)].map((x, i) => (
+                <option key={i} value={i}>
+                  {i}
+                </option>
+              ))}
+            </TextField>
+
+            {selectedExercises.length > 0 && (
+              <List sx={{ bgcolor: "background.paper", width: "100%" }}>
+                {selectedExercises.map((exercise, exerciseIndex, exercises) => {
+                  return (
+                    <>
+                      <ListItem key={`${exercise.exerciseTitle}-${exerciseIndex}`}>
+                        <ListItemText>{exercise?.exerciseTitle}</ListItemText>
+                      </ListItem>
+                      {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
+                    </>
+                  );
+                })}
+              </List>
+            )}
+          </Grid>
+        </Grid>
+      </DialogContent>
+    </Dialog>
   );
 };
