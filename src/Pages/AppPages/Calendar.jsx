@@ -134,7 +134,6 @@ export default function Calendar(props) {
   }, [history, currentMonth]);
 
   const handleMonthChange = (e) => {
-    setSelectedDate(null); // Reset the selected date
     setCurrentMonth(dayjs(e).month());
     const fetchData = getWorkoutMonthData(e);
 
@@ -319,7 +318,7 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
                 </IconButton>
               </Grid>
               {workout.training.map((workoutSet, workoutSetIndex) => (
-                <Grid container key={`${workout._id}-set-${workoutSetIndex}`}>
+                <Grid container size={12} key={`${workout._id}-set-${workoutSetIndex}`}>
                   <Grid size={12} sx={{ marginLeft: "8px" }}>
                     <Typography variant="body1">Circuit {workoutSetIndex + 1}</Typography>
                   </Grid>
