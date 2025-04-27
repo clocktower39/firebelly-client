@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef, Fragment, } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -133,7 +133,7 @@ export default function Workout({ socket }) {
   };
 
   // Create a new exercise on the current set
-  const confirmedNewExercise = (index, setCount) => {
+  const confirmedNewExercise = (index, selectedExercises, setSelectedExercises, setCount, setSelectedExercisesSetCount, ) => {
     if (selectedExercises.length > 0) {
       const newTraining = localTraining.map((group, i) => {
         if (index === i) {
@@ -518,6 +518,8 @@ export default function Workout({ socket }) {
               <AddExercisesDialog
                 addExerciseOpen={addExerciseOpen}
                 handleAddExerciseClose={handleAddExerciseClose}
+                confirmedNewExercise={confirmedNewExercise}
+                activeStep={activeStep}
               />
             </>
           ) : (
@@ -563,14 +565,21 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
         .map((option) => option)}
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.exerciseTitle}
-      onChange={(e, newSelection) => {
-        console.log(newSelection)
+      onChange={(e, newSelection, i, ii, ) => {
+        // create fetch request to get users history with this selected exercise then add to history
+        const exerciseWorkoutOptions = newSelection.map(exercise => {
+          exercise.options = {
+            history: [],
+          }
+          return exercise;
+        })
+        console.log(exerciseWorkoutOptions)
         setSelectedExercises(newSelection);
       }}
       filterOptions={(options, { inputValue }) =>
         options.filter((option) => matchWords(option.exerciseTitle, inputValue))
       }
-      renderTags={(value, getTagProps) =>
+      renderValue={(value, getTagProps) =>
         value.map((option, index) => (
           <Chip
             key={option._id}
@@ -585,7 +594,7 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
   );
 };
 
-const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, }) => {
+const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmedNewExercise, activeStep, }) => {
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
 
@@ -619,7 +628,7 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, }) => {
           </Typography>
           <Button
             variant="contained"
-            onClick={() => confirmedNewExercise(activeStep, selectedExercisesSetCount)}
+            onClick={() => confirmedNewExercise(activeStep, selectedExercises, setSelectedExercises, selectedExercisesSetCount, setSelectedExercisesSetCount)}
           >
             Confirm
           </Button>
@@ -653,12 +662,12 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, }) => {
               <List sx={{ bgcolor: "background.paper", width: "100%" }}>
                 {selectedExercises.map((exercise, exerciseIndex, exercises) => {
                   return (
-                    <>
-                      <ListItem key={`${exercise.exerciseTitle}-${exerciseIndex}`}>
+                    <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`} >
+                      <ListItem >
                         <ListItemText>{exercise?.exerciseTitle}</ListItemText>
                       </ListItem>
                       {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
-                    </>
+                    </Fragment>
                   );
                 })}
               </List>
