@@ -397,7 +397,7 @@ export default function Workout({ socket }) {
                       onClick={() => {
                         const link =
                           dayjs.utc(training.date).format("YYYY-MM-DD") ===
-                          dayjs(new Date()).format("YYYY-MM-DD")
+                            dayjs(new Date()).format("YYYY-MM-DD")
                             ? "/"
                             : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`;
                         // Navigate after saving
@@ -546,6 +546,7 @@ export default function Workout({ socket }) {
 }
 
 const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) => {
+  const user = useSelector((state) => state.user);
 
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
@@ -565,17 +566,32 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
         .map((option) => option)}
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.exerciseTitle}
-      onChange={(e, newSelection, i, ii, ) => {
-        // create fetch request to get users history with this selected exercise then add to history
-        const exerciseWorkoutOptions = newSelection.map(exercise => {
-          exercise.options = {
-            history: [],
-          }
-          return exercise;
-        })
-        console.log(exerciseWorkoutOptions)
-        setSelectedExercises(newSelection);
+      onChange={async (e, newSelection, i, ii) => {
+        // get users history with this selected exercise then add to history
+        const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+        const exerciseWorkoutOptions = await Promise.all(
+          newSelection.map(async (exercise) => {
+            const response = await fetch(`${serverURL}/exerciseHistory`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json; charset=UTF-8",
+                "Authorization": bearer,
+              },
+              body: JSON.stringify({
+                targetExercise: exercise,
+                user,
+              }),
+            });
+
+            const targetExerciseHistory = await response.json();
+            exercise.history = targetExerciseHistory;
+            return exercise;
+          })
+        );
+        setSelectedExercises(exerciseWorkoutOptions);
       }}
+
       filterOptions={(options, { inputValue }) =>
         options.filter((option) => matchWords(option.exerciseTitle, inputValue))
       }
@@ -664,7 +680,12 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
                   return (
                     <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`} >
                       <ListItem >
-                        <ListItemText>{exercise?.exerciseTitle}</ListItemText>
+                        <ListItemText
+                          secondary={exercise.history
+                            .slice(exercise.history.length - 3, exercise.history.length)
+                            .map(historyItem => <Typography variant="subtitle1" ><strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong> {historyItem.achieved.weight.join(', ')}</Typography>)}>
+                          {exercise?.exerciseTitle}
+                        </ListItemText>
                       </ListItem>
                       {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
                     </Fragment>
