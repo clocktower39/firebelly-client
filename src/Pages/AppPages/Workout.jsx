@@ -567,30 +567,50 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.exerciseTitle}
       onChange={async (e, newSelection, i, ii) => {
-        // get users history with this selected exercise then add to history
-        const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-        const exerciseWorkoutOptions = await Promise.all(
-          newSelection.map(async (exercise) => {
-            const response = await fetch(`${serverURL}/exerciseHistory`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json; charset=UTF-8",
-                "Authorization": bearer,
-              },
-              body: JSON.stringify({
-                targetExercise: exercise,
-                user,
-              }),
-            });
-
-            const targetExerciseHistory = await response.json();
-            exercise.history = targetExerciseHistory;
-            return exercise;
-          })
+        // Set new selection immediately
+        const initialSelection = newSelection.map(exercise => ({
+          ...exercise,
+          history: exercise.history ?? null, // preserve if already loaded
+        }));
+        setSelectedExercises(initialSelection);
+      
+        // Find the newly added exercise
+        const newExercise = newSelection.find(
+          (ex) => !selectedExercises.some((sel) => sel._id === ex._id)
         );
-        setSelectedExercises(exerciseWorkoutOptions);
+      
+        if (!newExercise) return; // nothing new added, exit early
+      
+        // Fetch only for the new one
+        try {
+          const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+          const response = await fetch(`${serverURL}/exerciseHistory`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+              "Authorization": bearer,
+            },
+            body: JSON.stringify({
+              targetExercise: newExercise,
+              user,
+            }),
+          });
+      
+          const targetExerciseHistory = await response.json();
+      
+          // Update just that exercise in state
+          setSelectedExercises((prev) =>
+            prev.map((ex) =>
+              ex._id === newExercise._id
+                ? { ...ex, history: targetExerciseHistory }
+                : ex
+            )
+          );
+        } catch (err) {
+          console.error("Error fetching history for new exercise:", err);
+        }
       }}
+      
 
       filterOptions={(options, { inputValue }) =>
         options.filter((option) => matchWords(option.exerciseTitle, inputValue))
@@ -681,7 +701,7 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
                     <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`} >
                       <ListItem >
                         <ListItemText
-                          secondary={exercise.history
+                          secondary={exercise.history && exercise.history
                             .slice(exercise.history.length - 3, exercise.history.length)
                             .map(historyItem => <Typography variant="subtitle1" ><strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong> {historyItem.achieved.weight.join(', ')}</Typography>)}>
                           {exercise?.exerciseTitle}
