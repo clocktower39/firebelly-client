@@ -175,7 +175,6 @@ export let reducer = (
                 }
               : exercise
           ),
-          targetExerciseHistory: [...action.targetExerciseHistory],
         },
       };
     case UPDATE_MY_TRAINERS:

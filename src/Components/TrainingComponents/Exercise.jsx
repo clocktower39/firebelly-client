@@ -230,12 +230,14 @@ export default function Exercise(props) {
   const [sets, setSets] = useState(exercise.goals.sets || 0);
   const [editMode, setEditMode] = useState(false);
   const [open, setOpen] = useState(false);
+  const [targetExerciseProgress, setTargetExerciseProgess] = useState({});
   const handleClose = () => setOpen(false);
   const handleModalToggle = () => setOpen((prev) => !prev);
   const handleModalExercise = () => {
-    dispatch(requestExerciseProgress(exercise.exercise, workoutUser)).then(() =>
+    dispatch(requestExerciseProgress(exercise.exercise, workoutUser)).then(() =>{
+      setTargetExerciseProgess(exercise.exercise)
       handleModalToggle()
-    );
+    });
   };
   const [anchorEl, setAnchorEl] = useState(null);
   const exerciseOptionsOpen = Boolean(anchorEl);
@@ -251,7 +253,6 @@ export default function Exercise(props) {
   const handleNotesDialogClose = () => setNotesDialogOpen(false);
 
   const user = useSelector((state) => state.user);
-  const targetExerciseHistory = useSelector((state) => state.progress.targetExerciseHistory);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const handleTypeChange = (e) => setExerciseType(e.target.value);
@@ -728,7 +729,9 @@ export default function Exercise(props) {
       )}
       {open && (
         <ModalBarChartHistory
-          targetExerciseHistory={targetExerciseHistory}
+          workoutUser={workoutUser}
+          exerciseList={exerciseList}
+          targetExerciseProgress={targetExerciseProgress}
           open={open}
           handleClose={handleClose}
         />

@@ -45,7 +45,6 @@ export let notes = [
 
 export let progress = {
     exerciseList: [],
-    targetExerciseHistory: []
 }
 
 export let calander = {

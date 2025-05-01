@@ -83,14 +83,16 @@ const exerciseTypeFields = (exerciseType) => {
 };
 
 export const ModalBarChartHistory = (props) => {
-  const { targetExerciseHistory, open, handleClose } = props;
+  const { workoutUser, exerciseList, targetExerciseProgress, open, handleClose } = props;
+
+  const targetExercise = exerciseList.find((ex) => ex._id === targetExerciseProgress._id)
+  const targetExerciseHistory = targetExercise?.history?.[workoutUser._id] || [];
+
   return (
     <Modal
       keepMounted
       open={open}
       onClose={handleClose}
-      aria-labelledby="keep-mounted-modal-title"
-      aria-describedby="keep-mounted-modal-description"
     >
       <Box sx={modalStyle()}>
         <BarChartHistory targetExerciseHistory={targetExerciseHistory}/>
@@ -340,9 +342,9 @@ export default function Progress(props) {
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
   const user = useSelector((state) => state.user);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
-  const targetExerciseHistory = useSelector(
-    (state) => state.progress.targetExerciseHistory
-  );
+
+  const matchedExercise = exerciseList.find(item => item.exerciseTitle === searchValue);
+  const targetExerciseHistory = matchedExercise?.history?.[user._id] || [];
 
   const loadExerciseProgress = (exercise) => {
     dispatch(requestExerciseProgress(exercise, user));
@@ -352,7 +354,6 @@ export default function Progress(props) {
     const matchedExercise = exerciseList.find(item => item.exerciseTitle === searchValue);
     if (matchedExercise) {
       const id = matchedExercise._id;
-      console.log("Found _id:", id);
       loadExerciseProgress(matchedExercise);
     } else {
       console.log("No matching exercise found");
