@@ -34,7 +34,7 @@ import { ArrowBack, Close as CloseIcon, Settings } from "@mui/icons-material";
 import SelectedDate from "../../Components/SelectedDate";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
-import { requestTraining, updateTraining, getExerciseList, serverURL } from "../../Redux/actions";
+import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import LoadingPage from "../../Components/LoadingPage";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -516,6 +516,7 @@ export default function Workout({ socket }) {
               </Grid>
 
               <AddExercisesDialog
+                user={training.user}
                 addExerciseOpen={addExerciseOpen}
                 handleAddExerciseClose={handleAddExerciseClose}
                 confirmedNewExercise={confirmedNewExercise}
@@ -545,10 +546,9 @@ export default function Workout({ socket }) {
   );
 }
 
-const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) => {
+const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelectedExercises }) => {
   const user = useSelector((state) => state.user);
-
-  const exerciseList = useSelector((state) => state.progress.exerciseList);
+  const dispatch = useDispatch();
 
   const matchWords = (option, inputValue) => {
     if (!option) return false;
@@ -566,52 +566,18 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
         .map((option) => option)}
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.exerciseTitle}
-      onChange={async (e, newSelection, i, ii) => {
-        // Set new selection immediately
-        const initialSelection = newSelection.map(exercise => ({
-          ...exercise,
-          history: exercise.history ?? null, // preserve if already loaded
-        }));
-        setSelectedExercises(initialSelection);
-      
-        // Find the newly added exercise
+      onChange={(e, newSelection) => {
+        setSelectedExercises(newSelection);
+
+        // Find newly added exercise
         const newExercise = newSelection.find(
           (ex) => !selectedExercises.some((sel) => sel._id === ex._id)
         );
-      
-        if (!newExercise) return; // nothing new added, exit early
-      
-        // Fetch only for the new one
-        try {
-          const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-          const response = await fetch(`${serverURL}/exerciseHistory`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json; charset=UTF-8",
-              "Authorization": bearer,
-            },
-            body: JSON.stringify({
-              targetExercise: newExercise,
-              user,
-            }),
-          });
-      
-          const targetExerciseHistory = await response.json();
-      
-          // Update just that exercise in state
-          setSelectedExercises((prev) =>
-            prev.map((ex) =>
-              ex._id === newExercise._id
-                ? { ...ex, history: targetExerciseHistory }
-                : ex
-            )
-          );
-        } catch (err) {
-          console.error("Error fetching history for new exercise:", err);
+
+        if (newExercise) {
+          dispatch(requestExerciseProgress(newExercise, user));
         }
       }}
-      
-
       filterOptions={(options, { inputValue }) =>
         options.filter((option) => matchWords(option.exerciseTitle, inputValue))
       }
@@ -630,7 +596,9 @@ const ExerciseListAutocomplete = ({ selectedExercises, setSelectedExercises }) =
   );
 };
 
-const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmedNewExercise, activeStep, }) => {
+const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmedNewExercise, activeStep, user, }) => {
+  const exerciseList = useSelector((state) => state.progress.exerciseList);
+
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
 
@@ -674,6 +642,7 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
         <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
           <Grid container size={12}>
             <ExerciseListAutocomplete
+              exerciseList={exerciseList}
               selectedExercises={selectedExercises}
               setSelectedExercises={setSelectedExercises}
             />
@@ -697,13 +666,16 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
             {selectedExercises.length > 0 && (
               <List sx={{ bgcolor: "background.paper", width: "100%" }}>
                 {selectedExercises.map((exercise, exerciseIndex, exercises) => {
+                  const reduxExercise = exerciseList.find((ex) => ex._id === exercise._id);
+                  const history = reduxExercise?.history?.[user._id];
+
                   return (
                     <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`} >
                       <ListItem >
                         <ListItemText
-                          secondary={exercise.history && exercise.history
-                            .slice(exercise.history.length - 3, exercise.history.length)
-                            .map(historyItem => <Typography variant="subtitle1" ><strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong> {historyItem.achieved.weight.join(', ')}</Typography>)}>
+                          secondary={history && history
+                            .slice(history.length - 3, history.length)
+                            .map((historyItem, historyItemIndex) => <Typography variant="subtitle1" key={`${historyItem._id}-${historyItemIndex}`} ><strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong> {historyItem.achieved.weight.join(', ')}</Typography>)}>
                           {exercise?.exerciseTitle}
                         </ListItemText>
                       </ListItem>

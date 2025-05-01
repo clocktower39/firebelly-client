@@ -25,9 +25,37 @@ import {
   UPDATE_CONVERSATIONS,
   UPDATE_CONVERSATION_MESSAGES,
 } from "./actions";
-import { user, calander, exerciseLibrary, progress, nutrition, workouts, training, tasks, myTrainers, trainers, goals, clients, conversations } from "./states";
+import {
+  user,
+  calander,
+  exerciseLibrary,
+  progress,
+  nutrition,
+  workouts,
+  training,
+  tasks,
+  myTrainers,
+  trainers,
+  goals,
+  clients,
+  conversations,
+} from "./states";
 export let reducer = (
-  state = { user, calander, exerciseLibrary, progress, nutrition, workouts, training, tasks, myTrainers, trainers, goals, clients, conversations },
+  state = {
+    user,
+    calander,
+    exerciseLibrary,
+    progress,
+    nutrition,
+    workouts,
+    training,
+    tasks,
+    myTrainers,
+    trainers,
+    goals,
+    clients,
+    conversations,
+  },
   action
 ) => {
   switch (action.type) {
@@ -44,7 +72,7 @@ export let reducer = (
         ...state,
         user: {
           isTrainer: false,
-          themeMode: 'light',
+          themeMode: "light",
         },
       };
     case EDIT_TASKS:
@@ -71,25 +99,24 @@ export let reducer = (
     case EDIT_HOME_WORKOUTS:
       return {
         ...state,
-        workouts: [ ...action.workouts ],
+        workouts: [...action.workouts],
       };
     case ADD_WORKOUT:
       return {
         ...state,
-        workouts: [ ...state.workouts, action.workout ],
+        workouts: [...state.workouts, action.workout],
       };
     case EDIT_TRAINING:
-      return action.workouts ?
-       {
-        ...state,
-        training: { ...action.training },
-        workouts: [ ...action.workouts ],
-      } : 
-       {
-        ...state,
-        training: { ...action.training },
-      } 
-      ;
+      return action.workouts
+        ? {
+            ...state,
+            training: { ...action.training },
+            workouts: [...action.workouts],
+          }
+        : {
+            ...state,
+            training: { ...action.training },
+          };
     case EDIT_NUTRITION:
       return {
         ...state,
@@ -121,7 +148,7 @@ export let reducer = (
     case EDIT_EXERCISE_LIBRARY:
       return {
         ...state,
-        exerciseLibrary: [...action.exerciseLibrary]
+        exerciseLibrary: [...action.exerciseLibrary],
       };
     case EDIT_PROGRESS_EXERCISE_LIST:
       return {
@@ -136,6 +163,18 @@ export let reducer = (
         ...state,
         progress: {
           ...state.progress,
+
+          exerciseList: state.progress.exerciseList.map((exercise) =>
+            exercise._id === action.exerciseId
+              ? {
+                  ...exercise,
+                  history: {
+                    ...(exercise.history || {}),
+                    [action.userId]: action.targetExerciseHistory,
+                  },
+                }
+              : exercise
+          ),
           targetExerciseHistory: [...action.targetExerciseHistory],
         },
       };
@@ -163,40 +202,40 @@ export let reducer = (
       return {
         ...state,
         goals: [
-          ...state.goals.map(goal => (goal._id === action.goal._id) ? { ...goal, ...action.goal } : goal)
-        ]
+          ...state.goals.map((goal) =>
+            goal._id === action.goal._id ? { ...goal, ...action.goal } : goal
+          ),
+        ],
       };
     case ADD_NEW_GOAL:
       return {
         ...state,
-        goals: [
-          ...state.goals, action.goal
-        ]
+        goals: [...state.goals, action.goal],
       };
     case DELETE_GOAL:
       return {
         ...state,
-        goals: [
-          ...state.goals.filter(goal => goal._id !== action.goalId)
-        ]
+        goals: [...state.goals.filter((goal) => goal._id !== action.goalId)],
       };
-      case UPDATE_CONVERSATIONS:
-          return {
-              ...state,
-              conversations: [...action.conversations]
+    case UPDATE_CONVERSATIONS:
+      return {
+        ...state,
+        conversations: [...action.conversations],
+      };
+    case UPDATE_CONVERSATION_MESSAGES:
+      const updatedConversations = [
+        ...state.conversations.map((c) => {
+          if (c._id === action.conversation._id) {
+            c.messages = action.conversation.messages;
           }
-      case UPDATE_CONVERSATION_MESSAGES:
-          const updatedConversations = [...state.conversations.map(c => {
-              if( c._id === action.conversation._id){
-                  c.messages = action.conversation.messages
-              }
-              return c;
-          })];
+          return c;
+        }),
+      ];
 
-          return {
-              ...state,
-              conversations: [...updatedConversations],
-          }
+      return {
+        ...state,
+        conversations: [...updatedConversations],
+      };
     case ERROR:
       return {
         ...state,

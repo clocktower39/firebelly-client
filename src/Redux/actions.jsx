@@ -789,6 +789,16 @@ export function getExerciseList() {
 // Fetches entire history of a specific exercise
 export function requestExerciseProgress(targetExercise, user) {
   return async (dispatch, getState) => {
+    const state = getState();
+    const existing = state.progress.exerciseList.find(
+      (ex) => ex._id === targetExercise._id
+    );
+
+    // Check if this specific user's history is already loaded
+    if (existing?.history?.[user._id]) {
+      return; // Already cached
+    }
+
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     const response = await fetch(`${serverURL}/exerciseHistory`, {
@@ -803,10 +813,13 @@ export function requestExerciseProgress(targetExercise, user) {
         Authorization: bearer,
       },
     });
+
     let targetExerciseHistory = await response.json();
 
     return dispatch({
       type: EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
+      exerciseId: targetExercise._id,
+      userId: user._id,
       targetExerciseHistory,
     });
   };
