@@ -47,7 +47,7 @@ export let progress = {
     exerciseList: [],
 }
 
-export let calander = {
+export let calendar = {
     weeklyView: [
         {},
         {},
@@ -60,6 +60,7 @@ export let calander = {
     monthlyView: {
     },
 }
+
 export let clients = [];
 export let myTrainers = [];
 export let trainers = [];

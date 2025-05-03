@@ -33,7 +33,7 @@ export default function SelectedDate(props) {
           <ArrowBack sx={classes.ArrowIcons} />
         </Button>
 
-        {/* Select a date from a calander input */}
+        {/* Select a date from a calendar input */}
         <TextField
           focused
           id="date"

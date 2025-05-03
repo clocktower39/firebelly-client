@@ -27,7 +27,7 @@ import {
 } from "./actions";
 import {
   user,
-  calander,
+  calendar,
   exerciseLibrary,
   progress,
   nutrition,
@@ -43,7 +43,7 @@ import {
 export let reducer = (
   state = {
     user,
-    calander,
+    calendar,
     exerciseLibrary,
     progress,
     nutrition,
@@ -140,8 +140,8 @@ export let reducer = (
     case EDIT_WEEKLY_VIEW:
       return {
         ...state,
-        calander: {
-          ...state.calander,
+        calendar: {
+          ...state.calendar,
           weeklyView: [...action.weeklyView],
         },
       };

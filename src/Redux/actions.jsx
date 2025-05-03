@@ -689,7 +689,7 @@ export function requestNutritionWeek(startDate, endDate) {
     });
     let data = await response.json();
 
-    const newWeeklyView = state.calander.weeklyView.map((day, index) => {
+    const newWeeklyView = state.calendar.weeklyView.map((day, index) => {
       data.forEach((dataDay, dataIndex) => {
         if (new Date(dataDay.date).getDay() === index) {
           day.nutrition = dataDay;
@@ -725,7 +725,7 @@ export function requestTrainingWeek(startDate, endDate) {
     });
     let data = await response.json();
 
-    const newWeeklyView = state.calander.weeklyView.map((day, index) => {
+    const newWeeklyView = state.calendar.weeklyView.map((day, index) => {
       data.forEach((dataDay, dataIndex) => {
         if (new Date(dataDay.date).getDay() === index) {
           day.training = dataDay;
