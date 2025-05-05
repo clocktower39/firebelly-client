@@ -22,6 +22,7 @@ import {
 import { ExpandMore, AddCircle, RemoveCircle } from "@mui/icons-material";
 import { requestTasks, checkToggleTask, addDateToTaskHistory, editDefaultDailyTask } from "../../Redux/actions";
 import SelectedDate from "../../Components/SelectedDate";
+import dayjs from "dayjs";
 
 const classes = {
 };
@@ -238,7 +239,7 @@ export default function Tasks(props) {
   const dispatch = useDispatch();
   const tasks = useSelector((state) => state.tasks || []);
   const defaultTasks = tasks ? tasks.defaultTasks : [];
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [modalNewTaskTitle, setModalNewTaskTitle] = useState("");
@@ -247,10 +248,12 @@ export default function Tasks(props) {
     setModalNewTaskTitle("");
   };
 
-  const compareWithSelectedDate = (date) => date.substr(0, 10) === selectedDate;
+  const compareWithSelectedDate = (date) => dayjs(date).add(1, 'day').format("YYYY-MM-DD") === selectedDate;
 
   const filteredHistory = useSelector(
-    (state) => state.tasks ? state.tasks.history.filter((day) => compareWithSelectedDate(day.date)) : []
+    (state) => state.tasks ? state.tasks.history.filter((day) => {
+      return compareWithSelectedDate(day.date)
+    }) : []
   );
 
 
@@ -289,7 +292,7 @@ export default function Tasks(props) {
         </Paper>
       </Modal>
       <Grid container alignItems="center">
-        <SelectedDate setParentSelectedDate={setSelectedDate} />
+        <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
         <Grid container size={12} sx={{ padding: '7.5px 0px' }}>
           <Accordion sx={{ width: "100%", boxShadow: "none", backgroundColor: 'background.DashboardCard', }}>
             <AccordionSummary
