@@ -538,7 +538,7 @@ const WorkoutSet = (props) => {
                         <DragHandleIcon />
                       </div>
                     </Grid>
-                    <Grid container size={11} sx={{ padding: "5px" }}>
+                    <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
                       {/* Rest of your item content */}
                       <Grid container size={{ xs: 12, sm: 6, }} sx={{ alignItems: "center" }}>
                         <Typography variant="body1">{exercise?.exercise?.exerciseTitle || "Select an exercise"}</Typography>
