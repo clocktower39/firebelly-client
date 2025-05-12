@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
+  Avatar,
   Box,
   Button,
   Card,
@@ -22,7 +23,7 @@ import {
   AddCircle,
   Delete,
 } from "@mui/icons-material";
-import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal } from "../../Redux/actions";
+import { getGoals, updateGoal, addGoalComment, addNewGoal, deleteGoal, serverURL, } from "../../Redux/actions";
 
 export default function Goals({ view = "client", client, }) {
   const dispatch = useDispatch();
@@ -265,17 +266,17 @@ export default function Goals({ view = "client", client, }) {
             <DialogTitle id="alert-dialog-title">
               Comments
             </DialogTitle>
-            <Grid container spacing={1} sx={{ padding: "10px 0px", justifyContent: 'center', }}>
+            <Grid container spacing={1} size={12} sx={{ padding: "10px 0px", justifyContent: 'center', }}>
               {goal.comments && goal.comments.length > 0
                 ? goal.comments.map(comment => (
-                  <Grid key={comment._id} container sx={{ padding: "12px 0px" }}>
+                  <Grid key={comment._id} container size={12} sx={{ padding: "12px 0px" }}>
                     <Grid container size={2} sx={{ justifyContent: 'center', alignItems: 'center', }}>
-                      <AccountCircle />
+                      <Avatar src={comment?.user?.profilePicture ? `${serverURL}/user/profilePicture/${comment.user.profilePicture}` : null} />
                     </Grid>
                     <Grid container size={10}>
                       <Grid container size={12}>
                         <Typography variant="body1">
-                          {/* {comment.firstName} {comment.lastName} */}
+                          {comment?.user.firstName} {comment?.user.lastName}
                         </Typography>
                         <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>{comment.createdDate.substr(0, 10)}</Typography>
                       </Grid>
