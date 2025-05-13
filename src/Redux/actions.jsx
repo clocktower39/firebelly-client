@@ -29,11 +29,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -600,7 +600,7 @@ export function updateWorkoutDateById(training, newDate, newTitle) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...training, date: newDate },
-        workouts: [...state.workouts.filter((workout) => workout._id !== training._id)],
+        workouts: [...state.LEGACY_workouts.filter((workout) => workout._id !== training._id)],
       });
     }
   };
@@ -663,7 +663,7 @@ export function deleteWorkoutById(trainingId) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { training: [] },
-        workouts: [...state.workouts.filter((workout) => workout._id !== trainingId)],
+        workouts: [...state.LEGACY_workouts.filter((workout) => workout._id !== trainingId)],
       });
     }
   };

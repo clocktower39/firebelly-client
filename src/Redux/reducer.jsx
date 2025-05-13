@@ -31,6 +31,7 @@ import {
   exerciseLibrary,
   progress,
   nutrition,
+  LEGACY_workouts,
   workouts,
   training,
   tasks,
@@ -47,6 +48,7 @@ export let reducer = (
     exerciseLibrary,
     progress,
     nutrition,
+    LEGACY_workouts,
     workouts,
     training,
     tasks,
@@ -99,12 +101,12 @@ export let reducer = (
     case EDIT_HOME_WORKOUTS:
       return {
         ...state,
-        workouts: [...action.workouts],
+        LEGACY_workouts: [...action.workouts],
       };
     case ADD_WORKOUT:
       return {
         ...state,
-        workouts: [...state.workouts, action.workout],
+        LEGACY_workouts: [...state.LEGACY_workouts, action.workout],
       };
     case EDIT_TRAINING:
       return action.workouts

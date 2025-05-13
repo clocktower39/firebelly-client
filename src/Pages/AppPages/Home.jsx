@@ -14,7 +14,7 @@ function Home() {
   const location = useLocation();
   const { date } = queryString.parse(location.search);
   const dispatch = useDispatch();
-  const workouts = useSelector((state) => state.workouts);
+  const workouts = useSelector((state) => state.LEGACY_workouts);
   const user = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
 

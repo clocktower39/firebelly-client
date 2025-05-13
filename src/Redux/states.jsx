@@ -11,7 +11,11 @@ export let tasks = {
 
 export let exerciseLibrary = [];
 
-export let workouts = [];
+export let LEGACY_workouts = [];
+
+export let workouts = {
+    // date: [ ...workouts ],
+};
 
 export let training = {
     trainingCategory: "",
