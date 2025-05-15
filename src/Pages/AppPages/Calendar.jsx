@@ -24,7 +24,12 @@ import {
 } from "@mui/icons-material";
 import { requestWorkoutsByMonth, serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
-import {  LocalizationProvider, DateCalendar, DayCalendarSkeleton, PickersDay, } from "@mui/x-date-pickers";
+import {
+  LocalizationProvider,
+  DateCalendar,
+  DayCalendarSkeleton,
+  PickersDay,
+} from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 
@@ -70,8 +75,12 @@ export default function Calendar(props) {
   const { view = "client", client } = props;
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
-  const workouts = useSelector((state) => state.workouts);
-  const [history, setHistory] = useState([]);
+  const targetAccount = view === "client" ? user : client;
+  const workouts = useSelector((state) => {
+    const accountId = targetAccount?._id;
+    if (!accountId) return []; // Don't access state.workouts at all
+    return state.workouts?.[accountId]?.workouts ?? [];
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
@@ -91,35 +100,30 @@ export default function Calendar(props) {
     setIsLoading(true);
     const date = e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD");
 
-    dispatch(requestWorkoutsByMonth(date, view,  view === "client" ? user : client)).then(()=>{
+    dispatch(requestWorkoutsByMonth(date, view, view === "client" ? user : client)).then(() => {
       setIsLoading(false);
-    })
+    });
   };
 
   useEffect(() => {
     getWorkoutMonthData();
-    console.log('ran')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setHighlightedDays(() => {
-      return history
+      return workouts
         .filter((item) => dayjs.utc(item.date).month() === currentMonth)
         .map((item) => ({
           date: dayjs.utc(item.date).date(),
           complete: item.complete,
         }));
     });
-  }, [history, currentMonth]);
+  }, [workouts, currentMonth]);
 
   const handleMonthChange = (e) => {
     setCurrentMonth(dayjs(e).month());
-    const fetchData = getWorkoutMonthData(e);
-
-    fetchData().then((data) => {
-      setHistory(data);
-    });
+    getWorkoutMonthData(e);
   };
 
   const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
@@ -165,12 +169,12 @@ export default function Calendar(props) {
         <Box sx={{ flex: "1", overflow: "auto" }}>
           <Workouts
             currentMonth={currentMonth}
-            history={history}
+            history={workouts}
             scrollToDate={scrollToDate}
             view={view}
             client={client}
             setSelectedWorkout={setSelectedWorkout}
-            handleModalToggle={handleModalToggle} 
+            handleModalToggle={handleModalToggle}
           />
         </Box>
       </Box>
@@ -210,14 +214,28 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ currentMonth, history, scrollToDate, setSelectedWorkout, handleModalToggle, }) => {
+const Workouts = ({
+  currentMonth,
+  history,
+  scrollToDate,
+  setSelectedWorkout,
+  handleModalToggle,
+}) => {
   return (
     <List>
       {history
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
           if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
-            return <Workout key={workout._id} workout={workout} scrollToDate={scrollToDate} setSelectedWorkout={setSelectedWorkout} handleModalToggle={handleModalToggle} />;
+            return (
+              <Workout
+                key={workout._id}
+                workout={workout}
+                scrollToDate={scrollToDate}
+                setSelectedWorkout={setSelectedWorkout}
+                handleModalToggle={handleModalToggle}
+              />
+            );
           }
           return null;
         })}
@@ -225,7 +243,7 @@ const Workouts = ({ currentMonth, history, scrollToDate, setSelectedWorkout, han
   );
 };
 
-const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle, }) => {
+const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id;
   const to = `/workout/${workoutId}`;
@@ -291,7 +309,7 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
             </Grid>
           </AccordionSummary>
           <AccordionDetails>
-            <Grid container size={12} >
+            <Grid container size={12}>
               <Grid container size={12} justifyContent="flex-end">
                 <IconButton onClick={handleSelectWorkout}>
                   <SettingsIcon />
@@ -304,12 +322,12 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
                   </Grid>
                   {workoutSet.map((exercise, exerciseIndex) => (
                     <Fragment key={`${exercise?.exercise?.exerciseTitle}-${exerciseIndex}`}>
-                      <Grid size={{ xs: 12, sm: 6, }} >
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <Typography variant="caption" sx={{ marginLeft: "16px" }}>
                           {exercise?.exercise?.exerciseTitle || "Select an exercise"}
                         </Typography>
                       </Grid>
-                      <Grid container size={{ xs: 12, sm: 6, }} >
+                      <Grid container size={{ xs: 12, sm: 6 }}>
                         {exerciseTypeFields(exercise.exerciseType).repeating.map((field) => (
                           <Grid size={12} key={field.goalAttribute}>
                             <Typography variant="caption" sx={{ marginLeft: "32px" }}>
