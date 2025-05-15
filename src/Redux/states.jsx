@@ -14,7 +14,9 @@ export let exerciseLibrary = [];
 export let LEGACY_workouts = [];
 
 export let workouts = {
-    // date: [ ...workouts ],
+    // user_id: {
+    //     workouts: [ ...workouts ]
+    // }
 };
 
 export let training = {

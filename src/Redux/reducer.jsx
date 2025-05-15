@@ -8,6 +8,7 @@ import {
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_NUTRITION,
+  EDIT_WORKOUTS,
   EDIT_HOME_WORKOUTS,
   ADD_WORKOUT,
   EDIT_TRAINING,
@@ -98,6 +99,41 @@ export let reducer = (
           history: [...state, tasks.history, action.newDay],
         },
       };
+    case EDIT_WORKOUTS: {
+      console.log('edit_workouts redux')
+      const existing = state.workouts[action.accountId]?.workouts || [];
+
+      // Convert existing workouts to a map for faster lookup
+      const existingMap = new Map(existing.map((w) => [w._id, w]));
+
+      // Merge new workouts
+      const updatedWorkouts = [...existingMap.values()];
+
+      action.workouts.forEach((newWorkout) => {
+        const existingWorkout = existingMap.get(newWorkout._id);
+
+        if (!existingWorkout) {
+          // New workout, add it
+          updatedWorkouts.push(newWorkout);
+        } else if (JSON.stringify(existingWorkout) !== JSON.stringify(newWorkout)) {
+          // Existing workout changed, replace it
+          const index = updatedWorkouts.findIndex((w) => w._id === newWorkout._id);
+          updatedWorkouts[index] = newWorkout;
+        }
+        // If same, do nothing (skip update)
+      });
+
+      return {
+        ...state,
+        workouts: {
+          ...state.workouts,
+          [action.accountId]: {
+            ...(state.workouts[action.accountId] || {}),
+            workouts: updatedWorkouts,
+          },
+        },
+      };
+    }
     case EDIT_HOME_WORKOUTS:
       return {
         ...state,

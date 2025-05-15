@@ -12,6 +12,7 @@ export const EDIT_NUTRITION = "EDIT_NUTRITION";
 export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_HOME_WORKOUTS = "EDIT_HOME_WORKOUTS";
+export const EDIT_WORKOUTS = "EDIT_WORKOUTS";
 export const ADD_WORKOUT = "ADD_WORKOUT";
 export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
@@ -29,11 +30,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-export const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// export const serverURL = "https://firebellyfitness.herokuapp.com";
+export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -482,6 +483,47 @@ export function requestWorkoutsByDate(date, requestedBy = "client", client) {
   };
 }
 
+// Fetches entire month of workout data
+export function requestWorkoutsByMonth(date, requestedBy = "client", client) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const endpoint = "workoutMonth";
+    const payload = JSON.stringify({
+      date,
+      client,
+    });
+
+    const response = await fetch(`${serverURL}/${endpoint}`, {
+      method: "post",
+      body: payload,
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    data.map((workout) =>
+      workout.training.map((set) => {
+        set.map((exercise) => {
+          if (!exercise.achieved.weight) {
+            exercise.achieved.weight = [0];
+          }
+          return exercise;
+        });
+        return set;
+      })
+    );
+
+    return dispatch({
+      type: EDIT_WORKOUTS,
+      workouts: [...data],
+      accountId: client._id,
+    });
+  };
+}
+
 // Creates new daily training workouts
 export function createTraining(training) {
   return async (dispatch) => {
@@ -790,9 +832,7 @@ export function getExerciseList() {
 export function requestExerciseProgress(targetExercise, user) {
   return async (dispatch, getState) => {
     const state = getState();
-    const existing = state.progress.exerciseList.find(
-      (ex) => ex._id === targetExercise._id
-    );
+    const existing = state.progress.exerciseList.find((ex) => ex._id === targetExercise._id);
 
     // Check if this specific user's history is already loaded
     if (existing?.history?.[user._id]) {
@@ -852,7 +892,7 @@ export function updateExercise(exercise) {
     const response = await fetch(`${serverURL}/updateExercise`, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({ exercise, }),
+      body: JSON.stringify({ exercise }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -867,7 +907,7 @@ export function updateExercise(exercise) {
       });
     } else {
       const newExerciseLibrary = state.progress.exerciseList.map((e) => {
-        if(e._id === exercise._id){
+        if (e._id === exercise._id) {
           e = exercise;
         }
         return e;

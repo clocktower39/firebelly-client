@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Accordion,
@@ -21,13 +22,10 @@ import {
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
-import { serverURL } from "../../Redux/actions";
+import { requestWorkoutsByMonth, serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers";
+import {  LocalizationProvider, DateCalendar, DayCalendarSkeleton, PickersDay, } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { DayCalendarSkeleton } from "@mui/x-date-pickers/DayCalendarSkeleton";
-import { PickersDay } from "@mui/x-date-pickers/PickersDay";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 
 // Function to determine the fields based on exercise type
@@ -70,6 +68,9 @@ const exerciseTypeFields = (exerciseType) => {
 
 export default function Calendar(props) {
   const { view = "client", client } = props;
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
+  const workouts = useSelector((state) => state.workouts);
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
@@ -88,37 +89,16 @@ export default function Calendar(props) {
   // Function to fetch workout month data
   const getWorkoutMonthData = (e) => {
     setIsLoading(true);
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const date = e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD");
 
-    const fetchData = async () => {
-      const endpoint = "workoutMonth";
-      const payload = JSON.stringify({
-        date: e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD"),
-        client,
-      });
-
-      const response = await fetch(`${serverURL}/${endpoint}`, {
-        method: "post",
-        body: payload,
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
-      return data;
-    };
-
-    setIsLoading(false);
-    return fetchData;
+    dispatch(requestWorkoutsByMonth(date, view,  view === "client" ? user : client)).then(()=>{
+      setIsLoading(false);
+    })
   };
 
   useEffect(() => {
-    const fetchData = getWorkoutMonthData();
-
-    fetchData().then((data) => {
-      setHistory(data);
-    });
+    getWorkoutMonthData();
+    console.log('ran')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
