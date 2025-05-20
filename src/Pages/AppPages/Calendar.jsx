@@ -84,6 +84,7 @@ export default function Calendar(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedDays, setHighlightedDays] = useState([]); // Initialize as an empty array
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
+  const [currentYear, setCurrentYear] = useState(dayjs(new Date()).year());
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -113,7 +114,7 @@ export default function Calendar(props) {
   useEffect(() => {
     setHighlightedDays(() => {
       return workouts
-        .filter((item) => dayjs.utc(item.date).month() === currentMonth)
+        .filter((item) => dayjs.utc(item.date).month() === currentMonth && dayjs.utc(item.date).year() === currentYear)
         .map((item) => ({
           date: dayjs.utc(item.date).date(),
           complete: item.complete,
@@ -123,6 +124,7 @@ export default function Calendar(props) {
 
   const handleMonthChange = (e) => {
     setCurrentMonth(dayjs(e).month());
+    setCurrentYear(dayjs(e).year());
     getWorkoutMonthData(e);
   };
 
@@ -169,6 +171,7 @@ export default function Calendar(props) {
         <Box sx={{ flex: "1", overflow: "auto" }}>
           <Workouts
             currentMonth={currentMonth}
+            currentYear={currentYear}
             history={workouts}
             scrollToDate={scrollToDate}
             view={view}
@@ -216,6 +219,7 @@ function ServerDay(props) {
 
 const Workouts = ({
   currentMonth,
+  currentYear,
   history,
   scrollToDate,
   setSelectedWorkout,
@@ -226,7 +230,7 @@ const Workouts = ({
       {history
         .sort((a, b) => a.date > b.date)
         .map((workout) => {
-          if (dayjs.utc(new Date(workout.date)).month() === currentMonth) {
+          if (dayjs.utc(new Date(workout.date)).month() === currentMonth && dayjs.utc(new Date(workout.date)).year() === currentYear) {
             return (
               <Workout
                 key={workout._id}
