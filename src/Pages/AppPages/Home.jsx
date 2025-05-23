@@ -14,8 +14,11 @@ function Home() {
   const location = useLocation();
   const { date } = queryString.parse(location.search);
   const dispatch = useDispatch();
-  const workouts = useSelector((state) => state.LEGACY_workouts);
   const user = useSelector((state) => state.user);
+  const workouts = useSelector((state) => {
+    return state.workouts?.[user._id]?.workouts ?? [];
+  });
+  // const workouts = useSelector((state) => state.LEGACY_workouts);
   const [loading, setLoading] = useState(true);
 
   const isValidDate = (date) => {
@@ -31,10 +34,15 @@ function Home() {
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
 
-  const [localWorkouts, setLocalWorkouts] = useState([]);
+  const [localWorkouts, setLocalWorkouts] = useState(() => {
+    return []
+  });
 
   const handleCancelEdit = () => {
-    setLocalWorkouts([...workouts]);
+    const matchedDateWorkouts = workouts.filter(workout =>
+      dayjs(workout.date).add(1, 'day').isSame(selectedDate, "day")
+    );
+    setLocalWorkouts([...matchedDateWorkouts]);
   };
 
   const [openCreateWorkoutDialog, setOpenCreateWorkoutDialog] = useState(false);
@@ -51,8 +59,19 @@ function Home() {
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
   useEffect(() => {
-    setLocalWorkouts(workouts || []);
-  }, [workouts]);
+    const matchedDateWorkouts = workouts.filter(workout =>
+      dayjs(workout.date).add(1, 'day').isSame(selectedDate, "day")
+    );
+
+    const isDifferent =
+      matchedDateWorkouts.length !== localWorkouts.length ||
+      matchedDateWorkouts.some((w, i) => w._id !== localWorkouts[i]?._id);
+
+    if (isDifferent) {
+      setLocalWorkouts(matchedDateWorkouts);
+    }
+  }, [workouts, selectedDate]);
+
 
   useEffect(() => {
     if (selectedDate !== null) {
@@ -62,7 +81,7 @@ function Home() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, workouts.length]);
+  }, [selectedDate]);
 
   return loading ? (
     <LoadingPage PropComponent={Loading} />

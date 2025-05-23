@@ -476,8 +476,9 @@ export function requestWorkoutsByDate(date, requestedBy = "client", client) {
         })
       );
       return dispatch({
-        type: EDIT_HOME_WORKOUTS,
+        type: EDIT_WORKOUTS,
         workouts: [...data],
+        accountId: client,
       });
     }
   };
