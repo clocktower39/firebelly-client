@@ -70,7 +70,7 @@ function SortableCircuit({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     index,
-    animateLayoutChanges: (args) => (args.isSorting ? false : defaultAnimateLayoutChanges(args)),
+    animateLayoutChanges: (args) => false,
   });
 
   const style = {
