@@ -6,6 +6,7 @@ import { theme } from "./theme";
 import { serverURL } from "./Redux/actions";
 import socketIOClient from "socket.io-client";
 import AuthRoute from "./Components/AuthRoute";
+import WebsiteNavbar from "./Pages/WebsitePages/WebsiteNavbar";
 import WebsiteHome from "./Pages/WebsitePages/WebsiteHome";
 import NutritionInfo from "./Pages/WebsitePages/Nutrition";
 import Workshops from "./Pages/WebsitePages/Workshops";
@@ -35,7 +36,7 @@ import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer"
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
-function App({}) {
+function App({ }) {
   const themeMode = useSelector((state) => state.user.themeMode);
   const [themeSelection, setThemeSelection] = useState(theme());
 
@@ -92,6 +93,8 @@ function App({}) {
               <Route exact path="/nutrition" element={<NutritionInfo />} />
               <Route exact path="/workshops" element={<Workshops />} />
               <Route exact path="/training" element={<TrainingInfo />} />
+
+              <Route path="*" element={<><WebsiteNavbar /><NotFoundPage /></>} />
             </>
           ) : (
             <>
@@ -129,13 +132,14 @@ function App({}) {
                   </Route>
 
                   <Route exact path="/clients" element={<Clients socket={socket} />} />
+
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
               </Route>
             </>
           )}
           <Route element={<ActivityTrackerContainer />}>
             <Route exact path="/verify-email" element={<VerifyEmail />} />
-            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Router>
