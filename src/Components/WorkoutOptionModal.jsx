@@ -120,7 +120,7 @@ export function ModalAction(props) {
     };
   
     const handleDelete = () => {
-      dispatch(deleteWorkoutById(training._id)).then(() => {
+      dispatch(deleteWorkoutById(training._id, isPersonalWorkout ? user._id : training?.user?._id)).then(() => {
         setActionError(false);
         handleModalToggle();
       });

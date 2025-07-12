@@ -137,19 +137,19 @@ export let reducer = (
     case EDIT_HOME_WORKOUTS:
       return {
         ...state,
-        LEGACY_workouts: [...action.workouts],
+        workouts: [...action.workouts],
       };
     case ADD_WORKOUT:
       return {
         ...state,
-        LEGACY_workouts: [...state.LEGACY_workouts, action.workout],
+        workouts: [...state.workouts, action.workout],
       };
     case EDIT_TRAINING:
       return action.workouts
         ? {
             ...state,
             training: { ...action.training },
-            workouts: [...action.workouts],
+            workouts: { ...action.workouts },
           }
         : {
             ...state,

@@ -680,7 +680,7 @@ export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTi
 }
 
 // Delete a training record
-export function deleteWorkoutById(trainingId) {
+export function deleteWorkoutById(trainingId, accountId) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -706,7 +706,15 @@ export function deleteWorkoutById(trainingId) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { training: [] },
-        workouts: [...state.LEGACY_workouts.filter((workout) => workout._id !== trainingId)],
+        workouts: {
+          ...state.workouts,
+          [accountId]: {
+            ...state.workouts[accountId],
+            workouts: state.workouts[accountId].workouts.filter(
+              (workout) => workout._id !== trainingId
+            ),
+          }
+        },
       });
     }
   };
