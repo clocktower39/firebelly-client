@@ -526,7 +526,7 @@ export function requestWorkoutsByMonth(date, requestedBy = "client", client) {
 }
 
 // Creates new daily training workouts
-export function createTraining(training) {
+export function createTraining({ training, user }) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -535,8 +535,8 @@ export function createTraining(training) {
       dataType: "json",
       body: JSON.stringify({
         date: training.date,
-        category: training.category || [],
-        training: training.training || [
+        category: training?.category || [],
+        training: training?.training || [
           [
             // {
             //   exercise: "",
@@ -576,6 +576,7 @@ export function createTraining(training) {
         }
         return dispatch({
           type: ADD_WORKOUT,
+          accountId: user._id,
           workout: data.training,
         });
       });
@@ -713,7 +714,7 @@ export function deleteWorkoutById(trainingId, accountId) {
             workouts: state.workouts[accountId].workouts.filter(
               (workout) => workout._id !== trainingId
             ),
-          }
+          },
         },
       });
     }

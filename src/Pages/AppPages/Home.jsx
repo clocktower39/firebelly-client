@@ -105,6 +105,7 @@ function Home() {
             handleCloseCreateWorkoutDialog,
             setSelectedDate,
           }}
+          user={user}
         />
       )}
     </>

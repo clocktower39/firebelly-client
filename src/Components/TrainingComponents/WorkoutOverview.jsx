@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -26,7 +26,7 @@ import {
   useSensor,
   useSensors,
   rectIntersection, // works better for circuits
-  closestCorners,   // works better for exercises
+  closestCorners, // works better for exercises
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -37,10 +37,7 @@ import {
   defaultAnimateLayoutChanges,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  restrictToVerticalAxis,
-  restrictToWindowEdges,
-} from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../WorkoutOptionModal";
@@ -81,7 +78,7 @@ function SortableCircuit({ id, index, children }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} >
+    <div ref={setNodeRef} style={style}>
       {children(listeners, attributes)}
     </div>
   );
@@ -93,6 +90,7 @@ export default function WorkoutOverview({
   setLocalWorkouts,
   handleCancelEdit,
   workoutOptionModalViewProps,
+  user,
 }) {
   const {
     modalOpen,
@@ -140,7 +138,10 @@ export default function WorkoutOverview({
   const handleAddWorkout = () =>
     dispatch(
       createTraining({
-        date: selectedDate,
+        training: {
+          date: selectedDate,
+        },
+        user,
       })
     );
 
@@ -164,20 +165,29 @@ export default function WorkoutOverview({
 
   const [draggedItem, setDraggedItem] = useState(null);
 
-  const flattenedCircuits = useMemo(() =>
-    localWorkouts.reduce((acc, workout) => {
-      const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
-      return acc.concat(workoutCircuits);
-    }, []), [localWorkouts]);
+  const flattenedCircuits = useMemo(
+    () =>
+      localWorkouts.reduce((acc, workout) => {
+        const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
+        return acc.concat(workoutCircuits);
+      }, []),
+    [localWorkouts]
+  );
 
-  const flattenedExercises =  useMemo(() =>
-    localWorkouts.flatMap((workout) =>
-      workout.training.flatMap((circuit, circuitIndex) =>
-        circuit.length > 0
-          ? circuit.map((exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`)
-          : [`placeholder-${workout._id}-${circuitIndex}`]
-      )
-    ), [localWorkouts]);
+  const flattenedExercises = useMemo(
+    () =>
+      localWorkouts.flatMap((workout) =>
+        workout.training.flatMap((circuit, circuitIndex) =>
+          circuit.length > 0
+            ? circuit.map(
+                (exercise, index) =>
+                  `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`
+              )
+            : [`placeholder-${workout._id}-${circuitIndex}`]
+        )
+      ),
+    [localWorkouts]
+  );
 
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
@@ -240,7 +250,8 @@ export default function WorkoutOverview({
         for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
           const circuit = workout.training[circuitIndex];
           const itemIndex = circuit.findIndex(
-            (exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === active.id
+            (exercise, index) =>
+              `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === active.id
           );
           if (itemIndex !== -1) {
             activeWorkoutIndex = workoutIndex;
@@ -257,7 +268,8 @@ export default function WorkoutOverview({
           for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
             const circuit = workout.training[circuitIndex];
             const itemIndex = circuit.findIndex(
-              (exercise, index) => `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === over.id
+              (exercise, index) =>
+                `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === over.id
             );
             if (itemIndex !== -1) {
               overWorkoutIndex = workoutIndex;
@@ -332,11 +344,7 @@ export default function WorkoutOverview({
                   <Grid size={11} container>
                     <Typography variant="h6">{workout.title}</Typography>
                   </Grid>
-                  <Grid
-                    size={1}
-                    container
-                    sx={{ justifyContent: "center", alignItems: "center" }}
-                  >
+                  <Grid size={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
                     <Tooltip title="Workout Settings">
                       <IconButton variant="contained" onClick={handleSelectWorkout}>
                         <Settings />
@@ -363,10 +371,7 @@ export default function WorkoutOverview({
                   </ToggleButton>
                 </ToggleButtonGroup>
                 <div style={{ padding: "10px 0px" }}>
-                  <SortableContext
-                    items={flattenedCircuits}
-                    strategy={verticalListSortingStrategy}
-                  >
+                  <SortableContext items={flattenedCircuits} strategy={verticalListSortingStrategy}>
                     {
                       // iterates through each workout set (supersets)
                       workout.training.map((circuit, circuitIndex) => {
@@ -409,7 +414,7 @@ export default function WorkoutOverview({
           );
         })}
       <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
-        <Grid >
+        <Grid>
           <Button
             onClick={handleOpenCreateWorkoutDialog}
             variant="contained"
@@ -452,7 +457,16 @@ export default function WorkoutOverview({
 }
 
 const WorkoutSet = (props) => {
-  const { workout, circuit, circuitIndex, viewMode, activeId, flattenedExercises, listeners, attributes, } = props;
+  const {
+    workout,
+    circuit,
+    circuitIndex,
+    viewMode,
+    activeId,
+    flattenedExercises,
+    listeners,
+    attributes,
+  } = props;
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -508,42 +522,49 @@ const WorkoutSet = (props) => {
   };
 
   return (
-    <Paper sx={{ padding: "0 5px", marginBottom: "10px", }}>
+    <Paper sx={{ padding: "0 5px", marginBottom: "10px" }}>
       <Grid container alignItems="center">
         <Grid size={12}>
           <Typography variant="h6">
-            <Box {...listeners} {...attributes} sx={{ touchAction: "none", display: 'inline-block' }} >
+            <Box
+              {...listeners}
+              {...attributes}
+              sx={{ touchAction: "none", display: "inline-block" }}
+            >
               <span>Circuit {circuitIndex + 1}</span>
             </Box>
           </Typography>
         </Grid>
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
-        <SortableContext
-          items={flattenedExercises}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={flattenedExercises} strategy={verticalListSortingStrategy}>
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
-              <SortableExercise id={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`} key={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`} index={index}>
+              <SortableExercise
+                id={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`}
+                key={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`}
+                index={index}
+              >
                 {(listeners, attributes) => (
-                  <Grid container component={Paper} >
+                  <Grid container component={Paper}>
                     <Grid
                       container
                       size={1}
                       sx={{ justifyContent: "center", alignItems: "center" }}
                     >
                       {/* Drag handle */}
-                      <div {...listeners} {...attributes} style={{ touchAction: "none", }} >
+                      <div {...listeners} {...attributes} style={{ touchAction: "none" }}>
                         <DragHandleIcon />
                       </div>
                     </Grid>
                     <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
                       {/* Rest of your item content */}
-                      <Grid container size={{ xs: 12, sm: 6, }} sx={{ alignItems: "center" }}>
-                        <Typography variant="body1">{exercise?.exercise?.exerciseTitle || "Select an exercise"}</Typography>
+                      <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
+                        <Typography variant="body1">
+                          {exercise?.exercise?.exerciseTitle || "Select an exercise"}
+                        </Typography>
                       </Grid>
-                      <Grid container size={{ xs: 12, sm: 6, }} >
+                      <Grid container size={{ xs: 12, sm: 6 }}>
                         {renderType(exercise)}
                       </Grid>
                     </Grid>

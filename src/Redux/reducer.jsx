@@ -100,7 +100,6 @@ export let reducer = (
         },
       };
     case EDIT_WORKOUTS: {
-      console.log('edit_workouts redux')
       const existing = state.workouts[action.accountId]?.workouts || [];
 
       // Convert existing workouts to a map for faster lookup
@@ -142,7 +141,12 @@ export let reducer = (
     case ADD_WORKOUT:
       return {
         ...state,
-        workouts: [...state.workouts, action.workout],
+        workouts: {
+          ...state.workouts,
+          [action.accountId]: {
+            workouts: [...state.workouts[action.accountId].workouts, action.workout],
+          },
+        },
       };
     case EDIT_TRAINING:
       return action.workouts
