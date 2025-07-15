@@ -676,6 +676,13 @@ export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTi
         type: ERROR,
         error: data.error,
       });
+    } else {
+      const accountId = data.user
+      return dispatch({
+        type: ADD_WORKOUT,
+        accountId,
+        workout: data,
+      });
     }
   };
 }
