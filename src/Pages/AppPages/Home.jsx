@@ -35,12 +35,12 @@ function Home() {
   const [selectedDate, setSelectedDate] = useState(initialDate);
 
   const [localWorkouts, setLocalWorkouts] = useState(() => {
-    return []
+    return [];
   });
 
   const handleCancelEdit = () => {
-    const matchedDateWorkouts = workouts.filter(workout =>
-      dayjs(workout.date).add(1, 'day').isSame(selectedDate, "day")
+    const matchedDateWorkouts = workouts.filter((workout) =>
+      dayjs(workout.date).add(1, "day").isSame(selectedDate, "day")
     );
     setLocalWorkouts([...matchedDateWorkouts]);
   };
@@ -59,8 +59,8 @@ function Home() {
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
 
   useEffect(() => {
-    const matchedDateWorkouts = workouts.filter(workout =>
-      dayjs(workout.date).add(1, 'day').isSame(selectedDate, "day")
+    const matchedDateWorkouts = workouts.filter((workout) =>
+      dayjs(workout.date).add(1, "day").isSame(selectedDate, "day")
     );
 
     const isDifferent =
@@ -72,9 +72,12 @@ function Home() {
     }
   }, [workouts, selectedDate]);
 
-
   useEffect(() => {
     if (selectedDate !== null) {
+      const newDate = dayjs(selectedDate).utc().format("YYYYMMDD");
+      const newUrl = `/?date=${newDate}`;
+      window.history.replaceState(null, "", newUrl);
+      
       setLoading(true);
       dispatch(requestWorkoutsByDate(selectedDate, "client", user._id)).then(() => {
         setLoading(false);
