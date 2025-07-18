@@ -144,7 +144,7 @@ export let reducer = (
         workouts: {
           ...state.workouts,
           [action.accountId]: {
-            workouts: [...state.workouts[action.accountId].workouts, action.workout],
+            workouts: [...(state?.workouts?.[action.accountId]?.workouts || []), action.workout],
           },
         },
       };
