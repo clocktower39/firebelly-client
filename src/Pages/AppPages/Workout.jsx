@@ -60,7 +60,7 @@ const classes = {
   },
 };
 
-const Transition = React.forwardRef(function Transition(props, ref) {
+export const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
@@ -546,7 +546,7 @@ export default function Workout({ socket }) {
   );
 }
 
-const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelectedExercises }) => {
+export const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelectedExercises, disableCloseOnSelect=false, }) => {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
@@ -592,6 +592,7 @@ const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelected
         ))
       }
       renderInput={(params) => <TextField {...params} label="Search" placeholder="Exercises" />}
+      disableCloseOnSelect={disableCloseOnSelect}
     />
   );
 };

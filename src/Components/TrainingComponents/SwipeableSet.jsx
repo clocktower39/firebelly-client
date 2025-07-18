@@ -1,28 +1,38 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Fragment, useMemo } from "react";
+import { useSelector } from "react-redux";
 import {
+  AppBar,
   Box,
-  Grid,
   Button,
   Checkbox,
   Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
   FormGroup,
   FormControlLabel,
-  Typography,
+  Grid,
   IconButton,
+  List,
+  ListItem,
+  ListItemText,
   MobileStepper,
+  Slide,
   TextField,
+  Toolbar,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import {
   KeyboardArrowLeft,
   KeyboardArrowRight,
   AddCircle,
   RemoveCircle,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import SwipeableViews from "react-swipeable-views";
 import Exercise from "./Exercise";
+import { ExerciseListAutocomplete, Transition, } from "../../Pages/AppPages/Workout";
 
 function SwipeableSet(props) {
   const {
@@ -45,6 +55,7 @@ function SwipeableSet(props) {
     activeStep,
     setActiveStep,
   } = props;
+
   const [heightToggle, setHeightToggle] = useState(true);
   const ref = useRef(null);
 
@@ -80,23 +91,32 @@ function SwipeableSet(props) {
     handleConfirmDialogClose();
   };
 
-  const handleWorkoutCompleteCheckbox = () => setWorkoutCompleteStatus(prev => !prev);
+  const handleWorkoutCompleteCheckbox = () => setWorkoutCompleteStatus((prev) => !prev);
+
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+
+  const handleFeedbackDialogOpen = () => setFeedbackDialogOpen(true);
+  const handleFeedbackDialogClose = () => setFeedbackDialogOpen(false);
 
   const handleFeedbackKeyDown = (e) => {
     // Check if any of Enter, Shift+Enter, Backspace, or Delete is pressed to resize
     if (
-      (e.key === 'Enter' && !e.shiftKey) || // Regular Enter
-      (e.key === 'Enter' && e.shiftKey) ||  // Shift + Enter
-      e.key === 'Backspace' ||              // Backspace
-      e.key === 'Delete'                    // Delete
+      (e.key === "Enter" && !e.shiftKey) || // Regular Enter
+      (e.key === "Enter" && e.shiftKey) || // Shift + Enter
+      e.key === "Backspace" || // Backspace
+      e.key === "Delete" // Delete
     ) {
       setHeightToggle((prev) => !prev);
     }
-  }   
+  };
 
   const handleFeedbackChange = (e) => {
     setWorkoutFeedback(e.target.value);
-  }
+  };
+
+  const allExercises = useMemo(() => {
+    return localTraining.flatMap((group) => group.map((ex) => ex.exercise));
+  }, [localTraining]);
 
   useEffect(() => {
     ref.current.updateHeight();
@@ -110,7 +130,7 @@ function SwipeableSet(props) {
   }, [toggleRemoveSet]);
 
   useEffect(() => {
-    // maxSteps -2 
+    // maxSteps -2
     //  -1 for index correlation
     //  -1 for workout complete page
     handleStepChange(maxSteps - 2);
@@ -194,40 +214,39 @@ function SwipeableSet(props) {
             </Grid>
           </div>
         ))}
-        <Box sx={{ padding: '25px 0'}}>
+        <Box sx={{ padding: "25px 0" }}>
           <Grid size={12}>
             <Grid container size={12}>
               <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <FormGroup>
-                  <FormControlLabel control={<Checkbox checked={workoutCompleteStatus} onClick={handleWorkoutCompleteCheckbox} />} label="Workout Complete" />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={workoutCompleteStatus}
+                        onClick={handleWorkoutCompleteCheckbox}
+                      />
+                    }
+                    label="Workout Complete"
+                  />
                 </FormGroup>
               </Grid>
               <Grid container size={12} sx={{ justifyContent: "center" }}>
-                <Grid container size={12} sx={{ justifyContent: "center",}}>
-                  {/* <TextField label="Feedback" value={workoutFeedback} fullWidth multiline minRows={5} onKeyDown={handleFeedbackKeyDown} onChange={handleFeedbackChange}/> */}
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography variant="body1">Feedback:</Typography>
                 </Grid>
-                <Grid container size={12} sx={{ justifyContent: "center",}}>
-                  <Typography variant="caption">(Coming soon)</Typography>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
+                  <Button disabled onClick={handleFeedbackDialogOpen}>Add Exercise</Button>
                 </Grid>
-                {/* {localTraining.map((group, index) => (
-                  <Grid container size={12}>
-                    {group.length > 0 &&
-                      group.map((exercise, exerciseIndex) => (
-                        <>
-                          <Grid
-                            container
-                            size={8}
-                            sx={{ justifyContent: "flex-start", alignContent: "center" }}
-                          >
-                            <Typography color="text.primary" variant="h6">
-                              {exercise.exerciseTitle}
-                            </Typography>
-                          </Grid>
-                        </>
-                      ))}
-                  </Grid>
-                ))} */}
+                <TextField
+                  label="Overall Feedback"
+                  value={workoutFeedback}
+                  fullWidth
+                  multiline
+                  minRows={5}
+                  onKeyDown={handleFeedbackKeyDown}
+                  onChange={handleFeedbackChange}
+                  disabled
+                />
               </Grid>
             </Grid>
           </Grid>
@@ -251,7 +270,7 @@ function SwipeableSet(props) {
                 </Typography>
               </Grid>
               <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
-                <Grid >
+                <Grid>
                   <Button
                     color="secondaryButton"
                     variant="contained"
@@ -260,7 +279,7 @@ function SwipeableSet(props) {
                     Cancel
                   </Button>
                 </Grid>
-                <Grid >
+                <Grid>
                   <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
                     Confirm
                   </Button>
@@ -270,8 +289,107 @@ function SwipeableSet(props) {
           </DialogContent>
         </Dialog>
       )}
+
+      {feedbackDialogOpen && (
+        <FeedbackDialog
+          feedbackDialogOpen={feedbackDialogOpen}
+          handleFeedbackDialogClose={handleFeedbackDialogClose}
+          user={workoutUser}
+          exerciseList={allExercises}
+        />
+      )}
     </Box>
   );
 }
+
+const FeedbackDialog = ({
+  feedbackDialogOpen,
+  handleFeedbackDialogClose,
+  exerciseList,
+  confirmedFeedbackExerciseList,
+  user,
+}) => {
+  const [selectedExercises, setSelectedExercises] = useState([]);
+
+  return (
+    <Dialog
+      open={feedbackDialogOpen}
+      TransitionComponent={Transition}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          height: "80%",
+        },
+      }}
+    >
+      <AppBar sx={{ position: "relative" }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={handleFeedbackDialogClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Select Exercises
+          </Typography>
+          <Button
+            variant="contained"
+            // onClick={() => confirmedFeedbackExerciseList(selectedExercises, setSelectedExercises, selectedExercisesSetCount, setSelectedExercisesSetCount)}
+          >
+            Confirm
+          </Button>
+        </Toolbar>
+      </AppBar>
+      <DialogContent>
+        <ExerciseListAutocomplete
+          exerciseList={exerciseList}
+          selectedExercises={selectedExercises}
+          setSelectedExercises={setSelectedExercises}
+          disableCloseOnSelect={true}
+        />
+        <Grid container size={12}>
+          {selectedExercises.length > 0 && (
+            <List sx={{ bgcolor: "background.paper", width: "100%" }}>
+              {selectedExercises.map((exercise, exerciseIndex, exercises) => {
+                const reduxExercise = exerciseList.find((ex) => ex._id === exercise._id);
+                const history = reduxExercise?.history?.[user._id];
+
+                return (
+                  <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`}>
+                    <ListItem>
+                      <ListItemText
+                        secondary={
+                          history &&
+                          history
+                            .slice(history.length - 3, history.length)
+                            .map((historyItem, historyItemIndex) => (
+                              <Typography
+                                variant="subtitle1"
+                                key={`${historyItem._id}-${historyItemIndex}`}
+                              >
+                                <strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong>{" "}
+                                {historyItem.achieved.weight.join(", ")}
+                              </Typography>
+                            ))
+                        }
+                      >
+                        {exercise?.exerciseTitle}
+                      </ListItemText>
+                    </ListItem>
+                    {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
+                  </Fragment>
+                );
+              })}
+            </List>
+          )}
+        </Grid>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default SwipeableSet;
