@@ -17,6 +17,8 @@ import {
   ListItem,
   ListItemText,
   MobileStepper,
+  Radio,
+  RadioGroup,
   Slide,
   TextField,
   Toolbar,
@@ -32,7 +34,7 @@ import {
 } from "@mui/icons-material";
 import SwipeableViews from "react-swipeable-views";
 import Exercise from "./Exercise";
-import { ExerciseListAutocomplete, Transition, } from "../../Pages/AppPages/Workout";
+import { ExerciseListAutocomplete, Transition } from "../../Pages/AppPages/Workout";
 
 function SwipeableSet(props) {
   const {
@@ -93,11 +95,6 @@ function SwipeableSet(props) {
 
   const handleWorkoutCompleteCheckbox = () => setWorkoutCompleteStatus((prev) => !prev);
 
-  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
-
-  const handleFeedbackDialogOpen = () => setFeedbackDialogOpen(true);
-  const handleFeedbackDialogClose = () => setFeedbackDialogOpen(false);
-
   const handleFeedbackKeyDown = (e) => {
     // Check if any of Enter, Shift+Enter, Backspace, or Delete is pressed to resize
     if (
@@ -118,9 +115,27 @@ function SwipeableSet(props) {
     return localTraining.flatMap((group) => group.map((ex) => ex.exercise));
   }, [localTraining]);
 
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const handleFeedbackDialogOpen = () => setFeedbackDialogOpen(true);
+  const handleFeedbackDialogClose = () => setFeedbackDialogOpen(false);
+  const [feedbackSelectedExercises, setFeedbackSelectedExercises] = useState([...allExercises]); // remove allExercises after testing is complete
+
   useEffect(() => {
-    ref.current.updateHeight();
-  }, [localTraining, heightToggle]);
+    const update = () => {
+      ref.current.updateHeight();
+    };
+
+    // Initial update
+    update();
+
+    // Add resize event listener
+    window.addEventListener("resize", update);
+
+    // Cleanup resize listener on unmount
+    return () => {
+      window.removeEventListener("resize", update);
+    };
+  }, [localTraining, feedbackSelectedExercises, heightToggle]);
 
   useEffect(() => {
     if (activeStep >= maxSteps - 1) {
@@ -230,23 +245,27 @@ function SwipeableSet(props) {
                   />
                 </FormGroup>
               </Grid>
-              <Grid container size={12} sx={{ justifyContent: "center" }}>
+              <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
                 <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography variant="body1">Feedback:</Typography>
                 </Grid>
-                <Grid container size={12} sx={{ justifyContent: "center" }}>
-                  <Button disabled onClick={handleFeedbackDialogOpen}>Add Exercise</Button>
+                <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
+                  <IconButton onClick={handleFeedbackDialogOpen}>
+                    <AddCircle />
+                  </IconButton>
+                  Choose Exercises
                 </Grid>
-                <TextField
-                  label="Overall Feedback"
-                  value={workoutFeedback}
-                  fullWidth
-                  multiline
-                  minRows={5}
-                  onKeyDown={handleFeedbackKeyDown}
-                  onChange={handleFeedbackChange}
-                  disabled
-                />
+                <Grid container size={12} sx={{ padding: "30px 0" }}>
+                  <TextField
+                    label="Overall Feedback"
+                    value={workoutFeedback}
+                    fullWidth
+                    multiline
+                    minRows={5}
+                    onKeyDown={handleFeedbackKeyDown}
+                    onChange={handleFeedbackChange}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
@@ -294,8 +313,9 @@ function SwipeableSet(props) {
         <FeedbackDialog
           feedbackDialogOpen={feedbackDialogOpen}
           handleFeedbackDialogClose={handleFeedbackDialogClose}
-          user={workoutUser}
           exerciseList={allExercises}
+          feedbackSelectedExercises={feedbackSelectedExercises}
+          setFeedbackSelectedExercises={setFeedbackSelectedExercises}
         />
       )}
     </Box>
@@ -306,10 +326,29 @@ const FeedbackDialog = ({
   feedbackDialogOpen,
   handleFeedbackDialogClose,
   exerciseList,
-  confirmedFeedbackExerciseList,
-  user,
+  feedbackSelectedExercises,
+  setFeedbackSelectedExercises,
 }) => {
-  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [selectedExercises, setSelectedExercises] = useState(feedbackSelectedExercises);
+
+  const allSelected = selectedExercises.length === exerciseList.length;
+  const someSelected = selectedExercises.length > 0 && !allSelected;
+
+  const handleToggle = (exercise) => {
+    setSelectedExercises((prev) => {
+      const isSelected = prev.some((ex) => ex._id === exercise._id);
+      return isSelected ? prev.filter((ex) => ex._id !== exercise._id) : [...prev, exercise];
+    });
+  };
+
+  const handleToggleAll = () => {
+    setSelectedExercises(allSelected ? [] : [...exerciseList]);
+  };
+
+  const handleConfirm = () => {
+    setFeedbackSelectedExercises(selectedExercises);
+    handleFeedbackDialogClose();
+  };
 
   return (
     <Dialog
@@ -317,76 +356,52 @@ const FeedbackDialog = ({
       TransitionComponent={Transition}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          height: "80%",
-        },
-      }}
+      PaperProps={{ sx: { height: "80%" } }}
     >
       <AppBar sx={{ position: "relative" }}>
         <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={handleFeedbackDialogClose}
-            aria-label="close"
-          >
+          <IconButton edge="start" color="inherit" onClick={handleFeedbackDialogClose}>
             <CloseIcon />
           </IconButton>
           <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
             Select Exercises
           </Typography>
-          <Button
-            variant="contained"
-            // onClick={() => confirmedFeedbackExerciseList(selectedExercises, setSelectedExercises, selectedExercisesSetCount, setSelectedExercisesSetCount)}
-          >
+          <Button variant="contained" onClick={handleConfirm}>
             Confirm
           </Button>
         </Toolbar>
       </AppBar>
-      <DialogContent>
-        <ExerciseListAutocomplete
-          exerciseList={exerciseList}
-          selectedExercises={selectedExercises}
-          setSelectedExercises={setSelectedExercises}
-          disableCloseOnSelect={true}
-        />
-        <Grid container size={12}>
-          {selectedExercises.length > 0 && (
-            <List sx={{ bgcolor: "background.paper", width: "100%" }}>
-              {selectedExercises.map((exercise, exerciseIndex, exercises) => {
-                const reduxExercise = exerciseList.find((ex) => ex._id === exercise._id);
-                const history = reduxExercise?.history?.[user._id];
 
-                return (
-                  <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`}>
-                    <ListItem>
-                      <ListItemText
-                        secondary={
-                          history &&
-                          history
-                            .slice(history.length - 3, history.length)
-                            .map((historyItem, historyItemIndex) => (
-                              <Typography
-                                variant="subtitle1"
-                                key={`${historyItem._id}-${historyItemIndex}`}
-                              >
-                                <strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong>{" "}
-                                {historyItem.achieved.weight.join(", ")}
-                              </Typography>
-                            ))
-                        }
-                      >
-                        {exercise?.exerciseTitle}
-                      </ListItemText>
-                    </ListItem>
-                    {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
-                  </Fragment>
-                );
-              })}
-            </List>
-          )}
-        </Grid>
+      <DialogContent>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={allSelected}
+                indeterminate={someSelected}
+                onChange={handleToggleAll}
+              />
+            }
+            label="Select All"
+            sx={{ userSelect: "none" }}
+          />
+          <Divider sx={{ my: 1 }} />
+          {exerciseList
+            .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
+            .map((exercise) => (
+              <FormControlLabel
+                key={exercise._id}
+                control={
+                  <Checkbox
+                    checked={selectedExercises.some((ex) => ex._id === exercise._id)}
+                    onChange={() => handleToggle(exercise)}
+                  />
+                }
+                label={exercise.exerciseTitle}
+                sx={{ userSelect: "none" }}
+              />
+            ))}
+        </FormGroup>
       </DialogContent>
     </Dialog>
   );
