@@ -118,7 +118,7 @@ function SwipeableSet(props) {
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const handleFeedbackDialogOpen = () => setFeedbackDialogOpen(true);
   const handleFeedbackDialogClose = () => setFeedbackDialogOpen(false);
-  const [feedbackSelectedExercises, setFeedbackSelectedExercises] = useState([...allExercises]); // remove allExercises after testing is complete
+  const [feedbackSelectedExercises, setFeedbackSelectedExercises] = useState([]); 
 
   useEffect(() => {
     const update = () => {
@@ -255,6 +255,11 @@ function SwipeableSet(props) {
                   </IconButton>
                   Choose Exercises
                 </Grid>
+                <Grid container size={12} sx={{ padding: "0px 25px" }}>
+                  {feedbackSelectedExercises.map((exercise) => {
+                    return <FeedbackExerciseInput exercise={exercise} />;
+                  })}
+                </Grid>
                 <Grid container size={12} sx={{ padding: "30px 0" }}>
                   <TextField
                     label="Overall Feedback"
@@ -321,6 +326,107 @@ function SwipeableSet(props) {
     </Box>
   );
 }
+
+const FeedbackExerciseInput = ({ exercise }) => {
+  const [feedbackDifficulty, setFeedbackDifficulty] = useState("");
+
+  const handleFeedbackDifficultyChange = (event) => {
+    setFeedbackDifficulty(event.target.value);
+  };
+
+  return (
+    <Grid container size={12} key={exercise._id}>
+      <Grid container size={12}>
+        <Typography>{exercise.exerciseTitle}:</Typography>
+      </Grid>
+      <Grid container size={12} sx={{ padding: "0px 15px" }}>
+        <Typography sx={{ mb: 1 }}>Rate Difficulty:</Typography>
+        <RadioGroup
+          row
+          value={feedbackDifficulty}
+          onChange={handleFeedbackDifficultyChange}
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            flexWrap: { xs: "nowrap", sm: "nowrap" },
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
+          <FormControlLabel
+            value="tooEasy"
+            control={
+              <Radio
+                checked={feedbackDifficulty === "tooEasy"}
+                sx={{
+                  "&.Mui-checked": {
+                    color: "secondary.main",
+                  },
+                }}
+              />
+            }
+            label={
+              <Typography
+                sx={{
+                  color: feedbackDifficulty === "tooEasy" ? "secondary.main" : "text.primary",
+                }}
+              >
+                Too Easy
+              </Typography>
+            }
+          />
+          <FormControlLabel
+            value="perfect"
+            control={
+              <Radio
+                checked={feedbackDifficulty === "perfect"}
+                sx={{
+                  "&.Mui-checked": {
+                    color: "primary.main",
+                  },
+                }}
+              />
+            }
+            label={
+              <Typography
+                sx={{
+                  color: feedbackDifficulty === "perfect" ? "primary.main" : "text.primary",
+                }}
+              >
+                Perfect
+              </Typography>
+            }
+          />
+          <FormControlLabel
+            value="tooHard"
+            control={
+              <Radio
+                checked={feedbackDifficulty === "tooHard"}
+                sx={{
+                  "&.Mui-checked": {
+                    color: "#d32f2f",
+                  },
+                }}
+              />
+            }
+            label={
+              <Typography
+                sx={{
+                  color: feedbackDifficulty === "tooHard" ? "#d32f2f" : "text.primary", // custom red
+                }}
+              >
+                Too Hard
+              </Typography>
+            }
+          />
+        </RadioGroup>
+      </Grid>
+      <Grid container size={12} sx={{ padding: "0px 15px" }}>
+        <TextField label="Comments" fullWidth multiline minRows={3} />
+      </Grid>
+    </Grid>
+  );
+};
 
 const FeedbackDialog = ({
   feedbackDialogOpen,
