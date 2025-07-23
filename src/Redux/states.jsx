@@ -39,8 +39,6 @@ export let training = {
     ]
 };
 
-export let nutrition = [];
-
 export let notes = [
     // {
     //     date: '',
@@ -73,4 +71,3 @@ export let trainers = [];
 export let goals = [];
 
 export let conversations = [];
-export let weeklyTraining = [];

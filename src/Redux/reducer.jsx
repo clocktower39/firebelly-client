@@ -7,7 +7,6 @@ import {
   ADD_TASK_HISTORY_DAY,
   EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
-  EDIT_NUTRITION,
   EDIT_WORKOUTS,
   EDIT_HOME_WORKOUTS,
   ADD_WORKOUT,
@@ -31,7 +30,6 @@ import {
   calendar,
   exerciseLibrary,
   progress,
-  nutrition,
   LEGACY_workouts,
   workouts,
   training,
@@ -48,7 +46,6 @@ export let reducer = (
     calendar,
     exerciseLibrary,
     progress,
-    nutrition,
     LEGACY_workouts,
     workouts,
     training,
@@ -181,11 +178,6 @@ export let reducer = (
               },
             },
           };
-    case EDIT_NUTRITION:
-      return {
-        ...state,
-        nutrition: action.nutrition,
-      };
     case EDIT_MYACCOUNT:
       return {
         ...state,

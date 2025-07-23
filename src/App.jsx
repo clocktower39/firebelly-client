@@ -22,7 +22,6 @@ import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
 // import WorkoutQueue from "./Pages/AppPages/WorkoutQueue";
 import Exercises from "./Pages/AppPages/Exercises";
-import Nutrition from "./Pages/AppPages/Nutrition";
 import Clients from "./Pages/AppPages/Clients";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
@@ -113,7 +112,6 @@ function App({ }) {
                   {/* <Route exact path="/queue" element={<WorkoutQueue />} /> */}
                   <Route exact path="/builder" element={<WorkoutBuilder />} />
                   <Route exact path="/tasks" element={<Tasks />} />
-                  <Route exact path="/nutrition" element={<Nutrition />} />
                   <Route exact path="/progress" element={<Progress />} />
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />

@@ -32,7 +32,6 @@ import {
   Assignment as GoalsIcon,
   Settings as AccountIcon,
   Groups as ClientsIcon,
-  Restaurant as NutritionIcon,
   Task as TasksIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
@@ -88,11 +87,6 @@ export default function NavDrawer() {
       title: "Daily Tasks",
       to: "/tasks",
       icon: <TasksIcon />,
-    },
-    {
-      title: "Nutrition",
-      to: "/nutrition",
-      icon: <NutritionIcon />,
     },
     {
       title: "Exercises",
