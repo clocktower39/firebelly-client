@@ -149,6 +149,21 @@ export let reducer = (
         },
       };
     case EDIT_TRAINING:
+      const updatedTraining = action.training;
+      const userId = state.user._id;
+
+      // Get existing workouts for the user
+      const userWorkouts = state.workouts[userId]?.workouts || [];
+
+      // Check if the training already exists
+      const existingIndex = userWorkouts.findIndex((w) => w._id === updatedTraining._id);
+
+      // Create a new workouts array with the updated or new training
+      const updatedUserWorkouts =
+        existingIndex >= 0
+          ? userWorkouts.map((w) => (w._id === updatedTraining._id ? updatedTraining : w))
+          : [...userWorkouts, updatedTraining];
+
       return action.workouts
         ? {
             ...state,
@@ -157,7 +172,14 @@ export let reducer = (
           }
         : {
             ...state,
-            training: { ...action.training },
+            training: { ...updatedTraining },
+            workouts: {
+              ...state.workouts,
+              [userId]: {
+                ...state.workouts[userId],
+                workouts: updatedUserWorkouts,
+              },
+            },
           };
     case EDIT_NUTRITION:
       return {
