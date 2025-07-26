@@ -32,7 +32,6 @@ import {
   Assignment as GoalsIcon,
   Settings as AccountIcon,
   Groups as ClientsIcon,
-  Task as TasksIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
   QrCodeScanner as QrCodeScannerIcon,
@@ -82,11 +81,6 @@ export default function NavDrawer() {
       title: "Queue",
       to: "/queue",
       icon: <DashboardIcon />,
-    },
-    {
-      title: "Daily Tasks",
-      to: "/tasks",
-      icon: <TasksIcon />,
     },
     {
       title: "Exercises",

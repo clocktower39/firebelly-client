@@ -16,7 +16,6 @@ import SignUp from "./Pages/SignUp";
 import VerifyEmail from "./Pages/VerifyEmail";
 import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
-import Tasks from "./Pages/AppPages/Tasks";
 import Calendar from "./Pages/AppPages/Calendar";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
@@ -111,7 +110,6 @@ function App({ }) {
                   <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
                   {/* <Route exact path="/queue" element={<WorkoutQueue />} /> */}
                   <Route exact path="/builder" element={<WorkoutBuilder />} />
-                  <Route exact path="/tasks" element={<Tasks />} />
                   <Route exact path="/progress" element={<Progress />} />
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />

@@ -3,12 +3,6 @@ export let user = {
     themeMode: 'light',
 }
 
-export let tasks = {
-    date: '',
-    history: [],
-    defaultTasks: [],
-}
-
 export let exerciseLibrary = [];
 
 export let LEGACY_workouts = [];

@@ -2,10 +2,6 @@ import {
   LOGIN_USER,
   LOGOUT_USER,
   ERROR,
-  EDIT_TASKS,
-  EDIT_TASK_HISTORY,
-  ADD_TASK_HISTORY_DAY,
-  EDIT_DEFAULT_TASK,
   EDIT_MYACCOUNT,
   EDIT_WORKOUTS,
   EDIT_HOME_WORKOUTS,
@@ -33,7 +29,6 @@ import {
   LEGACY_workouts,
   workouts,
   training,
-  tasks,
   myTrainers,
   trainers,
   goals,
@@ -49,7 +44,6 @@ export let reducer = (
     LEGACY_workouts,
     workouts,
     training,
-    tasks,
     myTrainers,
     trainers,
     goals,
@@ -73,27 +67,6 @@ export let reducer = (
         user: {
           isTrainer: false,
           themeMode: "light",
-        },
-      };
-    case EDIT_TASKS:
-      return {
-        ...state,
-        tasks: action.tasks,
-      };
-    case EDIT_TASK_HISTORY:
-      return {
-        ...state,
-        tasks: {
-          ...state.tasks,
-          history: action.history,
-        },
-      };
-    case ADD_TASK_HISTORY_DAY:
-      return {
-        ...state,
-        tasks: {
-          ...state.tasks,
-          history: [...state, tasks.history, action.newDay],
         },
       };
     case EDIT_WORKOUTS: {
@@ -183,14 +156,6 @@ export let reducer = (
         ...state,
         user: {
           ...action.user,
-        },
-      };
-    case EDIT_DEFAULT_TASK:
-      return {
-        ...state,
-        tasks: {
-          ...state.tasks,
-          defaultTasks: [...action.defaultTasks],
         },
       };
     case EDIT_WEEKLY_VIEW:

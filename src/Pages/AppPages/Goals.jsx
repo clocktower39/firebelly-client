@@ -103,7 +103,7 @@ export default function Goals({ view = "client", client, }) {
     const handleChange = (e, setter) => setter(e.target.value);
 
 
-    const saveTask = () => {
+    const saveGoal = () => {
       dispatch(updateGoal({
         _id: goal._id,
         title,
@@ -257,7 +257,7 @@ export default function Goals({ view = "client", client, }) {
                 </Button>
               </Grid>
               <Grid >
-                <Button variant="contained" onClick={saveTask} >
+                <Button variant="contained" onClick={saveGoal} >
                   Save
                 </Button>
               </Grid>

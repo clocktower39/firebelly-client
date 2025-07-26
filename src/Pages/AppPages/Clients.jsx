@@ -164,8 +164,6 @@ export default function Clients({ socket }) {
                 Calendar
               </Button>
               <Button onClick={() => handleOpenGoals(clientRelationship.client)}>Goals</Button>
-              <Button disabled>Daily Tasks</Button>
-              <Button disabled>Nutrition</Button>
             </>
           )}
         </Card>

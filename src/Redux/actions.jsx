@@ -5,10 +5,6 @@ export const LOGIN_USER = "LOGIN_USER";
 export const LOGOUT_USER = "LOGOUT_USER";
 export const SIGNUP_USER = "SIGNUP_USER";
 export const ERROR = "ERROR";
-export const EDIT_TASKS = "EDIT_TASKS";
-export const EDIT_TASK_HISTORY = "EDIT_TASK_HISTORY";
-export const ADD_TASK_HISTORY_DAY = "ADD_TASK_HISTORY_DAY";
-export const EDIT_DEFAULT_TASK = "EDIT_DEFAULT_TASK";
 export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_HOME_WORKOUTS = "EDIT_HOME_WORKOUTS";
 export const EDIT_WORKOUTS = "EDIT_WORKOUTS";
@@ -181,124 +177,6 @@ export function editUser(user) {
       return dispatch({
         type: LOGIN_USER,
         user: decodedAccessToken,
-      });
-    }
-  };
-}
-
-export function checkToggleTask(selectedDate, taskHistoryDateObject, newHistory) {
-  return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    const response = await fetch(`${serverURL}/updateTaskHistory`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        history: newHistory,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
-
-    if (data.error) {
-      return dispatch({
-        type: ERROR,
-        error: data.error,
-      });
-    }
-
-    return dispatch({
-      type: EDIT_TASK_HISTORY,
-      history: newHistory,
-    });
-  };
-}
-
-export function addDateToTaskHistory(taskDateObject) {
-  return async (dispatch, getState) => {
-    const state = getState();
-    const newHistory = [...state.tasks.history];
-    newHistory.push(taskDateObject);
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    const response = await fetch(`${serverURL}/updateTaskHistory`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        history: newHistory,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
-    return dispatch({
-      type: EDIT_TASK_HISTORY,
-      history: newHistory,
-      data,
-    });
-  };
-}
-
-export function addTaskDay(date, defaultTasksArray) {
-  return async (dispatch) => {
-    const newDay = {
-      date,
-      tasks: defaultTasksArray,
-    };
-
-    return dispatch({
-      type: ADD_TASK_HISTORY_DAY,
-      newDay,
-    });
-  };
-}
-
-// // Fetches or creates daily tasks
-export function requestTasks() {
-  return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    // Check if the daily tasks for the selected date has already been created
-    const response = await fetch(`${serverURL}/tasks`, {
-      method: "get",
-      dataType: "json",
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let data = await response.json();
-    return dispatch({
-      type: EDIT_TASKS,
-      tasks: data[0],
-    });
-  };
-}
-
-// Pushes updates to default daily tasks
-export function editDefaultDailyTask(defaultTasks) {
-  return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-
-    const response = await fetch(`${serverURL}/updateDefaultTasks`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ defaultTasks }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
-    if (data.status === "Successful") {
-      return dispatch({
-        type: EDIT_DEFAULT_TASK,
-        defaultTasks,
       });
     }
   };
