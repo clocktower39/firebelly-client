@@ -434,7 +434,7 @@ export function updateWorkoutDateById(training, newDate, newTitle) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...training, date: newDate },
-        workouts: [...state.LEGACY_workouts.filter((workout) => workout._id !== training._id)],
+        workouts: [...state.workouts.filter((workout) => workout._id !== training._id)],
       });
     }
   };

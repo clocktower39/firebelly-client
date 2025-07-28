@@ -5,8 +5,6 @@ export let user = {
 
 export let exerciseLibrary = [];
 
-export let LEGACY_workouts = [];
-
 export let workouts = {
     // user_id: {
     //     workouts: [ ...workouts ]

@@ -18,7 +18,6 @@ function Home() {
   const workouts = useSelector((state) => {
     return state.workouts?.[user._id]?.workouts ?? [];
   });
-  // const workouts = useSelector((state) => state.LEGACY_workouts);
   const [loading, setLoading] = useState(true);
 
   const isValidDate = (date) => {
