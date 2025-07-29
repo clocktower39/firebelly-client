@@ -250,7 +250,7 @@ function SwipeableSet(props) {
                   <Typography variant="body1">Feedback:</Typography>
                 </Grid>
                 <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  <IconButton onClick={handleFeedbackDialogOpen}>
+                  <IconButton onClick={handleFeedbackDialogOpen} disabled >
                     <AddCircle />
                   </IconButton>
                   Choose Exercises
@@ -262,13 +262,14 @@ function SwipeableSet(props) {
                 </Grid>
                 <Grid container size={12} sx={{ padding: "30px 0" }}>
                   <TextField
-                    label="Overall Feedback"
+                    label="Overall Feedback (Disabled, working out final details)"
                     value={workoutFeedback}
                     fullWidth
                     multiline
                     minRows={5}
                     onKeyDown={handleFeedbackKeyDown}
                     onChange={handleFeedbackChange}
+                    disabled
                   />
                 </Grid>
               </Grid>
