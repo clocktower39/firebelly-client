@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Badge,
@@ -20,76 +21,36 @@ import {
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
-import { serverURL } from "../../Redux/actions";
+import { requestTrainingWeek, serverURL } from "../../Redux/actions";
 
 export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) {
+  const dispatch = useDispatch();
   const date = dayjs(selectedDate);
   const [weeklyData, setWeeklyData] = useState([]);
+  const user = useSelector((state) => state.user);
+  const workouts = useSelector((state) => state.workouts?.[user._id]?.workouts ?? []);
 
-  const fillData = [
-    { workouts: [], date: date.subtract(6, "day").format("YYYY-MM-DD") },
-    { workouts: [], date: date.subtract(5, "day").format("YYYY-MM-DD") },
-    { workouts: [], date: date.subtract(4, "day").format("YYYY-MM-DD") },
-    { workouts: [], date: date.subtract(3, "day").format("YYYY-MM-DD") },
-    { workouts: [], date: date.subtract(2, "day").format("YYYY-MM-DD") },
-    { workouts: [], date: date.subtract(1, "day").format("YYYY-MM-DD") },
-    { workouts: [], date },
-  ];
+  const weekDates = Array.from({ length: 7 }, (_, i) =>
+    date.subtract(6 - i, "day").format("YYYY-MM-DD")
+  );
 
-  const weekData = fillData.map((dayOfWeek) => {
-    const matchingWorkouts = [];
-    let complete = false; // Default to false
-
-    weeklyData.forEach((weeklyDataDay) => {
-      if (
-        dayjs(dayOfWeek.date).format("YYYY-MM-DD") ===
-        dayjs.utc(weeklyDataDay.date).format("YYYY-MM-DD")
-      ) {
-        matchingWorkouts.push(weeklyDataDay);
-        if (weeklyDataDay.complete) {
-          complete = true; // Set to true if any workout is complete
-        }
-      }
-    });
-
-    // Set complete to true only if all workouts for the day are complete
-    if (matchingWorkouts.length > 0 && matchingWorkouts.every((workout) => workout.complete)) {
-      complete = true;
-    } else {
-      complete = false;
-    }
-
-    return { ...dayOfWeek, workouts: [...matchingWorkouts], complete };
+  const weekData = weekDates.map((dateStr) => {
+    const dayWorkouts = workouts.filter(
+      (w) => dayjs.utc(w.date).format("YYYY-MM-DD") === dateStr
+    );
+    const complete = dayWorkouts.length > 0 && dayWorkouts.every((w) => w.complete);
+    return { date: dateStr, workouts: dayWorkouts, complete };
   });
 
   useEffect(() => {
-    const fetchWeelyData = async () => {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-      const response = await fetch(`${serverURL}/trainingWeek`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({ date }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
-      return data;
-    };
-
-    fetchWeelyData().then((wd) => setWeeklyData(wd));
+    dispatch(requestTrainingWeek(date.format("YYYY-MM-DD"), user._id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedDate]);
   return (
     <>
       <Grid container sx={{ justifyContent: "center" }}>
         {weekData.map((day) => (
-          <DayStatusView
-            day={day}
-            key={day.date}
-            setSelectedDate={setSelectedDate}
-          />
+          <DayStatusView day={day} key={day.date} setSelectedDate={setSelectedDate} />
         ))}
       </Grid>
     </>
@@ -164,7 +125,7 @@ const exerciseTypeFields = (exerciseType) => {
   }
 };
 
-const DayStatusView = ({ day, setSelectedDate, }) => {
+const DayStatusView = ({ day, setSelectedDate }) => {
   const handleMoveToDate = () => {
     setSelectedDate(dayjs(day.date).format("YYYY-MM-DD"));
   };

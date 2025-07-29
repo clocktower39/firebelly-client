@@ -7,7 +7,6 @@ import {
   EDIT_HOME_WORKOUTS,
   ADD_WORKOUT,
   EDIT_TRAINING,
-  EDIT_WEEKLY_VIEW,
   EDIT_EXERCISE_LIBRARY,
   EDIT_PROGRESS_EXERCISE_LIST,
   EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
@@ -154,14 +153,6 @@ export let reducer = (
         ...state,
         user: {
           ...action.user,
-        },
-      };
-    case EDIT_WEEKLY_VIEW:
-      return {
-        ...state,
-        calendar: {
-          ...state.calendar,
-          weeklyView: [...action.weeklyView],
         },
       };
     case EDIT_EXERCISE_LIBRARY:

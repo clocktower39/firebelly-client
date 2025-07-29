@@ -10,7 +10,6 @@ export const EDIT_HOME_WORKOUTS = "EDIT_HOME_WORKOUTS";
 export const EDIT_WORKOUTS = "EDIT_WORKOUTS";
 export const ADD_WORKOUT = "ADD_WORKOUT";
 export const EDIT_TRAINING = "EDIT_TRAINING";
-export const EDIT_WEEKLY_VIEW = "EDIT_WEEKLY_VIEW";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
@@ -519,7 +518,7 @@ export function deleteWorkoutById(trainingId, accountId) {
 }
 
 // Fetches training stats from a range
-export function requestTrainingWeek(startDate, endDate) {
+export function requestTrainingWeek(date, accountId) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const state = getState();
@@ -528,8 +527,7 @@ export function requestTrainingWeek(startDate, endDate) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
-        startDate,
-        endDate,
+        date,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -538,18 +536,10 @@ export function requestTrainingWeek(startDate, endDate) {
     });
     let data = await response.json();
 
-    const newWeeklyView = state.calendar.weeklyView.map((day, index) => {
-      data.forEach((dataDay, dataIndex) => {
-        if (new Date(dataDay.date).getDay() === index) {
-          day.training = dataDay;
-        }
-      });
-      return day;
-    });
-
     return dispatch({
-      type: EDIT_WEEKLY_VIEW,
-      weeklyView: newWeeklyView,
+      type: EDIT_WORKOUTS,
+      workouts: [...data],
+      accountId,
     });
   };
 }
