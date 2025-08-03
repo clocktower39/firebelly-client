@@ -3,6 +3,9 @@ import { useDispatch } from "react-redux";
 import { loginJWT } from "../../Redux/actions";
 import { Box, Container, Divider, Grid, List, ListItem, Typography } from "@mui/material";
 import WebsiteNavbar from "./WebsiteNavbar";
+import Nutrition from "./Nutrition";
+import Workshops from "./Workshops";
+import Training from "./TrainingInfo";
 import Footer from "../../Components/Footer";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import DeadliftImg from "../../img/deadlift.jpg";
@@ -111,12 +114,12 @@ export default function Home() {
                   variant="h4"
                   textAlign="center"
                   gutterBottom
-                  sx={{ fontFamily: "Montserrat", paddingBottom: '15px', }}
+                  sx={{ fontFamily: "Montserrat", paddingBottom: "15px" }}
                 >
                   About Me
                 </Typography>
               </Grid>
-              <Grid container size={{ xs: 12, md: 6, }}>
+              <Grid container size={{ xs: 12, md: 6 }}>
                 <Grid>
                   <Typography sx={{ fontFamily: "Source Sans Pro" }}>
                     I have always had a passion for understanding, never able to accept "that’s just
@@ -163,7 +166,7 @@ export default function Home() {
               </Grid>
               <Grid
                 container
-                size={{ xs: 12, md: 6, }} 
+                size={{ xs: 12, md: 6 }}
                 sx={{ justifyContent: "center", alignItems: "center" }}
               >
                 <img
@@ -173,6 +176,24 @@ export default function Home() {
                 />
               </Grid>
             </Grid>
+            <Container maxWidth="lg">
+              <Grid size={12}>
+                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+              </Grid>
+            </Container>
+            <Nutrition />
+            <Container maxWidth="lg">
+              <Grid size={12}>
+                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+              </Grid>
+            </Container>
+            <Workshops />
+            <Container maxWidth="lg">
+              <Grid size={12}>
+                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+              </Grid>
+            </Container>
+            <Training />
           </Container>
         </Container>
       </Grid>
