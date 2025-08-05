@@ -1,11 +1,11 @@
 import React from "react";
 import WebsiteNavbar from "./WebsiteNavbar";
 import Footer from "../../Components/Footer";
-import { Container, List, ListItem, Paper, Typography } from "@mui/material";
+import { Container, Grid, List, ListItem, Paper, Typography } from "@mui/material";
 
 export default function Workshops() {
   return (
-    <>
+    <Grid id="workshops">
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Workshops
       </Typography>
@@ -29,6 +29,6 @@ export default function Workshops() {
         </ListItem>
         <ListItem sx={{ display: "list-item", fontFamily: "inherit" }}>Stretching</ListItem>
       </List>
-    </>
+    </Grid>
   );
 }

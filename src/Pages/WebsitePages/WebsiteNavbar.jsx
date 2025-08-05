@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { HashLink as Link } from "react-router-hash-link";
 import {
   AppBar,
   Avatar,
@@ -99,25 +99,25 @@ export default function WebsiteNavbar() {
             />
           }
         >
-          <Button sx={classes.NavLink} component={Link} to="/">
+          <Button sx={classes.NavLink} component={Link} to="/#">
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Home</Box>
               <Home sx={{ color: "#FFF" }} />
             </Stack>
           </Button>
-          <Button sx={classes.NavLink} component={Link} to="/nutrition">
+          <Button sx={classes.NavLink} component={Link} to="/#nutrition">
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Nutrition</Box>
               <Restaurant sx={{ color: "#00AA00" }} />
             </Stack>
           </Button>
-          <Button sx={classes.NavLink} component={Link} to="/workshops">
+          <Button sx={classes.NavLink} component={Link} to="/#workshops">
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Workshops</Box>
               <Workspaces sx={{ color: "#008080" }} />
             </Stack>
           </Button>
-          <Button sx={classes.NavLink} component={Link} to="/training">
+          <Button sx={classes.NavLink} component={Link} to="/#training">
             <Stack justifyContent="center" alignItems="center">
               <Box sx={{ display: wide ? "block" : "none", color: "#fff" }}>Training</Box>
               <FitnessCenter sx={{ color: "#d50000" }} />

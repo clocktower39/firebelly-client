@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Container,
+  Grid,
   Paper,
   Typography,
   Table,
@@ -27,7 +28,7 @@ const classes = {
 
 export default function Nutrition() {
   return (
-    <>
+    <Grid id="nutrition">
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Nutrition
       </Typography>
@@ -186,6 +187,6 @@ export default function Nutrition() {
         the numbers easier to look at, simply think of 1 pound per week is being in a 500 calorie
         deficit from your daily TEE (3500cal / 7 Days = 500cal)
       </Typography>
-    </>
+    </Grid>
   );
 }

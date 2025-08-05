@@ -1,11 +1,11 @@
 import React from "react";
 import WebsiteNavbar from "./WebsiteNavbar";
-import { Container, List, ListItem, Paper, Typography } from "@mui/material";
+import { Container, Grid, List, ListItem, Paper, Typography } from "@mui/material";
 import Footer from "../../Components/Footer";
 
 export default function TrainingInfo() {
   return (
-    <>
+    <Grid id="training" >
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Training
       </Typography>
@@ -36,6 +36,6 @@ export default function TrainingInfo() {
           Strength Gains Custom
         </ListItem>
       </List>
-    </>
+    </Grid>
   );
 }
