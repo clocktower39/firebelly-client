@@ -5,7 +5,7 @@ import { Container, Grid, List, ListItem, Paper, Typography } from "@mui/materia
 
 export default function Workshops() {
   return (
-    <Grid id="workshops">
+    <Grid id="workshops" sx={{ padding: '100px 0', }} >
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Workshops
       </Typography>

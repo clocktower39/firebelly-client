@@ -28,7 +28,7 @@ const classes = {
 
 export default function Nutrition() {
   return (
-    <Grid id="nutrition">
+    <Grid id="nutrition" sx={{ padding: '100px 0', }} >
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Nutrition
       </Typography>

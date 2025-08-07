@@ -5,7 +5,7 @@ import Footer from "../../Components/Footer";
 
 export default function TrainingInfo() {
   return (
-    <Grid id="training" >
+    <Grid id="training" sx={{ padding: '100px 0', }} >
       <Typography variant="h4" textAlign="center" gutterBottom sx={{ fontFamily: "Montserrat" }}>
         Training
       </Typography>
