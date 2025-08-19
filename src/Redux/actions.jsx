@@ -430,10 +430,19 @@ export function updateWorkoutDateById(training, newDate, newTitle) {
         error: data.error,
       });
     } else {
+      const accountId = training.user._id;
       return dispatch({
         type: EDIT_TRAINING,
         training: { ...training, date: newDate },
-        workouts: [...state.workouts.filter((workout) => workout._id !== training._id)],
+        workouts: {
+          ...state.workouts,
+          [accountId]: {
+            ...state.workouts[accountId],
+            workouts: state.workouts[accountId].workouts.filter(
+              (workout) => workout._id !== training._id
+            ),
+          },
+        },
       });
     }
   };

@@ -79,7 +79,6 @@ export function ModalAction(props) {
     const handleTitleChange = (e) => setNewTitle(e.target.value);
   
     const handleMove = () => {
-      console.log(newTitle)
       dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
         if (res?.error !== undefined) {
           setActionError(res.error);
