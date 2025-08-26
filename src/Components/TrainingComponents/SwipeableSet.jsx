@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef, Fragment, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { serverURL } from "../../Redux/actions";
 import {
   AppBar,
+  Avatar,
   Box,
   Button,
   Checkbox,
@@ -17,6 +19,7 @@ import {
   ListItem,
   ListItemText,
   MobileStepper,
+  Paper,
   Radio,
   RadioGroup,
   Slide,
@@ -35,6 +38,7 @@ import {
 import SwipeableViews from "react-swipeable-views";
 import Exercise from "./Exercise";
 import { ExerciseListAutocomplete, Transition } from "../../Pages/AppPages/Workout";
+import dayjs from "dayjs";
 
 function SwipeableSet(props) {
   const {
@@ -112,13 +116,13 @@ function SwipeableSet(props) {
   };
 
   const allExercises = useMemo(() => {
-    return localTraining.flatMap((group) => group.map((ex) => ex.exercise));
+    return localTraining.flatMap((group) => group.map((ex) => ex));
   }, [localTraining]);
 
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const handleFeedbackDialogOpen = () => setFeedbackDialogOpen(true);
   const handleFeedbackDialogClose = () => setFeedbackDialogOpen(false);
-  const [feedbackSelectedExercises, setFeedbackSelectedExercises] = useState([]); 
+  const [feedbackSelectedExercises, setFeedbackSelectedExercises] = useState([...allExercises]);
 
   useEffect(() => {
     const update = () => {
@@ -153,7 +157,7 @@ function SwipeableSet(props) {
   }, [toggleNewSet]);
 
   useEffect(() => {
-    handleStepChange(0);
+    handleStepChange(4);
   }, [selectedDate]);
 
   return (
@@ -250,7 +254,7 @@ function SwipeableSet(props) {
                   <Typography variant="body1">Feedback:</Typography>
                 </Grid>
                 <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  <IconButton onClick={handleFeedbackDialogOpen} disabled >
+                  <IconButton onClick={handleFeedbackDialogOpen} >
                     <AddCircle />
                   </IconButton>
                   Choose Exercises
@@ -269,7 +273,6 @@ function SwipeableSet(props) {
                     minRows={5}
                     onKeyDown={handleFeedbackKeyDown}
                     onChange={handleFeedbackChange}
-                    disabled
                   />
                 </Grid>
               </Grid>
@@ -329,16 +332,16 @@ function SwipeableSet(props) {
 }
 
 const FeedbackExerciseInput = ({ exercise }) => {
-  const [feedbackDifficulty, setFeedbackDifficulty] = useState("");
+  const [feedbackDifficulty, setFeedbackDifficulty] = useState(exercise.feedback.difficulty);
 
   const handleFeedbackDifficultyChange = (event) => {
-    setFeedbackDifficulty(event.target.value);
+    setFeedbackDifficulty(Number(event.target.value));
   };
 
   return (
-    <Grid container size={12} key={exercise._id}>
+    <Grid container size={12} key={exercise._id} component={Paper} spacing={1} sx={{ backgroundColor: '#282828', padding: '15px 7.5px', }}>
       <Grid container size={12}>
-        <Typography>{exercise.exerciseTitle}:</Typography>
+        <Typography>{exercise.exercise.exerciseTitle}:</Typography>
       </Grid>
       <Grid container size={12} sx={{ padding: "0px 15px" }}>
         <Typography sx={{ mb: 1 }}>Rate Difficulty:</Typography>
@@ -355,10 +358,10 @@ const FeedbackExerciseInput = ({ exercise }) => {
           }}
         >
           <FormControlLabel
-            value="tooEasy"
+            value={0}
             control={
               <Radio
-                checked={feedbackDifficulty === "tooEasy"}
+                checked={feedbackDifficulty === 0}
                 sx={{
                   "&.Mui-checked": {
                     color: "secondary.main",
@@ -369,7 +372,7 @@ const FeedbackExerciseInput = ({ exercise }) => {
             label={
               <Typography
                 sx={{
-                  color: feedbackDifficulty === "tooEasy" ? "secondary.main" : "text.primary",
+                  color: feedbackDifficulty === 0 ? "secondary.main" : "text.primary",
                 }}
               >
                 Too Easy
@@ -377,10 +380,10 @@ const FeedbackExerciseInput = ({ exercise }) => {
             }
           />
           <FormControlLabel
-            value="perfect"
+            value={1}
             control={
               <Radio
-                checked={feedbackDifficulty === "perfect"}
+                checked={feedbackDifficulty === 1}
                 sx={{
                   "&.Mui-checked": {
                     color: "primary.main",
@@ -391,7 +394,7 @@ const FeedbackExerciseInput = ({ exercise }) => {
             label={
               <Typography
                 sx={{
-                  color: feedbackDifficulty === "perfect" ? "primary.main" : "text.primary",
+                  color: feedbackDifficulty === 1 ? "primary.main" : "text.primary",
                 }}
               >
                 Perfect
@@ -399,10 +402,10 @@ const FeedbackExerciseInput = ({ exercise }) => {
             }
           />
           <FormControlLabel
-            value="tooHard"
+            value={2}
             control={
               <Radio
-                checked={feedbackDifficulty === "tooHard"}
+                checked={feedbackDifficulty === 2}
                 sx={{
                   "&.Mui-checked": {
                     color: "#d32f2f",
@@ -413,7 +416,7 @@ const FeedbackExerciseInput = ({ exercise }) => {
             label={
               <Typography
                 sx={{
-                  color: feedbackDifficulty === "tooHard" ? "#d32f2f" : "text.primary", // custom red
+                  color: feedbackDifficulty === 2 ? "#d32f2f" : "text.primary", // custom red
                 }}
               >
                 Too Hard
@@ -422,8 +425,43 @@ const FeedbackExerciseInput = ({ exercise }) => {
           />
         </RadioGroup>
       </Grid>
+      {exercise.feedback.comments.map(comment => {
+        return (
+          <Grid container sx={{ padding: '25px 0', }}>
+            <Grid container size={2} sx={{ justifyContent: 'center', }}>
+              <Avatar src={comment.user.profilePicture ? `${serverURL}/user/profilePicture/${comment.user.profilePicture}` : null} />
+            </Grid>
+            <Grid container size={8}>
+              <Typography variant="body2" display="inline">
+                {comment.user.firstName}{" "}{comment.user.lastName}
+              </Typography>
+              <Typography
+                variant="subtitle2"
+                display="inline"
+                sx={{
+                  opacity: ".33",
+                }}
+              >
+                {dayjs(comment.timestamp).format("MM/DD/YYYY h:mm:ss A")}
+              </Typography>
+              <Typography variant="body1" display="block">
+                {comment.text}
+              </Typography>
+            </Grid>
+          </Grid>
+        )
+      })}
       <Grid container size={12} sx={{ padding: "0px 15px" }}>
-        <TextField label="Comments" fullWidth multiline minRows={3} />
+        <TextField label="Add comment..." fullWidth multiline
+          slotProps={{
+            input: {
+              endAdornment: (
+                <Button variant="contained" color="primary" onClick={(e) => handleMessageSubmit(e)}>
+                  Submit
+                </Button>
+              ),
+            }
+          }} />
       </Grid>
     </Grid>
   );
@@ -494,17 +532,16 @@ const FeedbackDialog = ({
           />
           <Divider sx={{ my: 1 }} />
           {exerciseList
-            .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
             .map((exercise) => (
               <FormControlLabel
-                key={exercise._id}
+                key={exercise.exercise._id}
                 control={
                   <Checkbox
-                    checked={selectedExercises.some((ex) => ex._id === exercise._id)}
+                    checked={selectedExercises.some((ex) => ex.exercise._id === exercise.exercise._id)}
                     onChange={() => handleToggle(exercise)}
                   />
                 }
-                label={exercise.exerciseTitle}
+                label={exercise.exercise.exerciseTitle}
                 sx={{ userSelect: "none" }}
               />
             ))}
