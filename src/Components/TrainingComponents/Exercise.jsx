@@ -50,168 +50,6 @@ const classes = {
   },
 };
 
-export const NotesDialog = (props) => {
-  const { user, notes = [], open, handleClose } = props;
-
-  const CommentCard = ({ i, comment, firstComment = false }) => {
-    const [anchorEl, setAnchorEl] = React.useState(null);
-
-    const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
-
-    return (
-      <Grid
-        key={comment._id || i}
-        sx={
-          comment.user.username === user.username
-            ? {
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                margin: "10px 0px",
-                borderRadius: "7.5px",
-                backgroundColor: "rgb(21, 101, 192)",
-                color: "white",
-              }
-            : {
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                margin: "10px 0px",
-                borderRadius: "7.5px",
-                backgroundColor: "#23272A",
-                color: "white",
-              }
-        }
-        container
-      >
-        <Grid container size={2} sx={{ justifyContent: "center" }}>
-          <Avatar
-            sx={classes.avatarComment}
-            alt={`${comment.user.firstName[0]}${comment.user.lastName[0]}`}
-            src={
-              comment.user.profilePicture
-                ? `${serverURL}/user/profilePicture/${comment.user.profilePicture}`
-                : null
-            }
-          />
-        </Grid>
-        <Grid size={8}>
-          <Typography variant="h6" display="inline">
-            {comment.user.username}{" "}
-          </Typography>
-          <Typography
-            variant="subtitle1"
-            display="inline"
-            sx={{
-              fontSize: "16px",
-              opacity: ".33",
-            }}
-          >
-            {comment.timestamp == null
-              ? null
-              : `${new Date(comment.timestamp)
-                  .toLocaleDateString()
-                  .substr(
-                    0,
-                    new Date(comment.timestamp).toLocaleDateString().length - 5
-                  )} ${new Date(comment.timestamp).toLocaleTimeString()}`}
-          </Typography>
-          <Typography variant="subtitle1" display="block">
-            {comment.text}
-          </Typography>
-        </Grid>
-        <Grid size={2}>
-          {comment.user.username === user.username ? (
-            <IconButton onClick={() => null}>
-              <Delete />
-            </IconButton>
-          ) : (
-            <>
-              <IconButton aria-haspopup="true" onClick={handleClick}>
-                <MoreHoriz />
-              </IconButton>
-              <Menu
-                id="simple-menu"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleClose}>👍🏽</MenuItem>
-                <MenuItem onClick={handleClose}>🍞</MenuItem>
-                <MenuItem onClick={handleClose}>👎🏽</MenuItem>
-              </Menu>
-            </>
-          )}
-        </Grid>
-      </Grid>
-    );
-  };
-
-  const CommentField = ({ user }) => {
-    const [comment, setComment] = useState("");
-
-    const handlePostComment = () => {
-      if (comment !== "") {
-        setComment("");
-      }
-    };
-    return (
-      <Grid container alignItems="center">
-        <Grid size={12}>
-          <TextField
-            label="Add a comment..."
-            fullWidth
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <Button variant="contained" onClick={handlePostComment}>
-                  Submit
-                </Button>
-              ),
-            }}
-          />
-        </Grid>
-      </Grid>
-    );
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClose} PaperProps={{ sx: { width: "80%", height: "100%" } }}>
-      <div
-        style={{
-          height: "calc(100% - 72px)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {notes.length > 0 ? (
-          notes.map((note, i) => <CommentCard key={note._id || i} i={i} comment={note} />)
-        ) : (
-          <Typography textAlign="center" variant="h5">
-            No comments
-          </Typography>
-        )}
-      </div>
-      <div
-        style={{
-          backgroundColor: "#23272a",
-          width: "100%",
-        }}
-      >
-        <CommentField user={user} />
-      </div>
-    </Dialog>
-  );
-};
-
 export default function Exercise(props) {
   const {
     workoutUser,
@@ -248,9 +86,6 @@ export default function Exercise(props) {
   const handleExerciseOptionsClose = () => {
     setAnchorEl(null);
   };
-
-  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
-  const handleNotesDialogClose = () => setNotesDialogOpen(false);
 
   const user = useSelector((state) => state.user);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
@@ -698,14 +533,6 @@ export default function Exercise(props) {
             >
               Edit Exercise
             </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setNotesDialogOpen(true);
-                handleExerciseOptionsClose();
-              }}
-            >
-              Notes
-            </MenuItem>
           </Menu>
           <LogLoader
             fields={LoggedFields()}
@@ -719,14 +546,6 @@ export default function Exercise(props) {
         </>
       )}
 
-      {notesDialogOpen && (
-        <NotesDialog
-          open={notesDialogOpen}
-          user={user}
-          notes={exercise.notes}
-          handleClose={handleNotesDialogClose}
-        />
-      )}
       {open && (
         <ModalBarChartHistory
           workoutUser={workoutUser}

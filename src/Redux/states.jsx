@@ -31,14 +31,6 @@ export let training = {
     ]
 };
 
-export let notes = [
-    // {
-    //     date: '',
-    //     accountId: '',
-    //     note: '',
-    // },
-]
-
 export let progress = {
     exerciseList: [],
 }
