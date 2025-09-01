@@ -12,41 +12,12 @@ export let workouts = {
 };
 
 export let training = {
-    trainingCategory: "",
-    training: [
-        // [
-        //     {
-        //         exercise: "Incline DB Chest Press",
-        //         goals: {
-        //             sets: 4,
-        //             minReps: 12,
-        //             maxReps: 15,
-        //         },
-        //         achieved: {
-        //             sets: 4,
-        //             reps: [],
-        //         }
-        //     }
-        // ],
-    ]
+    category: "",
+    training: [],
 };
 
 export let progress = {
     exerciseList: [],
-}
-
-export let calendar = {
-    weeklyView: [
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-    ],
-    monthlyView: {
-    },
 }
 
 export let clients = [];

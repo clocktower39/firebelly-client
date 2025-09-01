@@ -22,7 +22,6 @@ import {
 } from "./actions";
 import {
   user,
-  calendar,
   exerciseLibrary,
   progress,
   workouts,
@@ -36,7 +35,6 @@ import {
 export let reducer = (
   state = {
     user,
-    calendar,
     exerciseLibrary,
     progress,
     workouts,
