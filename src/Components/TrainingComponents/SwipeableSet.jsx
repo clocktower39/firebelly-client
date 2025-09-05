@@ -157,7 +157,7 @@ function SwipeableSet(props) {
   }, [toggleNewSet]);
 
   useEffect(() => {
-    handleStepChange(4);
+    handleStepChange(0);
   }, [selectedDate]);
 
   return (
