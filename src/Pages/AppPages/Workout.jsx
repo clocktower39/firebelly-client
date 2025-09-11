@@ -7,31 +7,23 @@ import {
   AppBar,
   Autocomplete,
   Avatar,
-  Box,
   Button,
   Chip,
   Dialog,
   DialogContent,
-  DialogTitle,
   Divider,
   Grid,
   IconButton,
   List,
   ListItem,
   ListItemText,
-  ListItemAvatar,
-  Modal,
   Slide,
-  Stepper,
-  Step,
-  StepLabel,
   TextField,
   Toolbar,
   Tooltip,
   Typography,
 } from "@mui/material";
 import { ArrowBack, Close as CloseIcon, Settings } from "@mui/icons-material";
-import SelectedDate from "../../Components/SelectedDate";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
@@ -85,7 +77,7 @@ export default function Workout({ socket }) {
   const [trainingTitle, setTrainingTitle] = useState("");
   const [workoutCompleteStatus, setWorkoutCompleteStatus] = useState(training?.complete || false);
   const [loading, setLoading] = useState(true);
-  const [workoutFeedback, setWorkoutFeedback] = useState(training?.feedback || "");
+  const [workoutFeedback, setWorkoutFeedback] = useState(training?.workoutFeedback || { difficulty: 1, comments: []});
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
 
@@ -219,6 +211,7 @@ export default function Workout({ socket }) {
         category: [...trainingCategory],
         training: localTraining,
         complete: workoutCompleteStatus,
+        workoutFeedback: workoutFeedback,
       })
     ).then(() => {
       socket.emit("liveTrainingUpdate", {
@@ -246,6 +239,7 @@ export default function Workout({ socket }) {
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
     setWorkoutCompleteStatus(training?.complete || false);
+    setWorkoutFeedback(training?.workoutFeedback || { difficulty: 1, comments: []});
     if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
