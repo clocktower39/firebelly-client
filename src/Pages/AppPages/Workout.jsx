@@ -1,7 +1,8 @@
-import React, { useCallback, useState, useEffect, useRef, Fragment, } from "react";
+import React, { useCallback, useState, useEffect, useRef, Fragment, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import deepEqual from "fast-deep-equal/react";
 import { debounce } from "lodash";
 import {
   AppBar,
@@ -77,9 +78,114 @@ export default function Workout({ socket }) {
   const [trainingTitle, setTrainingTitle] = useState("");
   const [workoutCompleteStatus, setWorkoutCompleteStatus] = useState(training?.complete || false);
   const [loading, setLoading] = useState(true);
-  const [workoutFeedback, setWorkoutFeedback] = useState(training?.workoutFeedback || { difficulty: 1, comments: []});
+  const [workoutFeedback, setWorkoutFeedback] = useState(training?.workoutFeedback || { difficulty: 1, comments: [] });
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+
+  // ---------------------- Dirty check infra (baseline + normalize + composite) ----------------------
+  const baselineRef = useRef(null);
+
+  const normalize = useCallback((obj) => {
+    // Create a structured clone; if not supported, JSON clone is fine for plain data
+    const clone = typeof structuredClone === "function" ? structuredClone(obj) : JSON.parse(JSON.stringify(obj ?? {}));
+
+    // Drop volatile fields you don't want affecting dirtiness
+    delete clone?._id;
+    delete clone?.user; // or keep only user._id if you care about assignment changes
+
+    // Normalize arrays for stable compare
+    if (Array.isArray(clone?.training)) {
+      clone.training = clone.training.map((block) =>
+        Array.isArray(block)
+          ? block.map((set) => {
+            // Normalize exercise refs to id strings when present
+            if (set?.exercise && typeof set.exercise === "object" && set.exercise._id) {
+              set.exercise = String(set.exercise._id);
+            }
+            return set;
+          })
+          : block
+      );
+    }
+
+    if (Array.isArray(clone?.category)) {
+      clone.category = [...clone.category].map(String).sort((a, b) => a.localeCompare(b));
+    }
+
+    if (clone?.workoutFeedback?.comments) {
+      clone.workoutFeedback.comments = clone.workoutFeedback.comments.map((c) => ({
+        ...c,
+        _id: undefined, // ignore DB ids
+        timestamp: c?.timestamp ? new Date(c.timestamp).toISOString() : null,
+      }));
+    }
+
+    clone.complete = !!clone.complete;
+    clone.title = clone.title ?? "";
+    clone.category = clone.category ?? [];
+    clone.workoutFeedback = clone.workoutFeedback ?? { difficulty: 1, comments: [] };
+    clone.training = clone.training ?? [];
+
+    return clone;
+  }, []);
+
+  const buildLocalComposite = useCallback(() => ({
+    title: trainingTitle,
+    category: trainingCategory,
+    complete: workoutCompleteStatus,
+    workoutFeedback,
+    training: localTraining,
+  }), [trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining]);
+
+  // Hydrate locals when Redux training changes and set the baseline snapshot
+  useEffect(() => {
+    if (!training) return;
+
+    // Optional: hydrate local UI from Redux when workout is loaded/switched
+    setLocalTraining(training.training ?? []);
+    setTrainingCategory(training.category ?? []);
+    setTrainingTitle(training.title ?? "");
+    setWorkoutCompleteStatus(!!training.complete);
+    setWorkoutFeedback(training.workoutFeedback ?? { difficulty: 1, comments: [] });
+
+    baselineRef.current = normalize({
+      title: training.title ?? "",
+      category: training.category ?? [],
+      complete: !!training.complete,
+      workoutFeedback: training.workoutFeedback ?? { difficulty: 1, comments: [] },
+      training: training.training ?? [],
+    });
+
+    setLoading(false);
+  }, [training, normalize]);
+
+  // Compute isDirty by comparing normalized local composite vs. baseline snapshot
+  const isDirty = useMemo(() => {
+    if (!baselineRef.current) return false;
+    const localComposite = buildLocalComposite();
+    return !deepEqual(baselineRef.current, normalize(localComposite));
+  }, [buildLocalComposite, normalize, trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining]);
+
+  // Save handler — replace with your thunk/API call
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const payload = buildLocalComposite();
+
+      // TODO: dispatch your save thunk here, e.g. dispatch(saveTraining(payload))
+      await new Promise((r) => setTimeout(r, 500)); // simulate IO
+
+      // After successful save, update baseline so button returns to clean immediately
+      baselineRef.current = normalize(payload);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
@@ -125,7 +231,7 @@ export default function Workout({ socket }) {
   };
 
   // Create a new exercise on the current set
-  const confirmedNewExercise = (index, selectedExercises, setSelectedExercises, setCount, setSelectedExercisesSetCount, ) => {
+  const confirmedNewExercise = (index, selectedExercises, setSelectedExercises, setCount, setSelectedExercisesSetCount,) => {
     if (selectedExercises.length > 0) {
       const newTraining = localTraining.map((group, i) => {
         if (index === i) {
@@ -239,7 +345,7 @@ export default function Workout({ socket }) {
     setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
     setTrainingTitle(training.title || "");
     setWorkoutCompleteStatus(training?.complete || false);
-    setWorkoutFeedback(training?.workoutFeedback || { difficulty: 1, comments: []});
+    setWorkoutFeedback(training?.workoutFeedback || { difficulty: 1, comments: [] });
     if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
@@ -504,7 +610,13 @@ export default function Workout({ socket }) {
                   paddingBottom: "5px",
                 }}
               >
-                <Button variant="contained" onClick={save} fullWidth>
+                <Button
+                  variant="contained"
+                  onClick={save}
+                  fullWidth
+                  disabled={loading}
+                  color={isDirty ? "warning" : "primary"}
+                >
                   Save
                 </Button>
               </Grid>
@@ -540,7 +652,7 @@ export default function Workout({ socket }) {
   );
 }
 
-export const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelectedExercises, disableCloseOnSelect=false, }) => {
+export const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setSelectedExercises, disableCloseOnSelect = false, }) => {
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
