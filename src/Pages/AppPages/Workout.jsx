@@ -484,7 +484,7 @@ export default function Workout({ socket }) {
                         `${serverURL}/user/profilePicture/${training.user.profilePicture}`
                       }
                       sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-                      alt={`${training?.user.firstName[0]} ${training?.user.lastName[0]}`}
+                      alt={ training?.user ? `${training?.user.firstName[0]} ${training?.user.lastName[0]}`:'loading'}
                     />
                     <Typography variant="h5">
                       {training?.user.firstName} {training?.user.lastName}
