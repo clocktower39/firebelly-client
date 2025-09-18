@@ -476,7 +476,7 @@ export default function Workout({ socket }) {
                   paddingTop: "15px",
                 }}
               >
-                {!isPersonalWorkout() && (
+                {!isPersonalWorkout() && training.user.firstName && (
                   <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
                     <Avatar
                       src={
