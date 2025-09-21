@@ -24,11 +24,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -224,17 +224,12 @@ export function requestTraining(trainingId) {
 }
 
 // Fetches workouts by date
-export function requestWorkoutsByDate(date, requestedBy = "client", client) {
+export function requestWorkoutsByDate(date, client=null, ) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
     let url = `${serverURL}/workouts`;
-    let requestbody = { date, client: null };
-
-    if (requestedBy === "trainer") {
-      url = `${serverURL}/getClientTraining`;
-      requestbody.client = client;
-    }
+    let requestbody = { date, client };
 
     const response = await fetch(url, {
       method: "post",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import queryString from "query-string";
@@ -12,11 +12,15 @@ import { requestWorkoutsByDate } from "../../Redux/actions";
 
 function Home() {
   const location = useLocation();
-  const { date } = queryString.parse(location.search);
+  const { date, client, } = queryString.parse(location.search);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
+  const isPersonalWorkout = useCallback(
+    () => client ? user._id.toString() === client : true,
+    [user._id, client]
+  );
   const workouts = useSelector((state) => {
-    return state.workouts?.[user._id]?.workouts ?? [];
+    return state.workouts?.[isPersonalWorkout() ? user._id : client]?.workouts ?? [];
   });
   const [loading, setLoading] = useState(true);
 
@@ -72,18 +76,31 @@ function Home() {
   }, [workouts, selectedDate]);
 
   useEffect(() => {
-    if (selectedDate !== null) {
+    if (selectedDate) {
       const newDate = dayjs(selectedDate).utc().format("YYYYMMDD");
-      const newUrl = `/?date=${newDate}`;
-      window.history.replaceState(null, "", newUrl);
-      
+
+      // Parse current query params (e.g., ?date=..., ?client=..., others)
+      const currentQuery = queryString.parse(location.search);
+
+      // Overwrite only the date; keep everything else (like `client`) intact
+      const nextQuery = { ...currentQuery, date: newDate };
+
+      // Build and replace the URL
+      const nextSearch = queryString.stringify(nextQuery, {
+        skipNull: true,
+        skipEmptyString: true,
+      });
+      const nextUrl = `/?${nextSearch}`;
+      window.history.replaceState(null, "", nextUrl);
+
       setLoading(true);
-      dispatch(requestWorkoutsByDate(selectedDate, "client", user._id)).then(() => {
+      dispatch(requestWorkoutsByDate(selectedDate, client)).finally(() => {
         setLoading(false);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
+
 
   return loading ? (
     <LoadingPage PropComponent={Loading} />
