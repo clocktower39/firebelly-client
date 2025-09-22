@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   requestClients,
   changeRelationshipStatus,
@@ -160,11 +161,11 @@ export default function Clients({ socket }) {
           />
           {clientRelationship.accepted && (
             <>
+              <Button component={Link} to={`/?date=20250925&client=${clientRelationship.client._id}`} >Client Home</Button>
               <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>
                 Calendar
               </Button>
               <Button onClick={() => handleOpenGoals(clientRelationship.client)}>Goals</Button>
-              <Button onClick={() => null} disabled >Client Home</Button>
               <Button onClick={() => null} disabled >Training Schedule</Button>
               <Button onClick={() => null} disabled >Invoices</Button>
               <Button onClick={() => null} disabled >Progress</Button>
