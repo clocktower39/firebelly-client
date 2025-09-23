@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
 import dayjs from "dayjs";
 import Loading from "../../Components/Loading";
@@ -15,6 +15,7 @@ function Home() {
   const { date, client, } = queryString.parse(location.search);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
+  const [size = 900, setBorderHighlight] = useOutletContext();
   const isPersonalWorkout = useCallback(
     () => client ? user._id.toString() === client : true,
     [user._id, client]
@@ -95,11 +96,12 @@ function Home() {
 
       setLoading(true);
       dispatch(requestWorkoutsByDate(selectedDate, client)).finally(() => {
+        setBorderHighlight(!isPersonalWorkout());
         setLoading(false);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, isPersonalWorkout]);
 
 
   return loading ? (
