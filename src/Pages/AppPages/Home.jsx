@@ -8,7 +8,8 @@ import LoadingPage from "../../Components/LoadingPage";
 import SelectedDate from "../../Components/SelectedDate";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
-import { requestWorkoutsByDate } from "../../Redux/actions";
+import { requestWorkoutsByDate, serverURL } from "../../Redux/actions";
+import { Avatar, Grid, Typography } from '@mui/material';
 
 function Home() {
   const location = useLocation();
@@ -108,6 +109,21 @@ function Home() {
     <LoadingPage PropComponent={Loading} />
   ) : (
     <>
+      {!isPersonalWorkout() && workouts[0]?.user.firstName && (
+        <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
+          <Avatar
+            src={
+              workouts[0]?.user?.profilePicture &&
+              `${serverURL}/user/profilePicture/${workouts[0]?.user.profilePicture}`
+            }
+            sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
+            alt={workouts[0]?.user ? `${workouts[0]?.user.firstName[0]} ${workouts[0]?.user.lastName[0]}` : 'loading'}
+          />
+          <Typography variant="h5">
+            {workouts[0]?.user.firstName} {workouts[0]?.user.lastName}
+          </Typography>
+        </Grid>
+      )}
       <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
       <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
       {localWorkouts && (
