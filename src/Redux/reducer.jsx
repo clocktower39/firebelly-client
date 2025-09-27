@@ -4,7 +4,6 @@ import {
   ERROR,
   EDIT_MYACCOUNT,
   EDIT_WORKOUTS,
-  EDIT_HOME_WORKOUTS,
   ADD_WORKOUT,
   EDIT_TRAINING,
   EDIT_EXERCISE_LIBRARY,
@@ -66,6 +65,7 @@ export let reducer = (
       };
     case EDIT_WORKOUTS: {
       const existing = state.workouts[action.accountId]?.workouts || [];
+      console.log(action.user)
 
       // Convert existing workouts to a map for faster lookup
       const existingMap = new Map(existing.map((w) => [w._id, w]));
@@ -87,22 +87,20 @@ export let reducer = (
         // If same, do nothing (skip update)
       });
 
+      const workoutUser = action.user ?? state.user;
+
       return {
         ...state,
         workouts: {
           ...state.workouts,
-          [action.accountId]: {
-            ...(state.workouts[action.accountId] || {}),
+          [workoutUser._id]: {
+            ...(state.workouts[workoutUser._id] || {}),
             workouts: updatedWorkouts,
+            user: { ...workoutUser, },
           },
         },
       };
     }
-    case EDIT_HOME_WORKOUTS:
-      return {
-        ...state,
-        workouts: [...action.workouts],
-      };
     case ADD_WORKOUT:
       return {
         ...state,

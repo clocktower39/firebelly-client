@@ -24,6 +24,9 @@ function Home() {
   const workouts = useSelector((state) => {
     return state.workouts?.[isPersonalWorkout() ? user._id : client]?.workouts ?? [];
   });
+  const workoutsUser = useSelector((state) => {
+    return state.workouts?.[isPersonalWorkout() ? user._id : client]?.user ?? {};
+  });
   const [loading, setLoading] = useState(true);
 
   const isValidDate = (date) => {
@@ -109,18 +112,18 @@ function Home() {
     <LoadingPage PropComponent={Loading} />
   ) : (
     <>
-      {!isPersonalWorkout() && workouts[0]?.user.firstName && (
+      {!isPersonalWorkout() && workoutsUser.firstName && (
         <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
           <Avatar
             src={
-              workouts[0]?.user?.profilePicture &&
-              `${serverURL}/user/profilePicture/${workouts[0]?.user.profilePicture}`
+              workoutsUser?.profilePicture &&
+              `${serverURL}/user/profilePicture/${workoutsUser.profilePicture}`
             }
             sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-            alt={workouts[0]?.user ? `${workouts[0]?.user.firstName[0]} ${workouts[0]?.user.lastName[0]}` : 'loading'}
+            alt={workoutsUser ? `${workoutsUser.firstName[0]} ${workoutsUser.lastName[0]}` : 'loading'}
           />
           <Typography variant="h5">
-            {workouts[0]?.user.firstName} {workouts[0]?.user.lastName}
+            {workoutsUser.firstName} {workoutsUser.lastName}
           </Typography>
         </Grid>
       )}

@@ -24,11 +24,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -224,7 +224,7 @@ export function requestTraining(trainingId) {
 }
 
 // Fetches workouts by date
-export function requestWorkoutsByDate(date, client=null, ) {
+export function requestWorkoutsByDate(date, client = null,) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -242,29 +242,23 @@ export function requestWorkoutsByDate(date, client=null, ) {
     });
     let data = await response.json();
 
-    if (!data || data.length < 1) {
-      return dispatch({
-        type: EDIT_HOME_WORKOUTS,
-        workouts: [...data],
-      });
-    } else {
-      data.map((workout) =>
-        workout.training.map((set) => {
-          set.map((exercise) => {
-            if (!exercise.achieved.weight) {
-              exercise.achieved.weight = [0];
-            }
-            return exercise;
-          });
-          return set;
-        })
-      );
-      return dispatch({
-        type: EDIT_WORKOUTS,
-        workouts: [...data],
-        accountId: client,
-      });
-    }
+    data.workouts.map((workout) =>
+      workout.training.map((set) => {
+        set.map((exercise) => {
+          if (!exercise.achieved.weight) {
+            exercise.achieved.weight = [0];
+          }
+          return exercise;
+        });
+        return set;
+      })
+    );
+    return dispatch({
+      type: EDIT_WORKOUTS,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: client,
+    });
   };
 }
 
