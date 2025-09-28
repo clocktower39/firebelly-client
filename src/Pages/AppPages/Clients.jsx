@@ -161,7 +161,7 @@ export default function Clients({ socket }) {
           />
           {clientRelationship.accepted && (
             <>
-              <Button component={Link} to={`/?date=20250925&client=${clientRelationship.client._id}`} >Client Home</Button>
+              <Button component={Link} to={`/?client=${clientRelationship.client._id}`} >Client Home</Button>
               <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>
                 Calendar
               </Button>

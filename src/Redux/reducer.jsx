@@ -65,7 +65,6 @@ export let reducer = (
       };
     case EDIT_WORKOUTS: {
       const existing = state.workouts[action.accountId]?.workouts || [];
-      console.log(action.user)
 
       // Convert existing workouts to a map for faster lookup
       const existingMap = new Map(existing.map((w) => [w._id, w]));

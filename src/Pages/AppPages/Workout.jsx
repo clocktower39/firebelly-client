@@ -484,7 +484,7 @@ export default function Workout({ socket }) {
                         `${serverURL}/user/profilePicture/${training.user.profilePicture}`
                       }
                       sx={{ maxHeight: "35px", maxWidth: "35px", margin: "0 15px" }}
-                      alt={ training?.user ? `${training?.user.firstName[0]} ${training?.user.lastName[0]}`:'loading'}
+                      alt={training?.user ? `${training?.user.firstName[0]} ${training?.user.lastName[0]}` : 'loading'}
                     />
                     <Typography variant="h5">
                       {training?.user.firstName} {training?.user.lastName}
@@ -556,9 +556,12 @@ export default function Workout({ socket }) {
                         freeSolo
                         onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
                         renderTags={(value, getTagProps) =>
-                          value.map((option, index) => (
-                            <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                          ))
+                          value.map((option, index) => {
+                            const { key, ...tagProps } = getTagProps({ index });
+                            return (
+                              <Chip key={`${option}-${index}`} variant="outlined" label={option} {...tagProps} />
+                            )
+                          })
                         }
                         renderInput={(params) => (
                           <TextField
