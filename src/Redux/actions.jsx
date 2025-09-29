@@ -24,11 +24,11 @@ export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 
 // dev server
-const currentIP = window.location.href.split(":")[1];
-export const serverURL = `http:${currentIP}:6969`;
+// const currentIP = window.location.href.split(":")[1];
+// export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-// export const serverURL = "https://firebellyfitness.herokuapp.com";
+export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -263,7 +263,7 @@ export function requestWorkoutsByDate(date, client = null,) {
 }
 
 // Fetches entire month of workout data
-export function requestWorkoutsByMonth(date, requestedBy = "client", client) {
+export function requestWorkoutsByMonth(date, client) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
 
@@ -283,7 +283,7 @@ export function requestWorkoutsByMonth(date, requestedBy = "client", client) {
     });
     const data = await response.json();
 
-    data.map((workout) =>
+    data.workouts.map((workout) =>
       workout.training.map((set) => {
         set.map((exercise) => {
           if (!exercise.achieved.weight) {
@@ -297,8 +297,9 @@ export function requestWorkoutsByMonth(date, requestedBy = "client", client) {
 
     return dispatch({
       type: EDIT_WORKOUTS,
-      workouts: [...data],
-      accountId: client._id,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: data.user._id,
     });
   };
 }

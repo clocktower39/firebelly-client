@@ -101,7 +101,7 @@ export default function Calendar(props) {
     setIsLoading(true);
     const date = e ? e.format("YYYY-MM-DD") : dayjs(new Date()).format("YYYY-MM-DD");
 
-    dispatch(requestWorkoutsByMonth(date, view, view === "client" ? user : client)).then(() => {
+    dispatch(requestWorkoutsByMonth(date, view === "client" ? user : client)).then(() => {
       setIsLoading(false);
     });
   };
