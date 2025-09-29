@@ -128,7 +128,7 @@ function Home() {
         </Grid>
       )}
       <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-      <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+      <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} workoutsUser={workoutsUser} workouts={workouts} />
       {localWorkouts && (
         <WorkoutOverview
           localWorkouts={localWorkouts}

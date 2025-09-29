@@ -516,16 +516,16 @@ export function deleteWorkoutById(trainingId, accountId) {
 }
 
 // Fetches training stats from a range
-export function requestTrainingWeek(date, accountId) {
+export function requestTrainingWeek(date, workoutUser) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-    const state = getState();
 
     const response = await fetch(`${serverURL}/trainingWeek`, {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
         date,
+        client: workoutUser,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -536,8 +536,9 @@ export function requestTrainingWeek(date, accountId) {
 
     return dispatch({
       type: EDIT_WORKOUTS,
-      workouts: [...data],
-      accountId,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: workoutUser._id,
     });
   };
 }

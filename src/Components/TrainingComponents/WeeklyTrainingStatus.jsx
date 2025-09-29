@@ -23,13 +23,9 @@ import {
 import dayjs from "dayjs";
 import { requestTrainingWeek, serverURL } from "../../Redux/actions";
 
-export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) {
+export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate, workouts, workoutsUser }) {
   const dispatch = useDispatch();
   const date = dayjs(selectedDate);
-  const [weeklyData, setWeeklyData] = useState([]);
-  const user = useSelector((state) => state.user);
-  const workouts = useSelector((state) => state.workouts?.[user._id]?.workouts ?? []);
-
   const weekDates = Array.from({ length: 7 }, (_, i) =>
     date.subtract(6 - i, "day").format("YYYY-MM-DD")
   );
@@ -43,7 +39,7 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate }) 
   });
 
   useEffect(() => {
-    dispatch(requestTrainingWeek(date.format("YYYY-MM-DD"), user._id));
+    dispatch(requestTrainingWeek(date.format("YYYY-MM-DD"), workoutsUser._id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
   return (
