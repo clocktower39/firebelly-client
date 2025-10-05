@@ -309,7 +309,7 @@ export default function Workout({ socket }) {
   };
 
   // Save all changes to training
-  const save = () => {
+  const save = async () => {
     dispatch(
       updateTraining(training._id, {
         ...training,
@@ -494,15 +494,17 @@ export default function Workout({ socket }) {
                 <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
                   {training.date ? (
                     <IconButton
-                      onClick={() => {
+                      onClick={async () => {
+                        const isToday = dayjs.utc(training.date).format("YYYY-MM-DD") ===
+                          dayjs(new Date()).format("YYYY-MM-DD");
+
                         const link =
-                          dayjs.utc(training.date).format("YYYY-MM-DD") ===
-                            dayjs(new Date()).format("YYYY-MM-DD")
-                            ? "/"
-                            : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`;
+                          isPersonalWorkout()
+                            ? `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}`
+                            : `/?date=${dayjs.utc(training.date).format("YYYYMMDD")}&client=${training.user._id}`;
                         // Navigate after saving
-                        save();
-                        navigate(isPersonalWorkout() ? link : "/clients");
+                        await save();
+                        navigate(link);
                       }}
                     >
                       <ArrowBack />
