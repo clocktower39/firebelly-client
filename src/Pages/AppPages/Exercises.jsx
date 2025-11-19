@@ -9,8 +9,9 @@ import {
   Container,
   FormControlLabel,
   Grid,
-  Paper,
   Switch,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -18,14 +19,43 @@ import {
 export default function Exercises() {
   const dispatch = useDispatch();
   const exerciseList = useSelector((state) => state.progress.exerciseList);
+  const [value, setValue] = useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
 
   const [selectedExercise, setSelectedExercise] = useState(null);
-  
+
   const matchWords = (option, inputValue) => {
-    if(!option) return false;
+    if (!option) return false;
     const words = inputValue.toLowerCase().split(" ").filter(Boolean);
     return words.every((word) => option.toLowerCase().includes(word));
   };
+
+  const CustomTabPanel = (props) => {
+    const { children, value, index, ...other } = props;
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      </div>
+    );
+  }
+
+  function a11yProps(index) {
+    return {
+      id: `simple-tab-${index}`,
+      'aria-controls': `simple-tabpanel-${index}`,
+    };
+  }
+
 
   useEffect(() => {
     if (exerciseList.length < 1) {
@@ -35,36 +65,52 @@ export default function Exercises() {
 
   return (
     <Container maxWidth="md" sx={{ height: "100%", padding: "15px 0px" }}>
-      <Autocomplete
-        disableCloseOnSelect
-        fullWidth
-        value={selectedExercise}
-        options={exerciseList
-          .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
-          .map((option) => option)}
-        isOptionEqualToValue={(option, value) => option._id === value._id}
-        getOptionLabel={(option) => option.exerciseTitle}
-        onChange={(e, newSelection) => setSelectedExercise(newSelection)}
-        filterOptions={(options, { inputValue }) => 
-          options.filter(option => matchWords(option.exerciseTitle, inputValue))
-        }
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Selected Exercise"
-            placeholder="Exercises"
-            InputProps={{
-              ...params.InputProps,
-            }}
-          />
-        )}
-      />
-      {selectedExercise && <ExerciseLibrarySection selectedExercise={selectedExercise} />}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Edit" {...a11yProps(0)} />
+          <Tab label="Add" {...a11yProps(1)} disabled />
+          <Tab label="Merge" {...a11yProps(2)} disabled />
+        </Tabs>
+      </Box>
+
+      <CustomTabPanel value={value} index={0}>
+        <Autocomplete
+          disableCloseOnSelect
+          fullWidth
+          value={selectedExercise}
+          options={exerciseList
+            .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
+            .map((option) => option)}
+          isOptionEqualToValue={(option, value) => option._id === value._id}
+          getOptionLabel={(option) => option.exerciseTitle}
+          onChange={(e, newSelection) => setSelectedExercise(newSelection)}
+          filterOptions={(options, { inputValue }) =>
+            options.filter(option => matchWords(option.exerciseTitle, inputValue))
+          }
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+            ))
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Selected Exercise"
+              placeholder="Exercises"
+              InputProps={{
+                ...params.InputProps,
+              }}
+            />
+          )}
+        />
+        {selectedExercise && <ExerciseLibrarySection selectedExercise={selectedExercise} />}
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={1}>
+        Add
+      </CustomTabPanel>
+      <CustomTabPanel value={value} index={2}>
+        Merge
+      </CustomTabPanel>
     </Container>
   );
 }
@@ -108,7 +154,7 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
     },
     {
       fieldName: "attachments",
-      options: [ 
+      options: [
         "Velcro Straps",
         "EZ-Bar",
         "MAG",
