@@ -43,6 +43,28 @@ import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../WorkoutOptionModal";
 
+// Helper to find an exercise's current location in localWorkouts
+const findExerciseLocationByExerciseId = (workouts, exerciseId) => {
+  for (let workoutIndex = 0; workoutIndex < workouts.length; workoutIndex += 1) {
+    const workout = workouts[workoutIndex];
+    if (!workout?.training) continue;
+
+    for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex += 1) {
+      const circuit = workout.training[circuitIndex];
+      if (!Array.isArray(circuit)) continue;
+
+      for (let exerciseIndex = 0; exerciseIndex < circuit.length; exerciseIndex += 1) {
+        const exercise = circuit[exerciseIndex];
+        if (exercise && exercise._id === exerciseId) {
+          return { workoutIndex, circuitIndex, exerciseIndex };
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
 function SortableExercise({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -52,8 +74,8 @@ function SortableExercise({ id, index, children }) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
-    opacity: isDragging ? 0.4 : 1,
+    transition,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
@@ -212,6 +234,96 @@ export default function WorkoutOverview({
     }
   };
 
+  const handleDragOver = ({ active, over }) => {
+    if (!over || !active.id || typeof active.id !== "string") return;
+
+    // Only handle exercises here; circuit reordering still happens in handleDragEnd
+    if (!active.id.startsWith("exercise-")) return;
+
+    const activeParts = active.id.split("-");
+    // exercise-<workoutId>-<circuitIndex>-<exerciseId>-<index>
+    if (activeParts.length < 4) return;
+    const activeExerciseId = activeParts[3];
+
+    const overId = String(over.id);
+
+    setLocalWorkouts((prevData) => {
+      if (!Array.isArray(prevData)) return prevData;
+
+      const updatedData = JSON.parse(JSON.stringify(prevData));
+
+      const activeLocation = findExerciseLocationByExerciseId(updatedData, activeExerciseId);
+      if (!activeLocation) return prevData;
+
+      const {
+        workoutIndex: activeWorkoutIndex,
+        circuitIndex: activeCircuitIndex,
+        exerciseIndex: activeExerciseIndex,
+      } = activeLocation;
+
+      let targetWorkoutIndex = activeWorkoutIndex;
+      let targetCircuitIndex = activeCircuitIndex;
+      let targetExerciseIndex = activeExerciseIndex;
+
+      if (overId.startsWith("exercise-")) {
+        const overParts = overId.split("-");
+        if (overParts.length < 4) return prevData;
+        const overExerciseId = overParts[3];
+
+        const overLocation = findExerciseLocationByExerciseId(updatedData, overExerciseId);
+        if (!overLocation) return prevData;
+
+        targetWorkoutIndex = overLocation.workoutIndex;
+        targetCircuitIndex = overLocation.circuitIndex;
+        targetExerciseIndex = overLocation.exerciseIndex;
+      } else if (overId.startsWith("placeholder-") || overId.startsWith("circuit-")) {
+        const overParts = overId.split("-");
+        if (overParts.length < 3) return prevData;
+        const overWorkoutId = overParts[1];
+        targetCircuitIndex = parseInt(overParts[2], 10);
+
+        targetWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
+        if (targetWorkoutIndex === -1) return prevData;
+
+        const targetCircuit = updatedData[targetWorkoutIndex].training[targetCircuitIndex] || [];
+        targetExerciseIndex = targetCircuit.length;
+      } else {
+        return prevData;
+      }
+
+      const sameContainer =
+        activeWorkoutIndex === targetWorkoutIndex && activeCircuitIndex === targetCircuitIndex;
+
+      // Reorder within the same circuit
+      if (sameContainer) {
+        if (activeExerciseIndex === targetExerciseIndex) return prevData;
+
+        const circuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
+        updatedData[activeWorkoutIndex].training[activeCircuitIndex] = arrayMove(
+          circuit,
+          activeExerciseIndex,
+          targetExerciseIndex
+        );
+
+        return updatedData;
+      }
+
+      // Move across circuits
+      const sourceCircuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
+      const targetCircuit = updatedData[targetWorkoutIndex].training[targetCircuitIndex];
+
+      if (!Array.isArray(sourceCircuit) || !Array.isArray(targetCircuit)) return prevData;
+
+      const [movedItem] = sourceCircuit.splice(activeExerciseIndex, 1);
+
+      const insertIndex =
+        typeof targetExerciseIndex === "number" ? targetExerciseIndex : targetCircuit.length;
+      targetCircuit.splice(insertIndex, 0, movedItem);
+
+      return updatedData;
+    });
+  };
+
   const handleDragEnd = ({ active, over }) => {
     setDraggedItem(null);
     setActiveExercise(null);
@@ -220,11 +332,6 @@ export default function WorkoutOverview({
 
     if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
       handleCircuitDragEnd(active, over);
-    } else if (
-      active.id.startsWith("exercise-") &&
-      (over.id.startsWith("exercise-") || over.id.startsWith("placeholder-"))
-    ) {
-      handleExerciseDragEnd(active, over);
     }
   };
 
@@ -267,65 +374,6 @@ export default function WorkoutOverview({
     });
   };
 
-  const handleExerciseDragEnd = (active, over) => {
-    const activeParts = active.id.split("-");
-    const activeWorkoutId = activeParts[1];
-    const activeCircuitIndex = parseInt(activeParts[2]);
-
-    let overWorkoutId, overCircuitIndex;
-    if (over.id.startsWith("exercise-")) {
-      const overParts = over.id.split("-");
-      overWorkoutId = overParts[1];
-      overCircuitIndex = parseInt(overParts[2]);
-    } else if (over.id.startsWith("placeholder-")) {
-      const overParts = over.id.split("-");
-      overWorkoutId = overParts[1];
-      overCircuitIndex = parseInt(overParts[2]);
-    } else {
-      return;
-    }
-
-    const isSameContainer =
-      activeWorkoutId === overWorkoutId && activeCircuitIndex === overCircuitIndex;
-
-    setLocalWorkouts((prevData) => {
-      const updatedData = JSON.parse(JSON.stringify(prevData));
-      const activeWorkoutIndex = updatedData.findIndex((w) => w._id === activeWorkoutId);
-      const overWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
-
-      if (activeWorkoutIndex === -1 || overWorkoutIndex === -1) return prevData;
-
-      const sourceCircuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
-      const activeItemIndex = sourceCircuit.findIndex(
-        (exercise, index) =>
-          `exercise-${activeWorkoutId}-${activeCircuitIndex}-${exercise._id}-${index}` === active.id
-      );
-
-      if (activeItemIndex === -1) return prevData;
-
-      if (isSameContainer) {
-        // Same container: reorder with animation
-        const overItemIndex = sourceCircuit.findIndex(
-          (exercise, index) =>
-            `exercise-${overWorkoutId}-${overCircuitIndex}-${exercise._id}-${index}` === over.id
-        );
-        if (overItemIndex === -1) return prevData;
-
-        updatedData[activeWorkoutIndex].training[activeCircuitIndex] = arrayMove(
-          sourceCircuit,
-          activeItemIndex,
-          overItemIndex
-        );
-      } else {
-        // Cross-container: remove from source, insert at end of target
-        const [movedItem] = sourceCircuit.splice(activeItemIndex, 1);
-        updatedData[overWorkoutIndex].training[overCircuitIndex].push(movedItem);
-      }
-
-      return updatedData;
-    });
-  };
-
   const customCollisionDetection = (args) => {
     const { active } = args;
     if (active.id.startsWith("exercise-")) {
@@ -344,6 +392,7 @@ export default function WorkoutOverview({
       sensors={sensors}
       collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
       modifiers={[restrictToVerticalAxis]}
@@ -472,7 +521,13 @@ export default function WorkoutOverview({
         training={selectedWorkout}
         setSelectedDate={setSelectedDate}
       />
-      <DragOverlay>
+      <DragOverlay
+        adjustScale={false}
+        dropAnimation={{
+          duration: 200,
+          easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+        }}
+      >
         {activeExercise ? (
           <Paper sx={{ opacity: 0.9, boxShadow: 3 }}>
             <Grid container>
