@@ -164,6 +164,7 @@ export default function WorkoutOverview({
   );
 
   const [draggedItem, setDraggedItem] = useState(null);
+  const [activeContainer, setActiveContainer] = useState(null);
 
   const flattenedCircuits = useMemo(
     () =>
@@ -174,27 +175,20 @@ export default function WorkoutOverview({
     [localWorkouts]
   );
 
-  const flattenedExercises = useMemo(
-    () =>
-      localWorkouts.flatMap((workout) =>
-        workout.training.flatMap((circuit, circuitIndex) =>
-          circuit.length > 0
-            ? circuit.map(
-                (exercise, index) =>
-                  `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`
-              )
-            : [`placeholder-${workout._id}-${circuitIndex}`]
-        )
-      ),
-    [localWorkouts]
-  );
-
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
+    // Track the source container for exercises
+    if (active.id.startsWith("exercise-")) {
+      const parts = active.id.split("-");
+      const workoutId = parts[1];
+      const circuitIndex = parts[2];
+      setActiveContainer(`${workoutId}-${circuitIndex}`);
+    }
   };
 
   const handleDragEnd = ({ active, over }) => {
     setDraggedItem(null);
+    setActiveContainer(null);
     if (!over || active.id === over.id) return;
 
     if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
@@ -205,6 +199,60 @@ export default function WorkoutOverview({
     ) {
       handleExerciseDragEnd(active, over);
     }
+  };
+
+  const handleDragOver = ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    if (!active.id.startsWith("exercise-")) return;
+
+    // Get source container
+    const activeParts = active.id.split("-");
+    const activeWorkoutId = activeParts[1];
+    const activeCircuitIndex = parseInt(activeParts[2]);
+
+    // Get target container
+    let overWorkoutId, overCircuitIndex;
+    if (over.id.startsWith("exercise-")) {
+      const overParts = over.id.split("-");
+      overWorkoutId = overParts[1];
+      overCircuitIndex = parseInt(overParts[2]);
+    } else if (over.id.startsWith("placeholder-")) {
+      const overParts = over.id.split("-");
+      overWorkoutId = overParts[1];
+      overCircuitIndex = parseInt(overParts[2]);
+    } else {
+      return;
+    }
+
+    // Only handle cross-container moves here
+    const sourceContainer = `${activeWorkoutId}-${activeCircuitIndex}`;
+    const targetContainer = `${overWorkoutId}-${overCircuitIndex}`;
+
+    if (sourceContainer === targetContainer) return;
+
+    // Move item to the end of target container (no reordering animation)
+    setLocalWorkouts((prevData) => {
+      const updatedData = JSON.parse(JSON.stringify(prevData));
+
+      const activeWorkoutIndex = updatedData.findIndex((w) => w._id === activeWorkoutId);
+      const overWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
+
+      if (activeWorkoutIndex === -1 || overWorkoutIndex === -1) return prevData;
+
+      const sourceCircuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
+      const activeItemIndex = sourceCircuit.findIndex(
+        (exercise, index) =>
+          `exercise-${activeWorkoutId}-${activeCircuitIndex}-${exercise._id}-${index}` === active.id
+      );
+
+      if (activeItemIndex === -1) return prevData;
+
+      // Remove from source and add to end of target
+      const [movedItem] = sourceCircuit.splice(activeItemIndex, 1);
+      updatedData[overWorkoutIndex].training[overCircuitIndex].push(movedItem);
+
+      return updatedData;
+    });
   };
 
   const handleCircuitDragEnd = (active, over) => {
@@ -239,68 +287,52 @@ export default function WorkoutOverview({
   };
 
   const handleExerciseDragEnd = (active, over) => {
+    // Cross-container moves are handled by onDragOver, this only handles same-container reordering
+    const activeParts = active.id.split("-");
+    const activeWorkoutId = activeParts[1];
+    const activeCircuitIndex = parseInt(activeParts[2]);
+
+    let overWorkoutId, overCircuitIndex;
+    if (over.id.startsWith("exercise-")) {
+      const overParts = over.id.split("-");
+      overWorkoutId = overParts[1];
+      overCircuitIndex = parseInt(overParts[2]);
+    } else if (over.id.startsWith("placeholder-")) {
+      const overParts = over.id.split("-");
+      overWorkoutId = overParts[1];
+      overCircuitIndex = parseInt(overParts[2]);
+    } else {
+      return;
+    }
+
+    // Only handle same-container reordering here
+    if (activeWorkoutId !== overWorkoutId || activeCircuitIndex !== overCircuitIndex) {
+      return; // Cross-container already handled by onDragOver
+    }
+
     setLocalWorkouts((prevData) => {
-      const updatedData = [...prevData];
-      let activeWorkoutIndex, activeCircuitIndex, activeItemIndex;
-      let overWorkoutIndex, overCircuitIndex, overItemIndex;
+      const updatedData = JSON.parse(JSON.stringify(prevData));
+      const workoutIndex = updatedData.findIndex((w) => w._id === activeWorkoutId);
+      if (workoutIndex === -1) return prevData;
 
-      // Locate the active exercise
-      for (let workoutIndex = 0; workoutIndex < updatedData.length; workoutIndex++) {
-        const workout = updatedData[workoutIndex];
-        for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
-          const circuit = workout.training[circuitIndex];
-          const itemIndex = circuit.findIndex(
-            (exercise, index) =>
-              `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === active.id
-          );
-          if (itemIndex !== -1) {
-            activeWorkoutIndex = workoutIndex;
-            activeCircuitIndex = circuitIndex;
-            activeItemIndex = itemIndex;
-          }
-        }
-      }
+      const circuit = updatedData[workoutIndex].training[activeCircuitIndex];
 
-      // Locate the target position for the exercise
-      if (over.id.startsWith("exercise-")) {
-        for (let workoutIndex = 0; workoutIndex < updatedData.length; workoutIndex++) {
-          const workout = updatedData[workoutIndex];
-          for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex++) {
-            const circuit = workout.training[circuitIndex];
-            const itemIndex = circuit.findIndex(
-              (exercise, index) =>
-                `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}` === over.id
-            );
-            if (itemIndex !== -1) {
-              overWorkoutIndex = workoutIndex;
-              overCircuitIndex = circuitIndex;
-              overItemIndex = itemIndex;
-            }
-          }
-        }
-      } else if (over.id.startsWith("placeholder-")) {
-        const [overWorkoutId, overCircuitIndexStr] = over.id.split("-").slice(1);
-        overWorkoutIndex = updatedData.findIndex((workout) => workout._id === overWorkoutId);
-        overCircuitIndex = parseInt(overCircuitIndexStr);
-        overItemIndex = 0; // Since it's an empty circuit, we insert at position 0.
-      }
-
-      if (
-        activeWorkoutIndex === undefined ||
-        overWorkoutIndex === undefined ||
-        activeCircuitIndex === undefined ||
-        overCircuitIndex === undefined ||
-        activeItemIndex === undefined
-      ) {
-        return updatedData;
-      }
-
-      // Moving the item
-      const [movedItem] = updatedData[activeWorkoutIndex].training[activeCircuitIndex].splice(
-        activeItemIndex,
-        1
+      const activeItemIndex = circuit.findIndex(
+        (exercise, index) =>
+          `exercise-${activeWorkoutId}-${activeCircuitIndex}-${exercise._id}-${index}` === active.id
       );
-      updatedData[overWorkoutIndex].training[overCircuitIndex].splice(overItemIndex, 0, movedItem);
+      const overItemIndex = circuit.findIndex(
+        (exercise, index) =>
+          `exercise-${overWorkoutId}-${overCircuitIndex}-${exercise._id}-${index}` === over.id
+      );
+
+      if (activeItemIndex === -1 || overItemIndex === -1) return prevData;
+
+      updatedData[workoutIndex].training[activeCircuitIndex] = arrayMove(
+        circuit,
+        activeItemIndex,
+        overItemIndex
+      );
 
       return updatedData;
     });
@@ -324,6 +356,7 @@ export default function WorkoutOverview({
       sensors={sensors}
       collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       modifiers={[restrictToVerticalAxis]}
     >
@@ -389,7 +422,6 @@ export default function WorkoutOverview({
                                     circuitIndex={circuitIndex}
                                     viewMode={currentViewMode}
                                     activeId={activeId}
-                                    flattenedExercises={flattenedExercises}
                                     listeners={listeners}
                                     attributes={attributes}
                                   />
@@ -463,10 +495,20 @@ const WorkoutSet = (props) => {
     circuitIndex,
     viewMode,
     activeId,
-    flattenedExercises,
     listeners,
     attributes,
   } = props;
+
+  // Generate circuit-specific items for SortableContext
+  const circuitExerciseIds = useMemo(() => {
+    if (circuit.length > 0) {
+      return circuit.map(
+        (exercise, index) =>
+          `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`
+      );
+    }
+    return [`placeholder-${workout._id}-${circuitIndex}`];
+  }, [circuit, workout._id, circuitIndex]);
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -537,7 +579,7 @@ const WorkoutSet = (props) => {
         </Grid>
       </Grid>
       <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
-        <SortableContext items={flattenedExercises} strategy={verticalListSortingStrategy}>
+        <SortableContext items={circuitExerciseIds} strategy={verticalListSortingStrategy}>
           {circuit.length > 0 ? (
             circuit.map((exercise, index) => (
               <SortableExercise
