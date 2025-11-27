@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   TouchSensor,
@@ -52,13 +53,12 @@ function SortableExercise({ id, index, children }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? "none" : transition,
-    zIndex: isDragging ? 1000 : undefined,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style}>
-      {children(listeners, attributes)}
+      {children(listeners, attributes, isDragging)}
     </div>
   );
 }
@@ -164,6 +164,7 @@ export default function WorkoutOverview({
   );
 
   const [draggedItem, setDraggedItem] = useState(null);
+  const [activeExercise, setActiveExercise] = useState(null);
 
   const flattenedCircuits = useMemo(
     () =>
@@ -176,10 +177,29 @@ export default function WorkoutOverview({
 
   const handleDragStart = ({ active }) => {
     setDraggedItem(active.id);
+
+    // Find and store the active exercise data for DragOverlay
+    if (active.id.startsWith("exercise-")) {
+      const parts = active.id.split("-");
+      const workoutId = parts[1];
+      const circuitIndex = parseInt(parts[2]);
+
+      const workout = localWorkouts.find((w) => w._id === workoutId);
+      if (workout) {
+        const circuit = workout.training[circuitIndex];
+        const exerciseIndex = circuit.findIndex(
+          (ex, idx) => `exercise-${workoutId}-${circuitIndex}-${ex._id}-${idx}` === active.id
+        );
+        if (exerciseIndex !== -1) {
+          setActiveExercise(circuit[exerciseIndex]);
+        }
+      }
+    }
   };
 
   const handleDragEnd = ({ active, over }) => {
     setDraggedItem(null);
+    setActiveExercise(null);
     if (!over || active.id === over.id) return;
 
     if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
@@ -190,6 +210,11 @@ export default function WorkoutOverview({
     ) {
       handleExerciseDragEnd(active, over);
     }
+  };
+
+  const handleDragCancel = () => {
+    setDraggedItem(null);
+    setActiveExercise(null);
   };
 
 
@@ -303,6 +328,7 @@ export default function WorkoutOverview({
       collisionDetection={customCollisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
       modifiers={[restrictToVerticalAxis]}
     >
       {localWorkouts?.length > 0 &&
@@ -429,6 +455,24 @@ export default function WorkoutOverview({
         training={selectedWorkout}
         setSelectedDate={setSelectedDate}
       />
+      <DragOverlay>
+        {activeExercise ? (
+          <Paper sx={{ opacity: 0.9, boxShadow: 3 }}>
+            <Grid container>
+              <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
+                <DragHandleIcon />
+              </Grid>
+              <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
+                <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
+                  <Typography variant="body1">
+                    {activeExercise?.exercise?.exerciseTitle || "Select an exercise"}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Paper>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
