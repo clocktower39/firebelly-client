@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
+  AppBar,
   Avatar,
   Box,
   Button,
@@ -21,6 +22,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Toolbar,
   Typography,
 } from "@mui/material";
 import {
@@ -120,7 +122,42 @@ export default function NavDrawer() {
   const handleCloseGymBarCodeDialog = () => setOpenGymBarCodeDialog(false);
 
   const list = (anchor) => (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer} onKeyDown={toggleDrawer}>
+    <Box
+      sx={{
+        width: 260,
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        backgroundColor: "background.default",
+      }}
+      role="presentation"
+      onClick={toggleDrawer}
+      onKeyDown={toggleDrawer}
+    >
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          borderBottom: "1px solid rgba(148, 163, 184, 0.24)",
+        }}
+      >
+        <Avatar
+          src={logo48}
+          alt="Firebelly Fitness Logo"
+          sx={{ width: 32, height: 32, bgcolor: "primary.main" }}
+        />
+        <Box>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Firebelly Fitness
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Training dashboard
+          </Typography>
+        </Box>
+      </Box>
       {user._id ? (
         <>
           <List>
@@ -169,81 +206,164 @@ export default function NavDrawer() {
 
   return (
     <>
-      <Box
+      <AppBar
+        position="sticky"
+        elevation={0}
         sx={{
-          backgroundColor: "#232323",
-          marginBottom: "5px",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
+          background: "linear-gradient(90deg, #020617, #0f172a, #1e293b)",
+          borderBottom: "1px solid rgba(148, 163, 184, 0.35)",
+          mb: 1,
         }}
       >
         <Container maxWidth="md">
-          <Grid container>
-            <Grid container size={6}>
-              <IconButton onClick={toggleDrawer}>
+          <Toolbar
+            disableGutters
+            sx={{
+              minHeight: 64,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <IconButton
+                color="inherit"
+                onClick={toggleDrawer}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor: "rgba(15, 23, 42, 0.7)",
+                  "&:hover": {
+                    backgroundColor: "rgba(30, 64, 175, 0.9)",
+                  },
+                }}
+              >
                 <NavIcon />
               </IconButton>
-              <Button component={Link} to="/" sx={{ maxHeight: "40px" }}>
-                <img src={logo48} alt="Firebelly Fitness Logo" style={{ maxHeight: "40px" }} />
+              <Button
+                component={Link}
+                to="/"
+                color="inherit"
+                sx={{
+                  textTransform: "none",
+                  px: 1,
+                  minWidth: "auto",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                }}
+              >
+                <Avatar
+                  src={logo48}
+                  alt="Firebelly Fitness Logo"
+                  sx={{ width: 32, height: 32 }}
+                />
+                <Box sx={{ textAlign: "left" }}>
+                  <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
+                    Firebelly
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ letterSpacing: 0.4, textTransform: "uppercase" }}
+                    color="rgba(148, 163, 184, 0.9)"
+                  >
+                    Fitness app
+                  </Typography>
+                </Box>
               </Button>
-            </Grid>
-            <Grid container size={6} sx={{ justifyContent: "flex-end" }}>
-              <IconButton onClick={handleMenu} sx={{ maxHeight: "40px", maxWidth: "40px" }}>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              {user._id && (
+                <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
+                  <Typography variant="body2" fontWeight={500}>
+                    {user.firstName} {user.lastName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {user.isTrainer ? "Trainer" : "Athlete"}
+                  </Typography>
+                </Box>
+              )}
+              <IconButton
+                onClick={handleMenu}
+                sx={{
+                  maxHeight: "40px",
+                  maxWidth: "40px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(148, 163, 184, 0.4)",
+                  backgroundColor: "rgba(15, 23, 42, 0.85)",
+                }}
+              >
                 <Avatar
                   src={
                     user.profilePicture && `${serverURL}/user/profilePicture/${user.profilePicture}`
                   }
-                  sx={{ maxHeight: "40px", maxWidth: "40px" }}
+                  sx={{ maxHeight: "36px", maxWidth: "36px" }}
                   alt={`${user.firstName} ${user.lastName}`}
                 />
               </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                MenuListProps={{
-                  "aria-labelledby": "account-menu-button",
-                }}
-              >
-                <MenuItem component={Link} to="/account" onClick={handleMenuClose}>
-                  <ListItemIcon>
-                    <AccountIcon />
-                  </ListItemIcon>
-                  <Typography variant="inherit">Account Settings</Typography>
-                </MenuItem>
-                <MenuItem onClick={handleOpenGymBarCodeDialog}>
-                  <ListItemIcon>
-                    <QrCodeScannerIcon />
-                  </ListItemIcon>
-                  <Typography variant="inherit">Gym Barcode</Typography>
-                </MenuItem>
-                {/* Add more MenuItems here as needed */}
-              </Menu>
-            </Grid>
-          </Grid>
+            </Box>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              MenuListProps={{
+                "aria-labelledby": "account-menu-button",
+              }}
+            >
+              <MenuItem component={Link} to="/account" onClick={handleMenuClose}>
+                <ListItemIcon>
+                  <AccountIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography variant="inherit">Account Settings</Typography>
+              </MenuItem>
+              <MenuItem onClick={handleOpenGymBarCodeDialog}>
+                <ListItemIcon>
+                  <QrCodeScannerIcon fontSize="small" />
+                </ListItemIcon>
+                <Typography variant="inherit">Gym Barcode</Typography>
+              </MenuItem>
+            </Menu>
+          </Toolbar>
         </Container>
-      </Box>
+      </AppBar>
 
       <Dialog
         open={openGymBarCodeDialog}
         onClose={handleCloseGymBarCodeDialog}
         PaperProps={{
-          style: {
-            width: "100vw",
-            height: "90vh",
+          sx: {
+            width: "100%",
+            maxWidth: 420,
+            borderRadius: 4,
+            backgroundColor: "background.paper",
           },
         }}
       >
         <DialogTitle>
-          <Typography variant="h3" textAlign="center" >Gym Barcode</Typography>
+          <Typography variant="h5" textAlign="center">
+            Gym Barcode
+          </Typography>
         </DialogTitle>
         <DialogContent>
-          <Grid container sx={{ justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <Box sx={{ transform: "scale(2)" }}>
-              <Barcode value={user.gymBarcode} />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: 4,
+            }}
+          >
+            <Box
+              sx={{
+                px: 2,
+                py: 1.5,
+                borderRadius: 2,
+                backgroundColor: "background.default",
+              }}
+            >
+              <Barcode value={user.gymBarcode} height={80} />
             </Box>
-          </Grid>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button variant="contained" onClick={handleCloseGymBarCodeDialog}>
