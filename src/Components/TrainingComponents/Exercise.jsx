@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {
   Autocomplete,
-  Avatar,
   Button,
+  Card,
+  CardContent,
   Chip,
   Dialog,
   DialogContent,
@@ -16,39 +17,16 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  Delete,
-  MoreHoriz,
   FactCheck,
   Info,
   RemoveCircle,
   MoreVertSharp,
 } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import { requestExerciseProgress, serverURL } from "../../Redux/actions";
+import { requestExerciseProgress } from "../../Redux/actions";
 import LogLoader from "./LogLoader";
 import EditLoader from "./EditLoader";
 import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
-
-const classes = {
-  media: {
-    height: 0,
-    paddingTop: "100%",
-  },
-  expand: {
-    transform: "rotate(0deg)",
-    marginLeft: "auto",
-  },
-  expandOpen: {
-    transform: "rotate(180deg)",
-  },
-  avatar: {
-    backgroundColor: "#F44336",
-  },
-  avatarComment: {
-    height: "25px",
-    width: "25px",
-  },
-};
 
 export default function Exercise(props) {
   const {
@@ -336,225 +314,229 @@ export default function Exercise(props) {
   }, [editMode, setHeightToggle]);
 
   return (
-    <Grid container spacing={2} sx={{ marginBottom: "25px", justifyContent: "center" }}>
-      {editMode ? (
-        <>
-          <Grid container size={12} spacing={1}>
-            <Grid size={12}>
-              <Autocomplete
-                disableCloseOnSelect
-                fullWidth
-                value={title}
-                options={exerciseList
-                  .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
-                  .map((option) => option)}
-                isOptionEqualToValue={(option, value) => option._id === value._id}
-                getOptionLabel={(option) => option.exerciseTitle}
-                onChange={(e, newSelection) => setTitle(newSelection)}
-                filterOptions={(options, { inputValue }) => 
-                  options.filter(option => matchWords(option.exerciseTitle, inputValue))
-                }
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                  ))
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Exercise Title"
-                    placeholder="Exercises"
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          <Tooltip title="View Progress Chart">
-                            <IconButton variant="contained" onClick={handleModalExercise}>
-                              <Info />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Log Exercise">
-                            <IconButton variant="contained" onClick={handleEditToggle}>
-                              <FactCheck />
-                            </IconButton>
-                          </Tooltip>
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
+    <Card sx={{ mb: 3, width: '100%', overflow: 'visible' }}>
+      <CardContent>
+        <Grid container spacing={2} sx={{ justifyContent: "center" }}>
+          {editMode ? (
+            <>
+              <Grid container size={12} spacing={1}>
+                <Grid size={12}>
+                  <Autocomplete
+                    disableCloseOnSelect
+                    fullWidth
+                    value={title}
+                    options={exerciseList
+                      .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
+                      .map((option) => option)}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                    getOptionLabel={(option) => option.exerciseTitle}
+                    onChange={(e, newSelection) => setTitle(newSelection)}
+                    filterOptions={(options, { inputValue }) => 
+                      options.filter(option => matchWords(option.exerciseTitle, inputValue))
+                    }
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                      ))
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Exercise Title"
+                        placeholder="Exercises"
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              <Tooltip title="View Progress Chart">
+                                <IconButton variant="contained" onClick={handleModalExercise}>
+                                  <Info />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Log Exercise">
+                                <IconButton variant="contained" onClick={handleEditToggle}>
+                                  <FactCheck />
+                                </IconButton>
+                              </Tooltip>
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, }} >
-              <TextField
-                label="Type"
-                select
-                SelectProps={{ native: true }}
-                fullWidth
-                value={exerciseType}
-                onChange={handleTypeChange}
-              >
-                <option value="Rep Range">Rep Range</option>
-                <option value="Reps">Reps</option>
-                <option value="Reps with %">Reps with %</option>
-                <option value="Time">Time</option>
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, }} >
-              <TextField
-                label="Sets"
-                select
-                SelectProps={{ native: true }}
-                fullWidth
-                value={sets}
-                onChange={handleSetChange}
-              >
-                {[...Array(21)].map((x, i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </TextField>
-            </Grid>
-            <EditLoader
-              fields={EditFields()}
-              exercise={exercise}
-              sets={sets}
-              setIndex={setIndex}
-              exerciseIndex={exerciseIndex}
-              localTraining={localTraining}
-              setLocalTraining={setLocalTraining}
-            />
-          </Grid>
-          <Grid container size={12} sx={{ alignContent: "center" }}>
-            <Grid container size={12} sx={{ justifyContent: "center", alignContent: "center" }}>
-              <Grid >
-                <Tooltip title="Remove exercise">
-                  <IconButton
-                    onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, }} >
+                  <TextField
+                    label="Type"
+                    select
+                    SelectProps={{ native: true }}
+                    fullWidth
+                    value={exerciseType}
+                    onChange={handleTypeChange}
                   >
-                    <RemoveCircle />
-                  </IconButton>
-                </Tooltip>
+                    <option value="Rep Range">Rep Range</option>
+                    <option value="Reps">Reps</option>
+                    <option value="Reps with %">Reps with %</option>
+                    <option value="Time">Time</option>
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, }} >
+                  <TextField
+                    label="Sets"
+                    select
+                    SelectProps={{ native: true }}
+                    fullWidth
+                    value={sets}
+                    onChange={handleSetChange}
+                  >
+                    {[...Array(21)].map((x, i) => (
+                      <option key={i} value={i}>
+                        {i}
+                      </option>
+                    ))}
+                  </TextField>
+                </Grid>
+                <EditLoader
+                  fields={EditFields()}
+                  exercise={exercise}
+                  sets={sets}
+                  setIndex={setIndex}
+                  exerciseIndex={exerciseIndex}
+                  localTraining={localTraining}
+                  setLocalTraining={setLocalTraining}
+                />
               </Grid>
-            </Grid>
-          </Grid>
-          {confirmDialogOpen && (
-            <Dialog open={confirmDialogOpen} onClose={handleConfirmDialogClose}>
-              <DialogTitle>
-                <Grid container>
-                  <Grid container size={12}>
-                    Delete Confirmation
-                  </Grid>
-                </Grid>
-              </DialogTitle>
-              <DialogContent>
-                <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
-                  <Grid container size={12}>
-                    <Typography variant="body1">
-                      Are you sure you would like to remove the exercise?
-                    </Typography>
-                  </Grid>
-                  <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
-                    <Grid >
-                      <Button
-                        color="secondaryButton"
-                        variant="contained"
-                        onClick={handleConfirmDialogClose}
+              <Grid container size={12} sx={{ alignContent: "center" }}>
+                <Grid container size={12} sx={{ justifyContent: "center", alignContent: "center" }}>
+                  <Grid >
+                    <Tooltip title="Remove exercise">
+                      <IconButton
+                        onClick={() => handleConfirmDialogOpen(removeExercise, setIndex, exerciseIndex)}
                       >
-                        Cancel
-                      </Button>
-                    </Grid>
-                    <Grid >
-                      <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
-                        Confirm
-                      </Button>
-                    </Grid>
+                        <RemoveCircle />
+                      </IconButton>
+                    </Tooltip>
                   </Grid>
                 </Grid>
-              </DialogContent>
-            </Dialog>
+              </Grid>
+              {confirmDialogOpen && (
+                <Dialog open={confirmDialogOpen} onClose={handleConfirmDialogClose}>
+                  <DialogTitle>
+                    <Grid container>
+                      <Grid container size={12}>
+                        Delete Confirmation
+                      </Grid>
+                    </Grid>
+                  </DialogTitle>
+                  <DialogContent>
+                    <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+                      <Grid container size={12}>
+                        <Typography variant="body1">
+                          Are you sure you would like to remove the exercise?
+                        </Typography>
+                      </Grid>
+                      <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                        <Grid >
+                          <Button
+                            color="secondaryButton"
+                            variant="contained"
+                            onClick={handleConfirmDialogClose}
+                          >
+                            Cancel
+                          </Button>
+                        </Grid>
+                        <Grid >
+                          <Button variant="contained" onClick={handleDeleteConfirmationSubmit}>
+                            Confirm
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Grid>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </>
+          ) : (
+            <>
+              <Grid container size={12} spacing={2}>
+                <Grid
+                  container
+                  size={2}
+                  sx={{ justifyContent: "flex-end", alignContent: "center" }}
+                ></Grid>
+                <Grid
+                  container
+                  size={8}
+                  sx={{ justifyContent: "flex-start", alignContent: "center" }}
+                >
+                  <Typography color="text.primary" variant="h6">
+                    {title?.exerciseTitle || "Select an exercise"}
+                  </Typography>
+                </Grid>
+                <Grid
+                  container
+                  size={2}
+                  sx={{ justifyContent: "flex-start", alignContent: "center" }}
+                >
+                  <Tooltip title="Exercise Options">
+                    <IconButton onClick={handleExerciseOptionsClick} ref={anchorEl}>
+                      <MoreVertSharp />
+                    </IconButton>
+                  </Tooltip>
+                </Grid>
+              </Grid>
+              <Menu open={exerciseOptionsOpen} onClose={handleExerciseOptionsClose} anchorEl={anchorEl}>
+                <MenuItem
+                  onClick={() => {
+                    handleAutoFillExercise();
+                    handleExerciseOptionsClose();
+                  }}
+                >
+                  Autocomplete Exercise
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleModalExercise();
+                    handleExerciseOptionsClose();
+                  }}
+                >
+                  View Progress Chart
+                </MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    setEditMode((prev) => {
+                      handleExerciseOptionsClose();
+                      return !prev;
+                    })
+                  }
+                >
+                  Edit Exercise
+                </MenuItem>
+              </Menu>
+              <LogLoader
+                fields={LoggedFields()}
+                exercise={exercise}
+                sets={sets}
+                setIndex={setIndex}
+                exerciseIndex={exerciseIndex}
+                localTraining={localTraining}
+                setLocalTraining={setLocalTraining}
+              />
+            </>
           )}
-        </>
-      ) : (
-        <>
-          <Grid container size={12} spacing={2}>
-            <Grid
-              container
-              size={2}
-              sx={{ justifyContent: "flex-end", alignContent: "center" }}
-            ></Grid>
-            <Grid
-              container
-              size={8}
-              sx={{ justifyContent: "flex-start", alignContent: "center" }}
-            >
-              <Typography color="text.primary" variant="h6">
-                {title?.exerciseTitle || "Select an exercise"}
-              </Typography>
-            </Grid>
-            <Grid
-              container
-              size={2}
-              sx={{ justifyContent: "flex-start", alignContent: "center" }}
-            >
-              <Tooltip title="Exercise Options">
-                <IconButton onClick={handleExerciseOptionsClick} ref={anchorEl}>
-                  <MoreVertSharp />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-          </Grid>
-          <Menu open={exerciseOptionsOpen} onClose={handleExerciseOptionsClose} anchorEl={anchorEl}>
-            <MenuItem
-              onClick={() => {
-                handleAutoFillExercise();
-                handleExerciseOptionsClose();
-              }}
-            >
-              Autocomplete Exercise
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                handleModalExercise();
-                handleExerciseOptionsClose();
-              }}
-            >
-              View Progress Chart
-            </MenuItem>
-            <MenuItem
-              onClick={() =>
-                setEditMode((prev) => {
-                  handleExerciseOptionsClose();
-                  return !prev;
-                })
-              }
-            >
-              Edit Exercise
-            </MenuItem>
-          </Menu>
-          <LogLoader
-            fields={LoggedFields()}
-            exercise={exercise}
-            sets={sets}
-            setIndex={setIndex}
-            exerciseIndex={exerciseIndex}
-            localTraining={localTraining}
-            setLocalTraining={setLocalTraining}
-          />
-        </>
-      )}
 
-      {open && (
-        <ModalBarChartHistory
-          workoutUser={workoutUser}
-          exerciseList={exerciseList}
-          targetExerciseProgress={targetExerciseProgress}
-          open={open}
-          handleClose={handleClose}
-        />
-      )}
-    </Grid>
+          {open && (
+            <ModalBarChartHistory
+              workoutUser={workoutUser}
+              exerciseList={exerciseList}
+              targetExerciseProgress={targetExerciseProgress}
+              open={open}
+              handleClose={handleClose}
+            />
+          )}
+        </Grid>
+      </CardContent>
+    </Card>
   );
 }
