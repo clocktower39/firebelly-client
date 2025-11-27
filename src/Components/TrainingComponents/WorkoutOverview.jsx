@@ -67,19 +67,18 @@ function SortableCircuit({ id, index, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     index,
-    animateLayoutChanges: (args) => false,
+    animateLayoutChanges: defaultAnimateLayoutChanges,
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
-    zIndex: isDragging ? 1000 : undefined,
-    opacity: isDragging ? 0.8 : 1,
+    transition,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style}>
-      {children(listeners, attributes)}
+      {children(listeners, attributes, isDragging)}
     </div>
   );
 }
@@ -165,6 +164,7 @@ export default function WorkoutOverview({
 
   const [draggedItem, setDraggedItem] = useState(null);
   const [activeExercise, setActiveExercise] = useState(null);
+  const [activeCircuit, setActiveCircuit] = useState(null);
 
   const flattenedCircuits = useMemo(
     () =>
@@ -195,11 +195,27 @@ export default function WorkoutOverview({
         }
       }
     }
+
+    // Find and store the active circuit data for DragOverlay
+    if (active.id.startsWith("circuit-")) {
+      const parts = active.id.split("-");
+      const workoutId = parts[1];
+      const circuitIndex = parseInt(parts[2]);
+
+      const workout = localWorkouts.find((w) => w._id === workoutId);
+      if (workout && workout.training[circuitIndex]) {
+        setActiveCircuit({
+          circuitIndex,
+          exercises: workout.training[circuitIndex],
+        });
+      }
+    }
   };
 
   const handleDragEnd = ({ active, over }) => {
     setDraggedItem(null);
     setActiveExercise(null);
+    setActiveCircuit(null);
     if (!over || active.id === over.id) return;
 
     if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
@@ -215,6 +231,7 @@ export default function WorkoutOverview({
   const handleDragCancel = () => {
     setDraggedItem(null);
     setActiveExercise(null);
+    setActiveCircuit(null);
   };
 
 
@@ -470,6 +487,36 @@ export default function WorkoutOverview({
                 </Grid>
               </Grid>
             </Grid>
+          </Paper>
+        ) : activeCircuit ? (
+          <Paper sx={{ padding: "0 5px", marginBottom: "10px", opacity: 0.9, boxShadow: 3 }}>
+            <Grid container alignItems="center">
+              <Grid size={12}>
+                <Typography variant="h6">
+                  <span>Circuit {activeCircuit.circuitIndex + 1}</span>
+                </Typography>
+              </Grid>
+            </Grid>
+            <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
+              {activeCircuit.exercises.length > 0 ? (
+                activeCircuit.exercises.map((exercise, index) => (
+                  <Grid container component={Paper} key={index}>
+                    <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
+                      <DragHandleIcon />
+                    </Grid>
+                    <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
+                      <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
+                        <Typography variant="body1">
+                          {exercise?.exercise?.exerciseTitle || "Select an exercise"}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                ))
+              ) : (
+                <div style={{ color: "#aaa" }}>Empty Circuit</div>
+              )}
+            </div>
           </Paper>
         ) : null}
       </DragOverlay>
