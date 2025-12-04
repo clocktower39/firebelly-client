@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Avatar,
   Box,
@@ -42,6 +42,7 @@ import Barcode from "react-barcode";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const pages = [
     {
@@ -184,7 +185,29 @@ export default function NavDrawer() {
               <IconButton onClick={toggleDrawer}>
                 <NavIcon />
               </IconButton>
-              <Button component={Link} to="/" sx={{ maxHeight: "40px" }}>
+              <Button component={Link} to="/" sx={{ maxHeight: "40px" }}
+                onClick={(e) => {
+                  const isHome = window.location.pathname === "/";
+                  const hasQuery = window.location.search.length > 0;
+
+                  // Case 1: Already on "/", no query — reload
+                  if (isHome && !hasQuery) {
+                    e.preventDefault();
+                    navigate(0); // force reload
+                    return;
+                  }
+
+                  // Case 2: At "/?date=...", clear it
+                  if (hasQuery) {
+                    e.preventDefault();
+                    navigate("/"); // go to clean "/"
+                    navigate(0);
+                    return;
+                  }
+
+                  // Otherwise allow normal navigation
+                }}
+              >
                 <img src={logo48} alt="Firebelly Fitness Logo" style={{ maxHeight: "40px" }} />
               </Button>
             </Grid>
