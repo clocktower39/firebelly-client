@@ -4,8 +4,6 @@ import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { loginJWT } from "../Redux/actions";
 import Loading from "./Loading";
-import LoadingPage from "./LoadingPage";
-import NavDrawer from "../Pages/AppPages/NavDrawer";
 import Footer from "./Footer";
 
 export const AuthRoute = (props) => {
@@ -49,10 +47,7 @@ export const AuthRoute = (props) => {
   }, [dispatch, user._id]);
 
   return loading ? (
-    <>
-      <LoadingPage PropComponent={Loading} />
-      <Footer />
-    </>
+      <Loading />
   ) : user.email ? (
     <Outlet context={context} />
   ) : (

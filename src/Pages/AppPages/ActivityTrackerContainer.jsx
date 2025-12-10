@@ -33,27 +33,30 @@ export default function ActivityTrackerContainer(props) {
         maxWidth="md"
         component={Box}
         sx={{
-          padding: "0 5px",
-          height: "calc(100vh - 65px)",
-          minHeight: "calc(100vh - 65px)",
+          px: { xs: 1.5, sm: 2 },
           boxSizing: "border-box",
         }}
         ref={containerRef}
       >
         <Paper
           sx={{
-            padding: "0px 15px 0px 15px",
-            borderRadius: "15px",
-            minHeight: "calc(100% - 5px)",
+            px: { xs: 2, sm: 3 },
+            pt: 2,
+            pb: 3,
+            borderRadius: 3,
+            minHeight: "calc(100vh - 102px)",
             display: "flex",
             flexDirection: "column",
             backgroundColor: "background.ATCPaperBackground",
-            border: borderHighlight ? "1px solid red" : "",
+            border: borderHighlight
+              ? "1px solid #f97316"
+              : "1px solid rgba(148, 163, 184, 0.25)",
+            boxShadow:
+              "0 24px 60px rgba(15, 23, 42, 0.75), 0 0 0 1px rgba(15, 23, 42, 0.9)",
           }}
         >
           <Outlet context={[size, setBorderHighlight]} />
         </Paper>
-        <div style={{ height: "20px" }} />
       </Container>
       <Footer />
     </>

@@ -354,7 +354,7 @@ const FeedbackWorkoutInput = ({ workoutFeedback, setWorkoutFeedback, }) => {
 
 
   return (
-    <Grid container size={12} component={Paper} spacing={1} sx={{ backgroundColor: '#282828', padding: '15px 7.5px', }}>
+    <Grid container size={12} component={Paper} spacing={1} sx={{ padding: '15px 7.5px', }}>
       <Grid container size={12}>
         <Typography>Overall Workout Feedback:</Typography>
       </Grid>
@@ -499,7 +499,7 @@ const FeedbackExerciseInput = ({ exercise }) => {
   };
 
   return (
-    <Grid container size={12} key={exercise._id} component={Paper} spacing={1} sx={{ backgroundColor: '#282828', padding: '15px 7.5px', }}>
+    <Grid container size={12} key={exercise._id} component={Paper} spacing={1} sx={{ padding: '15px 7.5px', }}>
       <Grid container size={12}>
         <Typography>{exercise.exercise.exerciseTitle}:</Typography>
       </Grid>

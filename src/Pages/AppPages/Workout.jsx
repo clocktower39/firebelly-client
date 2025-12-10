@@ -29,7 +29,6 @@ import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
-import LoadingPage from "../../Components/LoadingPage";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
 
@@ -455,7 +454,7 @@ export default function Workout({ socket }) {
   return (
     <>
       {loading ? (
-        <LoadingPage PropComponent={Loading} />
+        <Loading />
       ) : training._id ? (
         <>
           <WorkoutOptionModalView

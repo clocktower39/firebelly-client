@@ -13,13 +13,19 @@ import BryceFlagpole from "../../img/bryce_flagpole.jpg";
 
 const classes = {
   MainImgBox: {
-    backgroundColor: "black",
+    background:
+      "radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%), #020617",
     width: "100%",
   },
-  WideMainImg: { width: "100%", height: "auto" },
-  NonWideMainImg: { width: "100%", height: "55vh", objectFit: "cover" },
+  WideMainImg: { width: "100%", height: "auto", borderRadius: "24px", objectFit: "cover" },
+  NonWideMainImg: {
+    width: "100%",
+    height: "55vh",
+    objectFit: "cover",
+    borderRadius: "24px",
+  },
   AboutSite: {
-    padding: "25px 15px",
+    padding: "32px 20px",
     color: "white",
   },
 };
@@ -51,7 +57,12 @@ export default function Home() {
           />
         </Container>
       </Box>
-      <Grid sx={{ backgroundColor: "black" }}>
+      <Grid
+        sx={{
+          background:
+            "radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%), #020617",
+        }}
+      >
         <Container maxWidth="sm" sx={classes.AboutSite}>
           <Grid>
             <Typography
@@ -96,10 +107,16 @@ export default function Home() {
         </Container>
         <Container maxWidth="lg">
           <Grid size={12}>
-            <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+            <Divider sx={{ bgcolor: "rgba(148,163,184,0.35)", margin: "1.5em 0" }} />
           </Grid>
         </Container>
-        <Container maxWidth="false" sx={{ backgroundColor: "black" }}>
+        <Container
+          maxWidth="false"
+          sx={{
+            background:
+              "radial-gradient(circle at bottom, rgba(52,211,153,0.18), transparent 55%), #020617",
+          }}
+        >
           <Container
             maxWidth="md"
             sx={{
@@ -178,19 +195,19 @@ export default function Home() {
             </Grid>
             <Container maxWidth="lg">
               <Grid size={12}>
-                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+                <Divider sx={{ bgcolor: "rgba(148,163,184,0.35)", margin: "1.5em 0" }} />
               </Grid>
             </Container>
             <Nutrition />
             <Container maxWidth="lg">
               <Grid size={12}>
-                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+                <Divider sx={{ bgcolor: "rgba(148,163,184,0.35)", margin: "1.5em 0" }} />
               </Grid>
             </Container>
             <Workshops />
             <Container maxWidth="lg">
               <Grid size={12}>
-                <Divider sx={{ bgcolor: "white", margin: "1.1em" }} />
+                <Divider sx={{ bgcolor: "rgba(148,163,184,0.35)", margin: "1.5em 0" }} />
               </Grid>
             </Container>
             <Training />
