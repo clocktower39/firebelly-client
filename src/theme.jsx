@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material";
 import { store } from "./Redux/store";
 
-const darkTheme = {
+const dark = {
   palette: {
     mode: "dark",
     primary: {
@@ -35,7 +35,7 @@ const darkTheme = {
 };
 
 // Modern Dark Theme Palette
-const modernDarkTheme = {
+const moor = {
   palette: {
     mode: "dark",
     primary: {
@@ -175,5 +175,17 @@ const modernDarkTheme = {
 };
 
 // Exporting the same function signature to maintain compatibility
-export const theme = () =>
-  createTheme(store.getState().user.themeMode === "dark" ? darkTheme : modernDarkTheme);
+export const theme = () => {
+  const userTheme = store.getState().user.themeMode;
+  const selectedTheme = () => {
+    switch (userTheme) {
+      case 'dark':
+        return dark;
+      case 'moor':
+        return moor;
+      default:
+        return dark;
+    }
+  }
+  return createTheme(selectedTheme());
+}

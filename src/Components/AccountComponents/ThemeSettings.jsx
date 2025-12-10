@@ -7,9 +7,8 @@ export default function AccountSettings() {
   const dispatch = useDispatch();
   const userThemeMode = useSelector((state) => state.user.themeMode);
   const options = [
-    { label: "Light", value: "light" },
     { label: "Dark", value: "dark" },
-    { label: "Custom", value: "custom", disabled: true },
+    { label: "Moor Frog (Light and Dark Blue)", value: "moor" },
   ];
   const [themeSelection, setThemeSelection] = useState(
     options.filter((option) => option.value === userThemeMode)[0]
@@ -37,12 +36,9 @@ export default function AccountSettings() {
               options={options}
               onChange={handleChange}
               isOptionEqualToValue={(option, value) => option.value === value.value}
-            //   renderInput={(params) => <TextField {...params} label="Theme" />}
               getOptionDisabled={(option) => option.value === "custom"}
               renderInput={(params) => (
                 <TextField
-                  error={true}
-                  helperText="Light theme temporarily disabled, you still may save the preference"
                   {...params}
                   label="Combo box"
                   variant="outlined"
