@@ -1,8 +1,41 @@
 import { createTheme } from "@mui/material";
 import { store } from "./Redux/store";
 
-// Modern Dark Theme Palette
 const darkTheme = {
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#2e7d32",
+      contrastText: "#fff",
+    },
+    secondary: {
+      main: "#ff9800",
+      contrastText: "#fff",
+    },
+    secondaryButton: {
+      main: "#ff9800",
+      contrastText: "#fff",
+    },
+    background: {
+      default: "#3a3a3a",
+      NavDrawer: "#232323",
+      ATCPaperBackground: "#121212",
+      DashboardCard: "#282828",
+      ChartToopTip: "#000",
+      Footer: "#000",
+    },
+  },
+  typography: {
+  },
+  props: {
+    MuiTextField: {
+      variant: "outlined",
+    },
+  },
+};
+
+// Modern Dark Theme Palette
+const modernDarkTheme = {
   palette: {
     mode: "dark",
     primary: {
@@ -20,9 +53,11 @@ const darkTheme = {
     background: {
       default: "#0f172a", // Slate 900
       paper: "#1e293b",   // Slate 800
+      NavDrawer: "linear-gradient(90deg, #020617, #0f172a, #1e293b)",
       ATCPaperBackground: "#1e293b",
       DashboardCard: "#334155", // Slate 700
       ChartToopTip: "#0f172a",
+      Footer: "rgba(15, 23, 42, 0.96)",
     },
     text: {
       primary: "#f8fafc", // Slate 50
@@ -66,8 +101,6 @@ const darkTheme = {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 9999, // Pill shape
-          padding: "8px 24px",
           boxShadow: "none",
           "&:hover": {
             boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
@@ -143,4 +176,4 @@ const darkTheme = {
 
 // Exporting the same function signature to maintain compatibility
 export const theme = () =>
-  createTheme(store.getState().user.themeMode === "light" ? darkTheme : darkTheme);
+  createTheme(store.getState().user.themeMode === "dark" ? darkTheme : modernDarkTheme);

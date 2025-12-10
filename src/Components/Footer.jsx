@@ -17,11 +17,9 @@ export default function Footer() {
     <Box
       component="footer"
       sx={{
-        mt: 4,
-        py: 2,
-        px: 2,
+        mt: 1,
         borderTop: "1px solid rgba(148, 163, 184, 0.24)",
-        backgroundColor: "rgba(15, 23, 42, 0.96)", // Slate 900 with slight overlay
+        backgroundColor: "background.Footer", // Slate 900 with slight overlay
         backdropFilter: "blur(10px)",
       }}
     >

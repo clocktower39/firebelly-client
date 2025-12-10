@@ -210,7 +210,8 @@ export default function NavDrawer() {
         position="sticky"
         elevation={0}
         sx={{
-          background: "linear-gradient(90deg, #020617, #0f172a, #1e293b)",
+          background: "background.NavDrawer",
+          backgroundColor: "background.NavDrawer",
           borderBottom: "1px solid rgba(148, 163, 184, 0.35)",
           mb: 1,
         }}
@@ -232,9 +233,9 @@ export default function NavDrawer() {
                 onClick={toggleDrawer}
                 sx={{
                   borderRadius: 2,
-                  backgroundColor: "rgba(15, 23, 42, 0.7)",
+                  backgroundColor: "background.ATCPaperBackground",
                   "&:hover": {
-                    backgroundColor: "rgba(30, 64, 175, 0.9)",
+                    backgroundColor: "primary.main",
                   },
                 }}
               >

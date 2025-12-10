@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { ThemeProvider } from "@mui/material";
+import { ThemeProvider, GlobalStyles } from "@mui/material";
 import { theme } from "./theme";
 import { serverURL } from "./Redux/actions";
 import socketIOClient from "socket.io-client";
@@ -82,6 +82,23 @@ function App({ }) {
 
   return (
     <ThemeProvider theme={themeSelection}>
+      <GlobalStyles
+        styles={(theme) => ({
+          html: {
+            backgroundColor: theme.palette.background.default,
+            minHeight: "100vh",
+          },
+          body: {
+            backgroundColor: theme.palette.background.default,
+            minHeight: "100vh",
+            margin: 0,
+          },
+          "#root": {
+            backgroundColor: theme.palette.background.default,
+            minHeight: "100vh",
+          },
+        })}
+      />
       <Router>
         <Routes>
           {/* Default website pages, anyone can access */}

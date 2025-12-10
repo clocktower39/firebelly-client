@@ -31,11 +31,9 @@ export default function ActivityTrackerContainer(props) {
       <NavDrawer />
       <Container
         maxWidth="md"
+        component={Box}
         sx={{
           px: { xs: 1.5, sm: 2 },
-          pt: 2,
-          pb: 4,
-          minHeight: "calc(100vh - 80px)",
           boxSizing: "border-box",
         }}
         ref={containerRef}
@@ -46,7 +44,7 @@ export default function ActivityTrackerContainer(props) {
             pt: 2,
             pb: 3,
             borderRadius: 3,
-            minHeight: "100%",
+            minHeight: "calc(100vh - 102px)",
             display: "flex",
             flexDirection: "column",
             backgroundColor: "background.ATCPaperBackground",
