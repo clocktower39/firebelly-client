@@ -4,7 +4,6 @@ import { useLocation, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
 import dayjs from "dayjs";
 import Loading from "../../Components/Loading";
-import LoadingPage from "../../Components/LoadingPage";
 import SelectedDate from "../../Components/SelectedDate";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
@@ -109,7 +108,7 @@ function Home() {
 
 
   return loading ? (
-    <LoadingPage PropComponent={Loading} />
+    <Loading />
   ) : (
     <>
       {!isPersonalWorkout() && workoutsUser.firstName && (

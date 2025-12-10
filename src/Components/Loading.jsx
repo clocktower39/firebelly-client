@@ -8,6 +8,7 @@ const classes = {
     alignItems: "center",
     justifyContent: "center",
     height: "100%",
+            minHeight: "calc(100vh - 165px)",
   },
 };
 
