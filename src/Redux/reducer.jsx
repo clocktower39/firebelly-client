@@ -60,7 +60,6 @@ export let reducer = (
         ...state,
         user: {
           isTrainer: false,
-          themeMode: "light",
         },
       };
     case EDIT_WORKOUTS: {

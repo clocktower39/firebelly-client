@@ -177,6 +177,7 @@ const moor = {
 // Exporting the same function signature to maintain compatibility
 export const theme = () => {
   const userTheme = store.getState().user.themeMode;
+  localStorage.setItem('theme', userTheme);
   const selectedTheme = () => {
     switch (userTheme) {
       case 'dark':
