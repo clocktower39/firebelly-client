@@ -33,14 +33,14 @@ export default function ActivityTrackerContainer(props) {
         maxWidth="md"
         component={Box}
         sx={{
-          px: { xs: 1.5, sm: 2 },
+          px: { xs: 1, sm: 2 },
           boxSizing: "border-box",
         }}
         ref={containerRef}
       >
         <Paper
           sx={{
-            px: { xs: 2, sm: 3 },
+            px: { xs: 1, sm: 2 },
             pt: 2,
             pb: 3,
             borderRadius: 3,
