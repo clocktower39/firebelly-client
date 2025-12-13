@@ -24,6 +24,7 @@ const classes = {
     justifyContent: "space-between",
     flexWrap: "nowrap",
     minHeight: "64px",
+    backgroundColor: "#000000",
   },
   NavLink: {
     textTransform: "none",
@@ -58,7 +59,6 @@ export default function WebsiteNavbar() {
       position="sticky"
       elevation={0}
       sx={{
-        background: "linear-gradient(90deg, #020617, #0f172a, #1e293b)",
         borderBottom: "1px solid rgba(148, 163, 184, 0.4)",
         backdropFilter: "blur(16px)",
       }}
@@ -73,7 +73,7 @@ export default function WebsiteNavbar() {
               position: "relative",
               borderRadius: 2,
               backgroundColor: "rgba(15, 23, 42, 0.7)",
-              "&:hover": { backgroundColor: "rgba(30, 64, 175, 0.9)" },
+              "&:hover": { backgroundColor: "#000000", },
             }}
           >
             <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: 56, height: 56 }} />

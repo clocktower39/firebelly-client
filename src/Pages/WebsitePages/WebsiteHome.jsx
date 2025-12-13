@@ -13,8 +13,7 @@ import BryceFlagpole from "../../img/bryce_flagpole.jpg";
 
 const classes = {
   MainImgBox: {
-    background:
-      "radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%), #020617",
+    background: " #000000",
     width: "100%",
   },
   WideMainImg: { width: "100%", height: "auto", borderRadius: "24px", objectFit: "cover" },
@@ -59,8 +58,7 @@ export default function Home() {
       </Box>
       <Grid
         sx={{
-          background:
-            "radial-gradient(circle at top, rgba(56, 189, 248, 0.25), transparent 55%), #020617",
+          backgroundColor: "#000000",
         }}
       >
         <Container maxWidth="sm" sx={classes.AboutSite}>
@@ -113,8 +111,7 @@ export default function Home() {
         <Container
           maxWidth="false"
           sx={{
-            background:
-              "radial-gradient(circle at bottom, rgba(52,211,153,0.18), transparent 55%), #020617",
+            backgroundColor: "#000000",
           }}
         >
           <Container
