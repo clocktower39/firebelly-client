@@ -276,7 +276,7 @@ export default function Goals({ view = "client", client, }) {
                     <Grid container size={10}>
                       <Grid container size={12}>
                         <Typography variant="body1">
-                          {comment?.user.firstName} {comment?.user.lastName}
+                          {comment?.user?.firstName} {comment?.user?.lastName}
                         </Typography>
                         <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>{comment.createdDate.substr(0, 10)}</Typography>
                       </Grid>
