@@ -24,14 +24,48 @@ const dark = {
       ChartToopTip: "#000",
       Footer: "#000",
     },
+    text: {
+      primary: "#f8fafc", // Slate 50
+      secondary: "#94a3b8", // Slate 400
+    },
+    divider: "rgba(148, 163, 184, 0.12)",
   },
   typography: {
+    fontFamily: "'Roboto', 'Inter', sans-serif",
+    h1: { fontFamily: "'Montserrat', sans-serif", fontWeight: 700 },
+    h2: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h3: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h4: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h5: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h6: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    subtitle1: { fontSize: "1.1rem", fontWeight: 500 },
+    button: { fontWeight: 600, textTransform: "none" },
+  },
+  shape: {
+    borderRadius: 6,
   },
   props: {
     MuiTextField: {
       variant: "outlined",
     },
   },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: "none",
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 500,
+        },
+      },
+    },
+  }
 };
 
 // Modern Dark Theme Palette
