@@ -22,20 +22,20 @@ export default function Account() {
     return (
       <List>
         <ListItem button component={Link} to="/account">
-          <ListItemText primary="My Account" sx={{ color: "white" }} />
+          <ListItemText primary="My Account" sx={{ color: "primary.contrastText" }} />
         </ListItem>
         <ListItem button component={Link} to="/account/trainers">
-          <ListItemText primary="Trainers" sx={{ color: "white" }} />
+          <ListItemText primary="Trainers" sx={{ color: "primary.contrastText" }} />
         </ListItem>
         <ListItem button component={Link} to="/account/theme">
-          <ListItemText primary="Theme" sx={{ color: "white" }} />
+          <ListItemText primary="Theme" sx={{ color: "primary.contrastText" }} />
         </ListItem>
         <ListItem button component={Link} to="/account/password">
-          <ListItemText primary="Change Password" sx={{ color: "white" }} />
+          <ListItemText primary="Change Password" sx={{ color: "primary.contrastText" }} />
         </ListItem>
         <Divider />
         <ListItem button component={Link} to="/account/logout">
-          <ListItemText primary="Logout" sx={{ color: "white" }} />
+          <ListItemText primary="Logout" sx={{ color: "primary.contrastText" }} />
         </ListItem>
       </List>
     );
@@ -49,7 +49,7 @@ export default function Account() {
           <Grid container size={12} sx={{ justifyContent: "space-between" }}>
 
             <Box sx={{ display: "flex", flexDirection: "row" }}>
-              <Typography onClick={handleOutletLists} variant="h5" sx={{ color: "#fff" }}>
+              <Typography onClick={handleOutletLists} variant="h5" sx={{ color: "primary.contrastText" }}>
                 Account Settings
               </Typography>
             </Box>

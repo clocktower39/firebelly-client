@@ -208,6 +208,154 @@ const moor = {
   },
 };
 
+// Modern Light Theme Palette
+const light = {
+  palette: {
+    mode: "light",
+    primary: {
+      main: "#10b981", // Emerald 500
+      contrastText: "#000",
+    },
+    secondary: {
+      main: "#f59e0b", // Amber 500
+      contrastText: "#000",
+    },
+    secondaryButton: {
+      main: "#f59e0b",
+      contrastText: "#ffffff",
+    },
+    background: {
+      default: "#f8fafc", // Slate 50
+      paper: "#ffffff",
+      NavDrawer: "linear-gradient(90deg, #f1f5f9, #e2e8f0)",
+      ATCPaperBackground: "#ffffff",
+      DashboardCard: "#ffffff",
+      ChartToopTip: "#334155",
+      Footer: "#e2e8f0",
+    },
+    text: {
+      primary: "#0f172a",   // Slate 900
+      secondary: "#475569", // Slate 600
+    },
+    divider: "rgba(15, 23, 42, 0.12)",
+  },
+
+  typography: {
+    fontFamily: "'Roboto', 'Inter', sans-serif",
+    h1: { fontFamily: "'Montserrat', sans-serif", fontWeight: 700 },
+    h2: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h3: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h4: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h5: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h6: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    subtitle1: { fontSize: "1.1rem", fontWeight: 500 },
+    button: { fontWeight: 600, textTransform: "none" },
+  },
+
+  shape: {
+    borderRadius: 12,
+  },
+
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: "#f8fafc",
+          scrollbarColor: "#cbd5f5 #f8fafc",
+          "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+            backgroundColor: "#f8fafc",
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+            borderRadius: 8,
+            backgroundColor: "#cbd5e1",
+            border: "2px solid #f8fafc",
+          },
+        },
+      },
+    },
+
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          boxShadow: "none",
+          "&:hover": {
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          },
+        },
+        containedPrimary: {
+          background: "linear-gradient(45deg, #10b981 30%, #34d399 90%)",
+        },
+      },
+    },
+
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          backgroundColor: "#ffffff",
+          boxShadow:
+            "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)",
+          border: "1px solid rgba(15, 23, 42, 0.08)",
+        },
+      },
+    },
+
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: "none",
+        },
+        rounded: {
+          borderRadius: 16,
+        },
+      },
+    },
+
+    MuiTextField: {
+      defaultProps: {
+        variant: "outlined",
+      },
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 12,
+            backgroundColor: "#ffffff",
+            "& fieldset": {
+              borderColor: "rgba(15, 23, 42, 0.25)",
+            },
+            "&:hover fieldset": {
+              borderColor: "rgba(15, 23, 42, 0.45)",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#10b981",
+            },
+          },
+        },
+      },
+    },
+
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 20,
+          backgroundColor: "#ffffff",
+          border: "1px solid rgba(15, 23, 42, 0.08)",
+        },
+      },
+    },
+
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 500,
+        },
+      },
+    },
+  },
+};
+
 // Exporting the same function signature to maintain compatibility
 export const theme = () => {
   const userTheme = store.getState().user.themeMode;
@@ -218,6 +366,8 @@ export const theme = () => {
         return dark;
       case 'moor':
         return moor;
+      case 'light':
+        return light;
       default:
         return dark;
     }

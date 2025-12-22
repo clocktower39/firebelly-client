@@ -286,7 +286,7 @@ export default function NavDrawer() {
                   <Typography
                     variant="caption"
                     sx={{ letterSpacing: 0.4, textTransform: "uppercase" }}
-                    color="rgba(148, 163, 184, 0.9)"
+                    color="text.secondary"
                   >
                     Fitness app
                   </Typography>

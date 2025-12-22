@@ -9,6 +9,7 @@ export default function AccountSettings() {
   const options = [
     { label: "Dark", value: "dark" },
     { label: "Moor Frog (Light and Dark Blue)", value: "moor" },
+    { label: "Light", value: "light" },
   ];
   const [themeSelection, setThemeSelection] = useState(
     options.filter((option) => option.value === userThemeMode)[0]
