@@ -137,7 +137,7 @@ export default function ChangePassword() {
   return (
     <Container maxWidth="md" sx={{ height: "100%" }}>
       <Grid container size={12} sx={{ padding: "15px" }}>
-        <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
+        <Typography variant="h5" gutterBottom sx={{ color: "primary.contrastText" }}>
           Change Password
         </Typography>
       </Grid>

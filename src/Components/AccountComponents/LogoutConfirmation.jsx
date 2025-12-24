@@ -13,14 +13,14 @@ export default function LogoutConfirmation() {
 
           <Grid container size={12} spacing="2">
             <Grid container size={12}>
-              <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
+              <Typography variant="h5" gutterBottom sx={{ color: "primary.contrastText" }}>
                 Logout
               </Typography>
             </Grid>
           </Grid>
 
           <Grid container size={12} >
-            <Typography variant="body1" gutterBottom sx={{ color: "#fff", paddingBottom: "25px" }}>
+            <Typography variant="body1" gutterBottom sx={{ color: "primary.contrastText", paddingBottom: "25px" }}>
               Are you sure you would like to logout?
             </Typography>
           </Grid>

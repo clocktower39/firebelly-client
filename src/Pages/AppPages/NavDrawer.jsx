@@ -234,7 +234,7 @@ export default function NavDrawer() {
                 onClick={toggleDrawer}
                 sx={{
                   borderRadius: 2,
-                  backgroundColor: "background.ATCPaperBackground",
+                  backgroundColor: "background.NavDrawer",
                   "&:hover": {
                     backgroundColor: "primary.main",
                   },
