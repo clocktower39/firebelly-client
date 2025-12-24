@@ -354,9 +354,7 @@ export default function NavDrawer() {
         PaperProps={{
           sx: {
             width: "100%",
-            maxWidth: 420,
-            borderRadius: 4,
-            backgroundColor: "background.paper",
+            height: "90vh",
           },
         }}
       >
@@ -366,28 +364,14 @@ export default function NavDrawer() {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              py: 4,
-            }}
-          >
-            <Box
-              sx={{
-                px: 2,
-                py: 1.5,
-                borderRadius: 2,
-                backgroundColor: "background.default",
-              }}
-            >
-              <Barcode value={user.gymBarcode} height={80} />
+          <Grid container sx={{ justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <Box sx={{ transform: "scale(2)" }}>
+              <Barcode value={user.gymBarcode} />
             </Box>
-          </Box>
+          </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={handleCloseGymBarCodeDialog}>
+        <DialogActions sx={{ justifyContent: 'center', alignItems: 'center', }}>
+          <Button variant="contained" onClick={handleCloseGymBarCodeDialog} >
             Close
           </Button>
         </DialogActions>
