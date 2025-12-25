@@ -95,7 +95,7 @@ export const ModalBarChartHistory = (props) => {
       onClose={handleClose}
     >
       <Box sx={modalStyle()}>
-        <BarChartHistory targetExerciseHistory={targetExerciseHistory}/>
+        <BarChartHistory targetExerciseHistory={targetExerciseHistory} />
       </Box>
     </Modal>
   );
@@ -204,6 +204,9 @@ export const BarChartHistory = (props) => {
     );
   };
 
+  const getMaxSetsForField = (fieldRange) =>
+    Math.max(0, ...exercise.map((row) => (row[fieldRange]?.length ?? 0)));
+
   return (
     <>
       <Typography
@@ -224,73 +227,61 @@ export const BarChartHistory = (props) => {
         />
       </Grid>
       {targetExerciseHistory.length > 0 &&
-        exerciseTypeFields(targetExerciseHistory[0].exerciseType).repeating.map(
-          (field, i) => (
+        exerciseTypeFields(targetExerciseHistory[0].exerciseType).repeating.map((field, i) => {
+          const fieldRange = `${field.goalAttribute}Range`;
+          const maxSets = getMaxSetsForField(fieldRange);
+
+          return (
             <BarChart
               key={`chart-${field.goalAttribute}`}
               width={size * 0.85}
               height={size * 0.3}
               data={exercise}
             >
-              {exercise.length > 0 &&
-                exercise[0][`${field.goalAttribute}Range`]?.map((_, index) => (
-                  <Bar
-                    key={`bar-${field.goalAttribute}-${index}`}
-                    dataKey={`${field.goalAttribute}Range[${index}]`}
-                    fill={i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main}
-                  />
-                ))}
+              {[...Array(maxSets)].map((_, index) => (
+                <Bar
+                  key={`bar-${field.goalAttribute}-${index}`}
+                  dataKey={`${fieldRange}[${index}]`}
+                  fill={
+                    i === 0
+                      ? theme().palette.secondary.main
+                      : i === 1
+                        ? theme().palette.error.main
+                        : theme().palette.primary.main
+                  }
+                />
+              ))}
+
               <XAxis dataKey="date" />
               <YAxis
-                domain={[0, totalMaxValues[`${field.goalAttribute}Range`]]}
+                domain={[0, totalMaxValues[fieldRange] ?? 0]}
                 label={{
                   value: field.label,
                   angle: -90,
-                  position: 'insideLeft',
-                  fill: i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main
+                  position: "insideLeft",
+                  fill:
+                    i === 0
+                      ? theme().palette.secondary.main
+                      : i === 1
+                        ? theme().palette.error.main
+                        : theme().palette.primary.main,
                 }}
               />
               <Tooltip
                 content={<RenderToolTip label={field.label} />}
                 unit={field.label}
-                fill={i === 0 ? theme().palette.secondary.main : i === 1 ? theme().palette.error.main :  theme().palette.primary.main}
+                fill={
+                  i === 0
+                    ? theme().palette.secondary.main
+                    : i === 1
+                      ? theme().palette.error.main
+                      : theme().palette.primary.main
+                }
                 cursor={false}
               />
             </BarChart>
-          )
-        )}
-      {targetExerciseHistory.length > 0 &&
-        exerciseTypeFields(targetExerciseHistory[0].exerciseType).nonRepeating.map(
-          (field, i) => (
-            <BarChart
-              key={`chart-${field.goalAttribute}`}
-              width={size * 0.85}
-              height={size * 0.3}
-              data={exercise}
-            >
-              <Bar
-                key={`bar-${field.goalAttribute}-${i}`}
-                dataKey={`${field.goalAttribute}`}
-                fill={theme().palette.error.main}
-              />
-              <XAxis dataKey="date" />
-              <YAxis
-                domain={[0, totalMaxValues[`${field.goalAttribute}`]]}
-                label={{
-                  value: field.label,
-                  angle: -90,
-                  position: 'insideLeft',
-                  fill: theme().palette.error.main,
-                }}
-              />
-              <Tooltip
-                content={<RenderToolTip label={field.label} />}
-                fill={theme().palette.error.main}
-                cursor={false}
-              />
-            </BarChart>
-          )
-        )}
+          );
+        })}
     </>
   );
 };
@@ -301,7 +292,7 @@ const ExerciseListAutocomplete = (props) => {
   const [title, setTitle] = useState(exercise?.exercise?.exerciseTitle || "");
 
   const matchWords = (option, inputValue) => {
-    if(!option) return false;
+    if (!option) return false;
     const words = inputValue.toLowerCase().split(" ").filter(Boolean);
     return words.every((word) => option.toLowerCase().includes(word));
   };
@@ -322,7 +313,7 @@ const ExerciseListAutocomplete = (props) => {
         .sort((a, b) => a.exerciseTitle.localeCompare(b.exerciseTitle))
         .map((option) => option.exerciseTitle)}
       onChange={(e, getTagProps) => setTitle(getTagProps)}
-      filterOptions={(options, { inputValue }) => 
+      filterOptions={(options, { inputValue }) =>
         options.filter(option => matchWords(option, inputValue))
       }
       renderTags={(value, getTagProps) =>
@@ -362,7 +353,7 @@ export default function Progress(props) {
   }, [searchValue]);
 
   useEffect(() => {
-    if(exerciseList.length < 1){
+    if (exerciseList.length < 1) {
       dispatch(getExerciseList());
     }
     if (props.searchExercise && props.searchExercise !== "") {
@@ -382,7 +373,7 @@ export default function Progress(props) {
         </Grid>
         <Grid container size={12}>
           <Grid size={12}>
-              <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
+            <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
           </Grid>
         </Grid>
       </Grid>
