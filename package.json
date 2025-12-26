@@ -20,7 +20,7 @@
     "@mui/material": "^7.3.6",
     "@mui/styles": "^6.4.8",
     "@mui/system": "^7.3.6",
-    "@mui/x-date-pickers": "^8.21.0",
+    "@mui/x-date-pickers": "^8.23.0",
     "@redux-devtools/extension": "^3.3.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
@@ -31,27 +31,27 @@
     "normalize.css": "^8.0.1",
     "prop-types": "^15.7.2",
     "query-string": "^9.3.1",
-    "react": "^19.2.1",
+    "react": "^19.2.3",
     "react-barcode": "^1.6.1",
-    "react-dom": "^19.2.1",
+    "react-dom": "^19.2.3",
     "react-input-mask": "^2.0.4",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.10.1",
+    "react-router-dom": "^7.11.0",
     "react-router-hash-link": "^2.4.3",
     "react-swipeable-views": "^0.14.1",
-    "recharts": "^3.5.1",
+    "recharts": "^3.6.0",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "vite": "^7.2.7"
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "vite": "^7.3.0"
   }
 }
