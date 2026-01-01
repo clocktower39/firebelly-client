@@ -681,6 +681,79 @@ export function updateExercise(exercise) {
   };
 }
 
+export function createExercise(exercise) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
+
+    const response = await fetch(`${serverURL}/createExercise`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ ...exercise }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    if (data.error) {
+      dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+      return { error: data.error };
+    }
+
+    const createdExercise = data.exercise || data;
+    dispatch({
+      type: EDIT_PROGRESS_EXERCISE_LIST,
+      exerciseList: [...state.progress.exerciseList, createdExercise],
+    });
+    return { exercise: createdExercise };
+  };
+}
+
+export function mergeExercises({ sourceExerciseId, targetExerciseId, deleteSource = true }) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const state = getState();
+
+    const response = await fetch(`${serverURL}/mergeExercises`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ sourceExerciseId, targetExerciseId, deleteSource }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    if (data.error) {
+      dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+      return { error: data.error };
+    }
+
+    const mergedExercise = data.mergedExercise;
+    const removedExerciseId = data.removedExerciseId;
+    const updatedList = state.progress.exerciseList
+      .filter((exercise) => exercise._id !== removedExerciseId)
+      .map((exercise) =>
+        exercise._id === mergedExercise?._id ? mergedExercise : exercise
+      );
+
+    dispatch({
+      type: EDIT_PROGRESS_EXERCISE_LIST,
+      exerciseList: updatedList,
+    });
+    return { mergedExercise, removedExerciseId };
+  };
+}
+
 export function updateThemeMode(mode) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
