@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useEffect, useRef } from "react";
+import React, { Fragment, useMemo, useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -9,10 +9,20 @@ import {
   Badge,
   Box,
   Button,
+  Chip,
+  Divider,
+  FormControl,
   Grid,
   IconButton,
+  InputAdornment,
+  InputLabel,
   List,
   ListItem,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  Stack,
+  TextField,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -20,6 +30,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  Search as SearchIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { requestWorkoutsByMonth, serverURL } from "../../Redux/actions";
@@ -86,6 +97,10 @@ export default function Calendar(props) {
   const [currentMonth, setCurrentMonth] = useState(dayjs(new Date()).month());
   const [currentYear, setCurrentYear] = useState(dayjs(new Date()).year());
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState([]);
+  const [sortMode, setSortMode] = useState("date-desc");
 
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalToggle = () => {
@@ -120,7 +135,7 @@ export default function Calendar(props) {
           complete: item.complete,
         }));
     });
-  }, [workouts, currentMonth]);
+  }, [workouts, currentMonth, currentYear]);
 
   const handleMonthChange = (e) => {
     setCurrentMonth(dayjs(e).month());
@@ -134,6 +149,72 @@ export default function Calendar(props) {
     const newDate = dayjs(e);
     setScrollToDate(newDate.format("YYYY-MM-DD"));
     setSelectedDate(newDate);
+  };
+
+  const monthWorkouts = useMemo(() => {
+    return workouts.filter(
+      (workout) =>
+        dayjs.utc(workout.date).month() === currentMonth &&
+        dayjs.utc(workout.date).year() === currentYear,
+    );
+  }, [workouts, currentMonth, currentYear]);
+
+  const categoryOptions = useMemo(() => {
+    const categories = new Set();
+    monthWorkouts.forEach((workout) => {
+      workout?.category?.forEach((item) => categories.add(item));
+    });
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }, [monthWorkouts]);
+
+  const filteredWorkouts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const words = query.split(" ").filter(Boolean);
+    const matchesSearch = (workout) => {
+      if (!words.length) return true;
+      const categories = workout?.category || [];
+      const exercises =
+        workout?.training?.flatMap((circuit) =>
+          circuit.map((exercise) => exercise?.exercise?.exerciseTitle).filter(Boolean),
+        ) || [];
+      const searchTarget = [workout?.title, ...categories, ...exercises]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return words.every((word) => searchTarget.includes(word));
+    };
+
+    const matchesStatus = (workout) => {
+      if (statusFilter === "all") return true;
+      return statusFilter === "complete" ? workout.complete : !workout.complete;
+    };
+
+    const matchesCategories = (workout) => {
+      if (!categoryFilter.length) return true;
+      const workoutCategories = workout?.category || [];
+      return categoryFilter.every((category) => workoutCategories.includes(category));
+    };
+
+    return [...monthWorkouts]
+      .filter((workout) => matchesSearch(workout) && matchesStatus(workout) && matchesCategories(workout))
+      .sort((a, b) => {
+        if (sortMode === "date-asc") return dayjs(a.date).valueOf() - dayjs(b.date).valueOf();
+        if (sortMode === "title-asc") return (a.title || "").localeCompare(b.title || "");
+        if (sortMode === "title-desc") return (b.title || "").localeCompare(a.title || "");
+        return dayjs(b.date).valueOf() - dayjs(a.date).valueOf();
+      });
+  }, [categoryFilter, monthWorkouts, searchQuery, sortMode, statusFilter]);
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setCategoryFilter([]);
+    setSortMode("date-desc");
+  };
+
+  const handleCategoryChange = (event) => {
+    const { value } = event.target;
+    setCategoryFilter(typeof value === "string" ? value.split(",") : value);
   };
 
   return (
@@ -167,15 +248,111 @@ export default function Calendar(props) {
           />
         </Box>
 
+        <Box sx={{ px: 2, py: 1 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, }}>
+              <TextField
+                fullWidth
+                label="Search workouts"
+                placeholder="Title, muscle group, or exercise"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1}>
+                  <Chip
+                    label="All"
+                    clickable
+                    color={statusFilter === "all" ? "primary" : "default"}
+                    variant={statusFilter === "all" ? "filled" : "outlined"}
+                    onClick={() => setStatusFilter("all")}
+                  />
+                  <Chip
+                    label="Complete"
+                    clickable
+                    color={statusFilter === "complete" ? "success" : "default"}
+                    variant={statusFilter === "complete" ? "filled" : "outlined"}
+                    onClick={() => setStatusFilter("complete")}
+                  />
+                  <Chip
+                    label="Incomplete"
+                    clickable
+                    color={statusFilter === "incomplete" ? "warning" : "default"}
+                    variant={statusFilter === "incomplete" ? "filled" : "outlined"}
+                    onClick={() => setStatusFilter("incomplete")}
+                  />
+                </Stack>
+                <FormControl sx={{ minWidth: 180 }} size="small">
+                  <InputLabel id="calendar-category-filter-label">Muscle group</InputLabel>
+                  <Select
+                    labelId="calendar-category-filter-label"
+                    multiple
+                    value={categoryFilter}
+                    onChange={handleCategoryChange}
+                    input={<OutlinedInput label="Muscle group" />}
+                    renderValue={(selected) =>
+                      selected.length ? selected.join(", ") : "Any"
+                    }
+                  >
+                    {categoryOptions.length ? (
+                      categoryOptions.map((category) => (
+                        <MenuItem key={category} value={category}>
+                          {category}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled value="">
+                        No categories
+                      </MenuItem>
+                    )}
+                  </Select>
+                </FormControl>
+                <FormControl sx={{ minWidth: 150 }} size="small">
+                  <InputLabel id="calendar-sort-label">Sort</InputLabel>
+                  <Select
+                    labelId="calendar-sort-label"
+                    value={sortMode}
+                    label="Sort"
+                    onChange={(event) => setSortMode(event.target.value)}
+                  >
+                    <MenuItem value="date-desc">Newest first</MenuItem>
+                    <MenuItem value="date-asc">Oldest first</MenuItem>
+                    <MenuItem value="title-asc">Title A-Z</MenuItem>
+                    <MenuItem value="title-desc">Title Z-A</MenuItem>
+                  </Select>
+                </FormControl>
+                <Button variant="outlined" size="small" onClick={handleResetFilters}>
+                  Reset
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+          <Divider sx={{ my: 2 }} />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between">
+            <Typography variant="body2">
+              Showing {filteredWorkouts.length} of {monthWorkouts.length} workouts
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Chip label={`Complete: ${monthWorkouts.filter((workout) => workout.complete).length}`} variant="outlined" />
+              <Chip label={`Incomplete: ${monthWorkouts.filter((workout) => !workout.complete).length}`} variant="outlined" />
+            </Stack>
+          </Stack>
+        </Box>
+
         {/* Workouts List takes the remaining space */}
         <Box sx={{ flex: "1", overflow: "auto" }}>
           <Workouts
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-            history={workouts}
+            history={filteredWorkouts}
             scrollToDate={scrollToDate}
-            view={view}
-            client={client}
             setSelectedWorkout={setSelectedWorkout}
             handleModalToggle={handleModalToggle}
           />
@@ -217,32 +394,26 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({
-  currentMonth,
-  currentYear,
-  history,
-  scrollToDate,
-  setSelectedWorkout,
-  handleModalToggle,
-}) => {
+const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle }) => {
   return (
     <List>
-      {history
-        .sort((a, b) => a.date > b.date)
-        .map((workout) => {
-          if (dayjs.utc(new Date(workout.date)).month() === currentMonth && dayjs.utc(new Date(workout.date)).year() === currentYear) {
-            return (
-              <Workout
-                key={workout._id}
-                workout={workout}
-                scrollToDate={scrollToDate}
-                setSelectedWorkout={setSelectedWorkout}
-                handleModalToggle={handleModalToggle}
-              />
-            );
-          }
-          return null;
-        })}
+      {history.length ? (
+        history.map((workout) => (
+          <Workout
+            key={workout._id}
+            workout={workout}
+            scrollToDate={scrollToDate}
+            setSelectedWorkout={setSelectedWorkout}
+            handleModalToggle={handleModalToggle}
+          />
+        ))
+      ) : (
+        <ListItem>
+          <Typography variant="body2" sx={{ opacity: 0.7 }}>
+            No workouts match your filters for this month.
+          </Typography>
+        </ListItem>
+      )}
     </List>
   );
 };
