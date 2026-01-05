@@ -87,6 +87,8 @@ export default function Schedule() {
 
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
+  const [selectedMyTrainerId, setSelectedMyTrainerId] = useState("");
+  const [bookingAsClient, setBookingAsClient] = useState(false);
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [hasClientSelection, setHasClientSelection] = useState(false);
   const [openAvailabilityDialog, setOpenAvailabilityDialog] = useState(false);
@@ -114,29 +116,54 @@ export default function Schedule() {
   const [editStartTime, setEditStartTime] = useState("09:00");
   const [editEndTime, setEditEndTime] = useState("10:00");
   const [editStatus, setEditStatus] = useState("OPEN");
+  const [editClientId, setEditClientId] = useState("");
+  const [editWorkoutId, setEditWorkoutId] = useState("");
+  const [quickBookClientId, setQuickBookClientId] = useState("");
+  const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
+
+  const isTrainerView = user.isTrainer && !bookingAsClient;
+  const isClientView = !isTrainerView;
 
   useEffect(() => {
     if (user.isTrainer) {
       dispatch(requestClients());
-      setSelectedTrainerId(user._id);
+      dispatch(requestMyTrainers());
     } else {
       dispatch(requestMyTrainers());
     }
-  }, [dispatch, user._id, user.isTrainer]);
+  }, [dispatch, user.isTrainer]);
+
+  useEffect(() => {
+    if (!user.isTrainer) return;
+    if (bookingAsClient && selectedMyTrainerId) {
+      setSelectedTrainerId(selectedMyTrainerId);
+      return;
+    }
+    if (bookingAsClient && !selectedMyTrainerId) {
+      setSelectedTrainerId("");
+      return;
+    }
+    if (!bookingAsClient) {
+      setSelectedTrainerId(user._id);
+    }
+  }, [bookingAsClient, selectedMyTrainerId, user._id, user.isTrainer]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const clientId = params.get("client");
     const trainerId = params.get("trainer");
 
-    if (user.isTrainer && clientId) {
+    if (isTrainerView && clientId) {
       setSelectedClientIds([clientId]);
       setHasClientSelection(true);
     }
-    if (!user.isTrainer && trainerId) {
+    if (isClientView && trainerId) {
       setSelectedTrainerId(trainerId);
+      if (user.isTrainer) {
+        setSelectedMyTrainerId(trainerId);
+      }
     }
-  }, [location.search, user.isTrainer]);
+  }, [isClientView, isTrainerView, location.search, user.isTrainer]);
 
   const clientParam = new URLSearchParams(location.search).get("client");
   const selectedClientLabel = clients.find(
@@ -150,14 +177,20 @@ export default function Schedule() {
   };
 
   useEffect(() => {
-    if (!user.isTrainer && myTrainers?.length && !selectedTrainerId) {
+    if (user.isTrainer && !bookingAsClient) return;
+    if (myTrainers?.length && !selectedTrainerId) {
       const firstAccepted = myTrainers.find((trainer) => trainer.accepted);
-      if (firstAccepted) setSelectedTrainerId(firstAccepted.trainer);
+      if (firstAccepted) {
+        setSelectedTrainerId(firstAccepted.trainer);
+        if (user.isTrainer) {
+          setSelectedMyTrainerId(firstAccepted.trainer);
+        }
+      }
     }
-  }, [myTrainers, selectedTrainerId, user.isTrainer]);
+  }, [bookingAsClient, myTrainers, selectedTrainerId, user.isTrainer]);
 
   useEffect(() => {
-    if (!user.isTrainer) return;
+    if (!isTrainerView) return;
     if (hasClientSelection) return;
     const acceptedClientIds = clients
       .filter((clientRel) => clientRel.accepted)
@@ -165,19 +198,21 @@ export default function Schedule() {
     if (acceptedClientIds.length > 0) {
       setSelectedClientIds(acceptedClientIds);
     }
-  }, [clients, hasClientSelection, user.isTrainer]);
+  }, [clients, hasClientSelection, isTrainerView]);
 
   const refreshSchedule = () => {
-    if (!selectedTrainerId) return;
+    const effectiveTrainerId = isTrainerView ? user._id : selectedTrainerId;
+    if (!effectiveTrainerId) return;
     const monthStart = selectedDate.startOf("month").startOf("day").toISOString();
     const monthEnd = selectedDate.startOf("month").add(1, "month").startOf("day").toISOString();
-    const requestedClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : null;
+    const requestedClientId =
+      isTrainerView && selectedClientIds.length === 1 ? selectedClientIds[0] : null;
     dispatch(
       requestScheduleRange({
         startDate: monthStart,
         endDate: monthEnd,
-        trainerId: selectedTrainerId,
-        clientId: user.isTrainer ? requestedClientId : user._id,
+        trainerId: effectiveTrainerId,
+        clientId: isTrainerView ? requestedClientId : user._id,
         includeAvailability: true,
       })
     );
@@ -185,17 +220,18 @@ export default function Schedule() {
 
   useEffect(() => {
     refreshSchedule();
-  }, [dispatch, selectedDate, selectedTrainerId, selectedClientIds, user.isTrainer, user._id]);
+  }, [dispatch, isTrainerView, selectedDate, selectedTrainerId, selectedClientIds, user._id]);
 
   const scopeKey = buildScopeKey(
-    selectedTrainerId || user._id,
-    user.isTrainer ? (selectedClientIds.length === 1 ? selectedClientIds[0] : null) : user._id
+    isTrainerView ? user._id : selectedTrainerId,
+    isTrainerView ? (selectedClientIds.length === 1 ? selectedClientIds[0] : null) : user._id
   );
 
   const scheduleData = useSelector((state) => state.scheduleEvents?.[scopeKey]) || {
     events: [],
   };
   const workoutsByAccount = useSelector((state) => state.workouts) || {};
+  const workoutQueue = useSelector((state) => state.workoutQueue) || {};
 
   const clientLookup = useMemo(
     () =>
@@ -214,26 +250,26 @@ export default function Schedule() {
   }, [myTrainers, selectedTrainerId]);
 
   const activeClientIds = useMemo(() => {
-    if (!user.isTrainer) return [];
+    if (!isTrainerView) return [];
     if (selectedClientIds.length > 0) return selectedClientIds;
     return clients
       .filter((clientRel) => clientRel.accepted)
       .map((clientRel) => clientRel.client._id);
-  }, [clients, selectedClientIds, user.isTrainer]);
+  }, [clients, isTrainerView, selectedClientIds]);
 
   const attachAccountId =
     attachEvent?.clientId ||
-    (user.isTrainer && selectedClientIds.length === 1 ? selectedClientIds[0] : null) ||
+    (isTrainerView && selectedClientIds.length === 1 ? selectedClientIds[0] : null) ||
     user._id;
   const availableWorkouts =
     useSelector((state) => state.workouts?.[attachAccountId]?.workouts) || [];
   const queueAccountIds = useMemo(
-    () => (user.isTrainer ? activeClientIds : [user._id]),
-    [activeClientIds, user.isTrainer, user._id]
+    () => (isTrainerView ? activeClientIds : [user._id]),
+    [activeClientIds, isTrainerView, user._id]
   );
   const queuedWorkouts =
     useSelector((state) => {
-      if (!user.isTrainer) {
+      if (!isTrainerView) {
         return state.workoutQueue?.[user._id] || [];
       }
       return queueAccountIds.flatMap(
@@ -242,19 +278,19 @@ export default function Schedule() {
     }) || [];
 
   useEffect(() => {
-    if (user.isTrainer) {
+    if (isTrainerView) {
       queueAccountIds.forEach((clientId) => {
         dispatch(requestWorkoutQueue(clientId, selectedDate.format("YYYY-MM-DD")));
       });
     }
-  }, [dispatch, queueAccountIds, selectedDate, user.isTrainer]);
+  }, [dispatch, isTrainerView, queueAccountIds, selectedDate]);
   const attachWorkouts = useMemo(() => {
-    if (!user.isTrainer) return availableWorkouts;
+    if (!isTrainerView) return availableWorkouts;
     if (attachEvent?.clientId || selectedClientIds.length === 1) return availableWorkouts;
     return activeClientIds.flatMap((clientId) => workoutsByAccount?.[clientId]?.workouts || []);
-  }, [activeClientIds, attachEvent?.clientId, availableWorkouts, selectedClientIds, user.isTrainer, workoutsByAccount]);
+  }, [activeClientIds, attachEvent?.clientId, availableWorkouts, selectedClientIds, isTrainerView, workoutsByAccount]);
   const attachQueuedWorkouts = useSelector((state) => {
-    if (!user.isTrainer) return state.workoutQueue?.[user._id] || [];
+    if (!isTrainerView) return state.workoutQueue?.[user._id] || [];
     if (attachEvent?.clientId || selectedClientIds.length === 1) {
       return state.workoutQueue?.[attachAccountId || "me"] || [];
     }
@@ -274,14 +310,14 @@ export default function Schedule() {
   }, [scheduleData.events, selectedDate]);
 
   const filteredDayEvents = useMemo(() => {
-    if (!user.isTrainer) return dayEvents;
+    if (!isTrainerView) return dayEvents;
     if (!activeClientIds.length) return dayEvents;
     return dayEvents.filter((event) => {
       if (event.eventType === "AVAILABILITY") return true;
       if (!event.clientId) return false;
       return activeClientIds.includes(event.clientId);
     });
-  }, [activeClientIds, dayEvents, user.isTrainer]);
+  }, [activeClientIds, dayEvents, isTrainerView]);
 
   const handleOpenAvailability = () => {
     setAvailabilityType("MANUAL");
@@ -290,6 +326,7 @@ export default function Schedule() {
   };
 
   const handleCreateAvailability = async () => {
+    if (!isTrainerView) return;
     if (!selectedTrainerId) return;
     const dateBase = selectedDate.format("YYYY-MM-DD");
     const startDateTime = dayjs(`${dateBase}T${startTime}`).toISOString();
@@ -418,12 +455,12 @@ export default function Schedule() {
       dispatch(requestWorkoutQueue(event.clientId, date));
       return;
     }
-    if (user.isTrainer && selectedClientIds.length === 1) {
+    if (isTrainerView && selectedClientIds.length === 1) {
       dispatch(requestWorkoutsByMonth(date, { _id: selectedClientIds[0] }));
       dispatch(requestWorkoutQueue(selectedClientIds[0], date));
       return;
     }
-    if (user.isTrainer) {
+    if (isTrainerView) {
       activeClientIds.forEach((clientId) => {
         dispatch(requestWorkoutsByMonth(date, { _id: clientId }));
         dispatch(requestWorkoutQueue(clientId, date));
@@ -440,23 +477,137 @@ export default function Schedule() {
     setEditStartTime(dayjs(event.startDateTime).format("HH:mm"));
     setEditEndTime(dayjs(event.endDateTime).format("HH:mm"));
     setEditStatus(event.status);
+    setEditClientId(event.clientId || "");
+    setEditWorkoutId(event.workoutId || "");
     setOpenEditDialog(true);
   };
+
+  const editWorkoutClientId = editClientId || editEvent?.clientId || "";
+
+  useEffect(() => {
+    if (!isTrainerView) return;
+    if (!openEditDialog) return;
+    if (!editWorkoutClientId) return;
+    const date = dayjs(editDate).format("YYYY-MM-DD");
+    dispatch(requestWorkoutsByMonth(date, { _id: editWorkoutClientId }));
+    dispatch(requestWorkoutQueue(editWorkoutClientId, date));
+  }, [dispatch, editDate, editWorkoutClientId, isTrainerView, openEditDialog]);
+
+  useEffect(() => {
+    if (!openEditDialog) return;
+    if (!editWorkoutClientId) {
+      setEditWorkoutId("");
+      return;
+    }
+    if (editEvent?.clientId !== editWorkoutClientId) {
+      setEditWorkoutId("");
+    }
+  }, [editEvent?.clientId, editWorkoutClientId, openEditDialog]);
 
   const handleSaveEdit = async () => {
     if (!editEvent) return;
     const startDateTime = dayjs(`${editDate}T${editStartTime}`).toISOString();
     const endDateTime = dayjs(`${editDate}T${editEndTime}`).toISOString();
     if (dayjs(endDateTime).valueOf() <= dayjs(startDateTime).valueOf()) return;
+    const updates = {
+      startDateTime,
+      endDateTime,
+    };
+    if (editEvent.eventType === "AVAILABILITY" && editClientId) {
+      updates.clientId = editClientId;
+      updates.eventType = "APPOINTMENT";
+      updates.status = "BOOKED";
+    } else {
+      updates.status = editStatus;
+    }
+    if (editWorkoutId) {
+      updates.workoutId = editWorkoutId;
+    } else if (editEvent?.workoutId) {
+      updates.workoutId = null;
+    }
     await dispatch(
       updateScheduleEvent(editEvent._id, {
-        startDateTime,
-        endDateTime,
-        status: editStatus,
+        ...updates,
       })
     );
     setOpenEditDialog(false);
     setEditEvent(null);
+    refreshSchedule();
+  };
+
+  const handleCreateWorkoutForEdit = async () => {
+    if (!editWorkoutClientId || !editEvent) return;
+    const created = await dispatch(
+      createTrainingForAccount({
+        training: { date: dayjs(editDate).toISOString() },
+        accountId: editWorkoutClientId,
+      })
+    );
+    if (created?._id) {
+      setEditWorkoutId(created._id);
+      await dispatch(updateScheduleEvent(editEvent._id, { workoutId: created._id }));
+      refreshSchedule();
+    }
+  };
+
+  useEffect(() => {
+    if (!isTrainerView || !quickBookClientId) return;
+    const date = selectedDate.format("YYYY-MM-DD");
+    dispatch(requestWorkoutsByMonth(date, { _id: quickBookClientId }));
+    dispatch(requestWorkoutQueue(quickBookClientId, date));
+  }, [dispatch, isTrainerView, quickBookClientId, selectedDate]);
+
+  useEffect(() => {
+    setQuickBookWorkoutId("");
+  }, [quickBookClientId]);
+
+  const quickBookWorkouts = useMemo(
+    () => (workoutsByAccount?.[quickBookClientId]?.workouts || []),
+    [quickBookClientId, workoutsByAccount]
+  );
+  const quickBookQueuedWorkouts = useSelector(
+    (state) => state.workoutQueue?.[quickBookClientId] || []
+  );
+
+  const handleQuickBookClient = async () => {
+    if (!isTrainerView || !selectionRange || !quickBookClientId) return;
+    const payload = {
+      startDateTime: selectionRange.start.toISOString(),
+      endDateTime: selectionRange.end.toISOString(),
+      eventType: "APPOINTMENT",
+      status: "BOOKED",
+      clientId: quickBookClientId,
+    };
+    if (quickBookWorkoutId) {
+      payload.workoutId = quickBookWorkoutId;
+    }
+    await dispatch(createScheduleEvent(payload));
+    setDragSelection(null);
+    setQuickBookWorkoutId("");
+    refreshSchedule();
+  };
+
+  const handleQuickBookCreateWorkout = async () => {
+    if (!isTrainerView || !selectionRange || !quickBookClientId) return;
+    const created = await dispatch(
+      createTrainingForAccount({
+        training: { date: selectionRange.start.toISOString() },
+        accountId: quickBookClientId,
+      })
+    );
+    if (!created?._id) return;
+    await dispatch(
+      createScheduleEvent({
+        startDateTime: selectionRange.start.toISOString(),
+        endDateTime: selectionRange.end.toISOString(),
+        eventType: "APPOINTMENT",
+        status: "BOOKED",
+        clientId: quickBookClientId,
+        workoutId: created._id,
+      })
+    );
+    setDragSelection(null);
+    setQuickBookWorkoutId("");
     refreshSchedule();
   };
 
@@ -531,8 +682,12 @@ export default function Schedule() {
         }
         : { workoutId };
     await dispatch(updateScheduleEvent(targetEvent._id, updates));
-    if (user.isTrainer) {
-      await dispatch(requestWorkoutQueue(selectedClientIds[0], selectedDate.format("YYYY-MM-DD")));
+    if (isTrainerView) {
+      await Promise.all(
+        activeClientIds.map((clientId) =>
+          dispatch(requestWorkoutQueue(clientId, selectedDate.format("YYYY-MM-DD")))
+        )
+      );
     }
     refreshSchedule();
   };
@@ -582,7 +737,7 @@ export default function Schedule() {
   }, []);
 
   const handleSlotMouseDown = (dayIndex, slotIndex) => {
-    if (!user.isTrainer) return;
+    if (!isTrainerView) return;
     setIsDragging(true);
     setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
     setSelectedDate(weekDays[dayIndex]);
@@ -641,13 +796,13 @@ export default function Schedule() {
             spacing={1}
           >
             <Typography variant="h4">Schedule</Typography>
-            {user.isTrainer && (
+            {isTrainerView && (
               <Button variant="contained" onClick={handleOpenAvailability}>
                 Open Slot
               </Button>
             )}
           </Stack>
-          {user.isTrainer && clientParam && (
+          {isTrainerView && clientParam && (
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
               <Button component={Link} to="/clients" size="small" variant="outlined">
                 Back to Clients
@@ -685,32 +840,98 @@ export default function Schedule() {
               <Stack spacing={2}>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
                   <Typography variant="h6">Week View</Typography>
-                  {user.isTrainer && (
+                  {isTrainerView && (
                     <Typography variant="body2" color="text.secondary">
                       Drag to create open availability blocks. Slots start on the hour or half-hour.
                     </Typography>
                   )}
                 </Stack>
-                {normalizedSelection && selectionRange && (
+                {isTrainerView && normalizedSelection && selectionRange && (
                   <Card variant="outlined">
                     <CardContent>
-                      <Stack spacing={1} direction={{ xs: "column", sm: "row" }} alignItems="center">
-                        <Typography variant="body2">
-                          Selected: {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
-                          {selectionRange.end.format("h:mm A")}
-                        </Typography>
-                        <Stack direction="row" spacing={1}>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={handleCreateSlotsFromSelection}
-                            disabled={selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
+                      <Stack spacing={2}>
+                        <Stack spacing={1} direction={{ xs: "column", sm: "row" }} alignItems="center">
+                          <Typography variant="body2">
+                            Selected: {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
+                            {selectionRange.end.format("h:mm A")}
+                          </Typography>
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={handleCreateSlotsFromSelection}
+                              disabled={selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
+                            >
+                              Create open slot
+                            </Button>
+                            <Button size="small" variant="outlined" onClick={handleClearSelection}>
+                              Clear
+                            </Button>
+                          </Stack>
+                        </Stack>
+                        <Stack spacing={1}>
+                          <Typography variant="subtitle2">Book a client</Typography>
+                          <Stack
+                            direction={{ xs: "column", sm: "row" }}
+                            spacing={1}
+                            alignItems={{ xs: "stretch", sm: "center" }}
                           >
-                            Create open slot
-                          </Button>
-                          <Button size="small" variant="outlined" onClick={handleClearSelection}>
-                            Clear
-                          </Button>
+                            <FormControl fullWidth>
+                              <InputLabel>Client</InputLabel>
+                              <Select
+                                label="Client"
+                                value={quickBookClientId}
+                                onChange={(event) => setQuickBookClientId(event.target.value)}
+                              >
+                                {clients
+                                  .filter((clientRel) => clientRel.accepted)
+                                  .map((clientRel) => (
+                                    <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
+                                      {clientRel.client.firstName} {clientRel.client.lastName}
+                                    </MenuItem>
+                                  ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl fullWidth disabled={!quickBookClientId}>
+                              <InputLabel>Workout (optional)</InputLabel>
+                              <Select
+                                label="Workout (optional)"
+                                value={quickBookWorkoutId}
+                                onChange={(event) => setQuickBookWorkoutId(event.target.value)}
+                              >
+                                <MenuItem value="">No workout</MenuItem>
+                                {quickBookWorkouts.map((workout) => (
+                                  <MenuItem key={workout._id} value={workout._id}>
+                                    {workout.title || "Untitled"} -{" "}
+                                    {dayjs(workout.date).format("MMM D")}
+                                  </MenuItem>
+                                ))}
+                                {quickBookQueuedWorkouts.map((workout) => (
+                                  <MenuItem key={workout._id} value={workout._id}>
+                                    {workout.title || "Untitled"} - Queued
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={handleQuickBookClient}
+                                disabled={!quickBookClientId}
+                              >
+                                Book client
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={handleQuickBookCreateWorkout}
+                                disabled={!quickBookClientId}
+                              >
+                                Create workout & book
+                              </Button>
+                            </Stack>
+                          </Stack>
                         </Stack>
                       </Stack>
                     </CardContent>
@@ -826,9 +1047,23 @@ export default function Schedule() {
                                     px: 0.5,
                                     py: 0.25,
                                     overflow: "hidden",
-                                    cursor: user.isTrainer ? "pointer" : "default",
+                                    cursor: isTrainerView || (isClientView && event.eventType === "AVAILABILITY")
+                                      ? "pointer"
+                                      : "default",
                                   }}
-                                  onClick={() => user.isTrainer && openEditForEvent(event)}
+                                  onClick={() => {
+                                    if (isTrainerView) {
+                                      openEditForEvent(event);
+                                      return;
+                                    }
+                                    if (
+                                      isClientView &&
+                                      event.eventType === "AVAILABILITY" &&
+                                      event.status === "OPEN"
+                                    ) {
+                                      openRequestForEvent(event);
+                                    }
+                                  }}
                                 >
                                   <Typography variant="caption">
                                     {event.eventType === "AVAILABILITY" ? "Open" : "Booked"}
@@ -850,13 +1085,38 @@ export default function Schedule() {
           <Card sx={{ width: "100%" }}>
             <CardContent>
               <Stack spacing={2}>
-                {!user.isTrainer && (
+                {user.isTrainer && (
+                  <Stack spacing={1}>
+                    <Typography variant="overline" color="text.secondary">
+                      Schedule mode
+                    </Typography>
+                    <ToggleButtonGroup
+                      exclusive
+                      value={bookingAsClient ? "client" : "trainer"}
+                      onChange={(_, value) => {
+                        if (!value) return;
+                        setBookingAsClient(value === "client");
+                      }}
+                      size="small"
+                    >
+                      <ToggleButton value="trainer">Manage schedule</ToggleButton>
+                      <ToggleButton value="client">Book with trainer</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Stack>
+                )}
+
+                {isClientView && (
                   <FormControl fullWidth>
                     <InputLabel>Trainer</InputLabel>
                     <Select
                       label="Trainer"
                       value={selectedTrainerId}
-                      onChange={(event) => setSelectedTrainerId(event.target.value)}
+                      onChange={(event) => {
+                        setSelectedTrainerId(event.target.value);
+                        if (user.isTrainer) {
+                          setSelectedMyTrainerId(event.target.value);
+                        }
+                      }}
                     >
                       {myTrainers
                         .filter((trainer) => trainer.accepted)
@@ -869,7 +1129,7 @@ export default function Schedule() {
                   </FormControl>
                 )}
 
-                {user.isTrainer && (
+                {isTrainerView && (
                   <Autocomplete
                     multiple
                     options={clients.filter((clientRel) => clientRel.accepted)}
@@ -902,13 +1162,13 @@ export default function Schedule() {
               <Typography variant="h6">
                 {selectedDate.format("dddd, MMMM D")}
               </Typography>
-              {user.isTrainer && selectedClientIds.length === 0 && (
+              {isTrainerView && selectedClientIds.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
                   Select one or more clients to load their workouts.
                 </Typography>
               )}
             </Stack>
-            {user.isTrainer && clientParam && (
+            {isTrainerView && clientParam && (
               <Card sx={{ borderLeft: "4px solid", borderColor: "primary.main" }}>
                 <CardContent>
                   <Typography variant="body2">
@@ -961,12 +1221,12 @@ export default function Schedule() {
                       )}
                     </Stack>
                     <Typography variant="subtitle1">{formatRange(event)}</Typography>
-                    {user.isTrainer && event.clientId && (
+                    {isTrainerView && event.clientId && (
                       <Typography variant="body2" color="text.secondary">
                         Client: {clientLookup.get(event.clientId) || "Assigned client"}
                       </Typography>
                     )}
-                    {!user.isTrainer && selectedTrainerId && (
+                    {isClientView && selectedTrainerId && (
                       <Typography variant="body2" color="text.secondary">
                         Trainer: {selectedTrainerLabel || "Trainer"}
                       </Typography>
@@ -987,7 +1247,7 @@ export default function Schedule() {
                           Open Workout
                         </Button>
                       )}
-                      {user.isTrainer &&
+                      {isTrainerView &&
                         event.eventType !== "AVAILABILITY" &&
                         event.status !== "CANCELLED" && (
                           <Button
@@ -998,7 +1258,7 @@ export default function Schedule() {
                             Reopen Slot
                           </Button>
                         )}
-                      {user.isTrainer &&
+                      {isTrainerView &&
                         !event.workoutId &&
                         event.status !== "CANCELLED" && (
                           <Button
@@ -1009,12 +1269,12 @@ export default function Schedule() {
                             Attach Workout
                           </Button>
                         )}
-                      {user.isTrainer && (
+                      {isTrainerView && (
                         <Button size="small" variant="outlined" onClick={() => openEditForEvent(event)}>
                           Edit
                         </Button>
                       )}
-                      {user.isTrainer && event.status === "REQUESTED" && (
+                      {isTrainerView && event.status === "REQUESTED" && (
                         <>
                           <Button
                             size="small"
@@ -1032,7 +1292,7 @@ export default function Schedule() {
                           </Button>
                         </>
                       )}
-                      {user.isTrainer && event.status === "OPEN" && (
+                      {isTrainerView && event.status === "OPEN" && (
                         <Button
                           size="small"
                           variant="outlined"
@@ -1041,7 +1301,7 @@ export default function Schedule() {
                           Close Slot
                         </Button>
                       )}
-                      {user.isTrainer && (
+                      {isTrainerView && (
                         <Button
                           size="small"
                           color="error"
@@ -1051,7 +1311,7 @@ export default function Schedule() {
                           Delete
                         </Button>
                       )}
-                      {!user.isTrainer &&
+                      {isClientView &&
                         event.eventType === "AVAILABILITY" &&
                         event.status === "OPEN" && (
                           <Button
@@ -1067,7 +1327,7 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             ))}
-            {user.isTrainer && (
+            {isTrainerView && (
               <Card>
                 <CardContent>
                   <Stack spacing={2}>
@@ -1396,12 +1656,39 @@ export default function Schedule() {
               onChange={(event) => setEditEndTime(event.target.value)}
               InputLabelProps={{ shrink: true }}
             />
+            {isTrainerView && editEvent?.eventType === "AVAILABILITY" && (
+              <>
+                <FormControl fullWidth>
+                  <InputLabel>Assign client</InputLabel>
+                  <Select
+                    label="Assign client"
+                    value={editClientId}
+                    onChange={(event) => setEditClientId(event.target.value)}
+                  >
+                    <MenuItem value="">Keep open</MenuItem>
+                    {clients
+                      .filter((clientRel) => clientRel.accepted)
+                      .map((clientRel) => (
+                        <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
+                          {clientRel.client.firstName} {clientRel.client.lastName}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+                {editClientId && (
+                  <Typography variant="caption" color="text.secondary">
+                    Assigning a client will book this session immediately.
+                  </Typography>
+                )}
+              </>
+            )}
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select
                 label="Status"
                 value={editStatus}
                 onChange={(event) => setEditStatus(event.target.value)}
+                disabled={editEvent?.eventType === "AVAILABILITY" && Boolean(editClientId)}
               >
                 {(editEvent?.eventType === "AVAILABILITY"
                   ? ["OPEN", "CANCELLED"]
@@ -1413,6 +1700,34 @@ export default function Schedule() {
                 ))}
               </Select>
             </FormControl>
+            {isTrainerView && editWorkoutClientId && (
+              <Stack spacing={1}>
+                <FormControl fullWidth>
+                  <InputLabel>Workout</InputLabel>
+                  <Select
+                    label="Workout"
+                    value={editWorkoutId}
+                    onChange={(event) => setEditWorkoutId(event.target.value)}
+                  >
+                    <MenuItem value="">No workout</MenuItem>
+                    {(workoutsByAccount?.[editWorkoutClientId]?.workouts || []).map((workout) => (
+                      <MenuItem key={workout._id} value={workout._id}>
+                        {workout.title || "Untitled"} -{" "}
+                        {dayjs(workout.date).format("MMM D")}
+                      </MenuItem>
+                    ))}
+                    {(workoutQueue?.[editWorkoutClientId] || []).map((workout) => (
+                      <MenuItem key={workout._id} value={workout._id}>
+                        {workout.title || "Untitled"} - Queued
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button size="small" variant="outlined" onClick={handleCreateWorkoutForEdit}>
+                  Create workout for this session
+                </Button>
+              </Stack>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
