@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, Fragment, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useOutletContext, useNavigate } from "react-router-dom";
+import { useParams, useOutletContext, useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import deepEqual from "fast-deep-equal/react";
 import { debounce } from "lodash";
@@ -18,6 +18,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Stack,
   Slide,
   TextField,
   Toolbar,
@@ -60,6 +61,7 @@ export default function Workout({ socket }) {
   const dispatch = useDispatch();
   const params = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isLocalUpdate = useRef(true);
   const hasSynced = useRef(false);
 
@@ -80,6 +82,7 @@ export default function Workout({ socket }) {
   const [workoutFeedback, setWorkoutFeedback] = useState(training?.workoutFeedback || { difficulty: 1, comments: [] });
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [scheduleEvent, setScheduleEvent] = useState(null);
 
   // ---------------------- Dirty check infra (baseline + normalize + composite) ----------------------
   const baselineRef = useRef(null);
@@ -157,6 +160,34 @@ export default function Workout({ socket }) {
 
     setLoading(false);
   }, [training, normalize]);
+
+  useEffect(() => {
+    const eventId = new URLSearchParams(location.search).get("event");
+    if (!eventId) {
+      setScheduleEvent(null);
+      return;
+    }
+
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    fetch(`${serverURL}/schedule/event`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: eventId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.event) {
+          setScheduleEvent(data.event);
+        } else {
+          setScheduleEvent(null);
+        }
+      })
+      .catch(() => setScheduleEvent(null));
+  }, [location.search]);
 
   // Compute isDirty by comparing normalized local composite vs. baseline snapshot
   const isDirty = useMemo(() => {
@@ -512,7 +543,7 @@ export default function Workout({ socket }) {
                     <IconButton
                       onClick={() => {
                         save();
-                        navigate("/queue");
+                        navigate("/schedule");
                       }}
                     >
                       <ArrowBack />
@@ -533,6 +564,31 @@ export default function Workout({ socket }) {
                     </IconButton>
                   </Tooltip>
                 </Grid>
+                {scheduleEvent && (
+                  <Grid container size={12} sx={{ justifyContent: "center", paddingTop: "5px" }}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
+                      <Chip
+                        label={scheduleEvent.eventType}
+                        color={
+                          scheduleEvent.eventType === "APPOINTMENT"
+                            ? "primary"
+                            : scheduleEvent.eventType === "INDEPENDENT"
+                            ? "secondary"
+                            : "info"
+                        }
+                        size="small"
+                      />
+                      <Chip label={scheduleEvent.status} size="small" />
+                      <Chip
+                        label={`${dayjs(scheduleEvent.startDateTime).format("h:mm A")} - ${dayjs(
+                          scheduleEvent.endDateTime
+                        ).format("h:mm A")}`}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </Stack>
+                  </Grid>
+                )}
 
                 <Grid container size={12} spacing={2} sx={{ paddingTop: "15px" }}>
                   <Grid size={12} container alignContent="center">

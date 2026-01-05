@@ -18,6 +18,9 @@ import {
   DELETE_GOAL,
   UPDATE_CONVERSATIONS,
   UPDATE_CONVERSATION_MESSAGES,
+  EDIT_SCHEDULE_EVENTS,
+  EDIT_SESSION_SUMMARY,
+  EDIT_WORKOUT_QUEUE,
 } from "./actions";
 import {
   user,
@@ -30,6 +33,9 @@ import {
   goals,
   clients,
   conversations,
+  scheduleEvents,
+  sessionSummary,
+  workoutQueue,
 } from "./states";
 export let reducer = (
   state = {
@@ -43,6 +49,9 @@ export let reducer = (
     goals,
     clients,
     conversations,
+    scheduleEvents,
+    sessionSummary,
+    workoutQueue,
   },
   action
 ) => {
@@ -238,6 +247,33 @@ export let reducer = (
       return {
         ...state,
         conversations: [...updatedConversations],
+      };
+    case EDIT_SCHEDULE_EVENTS:
+      return {
+        ...state,
+        scheduleEvents: {
+          ...state.scheduleEvents,
+          [action.scopeKey]: {
+            events: action.events,
+            range: action.range,
+          },
+        },
+      };
+    case EDIT_SESSION_SUMMARY:
+      return {
+        ...state,
+        sessionSummary: {
+          ...state.sessionSummary,
+          [action.scopeKey]: action.summary,
+        },
+      };
+    case EDIT_WORKOUT_QUEUE:
+      return {
+        ...state,
+        workoutQueue: {
+          ...state.workoutQueue,
+          [action.accountId]: action.workouts,
+        },
       };
     case ERROR:
       return {

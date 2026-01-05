@@ -17,14 +17,14 @@ import VerifyEmail from "./Pages/VerifyEmail";
 import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Calendar from "./Pages/AppPages/Calendar";
+import Schedule from "./Pages/AppPages/Schedule";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
-import WorkoutBuilder from "./Pages/AppPages/WorkoutBuilder";
-// import WorkoutQueue from "./Pages/AppPages/WorkoutQueue";
 import Exercises from "./Pages/AppPages/Exercises";
 import Clients from "./Pages/AppPages/Clients";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
+import SessionCounter from "./Pages/AppPages/SessionCounter";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import Trainers from "./Components/AccountComponents/Trainers";
@@ -124,12 +124,12 @@ function App({ }) {
                   <Route exact path="/" element={<Home />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
+                  <Route exact path="/schedule" element={<Schedule />} />
                   <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
-                  {/* <Route exact path="/queue" element={<WorkoutQueue />} /> */}
-                  <Route exact path="/builder" element={<WorkoutBuilder />} />
                   <Route exact path="/progress" element={<Progress />} />
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />
+                  <Route exact path="/sessions" element={<SessionCounter />} />
 
                   <Route exact path="/account/*" element={<Account />}>
                     <Route index={true} exact path="" element={<MyAccount />} />

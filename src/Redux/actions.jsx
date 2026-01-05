@@ -22,13 +22,16 @@ export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
 export const DELETE_GOAL = "DELETE_GOAL";
 export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
+export const EDIT_SCHEDULE_EVENTS = "EDIT_SCHEDULE_EVENTS";
+export const EDIT_SESSION_SUMMARY = "EDIT_SESSION_SUMMARY";
+export const EDIT_WORKOUT_QUEUE = "EDIT_WORKOUT_QUEUE";
 
 // dev server
-// const currentIP = window.location.href.split(":")[1];
-// export const serverURL = `http:${currentIP}:6969`;
+const currentIP = window.location.href.split(":")[1];
+export const serverURL = `http:${currentIP}:6969`;
 
 // live server
-export const serverURL = "https://firebellyfitness.herokuapp.com";
+// export const serverURL = "https://firebellyfitness.herokuapp.com";
 
 export function signupUser(user) {
   return async (dispatch) => {
@@ -118,6 +121,237 @@ export function logoutUser() {
     return dispatch({
       type: LOGOUT_USER,
     });
+  };
+}
+
+const buildScheduleScopeKey = (trainerId, clientId) =>
+  `${trainerId || "me"}:${clientId || "all"}`;
+
+export function requestScheduleRange({
+  startDate,
+  endDate,
+  trainerId,
+  clientId,
+  includeAvailability = true,
+}) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/range`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        startDate,
+        endDate,
+        trainerId,
+        clientId,
+        includeAvailability,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    const data = await response.json();
+    if (data.error) {
+      dispatch({ type: ERROR, error: data.error });
+      return data;
+    }
+
+    const stateUser = getState().user;
+    const scopeKey = buildScheduleScopeKey(trainerId || stateUser._id, clientId);
+    dispatch({
+      type: EDIT_SCHEDULE_EVENTS,
+      scopeKey,
+      events: data.events || [],
+      range: { startDate, endDate },
+    });
+    return data;
+  };
+}
+
+export function createScheduleEvent(payload) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/event/create`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
+export function updateScheduleEvent(eventId, updates) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/event/update`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: eventId, updates }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
+export function cancelScheduleEvent(eventId) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/event/cancel`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: eventId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
+export function requestBooking(payload) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/book/request`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
+export function respondBooking(payload) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/book/respond`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
+export function requestSessionSummary(trainerId, clientId) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/sessions/summary`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ trainerId, clientId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      dispatch({ type: ERROR, error: data.error });
+      return data;
+    }
+    const scopeKey = buildScheduleScopeKey(trainerId, clientId);
+    dispatch({ type: EDIT_SESSION_SUMMARY, scopeKey, summary: data });
+    return data;
+  };
+}
+
+export function createSessionPurchase({ clientId, sessionsPurchased, expiresAt, notes }) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/sessions/purchase/create`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ clientId, sessionsPurchased, expiresAt, notes }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      dispatch({ type: ERROR, error: data.error });
+      return data;
+    }
+    return data;
+  };
+}
+
+export function requestSessionPurchases({ trainerId, clientId, activeOnly = false }) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/sessions/purchase/list`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ trainerId, clientId, activeOnly }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      dispatch({ type: ERROR, error: data.error });
+      return data;
+    }
+    return data.purchases || [];
+  };
+}
+
+export function requestWorkoutQueue(accountId, startDate) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const query = new URLSearchParams();
+    if (accountId) query.set("clientId", accountId);
+    if (startDate) query.set("startDate", startDate);
+    const params = query.toString() ? `?${query.toString()}` : "";
+    const response = await fetch(`${serverURL}/getWorkoutQueue${params}`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    if (data.error) {
+      dispatch({ type: ERROR, error: data.error });
+      return data;
+    }
+
+    dispatch({
+      type: EDIT_WORKOUT_QUEUE,
+      accountId: accountId || "me",
+      workouts: data,
+    });
+
+    return data;
   };
 }
 
@@ -313,6 +547,7 @@ export function createTraining({ training, user }) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({
+        userId: user?._id,
         date: training.date,
         category: training?.category || [],
         training: training?.training || [
@@ -359,6 +594,47 @@ export function createTraining({ training, user }) {
           workout: data.training,
         });
       });
+  };
+}
+
+export function createTrainingForAccount({ training, accountId }) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/createTraining`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        userId: accountId,
+        date: training.date,
+        category: training?.category || [],
+        training: training?.training || [[]],
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+      return data;
+    }
+
+    if (accountId && data.training) {
+      dispatch({
+        type: ADD_WORKOUT,
+        accountId,
+        workout: data.training,
+      });
+    }
+
+    return data.training;
   };
 }
 

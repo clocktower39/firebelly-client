@@ -26,3 +26,16 @@ export let trainers = [];
 export let goals = [];
 
 export let conversations = [];
+
+export let scheduleEvents = {
+    // scopeKey: {
+    //   events: [ ...events ],
+    //   range: { startDate, endDate },
+    // }
+};
+
+export let sessionSummary = {};
+
+export let workoutQueue = {
+    // accountId: [ ...workouts ]
+};

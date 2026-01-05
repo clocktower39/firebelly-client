@@ -28,8 +28,8 @@ import {
 import {
   List as NavIcon,
   Home as HomeIcon,
-  GridView as DashboardIcon,
   Assessment as ProgressIcon,
+  ReceiptLong as SessionIcon,
   CalendarMonth as CalendarIcon,
   Assignment as GoalsIcon,
   Settings as AccountIcon,
@@ -53,7 +53,12 @@ export default function NavDrawer() {
       icon: <HomeIcon />,
     },
     {
-      title: "Calendar",
+      title: "Schedule",
+      to: "/schedule",
+      icon: <CalendarIcon />,
+    },
+    {
+      title: "Workout Calendar",
       to: "/calendar",
       icon: <CalendarIcon />,
     },
@@ -81,9 +86,9 @@ export default function NavDrawer() {
       icon: <ClientsIcon />,
     },
     {
-      title: "Queue",
-      to: "/queue",
-      icon: <DashboardIcon />,
+      title: "Session Counter",
+      to: "/sessions",
+      icon: <SessionIcon />,
     },
     {
       title: "Exercises",
