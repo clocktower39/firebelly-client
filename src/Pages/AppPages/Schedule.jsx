@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
+  Box,
   Card,
   CardContent,
   Chip,
@@ -38,6 +39,7 @@ import {
   requestWorkoutQueue,
   respondBooking,
   serverURL,
+  deleteScheduleEvent,
   updateScheduleEvent,
 } from "../../Redux/actions";
 
@@ -69,6 +71,12 @@ const statusColors = {
   CANCELLED: "error",
 };
 
+const WEEK_START_HOUR = 6;
+const WEEK_END_HOUR = 20;
+const SLOT_MINUTES = 30;
+const SLOT_HEIGHT = 28;
+const HEADER_HEIGHT = 56;
+
 export default function Schedule() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
@@ -85,11 +93,15 @@ export default function Schedule() {
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [activeRequestEvent, setActiveRequestEvent] = useState(null);
   const [attachEvent, setAttachEvent] = useState(null);
   const [editEvent, setEditEvent] = useState(null);
+  const [deleteEvent, setDeleteEvent] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState("");
   const [queueTargetEventId, setQueueTargetEventId] = useState("");
+  const [dragSelection, setDragSelection] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
@@ -97,6 +109,7 @@ export default function Schedule() {
   const [availabilityRecurrence, setAvailabilityRecurrence] = useState("none");
 
   const [bookingType, setBookingType] = useState("one-time");
+  const [selectedBookingSlot, setSelectedBookingSlot] = useState("");
   const [editDate, setEditDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [editStartTime, setEditStartTime] = useState("09:00");
   const [editEndTime, setEditEndTime] = useState("10:00");
@@ -302,12 +315,15 @@ export default function Schedule() {
   const handleRequestBooking = async () => {
     if (!activeRequestEvent) return;
     const isRecurring = bookingType === "recurring";
+    const slot = availableBookingSlots.find((item) => item.value === selectedBookingSlot);
+    const bookingStart = slot ? slot.start.toISOString() : activeRequestEvent.startDateTime;
+    const bookingEnd = slot ? slot.end.toISOString() : activeRequestEvent.endDateTime;
     await dispatch(
       requestBooking({
         availabilityEventId: activeRequestEvent._id,
         trainerId: activeRequestEvent.trainerId,
-        startDateTime: activeRequestEvent.startDateTime,
-        endDateTime: activeRequestEvent.endDateTime,
+        startDateTime: bookingStart,
+        endDateTime: bookingEnd,
         isRecurring,
         recurrenceRule: isRecurring ? activeRequestEvent.recurrenceRule : null,
       })
@@ -327,6 +343,19 @@ export default function Schedule() {
     refreshSchedule();
   };
 
+  const handleDeleteEvent = async (eventId) => {
+    if (!eventId) return;
+    await dispatch(deleteScheduleEvent(eventId));
+    setOpenDeleteDialog(false);
+    setDeleteEvent(null);
+    refreshSchedule();
+  };
+
+  const openDeleteConfirm = (event) => {
+    setDeleteEvent(event);
+    setOpenDeleteDialog(true);
+  };
+
   const handleReopenEvent = async (event) => {
     await dispatch(
       updateScheduleEvent(event._id, {
@@ -342,8 +371,41 @@ export default function Schedule() {
   const openRequestForEvent = (event) => {
     setActiveRequestEvent(event);
     setBookingType("one-time");
+    setSelectedBookingSlot("");
     setOpenRequestDialog(true);
   };
+
+  const availableBookingSlots = useMemo(() => {
+    if (!activeRequestEvent || activeRequestEvent.eventType !== "AVAILABILITY") return [];
+    const start = dayjs(activeRequestEvent.startDateTime);
+    const end = dayjs(activeRequestEvent.endDateTime);
+    let cursor = start;
+    const remainder = cursor.minute() % 30;
+    if (remainder !== 0) {
+      cursor = cursor.add(30 - remainder, "minute");
+    }
+
+    const slots = [];
+    while (cursor.add(60, "minute").valueOf() <= end.valueOf()) {
+      const slotStart = cursor;
+      const slotEnd = cursor.add(60, "minute");
+      slots.push({
+        value: slotStart.toISOString(),
+        start: slotStart,
+        end: slotEnd,
+      });
+      cursor = cursor.add(30, "minute");
+    }
+    return slots;
+  }, [activeRequestEvent]);
+
+  useEffect(() => {
+    if (availableBookingSlots.length > 0) {
+      setSelectedBookingSlot(availableBookingSlots[0].value);
+    } else {
+      setSelectedBookingSlot("");
+    }
+  }, [availableBookingSlots]);
 
   const openAttachForEvent = (event) => {
     setAttachEvent(event);
@@ -475,6 +537,99 @@ export default function Schedule() {
     refreshSchedule();
   };
 
+  const weekStart = useMemo(() => selectedDate.startOf("week"), [selectedDate]);
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
+    [weekStart]
+  );
+  const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
+
+  const weekEvents = useMemo(() => {
+    const start = weekStart.startOf("day");
+    const end = weekStart.add(7, "day").startOf("day");
+    return (scheduleData.events || []).filter((event) => {
+      const eventStart = dayjs(event.startDateTime);
+      const eventEnd = dayjs(event.endDateTime);
+      return eventStart.isBefore(end) && eventEnd.isAfter(start);
+    });
+  }, [scheduleData.events, weekStart]);
+
+  const getEventStyle = (event, day) => {
+    const dayStart = day.startOf("day");
+    const dayEnd = day.add(1, "day").startOf("day");
+    const eventStart = dayjs(event.startDateTime);
+    const eventEnd = dayjs(event.endDateTime);
+    const start = eventStart.isBefore(dayStart) ? dayStart : eventStart;
+    const end = eventEnd.isAfter(dayEnd) ? dayEnd : eventEnd;
+
+    const startMinutes = start.diff(dayStart, "minute");
+    const endMinutes = end.diff(dayStart, "minute");
+    const topMinutes = Math.max(startMinutes - WEEK_START_HOUR * 60, 0);
+    const bottomMinutes = Math.min(endMinutes - WEEK_START_HOUR * 60, (WEEK_END_HOUR - WEEK_START_HOUR) * 60);
+
+    if (bottomMinutes <= 0 || topMinutes >= (WEEK_END_HOUR - WEEK_START_HOUR) * 60) return null;
+
+    return {
+      top: Math.floor(topMinutes / SLOT_MINUTES) * SLOT_HEIGHT,
+      height: Math.max(1, Math.ceil((bottomMinutes - topMinutes) / SLOT_MINUTES) * SLOT_HEIGHT),
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseUp = () => setIsDragging(false);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  const handleSlotMouseDown = (dayIndex, slotIndex) => {
+    if (!user.isTrainer) return;
+    setIsDragging(true);
+    setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
+    setSelectedDate(weekDays[dayIndex]);
+  };
+
+  const handleSlotMouseEnter = (dayIndex, slotIndex) => {
+    if (!isDragging || !dragSelection) return;
+    if (dayIndex !== dragSelection.dayIndex) return;
+    setDragSelection((prev) => ({ ...prev, endIndex: slotIndex }));
+  };
+
+  const normalizedSelection = useMemo(() => {
+    if (!dragSelection) return null;
+    const startIndex = Math.min(dragSelection.startIndex, dragSelection.endIndex);
+    const endIndex = Math.max(dragSelection.startIndex, dragSelection.endIndex);
+    return { ...dragSelection, startIndex, endIndex };
+  }, [dragSelection]);
+
+  const selectionRange = useMemo(() => {
+    if (!normalizedSelection) return null;
+    const day = weekDays[normalizedSelection.dayIndex];
+    const startMinutes = WEEK_START_HOUR * 60 + normalizedSelection.startIndex * SLOT_MINUTES;
+    const endMinutes = WEEK_START_HOUR * 60 + (normalizedSelection.endIndex + 1) * SLOT_MINUTES;
+    const start = day.startOf("day").add(startMinutes, "minute");
+    const end = day.startOf("day").add(endMinutes, "minute");
+    return { start, end };
+  }, [normalizedSelection, weekDays]);
+
+  const handleCreateSlotsFromSelection = async () => {
+    if (!selectionRange) return;
+    if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
+
+    await dispatch(
+      createScheduleEvent({
+        startDateTime: selectionRange.start.toISOString(),
+        endDateTime: selectionRange.end.toISOString(),
+        eventType: "AVAILABILITY",
+        status: "OPEN",
+        availabilitySource: "MANUAL",
+      })
+    );
+    setDragSelection(null);
+    refreshSchedule();
+  };
+
+  const handleClearSelection = () => setDragSelection(null);
+
   return (
     <>
       <Grid container size={12} spacing={2}>
@@ -528,6 +683,173 @@ export default function Schedule() {
           <Card sx={{ width: "100%" }}>
             <CardContent>
               <Stack spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
+                  <Typography variant="h6">Week View</Typography>
+                  {user.isTrainer && (
+                    <Typography variant="body2" color="text.secondary">
+                      Drag to create open availability blocks. Slots start on the hour or half-hour.
+                    </Typography>
+                  )}
+                </Stack>
+                {normalizedSelection && selectionRange && (
+                  <Card variant="outlined">
+                    <CardContent>
+                      <Stack spacing={1} direction={{ xs: "column", sm: "row" }} alignItems="center">
+                        <Typography variant="body2">
+                          Selected: {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
+                          {selectionRange.end.format("h:mm A")}
+                        </Typography>
+                        <Stack direction="row" spacing={1}>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={handleCreateSlotsFromSelection}
+                            disabled={selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
+                          >
+                            Create open slot
+                          </Button>
+                          <Button size="small" variant="outlined" onClick={handleClearSelection}>
+                            Clear
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                )}
+                <Box sx={{ display: "flex", border: "1px solid rgba(148, 163, 184, 0.35)", borderRadius: 2, overflowX: "auto" }}>
+                  <Box sx={{ width: 64, borderRight: "1px solid rgba(148, 163, 184, 0.35)" }}>
+                    <Box
+                      sx={{
+                        height: HEADER_HEIGHT,
+                        borderBottom: "1px solid rgba(148, 163, 184, 0.2)",
+                      }}
+                    />
+                    {Array.from({ length: totalSlots }).map((_, index) => {
+                      const minutes = WEEK_START_HOUR * 60 + index * SLOT_MINUTES;
+                      const label =
+                        minutes % 60 === 0
+                          ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")
+                          : "";
+                      return (
+                        <Box
+                          key={`label-${index}`}
+                          sx={{
+                            height: SLOT_HEIGHT,
+                            borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
+                            fontSize: "0.75rem",
+                            color: "text.secondary",
+                            display: "flex",
+                            alignItems: "flex-start",
+                            justifyContent: "center",
+                            pt: 0.5,
+                          }}
+                        >
+                          {label}
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(120px, 1fr))", flex: 1 }}>
+                    {weekDays.map((day, dayIndex) => (
+                      <Box key={day.format("YYYY-MM-DD")} sx={{ borderLeft: "1px solid rgba(148, 163, 184, 0.2)" }}>
+                        <Box
+                          sx={{
+                            position: "sticky",
+                            top: 0,
+                            height: HEADER_HEIGHT,
+                            backgroundColor: "background.paper",
+                            borderBottom: "1px solid rgba(148, 163, 184, 0.2)",
+                            textAlign: "center",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            zIndex: 1,
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setSelectedDate(day)}
+                        >
+                          <Typography variant="subtitle2">
+                            {day.format("ddd")}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {day.format("MMM D")}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ position: "relative" }}>
+                          {Array.from({ length: totalSlots }).map((_, slotIndex) => (
+                            <Box
+                              key={`slot-${dayIndex}-${slotIndex}`}
+                              onMouseDown={() => handleSlotMouseDown(dayIndex, slotIndex)}
+                              onMouseEnter={() => handleSlotMouseEnter(dayIndex, slotIndex)}
+                              sx={{
+                                height: SLOT_HEIGHT,
+                                borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
+                                backgroundColor: slotIndex % 2 === 0 ? "rgba(148,163,184,0.06)" : "transparent",
+                              }}
+                            />
+                          ))}
+                          {normalizedSelection &&
+                            normalizedSelection.dayIndex === dayIndex && (
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: normalizedSelection.startIndex * SLOT_HEIGHT,
+                                  height: (normalizedSelection.endIndex - normalizedSelection.startIndex + 1) * SLOT_HEIGHT,
+                                  left: 4,
+                                  right: 4,
+                                  backgroundColor: "rgba(25, 118, 210, 0.2)",
+                                  border: "1px solid rgba(25, 118, 210, 0.6)",
+                                  borderRadius: 1,
+                                  pointerEvents: "none",
+                                }}
+                              />
+                            )}
+                          {weekEvents
+                            .filter((event) => dayjs(event.startDateTime).isSame(day, "day"))
+                            .map((event) => {
+                              const style = getEventStyle(event, day);
+                              if (!style) return null;
+                              return (
+                                <Box
+                                  key={event._id}
+                                  sx={{
+                                    position: "absolute",
+                                    left: 6,
+                                    right: 6,
+                                    top: style.top,
+                                    height: style.height,
+                                    backgroundColor: event.eventType === "AVAILABILITY"
+                                      ? "rgba(76, 175, 80, 0.25)"
+                                      : "rgba(33, 150, 243, 0.25)",
+                                    border: "1px solid rgba(25, 118, 210, 0.4)",
+                                    borderRadius: 1,
+                                    px: 0.5,
+                                    py: 0.25,
+                                    overflow: "hidden",
+                                    cursor: user.isTrainer ? "pointer" : "default",
+                                  }}
+                                  onClick={() => user.isTrainer && openEditForEvent(event)}
+                                >
+                                  <Typography variant="caption">
+                                    {event.eventType === "AVAILABILITY" ? "Open" : "Booked"}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid container size={12}>
+          <Card sx={{ width: "100%" }}>
+            <CardContent>
+              <Stack spacing={2}>
                 {!user.isTrainer && (
                   <FormControl fullWidth>
                     <InputLabel>Trainer</InputLabel>
@@ -574,7 +896,6 @@ export default function Schedule() {
             </CardContent>
           </Card>
         </Grid>
-
         <Grid container size={12}>
           <Stack spacing={2}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
@@ -718,6 +1039,16 @@ export default function Schedule() {
                           onClick={() => handleCancelEvent(event._id)}
                         >
                           Close Slot
+                        </Button>
+                      )}
+                      {user.isTrainer && (
+                        <Button
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          onClick={() => openDeleteConfirm(event)}
+                        >
+                          Delete
                         </Button>
                       )}
                       {!user.isTrainer &&
@@ -942,12 +1273,43 @@ export default function Schedule() {
                   Manual slots cannot be booked as recurring.
                 </Typography>
               )}
+              {activeRequestEvent.eventType === "AVAILABILITY" && (
+                <>
+                  {availableBookingSlots.length > 0 ? (
+                    <FormControl fullWidth>
+                      <InputLabel>Choose 1-hour slot</InputLabel>
+                      <Select
+                        label="Choose 1-hour slot"
+                        value={selectedBookingSlot}
+                        onChange={(event) => setSelectedBookingSlot(event.target.value)}
+                      >
+                        {availableBookingSlots.map((slot) => (
+                          <MenuItem key={slot.value} value={slot.value}>
+                            {`${slot.start.format("h:mm A")} - ${slot.end.format("h:mm A")}`}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      This availability range does not include any 1-hour slots.
+                    </Typography>
+                  )}
+                </>
+              )}
             </Stack>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenRequestDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleRequestBooking}>
+          <Button
+            variant="contained"
+            onClick={handleRequestBooking}
+            disabled={
+              activeRequestEvent?.eventType === "AVAILABILITY" &&
+              availableBookingSlots.length === 0
+            }
+          >
             Send request
           </Button>
         </DialogActions>
@@ -1057,6 +1419,38 @@ export default function Schedule() {
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSaveEdit}>
             Save changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Event</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            <Typography>
+              This will permanently delete the event. This cannot be undone.
+            </Typography>
+            {deleteEvent && (
+              <Typography variant="body2" color="text.secondary">
+                {dayjs(deleteEvent.startDateTime).format("ddd, MMM D h:mm A")} -{" "}
+                {dayjs(deleteEvent.endDateTime).format("h:mm A")}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => handleDeleteEvent(deleteEvent?._id)}
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

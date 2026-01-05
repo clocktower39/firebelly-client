@@ -224,6 +224,24 @@ export function cancelScheduleEvent(eventId) {
   };
 }
 
+export function deleteScheduleEvent(eventId) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/event/delete`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: eventId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
 export function requestBooking(payload) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
