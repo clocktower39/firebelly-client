@@ -329,6 +329,18 @@ export default function Schedule() {
     refreshSchedule();
   };
 
+  const handleReopenEvent = async (event) => {
+    await dispatch(
+      updateScheduleEvent(event._id, {
+        clientId: null,
+        workoutId: null,
+        eventType: "AVAILABILITY",
+        status: "OPEN",
+      })
+    );
+    refreshSchedule();
+  };
+
   const openRequestForEvent = (event) => {
     setActiveRequestEvent(event);
     setBookingType("one-time");
@@ -654,6 +666,17 @@ export default function Schedule() {
                           Open Workout
                         </Button>
                       )}
+                      {user.isTrainer &&
+                        event.eventType !== "AVAILABILITY" &&
+                        event.status !== "CANCELLED" && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => handleReopenEvent(event)}
+                          >
+                            Reopen Slot
+                          </Button>
+                        )}
                       {user.isTrainer &&
                         !event.workoutId &&
                         event.status !== "CANCELLED" && (
