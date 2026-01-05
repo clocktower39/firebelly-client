@@ -9,11 +9,14 @@ import {
   Badge,
   Box,
   Button,
+  Card,
+  CardActions,
+  CardContent,
   Chip,
+  Collapse,
   Divider,
   FormControl,
   Grid,
-  IconButton,
   InputAdornment,
   InputLabel,
   List,
@@ -23,6 +26,8 @@ import {
   Select,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -30,7 +35,11 @@ import {
   ExpandMore as ExpandMoreIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  FitnessCenter as FitnessCenterIcon,
+  GridView as GridViewIcon,
+  List as ListIcon,
   Search as SearchIcon,
+  Today as TodayIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
 import { requestWorkoutsByMonth, serverURL } from "../../Redux/actions";
@@ -101,6 +110,9 @@ export default function Calendar(props) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState([]);
   const [sortMode, setSortMode] = useState("date-desc");
+  const [viewMode, setViewMode] = useState("list");
+  const [showCalendar, setShowCalendar] = useState(true);
+  const [showFilters, setShowFilters] = useState(true);
 
   const [modalOpen, setModalOpen] = useState(false);
   const handleModalToggle = () => {
@@ -234,127 +246,159 @@ export default function Calendar(props) {
         </Grid>
       )}
       <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
-        {/* DateCalendar takes 20% of the available height */}
-        <Box sx={{ flex: "0 0 20%" }}>
-          <DateCalendar
-            value={selectedDate}
-            onChange={handleDateCalendarChange}
-            loading={isLoading}
-            renderLoading={() => <DayCalendarSkeleton />}
-            views={["year", "month", "day"]}
-            slots={{ day: ServerDay }}
-            slotProps={{ day: { highlightedDays } }}
-            onMonthChange={handleMonthChange}
-          />
-        </Box>
-
         <Box sx={{ px: 2, py: 1 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, }}>
-              <TextField
-                fullWidth
-                label="Search workouts"
-                placeholder="Title, muscle group, or exercise"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
-                <Stack direction="row" spacing={1}>
-                  <Chip
-                    label="All"
-                    clickable
-                    color={statusFilter === "all" ? "primary" : "default"}
-                    variant={statusFilter === "all" ? "filled" : "outlined"}
-                    onClick={() => setStatusFilter("all")}
-                  />
-                  <Chip
-                    label="Complete"
-                    clickable
-                    color={statusFilter === "complete" ? "success" : "default"}
-                    variant={statusFilter === "complete" ? "filled" : "outlined"}
-                    onClick={() => setStatusFilter("complete")}
-                  />
-                  <Chip
-                    label="Incomplete"
-                    clickable
-                    color={statusFilter === "incomplete" ? "warning" : "default"}
-                    variant={statusFilter === "incomplete" ? "filled" : "outlined"}
-                    onClick={() => setStatusFilter("incomplete")}
-                  />
-                </Stack>
-                <FormControl sx={{ minWidth: 180 }} size="small">
-                  <InputLabel id="calendar-category-filter-label">Muscle group</InputLabel>
-                  <Select
-                    labelId="calendar-category-filter-label"
-                    multiple
-                    value={categoryFilter}
-                    onChange={handleCategoryChange}
-                    input={<OutlinedInput label="Muscle group" />}
-                    renderValue={(selected) =>
-                      selected.length ? selected.join(", ") : "Any"
-                    }
-                  >
-                    {categoryOptions.length ? (
-                      categoryOptions.map((category) => (
-                        <MenuItem key={category} value={category}>
-                          {category}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled value="">
-                        No categories
-                      </MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
-                <FormControl sx={{ minWidth: 150 }} size="small">
-                  <InputLabel id="calendar-sort-label">Sort</InputLabel>
-                  <Select
-                    labelId="calendar-sort-label"
-                    value={sortMode}
-                    label="Sort"
-                    onChange={(event) => setSortMode(event.target.value)}
-                  >
-                    <MenuItem value="date-desc">Newest first</MenuItem>
-                    <MenuItem value="date-asc">Oldest first</MenuItem>
-                    <MenuItem value="title-asc">Title A-Z</MenuItem>
-                    <MenuItem value="title-desc">Title Z-A</MenuItem>
-                  </Select>
-                </FormControl>
-                <Button variant="outlined" size="small" onClick={handleResetFilters}>
-                  Reset
-                </Button>
-              </Stack>
-            </Grid>
-          </Grid>
-          <Divider sx={{ my: 2 }} />
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between">
-            <Typography variant="body2">
-              Showing {filteredWorkouts.length} of {monthWorkouts.length} workouts
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Chip label={`Complete: ${monthWorkouts.filter((workout) => workout.complete).length}`} variant="outlined" />
-              <Chip label={`Incomplete: ${monthWorkouts.filter((workout) => !workout.complete).length}`} variant="outlined" />
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Calendar</Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Button size="small" variant="outlined" onClick={() => setShowCalendar((prev) => !prev)}>
+                {showCalendar ? "Hide calendar" : "Show calendar"}
+              </Button>
+              <Button size="small" variant="outlined" onClick={() => setShowFilters((prev) => !prev)}>
+                {showFilters ? "Hide filters" : "Show filters"}
+              </Button>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                size="small"
+                onChange={(event, value) => value && setViewMode(value)}
+              >
+                <ToggleButton value="list" aria-label="List view">
+                  <ListIcon fontSize="small" />
+                </ToggleButton>
+                <ToggleButton value="grid" aria-label="Grid view">
+                  <GridViewIcon fontSize="small" />
+                </ToggleButton>
+              </ToggleButtonGroup>
             </Stack>
           </Stack>
         </Box>
 
+        {/* DateCalendar takes 20% of the available height */}
+        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
+          <Box sx={{ flex: "0 0 20%" }}>
+            <DateCalendar
+              value={selectedDate}
+              onChange={handleDateCalendarChange}
+              loading={isLoading}
+              renderLoading={() => <DayCalendarSkeleton />}
+              views={["year", "month", "day"]}
+              slots={{ day: ServerDay }}
+              slotProps={{ day: { highlightedDays } }}
+              onMonthChange={handleMonthChange}
+            />
+          </Box>
+        </Collapse>
+
+        <Collapse in={showFilters} timeout="auto" unmountOnExit>
+          <Box sx={{ px: 2, py: 1 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid size={{ xs: 12, }}>
+                <TextField
+                  fullWidth
+                  label="Search workouts"
+                  placeholder="Title, muscle group, or exercise"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 7 }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1}>
+                    <Chip
+                      label="All"
+                      clickable
+                      color={statusFilter === "all" ? "primary" : "default"}
+                      variant={statusFilter === "all" ? "filled" : "outlined"}
+                      onClick={() => setStatusFilter("all")}
+                    />
+                    <Chip
+                      label="Complete"
+                      clickable
+                      color={statusFilter === "complete" ? "success" : "default"}
+                      variant={statusFilter === "complete" ? "filled" : "outlined"}
+                      onClick={() => setStatusFilter("complete")}
+                    />
+                    <Chip
+                      label="Incomplete"
+                      clickable
+                      color={statusFilter === "incomplete" ? "warning" : "default"}
+                      variant={statusFilter === "incomplete" ? "filled" : "outlined"}
+                      onClick={() => setStatusFilter("incomplete")}
+                    />
+                  </Stack>
+                  <FormControl sx={{ minWidth: 180 }} size="small">
+                    <InputLabel id="calendar-category-filter-label">Muscle group</InputLabel>
+                    <Select
+                      labelId="calendar-category-filter-label"
+                      multiple
+                      value={categoryFilter}
+                      onChange={handleCategoryChange}
+                      input={<OutlinedInput label="Muscle group" />}
+                      renderValue={(selected) =>
+                        selected.length ? selected.join(", ") : "Any"
+                      }
+                    >
+                      {categoryOptions.length ? (
+                        categoryOptions.map((category) => (
+                          <MenuItem key={category} value={category}>
+                            {category}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled value="">
+                          No categories
+                        </MenuItem>
+                      )}
+                    </Select>
+                  </FormControl>
+                  <FormControl sx={{ minWidth: 150 }} size="small">
+                    <InputLabel id="calendar-sort-label">Sort</InputLabel>
+                    <Select
+                      labelId="calendar-sort-label"
+                      value={sortMode}
+                      label="Sort"
+                      onChange={(event) => setSortMode(event.target.value)}
+                    >
+                      <MenuItem value="date-desc">Newest first</MenuItem>
+                      <MenuItem value="date-asc">Oldest first</MenuItem>
+                      <MenuItem value="title-asc">Title A-Z</MenuItem>
+                      <MenuItem value="title-desc">Title Z-A</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button variant="outlined" size="small" onClick={handleResetFilters}>
+                    Reset
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+            <Divider sx={{ my: 2 }} />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between">
+              <Typography variant="body2">
+                Showing {filteredWorkouts.length} of {monthWorkouts.length} workouts
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Chip label={`Complete: ${monthWorkouts.filter((workout) => workout.complete).length}`} variant="outlined" />
+                <Chip label={`Incomplete: ${monthWorkouts.filter((workout) => !workout.complete).length}`} variant="outlined" />
+              </Stack>
+            </Stack>
+          </Box>
+        </Collapse>
+
         {/* Workouts List takes the remaining space */}
-        <Box sx={{ flex: "1", overflow: "auto" }}>
+        <Box sx={{ flex: "1", overflow: "auto" }} data-calendar-scroll>
           <Workouts
             history={filteredWorkouts}
             scrollToDate={scrollToDate}
             setSelectedWorkout={setSelectedWorkout}
             handleModalToggle={handleModalToggle}
+            viewMode={viewMode}
           />
         </Box>
       </Box>
@@ -394,43 +438,75 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle }) => {
-  return (
-    <List>
-      {history.length ? (
-        history.map((workout) => (
-          <Workout
-            key={workout._id}
-            workout={workout}
-            scrollToDate={scrollToDate}
-            setSelectedWorkout={setSelectedWorkout}
-            handleModalToggle={handleModalToggle}
-          />
-        ))
-      ) : (
+const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode }) => {
+  if (!history.length) {
+    return (
+      <List>
         <ListItem>
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
             No workouts match your filters for this month.
           </Typography>
         </ListItem>
-      )}
+      </List>
+    );
+  }
+
+  if (viewMode === "grid") {
+    return (
+      <Grid container spacing={2} sx={{ px: 2, pb: 2 }} alignItems="stretch">
+        {history.map((workout) => (
+          <Grid key={workout._id} size={{ xs: 12, sm: 6, lg: 4 }}>
+            <Workout
+              workout={workout}
+              scrollToDate={scrollToDate}
+              setSelectedWorkout={setSelectedWorkout}
+              handleModalToggle={handleModalToggle}
+              viewMode="grid"
+            />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  }
+
+  return (
+    <List sx={{ px: 1 }}>
+      {history.map((workout) => (
+        <Workout
+          key={workout._id}
+          workout={workout}
+          scrollToDate={scrollToDate}
+          setSelectedWorkout={setSelectedWorkout}
+          handleModalToggle={handleModalToggle}
+          viewMode="list"
+        />
+      ))}
     </List>
   );
 };
 
-const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle }) => {
+const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode }) => {
   const workoutRef = useRef(null);
   const workoutId = workout._id;
   const to = `/workout/${workoutId}`;
   const theme = useTheme();
   const [isDateSelected, setIsDateSelected] = useState(false);
+  const totalExercises =
+    workout?.training?.reduce((count, circuit) => count + circuit.length, 0) || 0;
+  const categories = workout?.category || [];
+  const previewExercises =
+    workout?.training?.flatMap((circuit) =>
+      circuit.map((exercise) => exercise?.exercise?.exerciseTitle).filter(Boolean),
+    ) || [];
+  const previewList = previewExercises.slice(0, 3);
 
   const handleScroll = (ref) => {
     const testDate = dayjs(workout.date).utc().format("YYYY-MM-DD");
     const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
 
     if (testDate === scrollDate) {
-      ref.current.parentElement.parentElement.scrollTo({
+      const scrollContainer = ref.current?.closest("[data-calendar-scroll]");
+      scrollContainer?.scrollTo({
         top: ref.current.offsetTop,
         left: 0,
         behavior: "smooth",
@@ -454,42 +530,98 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
 
+  const Wrapper = viewMode === "grid" ? Box : ListItem;
+  const wrapperProps =
+    viewMode === "grid"
+      ? { sx: { width: "100%" }, ref: workoutRef }
+      : {
+          sx: { justifyContent: "center", alignItems: "stretch", px: 1 },
+          ref: workoutRef,
+          disableGutters: false,
+        };
+
   return (
-    <ListItem sx={{ justifyContent: "center" }} ref={workoutRef}>
-      <Box
+    <Wrapper {...wrapperProps}>
+      <Card
+        elevation={isDateSelected ? 6 : 2}
         sx={{
-          border: isDateSelected ? `3px solid ${theme.palette.primary.main}` : "1px solid white",
-          borderRadius: "5px",
-          padding: "2.5px",
           width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          border: isDateSelected ? `2px solid ${theme.palette.primary.main}` : "1px solid transparent",
+          position: "relative",
+          overflow: "hidden",
+          background: `linear-gradient(135deg, ${theme.palette.primary.light}22, ${theme.palette.background.paper} 65%)`,
+          "&::before": {
+            content: "\"\"",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "6px",
+            height: "100%",
+            background: workout.complete
+              ? theme.palette.success.main
+              : theme.palette.warning.main,
+          },
         }}
       >
-        <Accordion>
+        <CardContent>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+            <Box>
+              <Typography variant="h6">{workout?.title}</Typography>
+              <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>
+                {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
+              </Typography>
+            </Box>
+            <Chip
+              size="small"
+              label={workout.complete ? "Complete" : "Incomplete"}
+              color={workout.complete ? "success" : "warning"}
+              variant="outlined"
+            />
+          </Stack>
+          <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
+            <Chip
+              size="small"
+              icon={<TodayIcon fontSize="small" />}
+              label={`${totalExercises} exercise${totalExercises !== 1 ? "s" : ""}`}
+            />
+            <Chip
+              size="small"
+              icon={<FitnessCenterIcon fontSize="small" />}
+              label={`${workout.training.length} circuit${workout.training.length !== 1 ? "s" : ""}`}
+            />
+            {categories.length ? (
+              categories.slice(0, 3).map((category) => (
+                <Chip key={category} size="small" variant="outlined" label={category} />
+              ))
+            ) : (
+              <Chip size="small" variant="outlined" label="No categories" />
+            )}
+          </Stack>
+          {previewList.length ? (
+            <Typography variant="body2" sx={{ mt: 1, opacity: 0.8 }}>
+              {previewList.join(" • ")}
+              {previewExercises.length > previewList.length ? " • ..." : ""}
+            </Typography>
+          ) : null}
+        </CardContent>
+        <Divider />
+        <CardActions sx={{ justifyContent: "space-between", px: 2, mt: "auto" }}>
+          <Button size="small" variant="text" onClick={handleSelectWorkout} startIcon={<SettingsIcon />}>
+            Options
+          </Button>
+          <Button size="small" variant="outlined" component={Link} to={to}>
+            Open workout
+          </Button>
+        </CardActions>
+        <Accordion sx={{ boxShadow: "none", background: "transparent" }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Grid container>
-              <Grid size={12}>
-                <Typography variant="h6">{workout?.title}</Typography>
-              </Grid>
-              <Grid size={12}>
-                <Typography variant="caption" sx={{ ml: 2 }}>
-                  {dayjs.utc(workout.date).format("MMMM Do, YYYY")}
-                </Typography>
-                <Grid size={12}>
-                  <Typography variant="caption" sx={{ ml: 2 }}>
-                    Muscle Group{workout?.category?.length > 1 && "s"}:{" "}
-                    {workout?.category?.join(", ")}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
+            <Typography variant="body2">Details</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Grid container size={12}>
-              <Grid container size={12} justifyContent="flex-end">
-                <IconButton onClick={handleSelectWorkout}>
-                  <SettingsIcon />
-                </IconButton>
-              </Grid>
               {workout.training.map((workoutSet, workoutSetIndex) => (
                 <Grid container size={12} key={`${workout._id}-set-${workoutSetIndex}`}>
                   <Grid size={12} sx={{ marginLeft: "8px" }}>
@@ -515,15 +647,10 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle 
                   ))}
                 </Grid>
               ))}
-              <Grid container size={12} sx={{ justifyContent: "center", alignItems: "center" }}>
-                <Button variant="outlined" component={Link} to={to}>
-                  Open
-                </Button>
-              </Grid>
             </Grid>
           </AccordionDetails>
         </Accordion>
-      </Box>
-    </ListItem>
+      </Card>
+    </Wrapper>
   );
 };
