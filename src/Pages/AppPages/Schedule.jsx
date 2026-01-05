@@ -177,17 +177,18 @@ export default function Schedule() {
     return `${trainer.firstName} ${trainer.lastName}`.trim();
   }, [myTrainers, selectedTrainerId]);
 
-  const attachAccountId = attachEvent?.clientId || user._id;
+  const attachAccountId =
+    attachEvent?.clientId || (user.isTrainer ? selectedClientId : user._id) || user._id;
   const availableWorkouts =
     useSelector((state) => state.workouts?.[attachAccountId]?.workouts) || [];
-  const queueAccountId = user.isTrainer ? selectedClientId || user._id : user._id;
+  const queueAccountId = user.isTrainer ? selectedClientId || null : user._id;
   const queuedWorkouts =
     useSelector((state) => state.workoutQueue?.[queueAccountId || "me"]) || [];
 
   useEffect(() => {
     if (!queueAccountId) return;
     if (user.isTrainer) {
-      dispatch(requestWorkoutQueue(queueAccountId, selectedDate.toISOString()));
+      dispatch(requestWorkoutQueue(queueAccountId, selectedDate.format("YYYY-MM-DD")));
     }
   }, [dispatch, queueAccountId, selectedDate, user.isTrainer]);
   const attachWorkouts = useMemo(() => availableWorkouts, [availableWorkouts]);
@@ -274,14 +275,32 @@ export default function Schedule() {
     setSelectedWorkoutId("");
     setOpenAttachDialog(true);
 
-    const targetClient = event.clientId ? { _id: event.clientId } : user;
+    const targetClient = event.clientId
+      ? { _id: event.clientId }
+      : user.isTrainer && selectedClientId
+      ? { _id: selectedClientId }
+      : user;
     dispatch(requestWorkoutsByMonth(dayjs(event.startDateTime).format("YYYY-MM-DD"), targetClient));
-    dispatch(requestWorkoutQueue(event.clientId || user._id, event.startDateTime));
+    dispatch(
+      requestWorkoutQueue(
+        event.clientId || selectedClientId || user._id,
+        dayjs(event.startDateTime).format("YYYY-MM-DD")
+      )
+    );
   };
 
   const handleAttachWorkout = async () => {
     if (!attachEvent || !selectedWorkoutId) return;
-    await dispatch(updateScheduleEvent(attachEvent._id, { workoutId: selectedWorkoutId }));
+    const updates =
+      attachEvent.eventType === "AVAILABILITY"
+        ? {
+            workoutId: selectedWorkoutId,
+            clientId: selectedClientId,
+            eventType: "APPOINTMENT",
+            status: "BOOKED",
+          }
+        : { workoutId: selectedWorkoutId };
+    await dispatch(updateScheduleEvent(attachEvent._id, updates));
     setOpenAttachDialog(false);
     setAttachEvent(null);
     refreshSchedule();
@@ -305,20 +324,39 @@ export default function Schedule() {
 
   const queueEvents = useMemo(
     () =>
-      dayEvents.filter(
-        (event) =>
-          event.eventType !== "AVAILABILITY" &&
-          event.status !== "CANCELLED" &&
-          !event.workoutId
-      ),
-    [dayEvents]
+      dayEvents.filter((event) => {
+        if (event.workoutId) return false;
+        if (event.status === "CANCELLED") return false;
+        if (event.eventType === "AVAILABILITY") {
+          return user.isTrainer && !!selectedClientId && event.status === "OPEN";
+        }
+        return true;
+      }),
+    [dayEvents, selectedClientId, user.isTrainer]
   );
+
+  useEffect(() => {
+    if (queueEvents.length > 0) {
+      setQueueTargetEventId((prev) => prev || queueEvents[0]._id);
+    } else {
+      setQueueTargetEventId("");
+    }
+  }, [queueEvents]);
 
   const handleAttachQueuedWorkout = async (workoutId) => {
     const targetEvent = queueEvents.find((event) => event._id === queueTargetEventId);
     if (!targetEvent) return;
-    await dispatch(updateScheduleEvent(targetEvent._id, { workoutId: workoutId }));
-    await dispatch(requestWorkoutQueue(queueAccountId, selectedDate.toISOString()));
+    const updates =
+      targetEvent.eventType === "AVAILABILITY"
+        ? {
+            workoutId,
+            clientId: selectedClientId,
+            eventType: "APPOINTMENT",
+            status: "BOOKED",
+          }
+        : { workoutId };
+    await dispatch(updateScheduleEvent(targetEvent._id, updates));
+    await dispatch(requestWorkoutQueue(queueAccountId, selectedDate.format("YYYY-MM-DD")));
     refreshSchedule();
   };
 
@@ -417,9 +455,16 @@ export default function Schedule() {
 
         <Grid container size={{ xs: 12, md: 8 }}>
           <Stack spacing={2}>
-            <Typography variant="h6">
-              {selectedDate.format("dddd, MMMM D")}
-            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
+              <Typography variant="h6">
+                {selectedDate.format("dddd, MMMM D")}
+              </Typography>
+              {user.isTrainer && !selectedClientId && (
+                <Typography variant="body2" color="text.secondary">
+                  Select a client to attach workouts to availability slots.
+                </Typography>
+              )}
+            </Stack>
             {user.isTrainer && clientParam && (
               <Card sx={{ borderLeft: "4px solid", borderColor: "primary.main" }}>
                 <CardContent>
@@ -448,8 +493,13 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             )}
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Schedule Events</Typography>
+              </CardContent>
+            </Card>
             {dayEvents.map((event) => (
-              <Card key={event._id}>
+              <Card key={event._id} variant="outlined">
                 <CardContent>
                   <Stack spacing={1}>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -496,8 +546,8 @@ export default function Schedule() {
                       )}
                       {user.isTrainer &&
                         !event.workoutId &&
-                        event.eventType !== "AVAILABILITY" &&
-                        event.status !== "CANCELLED" && (
+                        event.status !== "CANCELLED" &&
+                        (event.eventType !== "AVAILABILITY" || selectedClientId) && (
                           <Button
                             size="small"
                             variant="outlined"
@@ -553,28 +603,44 @@ export default function Schedule() {
               <Card>
                 <CardContent>
                   <Stack spacing={2}>
-                    <Typography variant="h6">Unscheduled Workouts</Typography>
+                    <Typography variant="h6">Unassigned Workouts</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Pick a schedule event below, then attach a queued workout. You can also open any
-                      event and use Attach Workout inside the event card.
+                      Choose an event to attach a workout. Availability slots will become booked
+                      appointments for the selected client.
                     </Typography>
+                    {!selectedClientId && (
+                      <Typography color="text.secondary">
+                        Select a client to load their unassigned workouts and attach to slots.
+                      </Typography>
+                    )}
                     <FormControl fullWidth>
                       <InputLabel>Attach to event</InputLabel>
                       <Select
                         label="Attach to event"
                         value={queueTargetEventId}
                         onChange={(event) => setQueueTargetEventId(event.target.value)}
+                        disabled={queueEvents.length === 0}
                       >
                         {queueEvents.map((event) => (
                           <MenuItem key={event._id} value={event._id}>
                             {dayjs(event.startDateTime).format("h:mm A")} -{" "}
-                            {dayjs(event.endDateTime).format("h:mm A")}
+                            {dayjs(event.endDateTime).format("h:mm A")} •{" "}
+                            {event.eventType === "AVAILABILITY" ? "Open slot" : event.eventType}
                           </MenuItem>
                         ))}
                       </Select>
                     </FormControl>
+                    {queueEvents.length === 0 && (
+                      <Typography color="text.secondary">
+                        No attachable events on this day. Create or book an appointment first.
+                      </Typography>
+                    )}
                     {queuedWorkouts.length === 0 ? (
-                      <Typography color="text.secondary">No queued workouts.</Typography>
+                      <Typography color="text.secondary">
+                        {selectedClientId
+                          ? "No unassigned workouts."
+                          : "Choose a client to load unassigned workouts."}
+                      </Typography>
                     ) : (
                       <Stack spacing={1}>
                         {queuedWorkouts.map((workout) => (
@@ -727,13 +793,18 @@ export default function Schedule() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Attach Workout</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Workouts listed here include any dated workouts in this month and queued workouts.
+      <DialogTitle>Attach Workout</DialogTitle>
+      <DialogContent sx={{ pt: 1 }}>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Workouts listed here include any dated workouts in this month and queued workouts.
+          </Typography>
+          {attachEvent?.eventType === "AVAILABILITY" && !selectedClientId && (
+            <Typography color="text.secondary">
+              Select a client first to attach a workout to an open slot.
             </Typography>
-            <FormControl fullWidth>
+          )}
+          <FormControl fullWidth>
               <InputLabel>Workout</InputLabel>
               <Select
                 label="Workout"
