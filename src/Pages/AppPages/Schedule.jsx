@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
-  Box,
   Card,
   CardContent,
   Chip,
@@ -26,8 +25,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
+import SelectedDate from "../../Components/SelectedDate";
 import {
   cancelScheduleEvent,
   createTrainingForAccount,
@@ -409,11 +407,11 @@ export default function Schedule() {
     const updates =
       attachEvent.eventType === "AVAILABILITY"
         ? {
-            workoutId: selectedWorkoutId,
-            clientId: selectedWorkoutUserId || selectedClientIds[0],
-            eventType: "APPOINTMENT",
-            status: "BOOKED",
-          }
+          workoutId: selectedWorkoutId,
+          clientId: selectedWorkoutUserId || selectedClientIds[0],
+          eventType: "APPOINTMENT",
+          status: "BOOKED",
+        }
         : { workoutId: selectedWorkoutId };
     await dispatch(updateScheduleEvent(attachEvent._id, updates));
     setOpenAttachDialog(false);
@@ -464,11 +462,11 @@ export default function Schedule() {
     const updates =
       targetEvent.eventType === "AVAILABILITY"
         ? {
-            workoutId,
-            clientId: workoutUserId,
-            eventType: "APPOINTMENT",
-            status: "BOOKED",
-          }
+          workoutId,
+          clientId: workoutUserId,
+          eventType: "APPOINTMENT",
+          status: "BOOKED",
+        }
         : { workoutId };
     await dispatch(updateScheduleEvent(targetEvent._id, updates));
     if (user.isTrainer) {
@@ -478,7 +476,7 @@ export default function Schedule() {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <>
       <Grid container size={12} spacing={2}>
         <Grid container size={12}>
           <Stack
@@ -519,63 +517,65 @@ export default function Schedule() {
           )}
         </Grid>
 
-        <Grid container size={{ xs: 12, md: 4 }} sx={{ alignItems: "flex-start" }}>
-          <Card sx={{ width: "100%", overflow: "visible" }}>
+        <Grid container size={12}>
+          <SelectedDate
+            selectedDate={selectedDate.format("YYYY-MM-DD")}
+            setSelectedDate={(value) => setSelectedDate(dayjs(value))}
+          />
+        </Grid>
+
+        <Grid container size={12}>
+          <Card sx={{ width: "100%" }}>
             <CardContent>
-              {!user.isTrainer && (
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Trainer</InputLabel>
-                  <Select
-                    label="Trainer"
-                    value={selectedTrainerId}
-                    onChange={(event) => setSelectedTrainerId(event.target.value)}
-                  >
-                    {myTrainers
-                      .filter((trainer) => trainer.accepted)
-                      .map((trainer) => (
-                        <MenuItem key={trainer.trainer} value={trainer.trainer}>
-                          {trainer.firstName} {trainer.lastName}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-              )}
+              <Stack spacing={2}>
+                {!user.isTrainer && (
+                  <FormControl fullWidth>
+                    <InputLabel>Trainer</InputLabel>
+                    <Select
+                      label="Trainer"
+                      value={selectedTrainerId}
+                      onChange={(event) => setSelectedTrainerId(event.target.value)}
+                    >
+                      {myTrainers
+                        .filter((trainer) => trainer.accepted)
+                        .map((trainer) => (
+                          <MenuItem key={trainer.trainer} value={trainer.trainer}>
+                            {trainer.firstName} {trainer.lastName}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                )}
 
-              {user.isTrainer && (
-                <Autocomplete
-                  multiple
-                  options={clients.filter((clientRel) => clientRel.accepted)}
-                  getOptionLabel={(option) =>
-                    `${option.client.firstName} ${option.client.lastName}`
-                  }
-                  value={clients.filter((clientRel) =>
-                    selectedClientIds.includes(clientRel.client._id)
-                  )}
-                  onChange={(_, value) => {
-                    setSelectedClientIds(value.map((item) => item.client._id));
-                    setHasClientSelection(true);
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Clients"
-                      placeholder="All clients"
-                      sx={{ mb: 2 }}
-                    />
-                  )}
-                />
-              )}
-
-              <Box sx={{ width: "100%", overflowX: "auto" }}>
-                <Box sx={{ minWidth: 320 }}>
-                  <DateCalendar value={selectedDate} onChange={setSelectedDate} />
-                </Box>
-              </Box>
+                {user.isTrainer && (
+                  <Autocomplete
+                    multiple
+                    options={clients.filter((clientRel) => clientRel.accepted)}
+                    getOptionLabel={(option) =>
+                      `${option.client.firstName} ${option.client.lastName}`
+                    }
+                    value={clients.filter((clientRel) =>
+                      selectedClientIds.includes(clientRel.client._id)
+                    )}
+                    onChange={(_, value) => {
+                      setSelectedClientIds(value.map((item) => item.client._id));
+                      setHasClientSelection(true);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Clients"
+                        placeholder="All clients"
+                      />
+                    )}
+                  />
+                )}
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid container size={{ xs: 12, md: 8 }}>
+        <Grid container size={12}>
           <Stack spacing={2}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
               <Typography variant="h6">
@@ -787,60 +787,62 @@ export default function Schedule() {
                             (typeof workout.user === "object"
                               ? `${workout.user.firstName || ""} ${workout.user.lastName || ""}`.trim()
                               : "Client");
+
                           return (
-                          <Card key={workout._id} variant="outlined">
-                            <CardContent>
-                              <Stack spacing={1}>
-                                <Typography variant="subtitle1">
-                                  {workout.title || "Untitled"}
-                                </Typography>
-                                <Stack direction="row" spacing={1} alignItems="center">
-                                  <Avatar
-                                    src={
-                                      workout.user?.profilePicture
-                                        ? `${serverURL}/user/profilePicture/${workout.user.profilePicture}`
-                                        : undefined
-                                    }
-                                    sx={{ width: 28, height: 28 }}
-                                  >
-                                    {workoutClientName ? workoutClientName[0] : "C"}
-                                  </Avatar>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {workoutClientName || "Client"}
+                            <Card key={workout._id} variant="outlined">
+                              <CardContent>
+                                <Stack spacing={1}>
+                                  <Typography variant="subtitle1">
+                                    {workout.title || "Untitled"}
                                   </Typography>
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    <Avatar
+                                      src={
+                                        workout.user?.profilePicture
+                                          ? `${serverURL}/user/profilePicture/${workout.user.profilePicture}`
+                                          : undefined
+                                      }
+                                      sx={{ width: 28, height: 28 }}
+                                    >
+                                      {workoutClientName ? workoutClientName[0] : "C"}
+                                    </Avatar>
+                                    <Typography variant="body2" color="text.secondary">
+                                      {workoutClientName || "Client"}
+                                    </Typography>
+                                  </Stack>
+                                  {workout.category?.length > 0 && (
+                                    <Typography variant="body2" color="text.secondary">
+                                      {workout.category.join(", ")}
+                                    </Typography>
+                                  )}
+                                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                                    <Button
+                                      size="small"
+                                      variant="outlined"
+                                      component={Link}
+                                      to={`/workout/${workout._id}`}
+                                    >
+                                      Open
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      disabled={disableAttach}
+                                      onClick={() => handleAttachQueuedWorkout(workout._id)}
+                                    >
+                                      Attach to event
+                                    </Button>
+                                  </Stack>
+                                  {queueTargetEvent?.clientId && !isClientMatch && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      This workout belongs to a different client than the selected event.
+                                    </Typography>
+                                  )}
                                 </Stack>
-                                {workout.category?.length > 0 && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    {workout.category.join(", ")}
-                                  </Typography>
-                                )}
-                                <Stack direction="row" spacing={1} flexWrap="wrap">
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    component={Link}
-                                    to={`/workout/${workout._id}`}
-                                  >
-                                    Open
-                                  </Button>
-                                  <Button
-                                    size="small"
-                                    variant="contained"
-                                    disabled={disableAttach}
-                                    onClick={() => handleAttachQueuedWorkout(workout._id)}
-                                  >
-                                    Attach to event
-                                  </Button>
-                                </Stack>
-                                {queueTargetEvent?.clientId && !isClientMatch && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    This workout belongs to a different client than the selected event.
-                                  </Typography>
-                                )}
-                              </Stack>
-                            </CardContent>
-                          </Card>
-                        )})}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </Stack>
                     )}
                   </Stack>
@@ -957,19 +959,19 @@ export default function Schedule() {
         maxWidth="xs"
         fullWidth
       >
-      <DialogTitle>Attach Workout</DialogTitle>
-      <DialogContent sx={{ pt: 1 }}>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            Workouts listed here include any dated workouts in this month and queued workouts.
-          </Typography>
-          {attachEvent?.eventType === "AVAILABILITY" && (
-            <Typography color="text.secondary">
-              Attaching a workout to an open slot will create a booked appointment for that workout's
-              client.
+        <DialogTitle>Attach Workout</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Workouts listed here include any dated workouts in this month and queued workouts.
             </Typography>
-          )}
-          <FormControl fullWidth>
+            {attachEvent?.eventType === "AVAILABILITY" && (
+              <Typography color="text.secondary">
+                Attaching a workout to an open slot will create a booked appointment for that workout's
+                client.
+              </Typography>
+            )}
+            <FormControl fullWidth>
               <InputLabel>Workout</InputLabel>
               <Select
                 label="Workout"
@@ -1058,6 +1060,6 @@ export default function Schedule() {
           </Button>
         </DialogActions>
       </Dialog>
-    </LocalizationProvider>
+    </>
   );
 }
