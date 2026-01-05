@@ -11,12 +11,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Autocomplete,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
   Select,
   Stack,
+  Avatar,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -37,6 +39,7 @@ import {
   requestScheduleRange,
   requestWorkoutQueue,
   respondBooking,
+  serverURL,
   updateScheduleEvent,
 } from "../../Redux/actions";
 
@@ -78,12 +81,15 @@ export default function Schedule() {
 
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTrainerId, setSelectedTrainerId] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedClientIds, setSelectedClientIds] = useState([]);
+  const [hasClientSelection, setHasClientSelection] = useState(false);
   const [openAvailabilityDialog, setOpenAvailabilityDialog] = useState(false);
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [activeRequestEvent, setActiveRequestEvent] = useState(null);
   const [attachEvent, setAttachEvent] = useState(null);
+  const [editEvent, setEditEvent] = useState(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState("");
   const [queueTargetEventId, setQueueTargetEventId] = useState("");
 
@@ -93,6 +99,10 @@ export default function Schedule() {
   const [availabilityRecurrence, setAvailabilityRecurrence] = useState("none");
 
   const [bookingType, setBookingType] = useState("one-time");
+  const [editDate, setEditDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [editStartTime, setEditStartTime] = useState("09:00");
+  const [editEndTime, setEditEndTime] = useState("10:00");
+  const [editStatus, setEditStatus] = useState("OPEN");
 
   useEffect(() => {
     if (user.isTrainer) {
@@ -109,7 +119,8 @@ export default function Schedule() {
     const trainerId = params.get("trainer");
 
     if (user.isTrainer && clientId) {
-      setSelectedClientId(clientId);
+      setSelectedClientIds([clientId]);
+      setHasClientSelection(true);
     }
     if (!user.isTrainer && trainerId) {
       setSelectedTrainerId(trainerId);
@@ -118,11 +129,12 @@ export default function Schedule() {
 
   const clientParam = new URLSearchParams(location.search).get("client");
   const selectedClientLabel = clients.find(
-    (clientRel) => clientRel.client?._id === selectedClientId
+    (clientRel) => clientRel.client?._id === selectedClientIds[0]
   );
 
   const handleClearClientFilter = () => {
-    setSelectedClientId("");
+    setSelectedClientIds([]);
+    setHasClientSelection(true);
     navigate("/schedule");
   };
 
@@ -133,16 +145,28 @@ export default function Schedule() {
     }
   }, [myTrainers, selectedTrainerId, user.isTrainer]);
 
+  useEffect(() => {
+    if (!user.isTrainer) return;
+    if (hasClientSelection) return;
+    const acceptedClientIds = clients
+      .filter((clientRel) => clientRel.accepted)
+      .map((clientRel) => clientRel.client._id);
+    if (acceptedClientIds.length > 0) {
+      setSelectedClientIds(acceptedClientIds);
+    }
+  }, [clients, hasClientSelection, user.isTrainer]);
+
   const refreshSchedule = () => {
     if (!selectedTrainerId) return;
     const monthStart = selectedDate.startOf("month").startOf("day").toISOString();
     const monthEnd = selectedDate.startOf("month").add(1, "month").startOf("day").toISOString();
+    const requestedClientId = selectedClientIds.length === 1 ? selectedClientIds[0] : null;
     dispatch(
       requestScheduleRange({
         startDate: monthStart,
         endDate: monthEnd,
         trainerId: selectedTrainerId,
-        clientId: user.isTrainer ? selectedClientId || null : user._id,
+        clientId: user.isTrainer ? requestedClientId : user._id,
         includeAvailability: true,
       })
     );
@@ -150,16 +174,17 @@ export default function Schedule() {
 
   useEffect(() => {
     refreshSchedule();
-  }, [dispatch, selectedDate, selectedTrainerId, selectedClientId, user.isTrainer, user._id]);
+  }, [dispatch, selectedDate, selectedTrainerId, selectedClientIds, user.isTrainer, user._id]);
 
   const scopeKey = buildScopeKey(
     selectedTrainerId || user._id,
-    user.isTrainer ? selectedClientId || null : user._id
+    user.isTrainer ? (selectedClientIds.length === 1 ? selectedClientIds[0] : null) : user._id
   );
 
   const scheduleData = useSelector((state) => state.scheduleEvents?.[scopeKey]) || {
     events: [],
   };
+  const workoutsByAccount = useSelector((state) => state.workouts) || {};
 
   const clientLookup = useMemo(
     () =>
@@ -177,23 +202,53 @@ export default function Schedule() {
     return `${trainer.firstName} ${trainer.lastName}`.trim();
   }, [myTrainers, selectedTrainerId]);
 
+  const activeClientIds = useMemo(() => {
+    if (!user.isTrainer) return [];
+    if (selectedClientIds.length > 0) return selectedClientIds;
+    return clients
+      .filter((clientRel) => clientRel.accepted)
+      .map((clientRel) => clientRel.client._id);
+  }, [clients, selectedClientIds, user.isTrainer]);
+
   const attachAccountId =
-    attachEvent?.clientId || (user.isTrainer ? selectedClientId : user._id) || user._id;
+    attachEvent?.clientId ||
+    (user.isTrainer && selectedClientIds.length === 1 ? selectedClientIds[0] : null) ||
+    user._id;
   const availableWorkouts =
     useSelector((state) => state.workouts?.[attachAccountId]?.workouts) || [];
-  const queueAccountId = user.isTrainer ? selectedClientId || null : user._id;
+  const queueAccountIds = useMemo(
+    () => (user.isTrainer ? activeClientIds : [user._id]),
+    [activeClientIds, user.isTrainer, user._id]
+  );
   const queuedWorkouts =
-    useSelector((state) => state.workoutQueue?.[queueAccountId || "me"]) || [];
+    useSelector((state) => {
+      if (!user.isTrainer) {
+        return state.workoutQueue?.[user._id] || [];
+      }
+      return queueAccountIds.flatMap(
+        (clientId) => state.workoutQueue?.[clientId] || []
+      );
+    }) || [];
 
   useEffect(() => {
-    if (!queueAccountId) return;
     if (user.isTrainer) {
-      dispatch(requestWorkoutQueue(queueAccountId, selectedDate.format("YYYY-MM-DD")));
+      queueAccountIds.forEach((clientId) => {
+        dispatch(requestWorkoutQueue(clientId, selectedDate.format("YYYY-MM-DD")));
+      });
     }
-  }, [dispatch, queueAccountId, selectedDate, user.isTrainer]);
-  const attachWorkouts = useMemo(() => availableWorkouts, [availableWorkouts]);
-  const attachQueuedWorkouts =
-    useSelector((state) => state.workoutQueue?.[attachAccountId || "me"]) || [];
+  }, [dispatch, queueAccountIds, selectedDate, user.isTrainer]);
+  const attachWorkouts = useMemo(() => {
+    if (!user.isTrainer) return availableWorkouts;
+    if (attachEvent?.clientId || selectedClientIds.length === 1) return availableWorkouts;
+    return activeClientIds.flatMap((clientId) => workoutsByAccount?.[clientId]?.workouts || []);
+  }, [activeClientIds, attachEvent?.clientId, availableWorkouts, selectedClientIds, user.isTrainer, workoutsByAccount]);
+  const attachQueuedWorkouts = useSelector((state) => {
+    if (!user.isTrainer) return state.workoutQueue?.[user._id] || [];
+    if (attachEvent?.clientId || selectedClientIds.length === 1) {
+      return state.workoutQueue?.[attachAccountId || "me"] || [];
+    }
+    return activeClientIds.flatMap((clientId) => state.workoutQueue?.[clientId] || []);
+  });
 
   const dayEvents = useMemo(() => {
     const dayStart = selectedDate.startOf("day");
@@ -206,6 +261,16 @@ export default function Schedule() {
       })
       .sort((a, b) => dayjs(a.startDateTime).valueOf() - dayjs(b.startDateTime).valueOf());
   }, [scheduleData.events, selectedDate]);
+
+  const filteredDayEvents = useMemo(() => {
+    if (!user.isTrainer) return dayEvents;
+    if (!activeClientIds.length) return dayEvents;
+    return dayEvents.filter((event) => {
+      if (event.eventType === "AVAILABILITY") return true;
+      if (!event.clientId) return false;
+      return activeClientIds.includes(event.clientId);
+    });
+  }, [activeClientIds, dayEvents, user.isTrainer]);
 
   const handleOpenAvailability = () => {
     setAvailabilityType("MANUAL");
@@ -275,27 +340,65 @@ export default function Schedule() {
     setSelectedWorkoutId("");
     setOpenAttachDialog(true);
 
-    const targetClient = event.clientId
-      ? { _id: event.clientId }
-      : user.isTrainer && selectedClientId
-      ? { _id: selectedClientId }
-      : user;
-    dispatch(requestWorkoutsByMonth(dayjs(event.startDateTime).format("YYYY-MM-DD"), targetClient));
-    dispatch(
-      requestWorkoutQueue(
-        event.clientId || selectedClientId || user._id,
-        dayjs(event.startDateTime).format("YYYY-MM-DD")
-      )
+    const date = dayjs(event.startDateTime).format("YYYY-MM-DD");
+    if (event.clientId) {
+      dispatch(requestWorkoutsByMonth(date, { _id: event.clientId }));
+      dispatch(requestWorkoutQueue(event.clientId, date));
+      return;
+    }
+    if (user.isTrainer && selectedClientIds.length === 1) {
+      dispatch(requestWorkoutsByMonth(date, { _id: selectedClientIds[0] }));
+      dispatch(requestWorkoutQueue(selectedClientIds[0], date));
+      return;
+    }
+    if (user.isTrainer) {
+      activeClientIds.forEach((clientId) => {
+        dispatch(requestWorkoutsByMonth(date, { _id: clientId }));
+        dispatch(requestWorkoutQueue(clientId, date));
+      });
+      return;
+    }
+    dispatch(requestWorkoutsByMonth(date, user));
+    dispatch(requestWorkoutQueue(user._id, date));
+  };
+
+  const openEditForEvent = (event) => {
+    setEditEvent(event);
+    setEditDate(dayjs(event.startDateTime).format("YYYY-MM-DD"));
+    setEditStartTime(dayjs(event.startDateTime).format("HH:mm"));
+    setEditEndTime(dayjs(event.endDateTime).format("HH:mm"));
+    setEditStatus(event.status);
+    setOpenEditDialog(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editEvent) return;
+    const startDateTime = dayjs(`${editDate}T${editStartTime}`).toISOString();
+    const endDateTime = dayjs(`${editDate}T${editEndTime}`).toISOString();
+    if (dayjs(endDateTime).valueOf() <= dayjs(startDateTime).valueOf()) return;
+    await dispatch(
+      updateScheduleEvent(editEvent._id, {
+        startDateTime,
+        endDateTime,
+        status: editStatus,
+      })
     );
+    setOpenEditDialog(false);
+    setEditEvent(null);
+    refreshSchedule();
   };
 
   const handleAttachWorkout = async () => {
     if (!attachEvent || !selectedWorkoutId) return;
+    const allAttachWorkouts = [...attachWorkouts, ...attachQueuedWorkouts];
+    const selectedWorkout = allAttachWorkouts.find((workout) => workout._id === selectedWorkoutId);
+    const selectedWorkoutUserId =
+      typeof selectedWorkout?.user === "object" ? selectedWorkout?.user?._id : selectedWorkout?.user;
     const updates =
       attachEvent.eventType === "AVAILABILITY"
         ? {
             workoutId: selectedWorkoutId,
-            clientId: selectedClientId,
+            clientId: selectedWorkoutUserId || selectedClientIds[0],
             eventType: "APPOINTMENT",
             status: "BOOKED",
           }
@@ -322,41 +425,43 @@ export default function Schedule() {
     }
   };
 
-  const queueEvents = useMemo(
-    () =>
-      dayEvents.filter((event) => {
-        if (event.workoutId) return false;
-        if (event.status === "CANCELLED") return false;
-        if (event.eventType === "AVAILABILITY") {
-          return user.isTrainer && !!selectedClientId && event.status === "OPEN";
-        }
-        return true;
-      }),
-    [dayEvents, selectedClientId, user.isTrainer]
+  const attachableEvents = useMemo(
+    () => filteredDayEvents.filter((event) => event.status !== "CANCELLED"),
+    [filteredDayEvents]
   );
 
   useEffect(() => {
-    if (queueEvents.length > 0) {
-      setQueueTargetEventId((prev) => prev || queueEvents[0]._id);
+    if (attachableEvents.length > 0) {
+      setQueueTargetEventId((prev) => prev || attachableEvents[0]._id);
     } else {
       setQueueTargetEventId("");
     }
-  }, [queueEvents]);
+  }, [attachableEvents]);
+
+  const queueTargetEvent = useMemo(
+    () => attachableEvents.find((event) => event._id === queueTargetEventId),
+    [attachableEvents, queueTargetEventId]
+  );
 
   const handleAttachQueuedWorkout = async (workoutId) => {
-    const targetEvent = queueEvents.find((event) => event._id === queueTargetEventId);
+    const targetEvent = attachableEvents.find((event) => event._id === queueTargetEventId);
     if (!targetEvent) return;
+    const workoutMatch = queuedWorkouts.find((workout) => workout._id === workoutId);
+    const workoutUserId =
+      typeof workoutMatch?.user === "object" ? workoutMatch?.user?._id : workoutMatch?.user;
     const updates =
       targetEvent.eventType === "AVAILABILITY"
         ? {
             workoutId,
-            clientId: selectedClientId,
+            clientId: workoutUserId,
             eventType: "APPOINTMENT",
             status: "BOOKED",
           }
         : { workoutId };
     await dispatch(updateScheduleEvent(targetEvent._id, updates));
-    await dispatch(requestWorkoutQueue(queueAccountId, selectedDate.format("YYYY-MM-DD")));
+    if (user.isTrainer) {
+      await dispatch(requestWorkoutQueue(selectedClientIds[0], selectedDate.format("YYYY-MM-DD")));
+    }
     refreshSchedule();
   };
 
@@ -425,23 +530,28 @@ export default function Schedule() {
               )}
 
               {user.isTrainer && (
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Client (optional)</InputLabel>
-                  <Select
-                    label="Client (optional)"
-                    value={selectedClientId}
-                    onChange={(event) => setSelectedClientId(event.target.value)}
-                  >
-                    <MenuItem value="">All clients</MenuItem>
-                    {clients
-                      .filter((clientRel) => clientRel.accepted)
-                      .map((clientRel) => (
-                        <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
-                          {clientRel.client.firstName} {clientRel.client.lastName}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
+                <Autocomplete
+                  multiple
+                  options={clients.filter((clientRel) => clientRel.accepted)}
+                  getOptionLabel={(option) =>
+                    `${option.client.firstName} ${option.client.lastName}`
+                  }
+                  value={clients.filter((clientRel) =>
+                    selectedClientIds.includes(clientRel.client._id)
+                  )}
+                  onChange={(_, value) => {
+                    setSelectedClientIds(value.map((item) => item.client._id));
+                    setHasClientSelection(true);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Clients"
+                      placeholder="All clients"
+                      sx={{ mb: 2 }}
+                    />
+                  )}
+                />
               )}
 
               <Box sx={{ width: "100%", overflowX: "auto" }}>
@@ -459,9 +569,9 @@ export default function Schedule() {
               <Typography variant="h6">
                 {selectedDate.format("dddd, MMMM D")}
               </Typography>
-              {user.isTrainer && !selectedClientId && (
+              {user.isTrainer && selectedClientIds.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
-                  Select a client to attach workouts to availability slots.
+                  Select one or more clients to load their workouts.
                 </Typography>
               )}
             </Stack>
@@ -486,7 +596,7 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             )}
-            {dayEvents.length === 0 && (
+            {filteredDayEvents.length === 0 && (
               <Card>
                 <CardContent>
                   <Typography color="text.secondary">No schedule events.</Typography>
@@ -498,7 +608,7 @@ export default function Schedule() {
                 <Typography variant="h6">Schedule Events</Typography>
               </CardContent>
             </Card>
-            {dayEvents.map((event) => (
+            {filteredDayEvents.map((event) => (
               <Card key={event._id} variant="outlined">
                 <CardContent>
                   <Stack spacing={1}>
@@ -546,8 +656,7 @@ export default function Schedule() {
                       )}
                       {user.isTrainer &&
                         !event.workoutId &&
-                        event.status !== "CANCELLED" &&
-                        (event.eventType !== "AVAILABILITY" || selectedClientId) && (
+                        event.status !== "CANCELLED" && (
                           <Button
                             size="small"
                             variant="outlined"
@@ -556,6 +665,11 @@ export default function Schedule() {
                             Attach Workout
                           </Button>
                         )}
+                      {user.isTrainer && (
+                        <Button size="small" variant="outlined" onClick={() => openEditForEvent(event)}>
+                          Edit
+                        </Button>
+                      )}
                       {user.isTrainer && event.status === "REQUESTED" && (
                         <>
                           <Button
@@ -606,22 +720,17 @@ export default function Schedule() {
                     <Typography variant="h6">Unassigned Workouts</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Choose an event to attach a workout. Availability slots will become booked
-                      appointments for the selected client.
+                      appointments for the workout's client.
                     </Typography>
-                    {!selectedClientId && (
-                      <Typography color="text.secondary">
-                        Select a client to load their unassigned workouts and attach to slots.
-                      </Typography>
-                    )}
                     <FormControl fullWidth>
                       <InputLabel>Attach to event</InputLabel>
                       <Select
                         label="Attach to event"
                         value={queueTargetEventId}
                         onChange={(event) => setQueueTargetEventId(event.target.value)}
-                        disabled={queueEvents.length === 0}
+                        disabled={false}
                       >
-                        {queueEvents.map((event) => (
+                        {attachableEvents.map((event) => (
                           <MenuItem key={event._id} value={event._id}>
                             {dayjs(event.startDateTime).format("h:mm A")} -{" "}
                             {dayjs(event.endDateTime).format("h:mm A")} •{" "}
@@ -630,26 +739,53 @@ export default function Schedule() {
                         ))}
                       </Select>
                     </FormControl>
-                    {queueEvents.length === 0 && (
+                    {attachableEvents.length === 0 && (
                       <Typography color="text.secondary">
                         No attachable events on this day. Create or book an appointment first.
                       </Typography>
                     )}
                     {queuedWorkouts.length === 0 ? (
                       <Typography color="text.secondary">
-                        {selectedClientId
+                        {selectedClientIds.length
                           ? "No unassigned workouts."
-                          : "Choose a client to load unassigned workouts."}
+                          : "No unassigned workouts found."}
                       </Typography>
                     ) : (
                       <Stack spacing={1}>
-                        {queuedWorkouts.map((workout) => (
+                        {queuedWorkouts.map((workout) => {
+                          const workoutUserId =
+                            typeof workout.user === "object" ? workout.user?._id : workout.user;
+                          const isClientMatch =
+                            !queueTargetEvent?.clientId ||
+                            String(queueTargetEvent.clientId) === String(workoutUserId);
+                          const disableAttach = !queueTargetEventId;
+                          const workoutClientName =
+                            clientLookup.get(workoutUserId) ||
+                            (typeof workout.user === "object"
+                              ? `${workout.user.firstName || ""} ${workout.user.lastName || ""}`.trim()
+                              : "Client");
+                          return (
                           <Card key={workout._id} variant="outlined">
                             <CardContent>
                               <Stack spacing={1}>
                                 <Typography variant="subtitle1">
                                   {workout.title || "Untitled"}
                                 </Typography>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Avatar
+                                    src={
+                                      workout.user?.profilePicture
+                                        ? `${serverURL}/user/profilePicture/${workout.user.profilePicture}`
+                                        : undefined
+                                    }
+                                    sx={{ width: 28, height: 28 }}
+                                  >
+                                    {workoutClientName ? workoutClientName[0] : "C"}
+                                  </Avatar>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {workoutClientName || "Client"}
+                                  </Typography>
+                                </Stack>
                                 {workout.category?.length > 0 && (
                                   <Typography variant="body2" color="text.secondary">
                                     {workout.category.join(", ")}
@@ -667,16 +803,21 @@ export default function Schedule() {
                                   <Button
                                     size="small"
                                     variant="contained"
-                                    disabled={!queueTargetEventId}
+                                    disabled={disableAttach}
                                     onClick={() => handleAttachQueuedWorkout(workout._id)}
                                   >
                                     Attach to event
                                   </Button>
                                 </Stack>
+                                {queueTargetEvent?.clientId && !isClientMatch && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    This workout belongs to a different client than the selected event.
+                                  </Typography>
+                                )}
                               </Stack>
                             </CardContent>
                           </Card>
-                        ))}
+                        )})}
                       </Stack>
                     )}
                   </Stack>
@@ -799,9 +940,10 @@ export default function Schedule() {
           <Typography variant="body2" color="text.secondary">
             Workouts listed here include any dated workouts in this month and queued workouts.
           </Typography>
-          {attachEvent?.eventType === "AVAILABILITY" && !selectedClientId && (
+          {attachEvent?.eventType === "AVAILABILITY" && (
             <Typography color="text.secondary">
-              Select a client first to attach a workout to an open slot.
+              Attaching a workout to an open slot will create a booked appointment for that workout's
+              client.
             </Typography>
           )}
           <FormControl fullWidth>
@@ -833,6 +975,63 @@ export default function Schedule() {
           <Button onClick={() => setOpenAttachDialog(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleAttachWorkout} disabled={!selectedWorkoutId}>
             Attach
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEditDialog}
+        onClose={() => setOpenEditDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Edit Event</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={editDate}
+              onChange={(event) => setEditDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Start time"
+              type="time"
+              value={editStartTime}
+              onChange={(event) => setEditStartTime(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="End time"
+              type="time"
+              value={editEndTime}
+              onChange={(event) => setEditEndTime(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Status"
+                value={editStatus}
+                onChange={(event) => setEditStatus(event.target.value)}
+              >
+                {(editEvent?.eventType === "AVAILABILITY"
+                  ? ["OPEN", "CANCELLED"]
+                  : ["REQUESTED", "BOOKED", "COMPLETED", "CANCELLED"]
+                ).map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveEdit}>
+            Save changes
           </Button>
         </DialogActions>
       </Dialog>
