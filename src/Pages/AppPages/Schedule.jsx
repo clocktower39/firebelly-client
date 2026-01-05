@@ -120,6 +120,7 @@ export default function Schedule() {
   const [editWorkoutId, setEditWorkoutId] = useState("");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
+  const [openSelectionDialog, setOpenSelectionDialog] = useState(false);
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -583,6 +584,7 @@ export default function Schedule() {
     }
     await dispatch(createScheduleEvent(payload));
     setDragSelection(null);
+    setOpenSelectionDialog(false);
     setQuickBookWorkoutId("");
     refreshSchedule();
   };
@@ -607,6 +609,7 @@ export default function Schedule() {
       })
     );
     setDragSelection(null);
+    setOpenSelectionDialog(false);
     setQuickBookWorkoutId("");
     refreshSchedule();
   };
@@ -730,14 +733,9 @@ export default function Schedule() {
     };
   };
 
-  useEffect(() => {
-    const handleMouseUp = () => setIsDragging(false);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
-  }, []);
-
   const handleSlotMouseDown = (dayIndex, slotIndex) => {
     if (!isTrainerView) return;
+    setOpenSelectionDialog(false);
     setIsDragging(true);
     setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
     setSelectedDate(weekDays[dayIndex]);
@@ -747,6 +745,45 @@ export default function Schedule() {
     if (!isDragging || !dragSelection) return;
     if (dayIndex !== dragSelection.dayIndex) return;
     setDragSelection((prev) => ({ ...prev, endIndex: slotIndex }));
+  };
+
+  const updateSelectionFromPoint = (clientX, clientY) => {
+    let target = document.elementFromPoint(clientX, clientY);
+    while (target && !target.dataset?.dayIndex) {
+      target = target.parentElement;
+    }
+    const dayIndex = Number(target?.dataset?.dayIndex);
+    const slotIndex = Number(target?.dataset?.slotIndex);
+    if (Number.isNaN(dayIndex) || Number.isNaN(slotIndex)) return;
+    if (!dragSelection) return;
+    if (dayIndex !== dragSelection.dayIndex) return;
+    setDragSelection((prev) => ({ ...prev, endIndex: slotIndex }));
+  };
+
+  const handleSlotTouchStart = (event, dayIndex, slotIndex) => {
+    if (!isTrainerView) return;
+    event.preventDefault();
+    setOpenSelectionDialog(false);
+    setIsDragging(true);
+    setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
+    setSelectedDate(weekDays[dayIndex]);
+  };
+
+  const handleSlotTouchMove = (event) => {
+    if (!isDragging) return;
+    const touch = event.touches?.[0];
+    if (!touch) return;
+    event.preventDefault();
+    updateSelectionFromPoint(touch.clientX, touch.clientY);
+  };
+
+  const handleSlotTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (!isTrainerView) return;
+    if (!selectionRange) return;
+    if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
+    setOpenSelectionDialog(true);
   };
 
   const normalizedSelection = useMemo(() => {
@@ -766,6 +803,19 @@ export default function Schedule() {
     return { start, end };
   }, [normalizedSelection, weekDays]);
 
+  useEffect(() => {
+    const handleMouseUp = () => {
+      if (!isDragging) return;
+      setIsDragging(false);
+      if (!isTrainerView) return;
+      if (!selectionRange) return;
+      if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
+      setOpenSelectionDialog(true);
+    };
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, [isDragging, isTrainerView, selectionRange]);
+
   const handleCreateSlotsFromSelection = async () => {
     if (!selectionRange) return;
     if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
@@ -780,10 +830,14 @@ export default function Schedule() {
       })
     );
     setDragSelection(null);
+    setOpenSelectionDialog(false);
     refreshSchedule();
   };
 
-  const handleClearSelection = () => setDragSelection(null);
+  const handleClearSelection = () => {
+    setDragSelection(null);
+    setOpenSelectionDialog(false);
+  };
 
   return (
     <>
@@ -846,97 +900,6 @@ export default function Schedule() {
                     </Typography>
                   )}
                 </Stack>
-                {isTrainerView && normalizedSelection && selectionRange && (
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Stack spacing={2}>
-                        <Stack spacing={1} direction={{ xs: "column", sm: "row" }} alignItems="center">
-                          <Typography variant="body2">
-                            Selected: {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
-                            {selectionRange.end.format("h:mm A")}
-                          </Typography>
-                          <Stack direction="row" spacing={1}>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={handleCreateSlotsFromSelection}
-                              disabled={selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
-                            >
-                              Create open slot
-                            </Button>
-                            <Button size="small" variant="outlined" onClick={handleClearSelection}>
-                              Clear
-                            </Button>
-                          </Stack>
-                        </Stack>
-                        <Stack spacing={1}>
-                          <Typography variant="subtitle2">Book a client</Typography>
-                          <Stack
-                            direction={{ xs: "column", sm: "row" }}
-                            spacing={1}
-                            alignItems={{ xs: "stretch", sm: "center" }}
-                          >
-                            <FormControl fullWidth>
-                              <InputLabel>Client</InputLabel>
-                              <Select
-                                label="Client"
-                                value={quickBookClientId}
-                                onChange={(event) => setQuickBookClientId(event.target.value)}
-                              >
-                                {clients
-                                  .filter((clientRel) => clientRel.accepted)
-                                  .map((clientRel) => (
-                                    <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
-                                      {clientRel.client.firstName} {clientRel.client.lastName}
-                                    </MenuItem>
-                                  ))}
-                              </Select>
-                            </FormControl>
-                            <FormControl fullWidth disabled={!quickBookClientId}>
-                              <InputLabel>Workout (optional)</InputLabel>
-                              <Select
-                                label="Workout (optional)"
-                                value={quickBookWorkoutId}
-                                onChange={(event) => setQuickBookWorkoutId(event.target.value)}
-                              >
-                                <MenuItem value="">No workout</MenuItem>
-                                {quickBookWorkouts.map((workout) => (
-                                  <MenuItem key={workout._id} value={workout._id}>
-                                    {workout.title || "Untitled"} -{" "}
-                                    {dayjs(workout.date).format("MMM D")}
-                                  </MenuItem>
-                                ))}
-                                {quickBookQueuedWorkouts.map((workout) => (
-                                  <MenuItem key={workout._id} value={workout._id}>
-                                    {workout.title || "Untitled"} - Queued
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            <Stack direction="row" spacing={1}>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                onClick={handleQuickBookClient}
-                                disabled={!quickBookClientId}
-                              >
-                                Book client
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={handleQuickBookCreateWorkout}
-                                disabled={!quickBookClientId}
-                              >
-                                Create workout & book
-                              </Button>
-                            </Stack>
-                          </Stack>
-                        </Stack>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                )}
                 <Box sx={{ display: "flex", border: "1px solid rgba(148, 163, 184, 0.35)", borderRadius: 2, overflowX: "auto" }}>
                   <Box sx={{ width: 64, borderRight: "1px solid rgba(148, 163, 184, 0.35)" }}>
                     <Box
@@ -1002,10 +965,18 @@ export default function Schedule() {
                               key={`slot-${dayIndex}-${slotIndex}`}
                               onMouseDown={() => handleSlotMouseDown(dayIndex, slotIndex)}
                               onMouseEnter={() => handleSlotMouseEnter(dayIndex, slotIndex)}
+                              onTouchStart={(event) =>
+                                handleSlotTouchStart(event, dayIndex, slotIndex)
+                              }
+                              onTouchMove={handleSlotTouchMove}
+                              onTouchEnd={handleSlotTouchEnd}
+                              data-day-index={dayIndex}
+                              data-slot-index={slotIndex}
                               sx={{
                                 height: SLOT_HEIGHT,
                                 borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
                                 backgroundColor: slotIndex % 2 === 0 ? "rgba(148,163,184,0.06)" : "transparent",
+                                touchAction: "none",
                               }}
                             />
                           ))}
@@ -1443,6 +1414,99 @@ export default function Schedule() {
           </Stack>
         </Grid>
       </Grid>
+
+      <Dialog
+        open={openSelectionDialog}
+        onClose={handleClearSelection}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Selected Time Range</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {selectionRange && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
+                {selectionRange.end.format("h:mm A")}
+              </Typography>
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Book a client</Typography>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                >
+                  <FormControl fullWidth>
+                    <InputLabel>Client</InputLabel>
+                    <Select
+                      label="Client"
+                      value={quickBookClientId}
+                      onChange={(event) => setQuickBookClientId(event.target.value)}
+                    >
+                      {clients
+                        .filter((clientRel) => clientRel.accepted)
+                        .map((clientRel) => (
+                          <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
+                            {clientRel.client.firstName} {clientRel.client.lastName}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth disabled={!quickBookClientId}>
+                    <InputLabel>Workout (optional)</InputLabel>
+                    <Select
+                      label="Workout (optional)"
+                      value={quickBookWorkoutId}
+                      onChange={(event) => setQuickBookWorkoutId(event.target.value)}
+                    >
+                      <MenuItem value="">No workout</MenuItem>
+                      {quickBookWorkouts.map((workout) => (
+                        <MenuItem key={workout._id} value={workout._id}>
+                          {workout.title || "Untitled"} - {dayjs(workout.date).format("MMM D")}
+                        </MenuItem>
+                      ))}
+                      {quickBookQueuedWorkouts.map((workout) => (
+                        <MenuItem key={workout._id} value={workout._id}>
+                          {workout.title || "Untitled"} - Queued
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Button
+                    variant="contained"
+                    onClick={handleQuickBookClient}
+                    disabled={!quickBookClientId}
+                  >
+                    Book client
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleQuickBookCreateWorkout}
+                    disabled={!quickBookClientId}
+                  >
+                    Create workout & book
+                  </Button>
+                </Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Or open this slot</Typography>
+                <Button
+                  variant="outlined"
+                  onClick={handleCreateSlotsFromSelection}
+                  disabled={!selectionRange || selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
+                >
+                  Create open slot
+                </Button>
+              </Stack>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClearSelection}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={openAvailabilityDialog}
