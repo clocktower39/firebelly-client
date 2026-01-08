@@ -260,6 +260,24 @@ export function requestBooking(payload) {
   };
 }
 
+export function trainerBookAvailability(payload) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/schedule/book/trainer`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) dispatch({ type: ERROR, error: data.error });
+    return data;
+  };
+}
+
 export function respondBooking(payload) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
