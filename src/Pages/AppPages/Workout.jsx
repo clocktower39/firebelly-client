@@ -163,16 +163,21 @@ export default function Workout({ socket }) {
 
   useEffect(() => {
     const eventId = new URLSearchParams(location.search).get("event");
-    if (!eventId) {
+    const workoutId = params._id;
+
+    if (!eventId && !workoutId) {
       setScheduleEvent(null);
       return;
     }
 
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-    fetch(`${serverURL}/schedule/event`, {
+    const url = eventId ? `${serverURL}/schedule/event` : `${serverURL}/schedule/event/by-workout`;
+    const body = eventId ? { _id: eventId } : { workoutId };
+
+    fetch(url, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({ _id: eventId }),
+      body: JSON.stringify(body),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -187,7 +192,7 @@ export default function Workout({ socket }) {
         }
       })
       .catch(() => setScheduleEvent(null));
-  }, [location.search]);
+  }, [location.search, params._id]);
 
   // Compute isDirty by comparing normalized local composite vs. baseline snapshot
   const isDirty = useMemo(() => {

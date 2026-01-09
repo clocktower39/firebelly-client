@@ -270,14 +270,14 @@ export default function Schedule() {
         (clientId) => state.workoutQueue?.[clientId] || []
       );
     }) || [];
-  const visibleQueuedWorkouts = useMemo(
-    () =>
-      queuedWorkouts.filter(
-        (workout) =>
-          workout.date && dayjs(workout.date).isSame(selectedDate, "day")
-      ),
-    [queuedWorkouts, selectedDate]
-  );
+  const visibleQueuedWorkouts = useMemo(() => {
+    const selectedDateKey = selectedDate.format("YYYY-MM-DD");
+    return queuedWorkouts.filter(
+      (workout) =>
+        workout.date &&
+        dayjs.utc(workout.date).format("YYYY-MM-DD") === selectedDateKey
+    );
+  }, [queuedWorkouts, selectedDate]);
 
   useEffect(() => {
     if (isTrainerView) {
@@ -1099,20 +1099,34 @@ export default function Schedule() {
                                       {event.clientId && (
                                         <Avatar
                                           src={
-                                            clientProfileLookup.get(event.clientId)?.profilePicture
-                                              ? `${serverURL}/user/profilePicture/${
-                                                  clientProfileLookup.get(event.clientId)
-                                                    ?.profilePicture
-                                                }`
-                                              : undefined
+                                            isTrainerView
+                                              ? clientProfileLookup.get(event.clientId)
+                                                  ?.profilePicture
+                                                ? `${serverURL}/user/profilePicture/${
+                                                    clientProfileLookup.get(event.clientId)
+                                                      ?.profilePicture
+                                                  }`
+                                                : undefined
+                                              : String(event.clientId) === String(user._id) &&
+                                                user.profilePicture
+                                                ? `${serverURL}/user/profilePicture/${user.profilePicture}`
+                                                : undefined
                                           }
                                           sx={{ width: 20, height: 20, fontSize: "0.65rem" }}
                                         >
-                                          {clientLookup.get(event.clientId)?.[0] || "A"}
+                                          {isTrainerView
+                                            ? clientLookup.get(event.clientId)?.[0] || "A"
+                                            : String(event.clientId) === String(user._id)
+                                            ? user.firstName?.[0] || "M"
+                                            : "B"}
                                         </Avatar>
                                       )}
                                       <Typography variant="caption">
-                                        {clientLookup.get(event.clientId) || "Booked"}
+                                        {isTrainerView
+                                          ? clientLookup.get(event.clientId) || "Booked"
+                                          : String(event.clientId) === String(user._id)
+                                          ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+                                          : "Booked"}
                                       </Typography>
                                     </Stack>
                                   )}
@@ -1565,7 +1579,7 @@ export default function Schedule() {
                       <MenuItem value="">No workout</MenuItem>
                       {quickBookWorkouts.map((workout) => (
                         <MenuItem key={workout._id} value={workout._id}>
-                          {workout.title || "Untitled"} - {dayjs(workout.date).format("MMM D")}
+                          {workout.title || "Untitled"} - {dayjs.utc(workout.date).format("MMM D")}
                         </MenuItem>
                       ))}
                       {quickBookQueuedWorkouts.map((workout) => (
@@ -1770,7 +1784,7 @@ export default function Schedule() {
                 {attachWorkouts.map((workout) => (
                   <MenuItem key={workout._id} value={workout._id}>
                     {workout.title || "Untitled"} -{" "}
-                    {dayjs(workout.date).format("MMM D")}
+                    {dayjs.utc(workout.date).format("MMM D")}
                   </MenuItem>
                 ))}
                 {attachQueuedWorkouts.map((workout) => (
@@ -1912,7 +1926,7 @@ export default function Schedule() {
                     {(workoutsByAccount?.[editWorkoutClientId]?.workouts || []).map((workout) => (
                       <MenuItem key={workout._id} value={workout._id}>
                         {workout.title || "Untitled"} -{" "}
-                        {dayjs(workout.date).format("MMM D")}
+                        {dayjs.utc(workout.date).format("MMM D")}
                       </MenuItem>
                     ))}
                     {(workoutQueue?.[editWorkoutClientId] || []).map((workout) => (
