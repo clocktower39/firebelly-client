@@ -2392,6 +2392,18 @@ export default function Schedule() {
               Copy
             </Button>
           )}
+          {isTrainerView && editEvent && (
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={() => {
+                setOpenEditDialog(false);
+                openDeleteConfirm(editEvent);
+              }}
+            >
+              Delete
+            </Button>
+          )}
           <Button variant="contained" onClick={handleSaveEdit}>
             Save changes
           </Button>
