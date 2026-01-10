@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -119,8 +119,14 @@ export default function Schedule() {
   const [editStatus, setEditStatus] = useState("OPEN");
   const [editClientId, setEditClientId] = useState("");
   const [editWorkoutId, setEditWorkoutId] = useState("");
+  const [editCustomName, setEditCustomName] = useState("");
+  const [editCustomEmail, setEditCustomEmail] = useState("");
+  const [editCustomPhone, setEditCustomPhone] = useState("");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
+  const [quickBookCustomName, setQuickBookCustomName] = useState("");
+  const [quickBookCustomEmail, setQuickBookCustomEmail] = useState("");
+  const [quickBookCustomPhone, setQuickBookCustomPhone] = useState("");
   const [openSelectionDialog, setOpenSelectionDialog] = useState(false);
   const [selectedQueueSlot, setSelectedQueueSlot] = useState("");
   const [selectionStartTime, setSelectionStartTime] = useState("");
@@ -246,6 +252,20 @@ export default function Schedule() {
     if (!trainer) return "";
     return `${trainer.firstName} ${trainer.lastName}`.trim();
   }, [myTrainers, selectedTrainerId]);
+  const getEventDisplayName = useCallback(
+    (event) => {
+      if (isTrainerView) {
+        if (event?.customClientName) return event.customClientName;
+        if (event?.clientId) return clientLookup.get(event.clientId) || "Assigned client";
+        return "Booked";
+      }
+      if (String(event?.clientId) === String(user._id)) {
+        return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+      }
+      return "Booked";
+    },
+    [clientLookup, isTrainerView, user._id, user.firstName, user.lastName]
+  );
 
   const activeClientIds = useMemo(() => {
     if (!isTrainerView) return [];
@@ -483,6 +503,9 @@ export default function Schedule() {
     setEditStatus(event.status);
     setEditClientId(event.clientId || "");
     setEditWorkoutId(event.workoutId || "");
+    setEditCustomName(event.customClientName || "");
+    setEditCustomEmail(event.customClientEmail || "");
+    setEditCustomPhone(event.customClientPhone || "");
     setOpenEditDialog(true);
   };
 
@@ -531,16 +554,28 @@ export default function Schedule() {
     const startDateTime = dayjs(`${editDate}T${editStartTime}`).toISOString();
     const endDateTime = dayjs(`${editDate}T${editEndTime}`).toISOString();
     if (dayjs(endDateTime).valueOf() <= dayjs(startDateTime).valueOf()) return;
+    const customName = editCustomName.trim();
     const updates = {
       startDateTime,
       endDateTime,
+      customClientName: customName,
+      customClientEmail: editCustomEmail.trim(),
+      customClientPhone: editCustomPhone.trim(),
     };
-    if (editEvent.eventType === "AVAILABILITY" && editClientId) {
-      updates.clientId = editClientId;
+    if (editEvent.eventType === "AVAILABILITY" && (editClientId || customName)) {
+      updates.clientId = editClientId || null;
       updates.eventType = "APPOINTMENT";
       updates.status = "BOOKED";
+      if (editClientId) {
+        updates.customClientName = "";
+        updates.customClientEmail = "";
+        updates.customClientPhone = "";
+      }
     } else {
       updates.status = editStatus;
+      if (editClientId) {
+        updates.clientId = editClientId;
+      }
     }
     if (editWorkoutId) {
       updates.workoutId = editWorkoutId;
@@ -607,6 +642,27 @@ export default function Schedule() {
     setDragSelection(null);
     setOpenSelectionDialog(false);
     setQuickBookWorkoutId("");
+    refreshSchedule();
+  };
+
+  const handleQuickBookCustom = async () => {
+    if (!isTrainerView || !selectionRangeAdjusted || !quickBookCustomName.trim()) return;
+    await dispatch(
+      createScheduleEvent({
+        startDateTime: selectionRangeAdjusted.start.toISOString(),
+        endDateTime: selectionRangeAdjusted.end.toISOString(),
+        eventType: "APPOINTMENT",
+        status: "BOOKED",
+        customClientName: quickBookCustomName.trim(),
+        customClientEmail: quickBookCustomEmail.trim(),
+        customClientPhone: quickBookCustomPhone.trim(),
+      })
+    );
+    setDragSelection(null);
+    setOpenSelectionDialog(false);
+    setQuickBookCustomName("");
+    setQuickBookCustomEmail("");
+    setQuickBookCustomPhone("");
     refreshSchedule();
   };
 
@@ -912,6 +968,11 @@ export default function Schedule() {
     setOpenSelectionDialog(false);
     setSelectionStartTime("");
     setSelectionEndTime("");
+    setQuickBookClientId("");
+    setQuickBookWorkoutId("");
+    setQuickBookCustomName("");
+    setQuickBookCustomEmail("");
+    setQuickBookCustomPhone("");
   };
 
   return (
@@ -1115,7 +1176,7 @@ export default function Schedule() {
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
                                     <Stack direction="row" spacing={0.5} alignItems="center">
-                                      {event.clientId && (
+                                      {(event.clientId || event.customClientName) && (
                                         <Avatar
                                           src={
                                             isTrainerView
@@ -1134,18 +1195,14 @@ export default function Schedule() {
                                           sx={{ width: 20, height: 20, fontSize: "0.65rem" }}
                                         >
                                           {isTrainerView
-                                            ? clientLookup.get(event.clientId)?.[0] || "A"
+                                            ? (event.customClientName || clientLookup.get(event.clientId) || "B")[0]
                                             : String(event.clientId) === String(user._id)
                                             ? user.firstName?.[0] || "M"
                                             : "B"}
                                         </Avatar>
                                       )}
                                       <Typography variant="caption">
-                                        {isTrainerView
-                                          ? clientLookup.get(event.clientId) || "Booked"
-                                          : String(event.clientId) === String(user._id)
-                                          ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
-                                          : "Booked"}
+                                        {getEventDisplayName(event)}
                                       </Typography>
                                     </Stack>
                                   )}
@@ -1302,9 +1359,9 @@ export default function Schedule() {
                       )}
                     </Stack>
                     <Typography variant="subtitle1">{formatRange(event)}</Typography>
-                    {isTrainerView && event.clientId && (
+                    {isTrainerView && (event.clientId || event.customClientName) && (
                       <Typography variant="body2" color="text.secondary">
-                        Client: {clientLookup.get(event.clientId) || "Assigned client"}
+                        Client: {getEventDisplayName(event)}
                       </Typography>
                     )}
                     {isClientView && selectedTrainerId && (
@@ -1646,6 +1703,36 @@ export default function Schedule() {
                 </Stack>
               </Stack>
               <Stack spacing={1}>
+                <Typography variant="subtitle2">Book custom client</Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="Name"
+                    value={quickBookCustomName}
+                    onChange={(event) => setQuickBookCustomName(event.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Email"
+                    value={quickBookCustomEmail}
+                    onChange={(event) => setQuickBookCustomEmail(event.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Phone"
+                    value={quickBookCustomPhone}
+                    onChange={(event) => setQuickBookCustomPhone(event.target.value)}
+                    fullWidth
+                  />
+                </Stack>
+                <Button
+                  variant="contained"
+                  onClick={handleQuickBookCustom}
+                  disabled={!quickBookCustomName.trim()}
+                >
+                  Book custom client
+                </Button>
+              </Stack>
+              <Stack spacing={1}>
                 <Typography variant="subtitle2">Or open this slot</Typography>
                 <Button
                   variant="outlined"
@@ -1917,7 +2004,14 @@ export default function Schedule() {
                   <Select
                     label="Assign client"
                     value={editClientId}
-                    onChange={(event) => setEditClientId(event.target.value)}
+                    onChange={(event) => {
+                      setEditClientId(event.target.value);
+                      if (event.target.value) {
+                        setEditCustomName("");
+                        setEditCustomEmail("");
+                        setEditCustomPhone("");
+                      }
+                    }}
                   >
                     <MenuItem value="">Keep open</MenuItem>
                     {clients
@@ -1935,6 +2029,39 @@ export default function Schedule() {
                   </Typography>
                 )}
               </>
+            )}
+            {isTrainerView && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Custom booking</Typography>
+                <TextField
+                  label="Name"
+                  value={editCustomName}
+                  onChange={(event) => {
+                    setEditCustomName(event.target.value);
+                    if (event.target.value) {
+                      setEditClientId("");
+                    }
+                  }}
+                  disabled={Boolean(editClientId)}
+                />
+                <TextField
+                  label="Email"
+                  value={editCustomEmail}
+                  onChange={(event) => setEditCustomEmail(event.target.value)}
+                  disabled={Boolean(editClientId)}
+                />
+                <TextField
+                  label="Phone"
+                  value={editCustomPhone}
+                  onChange={(event) => setEditCustomPhone(event.target.value)}
+                  disabled={Boolean(editClientId)}
+                />
+                {editCustomName && (
+                  <Typography variant="caption" color="text.secondary">
+                    Custom bookings are trainer-only and won’t create an account.
+                  </Typography>
+                )}
+              </Stack>
             )}
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
