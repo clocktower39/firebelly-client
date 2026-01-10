@@ -1036,7 +1036,14 @@ export default function Schedule() {
                     </Typography>
                   )}
                 </Stack>
-                <Box sx={{ display: "flex", border: "1px solid rgba(148, 163, 184, 0.35)", borderRadius: 2, overflowX: "auto" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    border: "1px solid rgba(148, 163, 184, 0.35)",
+                    borderRadius: 2,
+                    overflowX: { xs: "auto", md: "hidden" },
+                  }}
+                >
                   <Box sx={{ width: 64, borderRight: "1px solid rgba(148, 163, 184, 0.35)" }}>
                     <Box
                       sx={{
@@ -1069,7 +1076,13 @@ export default function Schedule() {
                       );
                     })}
                   </Box>
-                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(120px, 1fr))", flex: 1 }}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(7, minmax(96px, 1fr))",
+                      flex: 1,
+                    }}
+                  >
                     {weekDays.map((day, dayIndex) => (
                       <Box key={day.format("YYYY-MM-DD")} sx={{ borderLeft: "1px solid rgba(148, 163, 184, 0.2)" }}>
                         <Box
