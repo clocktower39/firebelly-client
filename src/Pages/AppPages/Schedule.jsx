@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -13,12 +13,14 @@ import {
   DialogTitle,
   Autocomplete,
   FormControl,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
   Select,
   Stack,
   Avatar,
+  Switch,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -26,6 +28,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { toPng } from "html-to-image";
 import SelectedDate from "../../Components/SelectedDate";
 import {
   cancelScheduleEvent,
@@ -140,6 +143,14 @@ export default function Schedule() {
   const [openCopyWeekDialog, setOpenCopyWeekDialog] = useState(false);
   const [copyDayDate, setCopyDayDate] = useState("");
   const [copyWeekDate, setCopyWeekDate] = useState("");
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+  const [shareHideDetails, setShareHideDetails] = useState(true);
+  const [shareIncludeHeader, setShareIncludeHeader] = useState(true);
+  const [shareInProgress, setShareInProgress] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
+  const [isShareMode, setIsShareMode] = useState(false);
+
+  const weekCaptureRef = useRef(null);
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -263,6 +274,7 @@ export default function Schedule() {
   }, [myTrainers, selectedTrainerId]);
   const getEventDisplayName = useCallback(
     (event) => {
+      if (isShareMode && shareHideDetails) return "Booked";
       if (isTrainerView) {
         if (event?.customClientName) return event.customClientName;
         if (event?.clientId) return clientLookup.get(event.clientId) || "Assigned client";
@@ -273,7 +285,7 @@ export default function Schedule() {
       }
       return "Booked";
     },
-    [clientLookup, isTrainerView, user._id, user.firstName, user.lastName]
+    [clientLookup, isShareMode, shareHideDetails, isTrainerView, user._id, user.firstName, user.lastName]
   );
 
   const activeClientIds = useMemo(() => {
@@ -657,6 +669,54 @@ export default function Schedule() {
     refreshSchedule();
   };
 
+  const handleShareWeek = async () => {
+    if (!weekCaptureRef.current) return;
+    setShareInProgress(true);
+    setShareStatus("");
+    setIsShareMode(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    try {
+      const dataUrl = await toPng(weekCaptureRef.current, {
+        cacheBust: true,
+        backgroundColor: "#ffffff",
+        style: { fontFamily: "Arial, sans-serif" },
+        skipFonts: true,
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+
+      const canClipboard = navigator.clipboard?.write && window.ClipboardItem;
+      if (canClipboard) {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ [blob.type]: blob }),
+          ]);
+          setShareStatus("Copied week view image to clipboard.");
+          return;
+        } catch (error) {
+          console.error("Clipboard copy failed:", error);
+        }
+      }
+
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `schedule-${weekStart.format("YYYY-MM-DD")}.png`;
+      link.click();
+      setShareStatus(
+        canClipboard
+          ? "Clipboard blocked. Downloaded image instead."
+          : "Clipboard unavailable. Downloaded image instead."
+      );
+    } catch (error) {
+      console.error("Share image failed:", error);
+      setShareStatus("Unable to copy image. Please try again.");
+    } finally {
+      setShareInProgress(false);
+      setIsShareMode(false);
+    }
+  };
+
   const editWorkoutClientId = editClientId || editEvent?.clientId || "";
   const editClientProfile = useMemo(
     () => clients.find((clientRel) => clientRel.client?._id === editWorkoutClientId)?.client,
@@ -962,6 +1022,11 @@ export default function Schedule() {
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
     [weekStart]
   );
+  const weekRangeLabel = useMemo(() => {
+    const start = weekStart;
+    const end = weekStart.add(6, "day");
+    return `${start.format("MMM D")} - ${end.format("MMM D")}`;
+  }, [weekStart]);
   const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
 
   const weekEvents = useMemo(() => {
@@ -1182,24 +1247,47 @@ export default function Schedule() {
         </Grid>
 
         <Grid container size={12}>
-          <Card sx={{ width: "100%" }}>
-            <CardContent>
-              <Stack spacing={2}>
+          <Box
+            ref={weekCaptureRef}
+            sx={{ width: "100%", fontFamily: isShareMode ? "Arial, sans-serif" : "inherit" }}
+          >
+            {isShareMode && shareIncludeHeader && (
+              <Box sx={{ px: 2, pt: 2, pb: 1, backgroundColor: "grey.900", color: "common.white" }}>
+                <Typography variant="h6" sx={{ color: "common.white" }}>
+                  {user.firstName} {user.lastName}
+                </Typography>
+                <Typography variant="body2" sx={{ color: "grey.300" }}>
+                  Week of {weekRangeLabel}
+                </Typography>
+              </Box>
+            )}
+            <Card sx={{ width: "100%" }}>
+              <CardContent>
+                <Stack spacing={2}>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
                   <Typography variant="h6">Week View</Typography>
-                  {isTrainerView && (
+                  {isTrainerView && !isShareMode && (
                     <Typography variant="body2" color="text.secondary">
                       Drag to create open availability blocks. Slots start on the hour or half-hour.
                     </Typography>
                   )}
                 </Stack>
-                {isTrainerView && (
+                {isTrainerView && !isShareMode && (
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                     <Button variant="outlined" onClick={openCopyDay}>
                       Copy day
                     </Button>
                     <Button variant="outlined" onClick={openCopyWeek}>
                       Copy week
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setShareStatus("");
+                        setOpenShareDialog(true);
+                      }}
+                    >
+                      Copy week image
                     </Button>
                   </Stack>
                 )}
@@ -1356,7 +1444,7 @@ export default function Schedule() {
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
                                     <Stack direction="row" spacing={0.5} alignItems="center">
-                                      {(event.clientId || event.customClientName) && (
+                                      {! (isShareMode && shareHideDetails) && (event.clientId || event.customClientName) && (
                                         <Avatar
                                           src={
                                             isTrainerView
@@ -1394,9 +1482,10 @@ export default function Schedule() {
                     ))}
                   </Box>
                 </Box>
-              </Stack>
-            </CardContent>
-          </Card>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Box>
         </Grid>
 
         <Grid container size={12}>
@@ -2419,6 +2508,51 @@ export default function Schedule() {
           <Button onClick={() => setOpenCopyWeekDialog(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleCopyWeek} disabled={!copyWeekDate}>
             Copy week
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openShareDialog}
+        onClose={() => setOpenShareDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Copy Week Image</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Create a shareable snapshot of this week’s schedule.
+            </Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={shareHideDetails}
+                  onChange={(event) => setShareHideDetails(event.target.checked)}
+                />
+              }
+              label="Hide client details (recommended)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={shareIncludeHeader}
+                  onChange={(event) => setShareIncludeHeader(event.target.checked)}
+                />
+              }
+              label="Include trainer name and week"
+            />
+            {shareStatus && (
+              <Typography variant="caption" color="text.secondary">
+                {shareStatus}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
+          <Button variant="contained" onClick={handleShareWeek} disabled={shareInProgress}>
+            {shareInProgress ? "Copying..." : "Copy image"}
           </Button>
         </DialogActions>
       </Dialog>
