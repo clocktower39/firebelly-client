@@ -7,11 +7,13 @@ import {
   Card,
   CardContent,
   Chip,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Autocomplete,
+  Divider,
   FormControl,
   FormControlLabel,
   Grid,
@@ -26,10 +28,10 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { toPng } from "html-to-image";
-import SelectedDate from "../../Components/SelectedDate";
 import {
   cancelScheduleEvent,
   createTrainingForAccount,
@@ -152,6 +154,7 @@ export default function Schedule() {
   const [shareLinkStatus, setShareLinkStatus] = useState("");
 
   const weekCaptureRef = useRef(null);
+  const weekPickerRef = useRef(null);
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -315,18 +318,19 @@ export default function Schedule() {
       );
     }) || [];
   const visibleQueuedWorkouts = useMemo(() => {
-    const selectedDateKey = selectedDate.format("YYYY-MM-DD");
-    return queuedWorkouts.filter(
-      (workout) =>
-        workout.date &&
-        dayjs.utc(workout.date).format("YYYY-MM-DD") === selectedDateKey
-    );
+    const start = selectedDate.startOf("week").startOf("day");
+    const end = start.add(7, "day").startOf("day");
+    return queuedWorkouts.filter((workout) => {
+      if (!workout.date) return false;
+      const workoutTime = dayjs.utc(workout.date).valueOf();
+      return workoutTime >= start.valueOf() && workoutTime < end.valueOf();
+    });
   }, [queuedWorkouts, selectedDate]);
 
   useEffect(() => {
     if (isTrainerView) {
       queueAccountIds.forEach((clientId) => {
-        dispatch(requestWorkoutQueue(clientId, selectedDate.format("YYYY-MM-DD")));
+        dispatch(requestWorkoutQueue(clientId, selectedDate.startOf("week").format("YYYY-MM-DD")));
       });
     }
   }, [dispatch, isTrainerView, queueAccountIds, selectedDate]);
@@ -1025,7 +1029,7 @@ export default function Schedule() {
     if (isTrainerView) {
       await Promise.all(
         activeClientIds.map((clientId) =>
-          dispatch(requestWorkoutQueue(clientId, selectedDate.format("YYYY-MM-DD")))
+          dispatch(requestWorkoutQueue(clientId, selectedDate.startOf("week").format("YYYY-MM-DD")))
         )
       );
     }
@@ -1041,6 +1045,11 @@ export default function Schedule() {
     const start = weekStart;
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D")} - ${end.format("MMM D")}`;
+  }, [weekStart]);
+  const weekRangeDisplay = useMemo(() => {
+    const start = weekStart;
+    const end = weekStart.add(6, "day");
+    return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
   }, [weekStart]);
   const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
 
@@ -1255,10 +1264,46 @@ export default function Schedule() {
         </Grid>
 
         <Grid container size={12}>
-          <SelectedDate
-            selectedDate={selectedDate.format("YYYY-MM-DD")}
-            setSelectedDate={(value) => setSelectedDate(dayjs(value))}
-          />
+          <Container maxWidth="md" sx={{ height: "100%", paddingTop: "25px", maxWidth: "100%" }}>
+            <Grid size={12} container sx={{ justifyContent: "center", flexWrap: "nowrap" }}>
+              <Button onClick={() => setSelectedDate(selectedDate.subtract(1, "week"))}>
+                <ArrowBack sx={{ color: "primary.dark" }} />
+              </Button>
+              <TextField
+                focused
+                label="Week"
+                type="text"
+                color="primary"
+                value={weekRangeDisplay}
+                onClick={() => {
+                  if (weekPickerRef.current?.showPicker) {
+                    weekPickerRef.current.showPicker();
+                  } else if (weekPickerRef.current) {
+                    weekPickerRef.current.click();
+                    weekPickerRef.current.focus();
+                  }
+                }}
+                InputProps={{ readOnly: true }}
+              />
+              <Button onClick={() => setSelectedDate(selectedDate.add(1, "week"))}>
+                <ArrowForward sx={{ color: "primary.dark" }} />
+              </Button>
+              <input
+                ref={weekPickerRef}
+                type="date"
+                value={selectedDate.format("YYYY-MM-DD")}
+                onChange={(event) => setSelectedDate(dayjs(event.target.value))}
+                style={{
+                  position: "absolute",
+                  opacity: 0,
+                  pointerEvents: "none",
+                  width: 0,
+                  height: 0,
+                }}
+              />
+            </Grid>
+            <Divider sx={{ margin: "15px" }} />
+          </Container>
         </Grid>
 
         <Grid container size={12}>
@@ -1596,7 +1641,7 @@ export default function Schedule() {
           <Stack spacing={2}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
               <Typography variant="h6">
-                {selectedDate.format("dddd, MMMM D")}
+                Week of {weekRangeLabel}
               </Typography>
               {isTrainerView && selectedClientIds.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
