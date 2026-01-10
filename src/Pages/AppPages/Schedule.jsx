@@ -123,6 +123,8 @@ export default function Schedule() {
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
   const [openSelectionDialog, setOpenSelectionDialog] = useState(false);
   const [selectedQueueSlot, setSelectedQueueSlot] = useState("");
+  const [selectionStartTime, setSelectionStartTime] = useState("");
+  const [selectionEndTime, setSelectionEndTime] = useState("");
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -590,10 +592,10 @@ export default function Schedule() {
   );
 
   const handleQuickBookClient = async () => {
-    if (!isTrainerView || !selectionRange || !quickBookClientId) return;
+    if (!isTrainerView || !selectionRangeAdjusted || !quickBookClientId) return;
     const payload = {
-      startDateTime: selectionRange.start.toISOString(),
-      endDateTime: selectionRange.end.toISOString(),
+      startDateTime: selectionRangeAdjusted.start.toISOString(),
+      endDateTime: selectionRangeAdjusted.end.toISOString(),
       eventType: "APPOINTMENT",
       status: "BOOKED",
       clientId: quickBookClientId,
@@ -609,18 +611,18 @@ export default function Schedule() {
   };
 
   const handleQuickBookCreateWorkout = async () => {
-    if (!isTrainerView || !selectionRange || !quickBookClientId) return;
+    if (!isTrainerView || !selectionRangeAdjusted || !quickBookClientId) return;
     const created = await dispatch(
       createTrainingForAccount({
-        training: { date: selectionRange.start.toISOString() },
+        training: { date: selectionRangeAdjusted.start.toISOString() },
         accountId: quickBookClientId,
       })
     );
     if (!created?._id) return;
     await dispatch(
       createScheduleEvent({
-        startDateTime: selectionRange.start.toISOString(),
-        endDateTime: selectionRange.end.toISOString(),
+        startDateTime: selectionRangeAdjusted.start.toISOString(),
+        endDateTime: selectionRangeAdjusted.end.toISOString(),
         eventType: "APPOINTMENT",
         status: "BOOKED",
         clientId: quickBookClientId,
@@ -860,6 +862,21 @@ export default function Schedule() {
   }, [normalizedSelection, weekDays]);
 
   useEffect(() => {
+    if (!openSelectionDialog || !selectionRange) return;
+    setSelectionStartTime(selectionRange.start.format("HH:mm"));
+    setSelectionEndTime(selectionRange.end.format("HH:mm"));
+  }, [openSelectionDialog, selectionRange]);
+
+  const selectionRangeAdjusted = useMemo(() => {
+    if (!selectionRange) return null;
+    if (!selectionStartTime || !selectionEndTime) return selectionRange;
+    const day = selectionRange.start.startOf("day");
+    const start = dayjs(`${day.format("YYYY-MM-DD")}T${selectionStartTime}`);
+    const end = dayjs(`${day.format("YYYY-MM-DD")}T${selectionEndTime}`);
+    return { start, end };
+  }, [selectionRange, selectionEndTime, selectionStartTime]);
+
+  useEffect(() => {
     const handleMouseUp = () => {
       if (!isDragging) return;
       setIsDragging(false);
@@ -873,13 +890,13 @@ export default function Schedule() {
   }, [isDragging, isTrainerView, selectionRange]);
 
   const handleCreateSlotsFromSelection = async () => {
-    if (!selectionRange) return;
-    if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
+    if (!selectionRangeAdjusted) return;
+    if (selectionRangeAdjusted.end.valueOf() <= selectionRangeAdjusted.start.valueOf()) return;
 
     await dispatch(
       createScheduleEvent({
-        startDateTime: selectionRange.start.toISOString(),
-        endDateTime: selectionRange.end.toISOString(),
+        startDateTime: selectionRangeAdjusted.start.toISOString(),
+        endDateTime: selectionRangeAdjusted.end.toISOString(),
         eventType: "AVAILABILITY",
         status: "OPEN",
         availabilitySource: "MANUAL",
@@ -893,6 +910,8 @@ export default function Schedule() {
   const handleClearSelection = () => {
     setDragSelection(null);
     setOpenSelectionDialog(false);
+    setSelectionStartTime("");
+    setSelectionEndTime("");
   };
 
   return (
@@ -1543,9 +1562,28 @@ export default function Schedule() {
           {selectionRange && (
             <Stack spacing={2} sx={{ mt: 1 }}>
               <Typography variant="body2">
-                {selectionRange.start.format("ddd, MMM D h:mm A")} -{" "}
-                {selectionRange.end.format("h:mm A")}
+                {selectionRangeAdjusted
+                  ? `${selectionRangeAdjusted.start.format("ddd, MMM D h:mm A")} - ${selectionRangeAdjusted.end.format("h:mm A")}`
+                  : ""}
               </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                <TextField
+                  label="Start time"
+                  type="time"
+                  value={selectionStartTime}
+                  onChange={(event) => setSelectionStartTime(event.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  label="End time"
+                  type="time"
+                  value={selectionEndTime}
+                  onChange={(event) => setSelectionEndTime(event.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Stack>
               <Stack spacing={1}>
                 <Typography variant="subtitle2">Book a client</Typography>
                 <Stack
@@ -1612,7 +1650,10 @@ export default function Schedule() {
                 <Button
                   variant="outlined"
                   onClick={handleCreateSlotsFromSelection}
-                  disabled={!selectionRange || selectionRange.end.valueOf() <= selectionRange.start.valueOf()}
+                  disabled={
+                    !selectionRangeAdjusted ||
+                    selectionRangeAdjusted.end.valueOf() <= selectionRangeAdjusted.start.valueOf()
+                  }
                 >
                   Create open slot
                 </Button>
