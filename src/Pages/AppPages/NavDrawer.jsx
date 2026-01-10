@@ -53,8 +53,8 @@ export default function NavDrawer() {
       icon: <HomeIcon />,
     },
     {
-      title: "Schedule",
-      to: "/schedule",
+      title: "Sessions",
+      to: "/sessions",
       icon: <CalendarIcon />,
     },
     {
@@ -87,7 +87,7 @@ export default function NavDrawer() {
     },
     {
       title: "Session Counter",
-      to: "/sessions",
+      to: "/session-counter",
       icon: <SessionIcon />,
     },
     {

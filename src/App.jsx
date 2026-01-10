@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { ThemeProvider, GlobalStyles } from "@mui/material";
 import { theme } from "./theme";
 import { serverURL } from "./Redux/actions";
@@ -11,6 +11,7 @@ import WebsiteHome from "./Pages/WebsitePages/WebsiteHome";
 import NutritionInfo from "./Pages/WebsitePages/Nutrition";
 import Workshops from "./Pages/WebsitePages/Workshops";
 import TrainingInfo from "./Pages/WebsitePages/TrainingInfo";
+import PublicSchedule from "./Pages/WebsitePages/PublicSchedule";
 import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import VerifyEmail from "./Pages/VerifyEmail";
@@ -108,6 +109,8 @@ function App({ }) {
               <Route exact path="/nutrition" element={<NutritionInfo />} />
               <Route exact path="/workshops" element={<Workshops />} />
               <Route exact path="/training" element={<TrainingInfo />} />
+              <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
+              <Route exact path="/public/schedule/:trainerId" element={<PublicScheduleRedirect />} />
 
               <Route path="*" element={<><WebsiteNavbar /><NotFoundPage /></>} />
             </>
@@ -118,18 +121,21 @@ function App({ }) {
               <Route element={<ActivityTrackerContainer />}>
                 <Route exact path="/login" element={<Login />} />
                 <Route exact path="/signup" element={<SignUp />} />
+                <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
+                <Route exact path="/public/schedule/:trainerId" element={<PublicScheduleRedirect />} />
 
                 {/* Must be logged in and have JWT token to authenticate */}
                 <Route exact element={<AuthRoute />}>
                   <Route exact path="/" element={<Home />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
-                  <Route exact path="/schedule" element={<Schedule />} />
+                  <Route exact path="/sessions" element={<Schedule />} />
+                  <Route exact path="/schedule" element={<Navigate to="/sessions" replace />} />
                   <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
                   <Route exact path="/progress" element={<Progress />} />
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />
-                  <Route exact path="/sessions" element={<SessionCounter />} />
+                  <Route exact path="/session-counter" element={<SessionCounter />} />
 
                   <Route exact path="/account/*" element={<Account />}>
                     <Route index={true} exact path="" element={<MyAccount />} />
@@ -158,6 +164,11 @@ function App({ }) {
       </Router>
     </ThemeProvider>
   );
+}
+
+function PublicScheduleRedirect() {
+  const { trainerId } = useParams();
+  return <Navigate to={`/public/sessions/${trainerId}`} replace />;
 }
 
 export default App;

@@ -149,6 +149,7 @@ export default function Schedule() {
   const [shareInProgress, setShareInProgress] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
   const [isShareMode, setIsShareMode] = useState(false);
+  const [shareLinkStatus, setShareLinkStatus] = useState("");
 
   const weekCaptureRef = useRef(null);
 
@@ -204,7 +205,7 @@ export default function Schedule() {
   const handleClearClientFilter = () => {
     setSelectedClientIds([]);
     setHasClientSelection(true);
-    navigate("/schedule");
+    navigate("/sessions");
   };
 
   useEffect(() => {
@@ -701,7 +702,7 @@ export default function Schedule() {
 
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `schedule-${weekStart.format("YYYY-MM-DD")}.png`;
+        link.download = `sessions-${weekStart.format("YYYY-MM-DD")}.png`;
       link.click();
       setShareStatus(
         canClipboard
@@ -714,6 +715,20 @@ export default function Schedule() {
     } finally {
       setShareInProgress(false);
       setIsShareMode(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    const shareUrl = `${window.location.origin}/public/sessions/${user._id}`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareLinkStatus("Share link copied.");
+      } else {
+        setShareLinkStatus("Clipboard unavailable. Please copy manually.");
+      }
+    } catch (error) {
+      setShareLinkStatus("Unable to copy link. Please copy manually.");
     }
   };
 
@@ -1207,7 +1222,7 @@ export default function Schedule() {
             alignItems={{ xs: "flex-start", sm: "center" }}
             spacing={1}
           >
-            <Typography variant="h4">Schedule</Typography>
+            <Typography variant="h4">Sessions</Typography>
             {isTrainerView && (
               <Button variant="contained" onClick={handleOpenAvailability}>
                 Open Slot
@@ -1233,7 +1248,7 @@ export default function Schedule() {
                 Viewing:{" "}
                 {selectedClientLabel
                   ? `${selectedClientLabel.client.firstName} ${selectedClientLabel.client.lastName}`
-                  : "Client schedule"}
+                  : "Client sessions"}
               </Typography>
             </Stack>
           )}
@@ -1289,7 +1304,21 @@ export default function Schedule() {
                     >
                       Copy week image
                     </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setShareLinkStatus("");
+                        handleCopyShareLink();
+                      }}
+                    >
+                      Copy share link
+                    </Button>
                   </Stack>
+                )}
+                {isTrainerView && !isShareMode && shareLinkStatus && (
+                  <Typography variant="caption" color="text.secondary">
+                    {shareLinkStatus}
+                  </Typography>
                 )}
                 <Box
                   sx={{
@@ -1495,7 +1524,7 @@ export default function Schedule() {
                 {user.isTrainer && (
                   <Stack spacing={1}>
                     <Typography variant="overline" color="text.secondary">
-                      Schedule mode
+                      Session mode
                     </Typography>
                     <ToggleButtonGroup
                       exclusive
@@ -1506,7 +1535,7 @@ export default function Schedule() {
                       }}
                       size="small"
                     >
-                      <ToggleButton value="trainer">Manage schedule</ToggleButton>
+                      <ToggleButton value="trainer">Manage sessions</ToggleButton>
                       <ToggleButton value="client">Book with trainer</ToggleButton>
                     </ToggleButtonGroup>
                   </Stack>
@@ -1579,7 +1608,7 @@ export default function Schedule() {
               <Card sx={{ borderLeft: "4px solid", borderColor: "primary.main" }}>
                 <CardContent>
                   <Typography variant="body2">
-                    Filter applied: showing schedule for{" "}
+                    Filter applied: showing sessions for{" "}
                     {selectedClientLabel
                       ? `${selectedClientLabel.client.firstName} ${selectedClientLabel.client.lastName}`
                       : "this client"}
@@ -1599,13 +1628,13 @@ export default function Schedule() {
             {filteredDayEvents.length === 0 && (
               <Card>
                 <CardContent>
-                  <Typography color="text.secondary">No schedule events.</Typography>
+                  <Typography color="text.secondary">No session events.</Typography>
                 </CardContent>
               </Card>
             )}
             <Card>
               <CardContent>
-                <Typography variant="h6">Schedule Events</Typography>
+                <Typography variant="h6">Session Events</Typography>
               </CardContent>
             </Card>
             {filteredDayEvents.map((event) => (
@@ -2057,7 +2086,7 @@ export default function Schedule() {
               size="small"
             >
               <ToggleButton value="MANUAL">One-off</ToggleButton>
-              <ToggleButton value="NORMAL">Normal schedule</ToggleButton>
+              <ToggleButton value="NORMAL">Normal sessions</ToggleButton>
             </ToggleButtonGroup>
             <ToggleButtonGroup
               exclusive
@@ -2070,7 +2099,7 @@ export default function Schedule() {
             </ToggleButtonGroup>
             {availabilityType === "NORMAL" && availabilityRecurrence !== "weekly" && (
               <Typography variant="caption" color="text.secondary">
-                Normal schedule entries should be recurring.
+                Normal session entries should be recurring.
               </Typography>
             )}
           </Stack>
@@ -2534,7 +2563,7 @@ export default function Schedule() {
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Create a shareable snapshot of this week’s schedule.
+              Create a shareable snapshot of this week’s sessions.
             </Typography>
             <FormControlLabel
               control={

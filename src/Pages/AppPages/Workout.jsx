@@ -548,7 +548,7 @@ export default function Workout({ socket }) {
                     <IconButton
                       onClick={() => {
                         save();
-                        navigate("/schedule");
+                        navigate("/sessions");
                       }}
                     >
                       <ArrowBack />

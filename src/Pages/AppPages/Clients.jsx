@@ -166,8 +166,8 @@ export default function Clients({ socket }) {
                 Calendar
               </Button>
               <Button onClick={() => handleOpenGoals(clientRelationship.client)}>Goals</Button>
-              <Button component={Link} to={`/schedule?client=${clientRelationship.client._id}`}>
-                Training Schedule
+              <Button component={Link} to={`/sessions?client=${clientRelationship.client._id}`}>
+                Training Sessions
               </Button>
               <Button onClick={() => null} disabled >Invoices</Button>
               <Button onClick={() => null} disabled >Progress</Button>
