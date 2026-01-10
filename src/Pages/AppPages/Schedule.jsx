@@ -131,6 +131,15 @@ export default function Schedule() {
   const [selectedQueueSlot, setSelectedQueueSlot] = useState("");
   const [selectionStartTime, setSelectionStartTime] = useState("");
   const [selectionEndTime, setSelectionEndTime] = useState("");
+  const [openCopyDialog, setOpenCopyDialog] = useState(false);
+  const [copySourceEvent, setCopySourceEvent] = useState(null);
+  const [copyDate, setCopyDate] = useState("");
+  const [copyStartTime, setCopyStartTime] = useState("");
+  const [copyEndTime, setCopyEndTime] = useState("");
+  const [openCopyDayDialog, setOpenCopyDayDialog] = useState(false);
+  const [openCopyWeekDialog, setOpenCopyWeekDialog] = useState(false);
+  const [copyDayDate, setCopyDayDate] = useState("");
+  const [copyWeekDate, setCopyWeekDate] = useState("");
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -509,6 +518,145 @@ export default function Schedule() {
     setOpenEditDialog(true);
   };
 
+  const openCopyForEvent = (event) => {
+    const start = dayjs(event.startDateTime).add(1, "week");
+    const end = dayjs(event.endDateTime).add(1, "week");
+    setCopySourceEvent(event);
+    setCopyDate(start.format("YYYY-MM-DD"));
+    setCopyStartTime(start.format("HH:mm"));
+    setCopyEndTime(end.format("HH:mm"));
+    setOpenCopyDialog(true);
+  };
+
+  const buildCopyPayload = (event, startDateTime, endDateTime) => {
+    const isAvailability = event.eventType === "AVAILABILITY";
+    return {
+      startDateTime,
+      endDateTime,
+      eventType: event.eventType,
+      status: isAvailability ? "OPEN" : "BOOKED",
+      clientId: event.clientId || null,
+      customClientName: event.customClientName || "",
+      customClientEmail: event.customClientEmail || "",
+      customClientPhone: event.customClientPhone || "",
+      workoutId: null,
+      availabilitySource: isAvailability ? event.availabilitySource || "MANUAL" : undefined,
+      recurrenceRule: null,
+    };
+  };
+
+  const hasOverlap = (candidate, events) =>
+    events.some((event) => {
+      if (event.status === "CANCELLED") return false;
+      const start = new Date(event.startDateTime);
+      const end = new Date(event.endDateTime);
+      return start < candidate.end && end > candidate.start;
+    });
+
+  const handleCopyEvent = async () => {
+    if (!copySourceEvent) return;
+    const startDateTime = dayjs(`${copyDate}T${copyStartTime}`).toISOString();
+    const endDateTime = dayjs(`${copyDate}T${copyEndTime}`).toISOString();
+    if (dayjs(endDateTime).valueOf() <= dayjs(startDateTime).valueOf()) return;
+
+    await dispatch(createScheduleEvent(buildCopyPayload(copySourceEvent, startDateTime, endDateTime)));
+    setOpenCopyDialog(false);
+    setCopySourceEvent(null);
+    refreshSchedule();
+  };
+
+  const openCopyDay = () => {
+    setCopyDayDate(selectedDate.add(1, "week").format("YYYY-MM-DD"));
+    setOpenCopyDayDialog(true);
+  };
+
+  const openCopyWeek = () => {
+    setCopyWeekDate(weekStart.add(1, "week").format("YYYY-MM-DD"));
+    setOpenCopyWeekDialog(true);
+  };
+
+  const handleCopyDay = async () => {
+    if (!isTrainerView || !copyDayDate) return;
+    const sourceDayStart = selectedDate.startOf("day");
+    const targetDay = dayjs(copyDayDate).startOf("day");
+    const offsetDays = targetDay.diff(sourceDayStart, "day");
+    const targetStart = targetDay.toISOString();
+    const targetEnd = targetDay.add(1, "day").toISOString();
+
+    const rangeData = await dispatch(
+      requestScheduleRange({
+        startDate: targetStart,
+        endDate: targetEnd,
+        trainerId: user._id,
+        clientId: null,
+        includeAvailability: true,
+      })
+    );
+
+    const existingEvents = rangeData?.events || [];
+    const createdEvents = [];
+    const sourceEvents = filteredDayEvents.filter((event) => event.status !== "CANCELLED");
+
+    for (const event of sourceEvents) {
+      const start = dayjs(event.startDateTime).add(offsetDays, "day");
+      const end = dayjs(event.endDateTime).add(offsetDays, "day");
+      const candidate = { start: start.toDate(), end: end.toDate() };
+      if (hasOverlap(candidate, existingEvents) || hasOverlap(candidate, createdEvents)) {
+        continue;
+      }
+      await dispatch(createScheduleEvent(buildCopyPayload(event, start.toISOString(), end.toISOString())));
+      createdEvents.push({
+        startDateTime: candidate.start,
+        endDateTime: candidate.end,
+        status: "BOOKED",
+      });
+    }
+
+    setOpenCopyDayDialog(false);
+    refreshSchedule();
+  };
+
+  const handleCopyWeek = async () => {
+    if (!isTrainerView || !copyWeekDate) return;
+    const sourceWeekStart = weekStart.startOf("day");
+    const targetWeekStart = dayjs(copyWeekDate).startOf("day");
+    const offsetDays = targetWeekStart.diff(sourceWeekStart, "day");
+    const targetStart = targetWeekStart.toISOString();
+    const targetEnd = targetWeekStart.add(7, "day").toISOString();
+
+    const rangeData = await dispatch(
+      requestScheduleRange({
+        startDate: targetStart,
+        endDate: targetEnd,
+        trainerId: user._id,
+        clientId: null,
+        includeAvailability: true,
+      })
+    );
+
+    const existingEvents = rangeData?.events || [];
+    const createdEvents = [];
+    const sourceEvents = filteredWeekEvents.filter((event) => event.status !== "CANCELLED");
+
+    for (const event of sourceEvents) {
+      const start = dayjs(event.startDateTime).add(offsetDays, "day");
+      const end = dayjs(event.endDateTime).add(offsetDays, "day");
+      const candidate = { start: start.toDate(), end: end.toDate() };
+      if (hasOverlap(candidate, existingEvents) || hasOverlap(candidate, createdEvents)) {
+        continue;
+      }
+      await dispatch(createScheduleEvent(buildCopyPayload(event, start.toISOString(), end.toISOString())));
+      createdEvents.push({
+        startDateTime: candidate.start,
+        endDateTime: candidate.end,
+        status: "BOOKED",
+      });
+    }
+
+    setOpenCopyWeekDialog(false);
+    refreshSchedule();
+  };
+
   const editWorkoutClientId = editClientId || editEvent?.clientId || "";
   const editClientProfile = useMemo(
     () => clients.find((clientRel) => clientRel.client?._id === editWorkoutClientId)?.client,
@@ -825,6 +973,15 @@ export default function Schedule() {
       return eventStart.isBefore(end) && eventEnd.isAfter(start);
     });
   }, [scheduleData.events, weekStart]);
+  const filteredWeekEvents = useMemo(() => {
+    if (!isTrainerView) return weekEvents;
+    if (!activeClientIds.length) return weekEvents;
+    return weekEvents.filter((event) => {
+      if (event.eventType === "AVAILABILITY") return true;
+      if (!event.clientId) return false;
+      return activeClientIds.includes(event.clientId);
+    });
+  }, [activeClientIds, isTrainerView, weekEvents]);
 
   const getEventStyle = (event, day) => {
     const dayStart = day.startOf("day");
@@ -1036,6 +1193,16 @@ export default function Schedule() {
                     </Typography>
                   )}
                 </Stack>
+                {isTrainerView && (
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                    <Button variant="outlined" onClick={openCopyDay}>
+                      Copy day
+                    </Button>
+                    <Button variant="outlined" onClick={openCopyWeek}>
+                      Copy week
+                    </Button>
+                  </Stack>
+                )}
                 <Box
                   sx={{
                     display: "flex",
@@ -1423,6 +1590,11 @@ export default function Schedule() {
                       {isTrainerView && (
                         <Button size="small" variant="outlined" onClick={() => openEditForEvent(event)}>
                           Edit
+                        </Button>
+                      )}
+                      {isTrainerView && event.status !== "CANCELLED" && (
+                        <Button size="small" variant="outlined" onClick={() => openCopyForEvent(event)}>
+                          Copy
                         </Button>
                       )}
                       {isTrainerView && event.status === "REQUESTED" && (
@@ -2126,8 +2298,127 @@ export default function Schedule() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditDialog(false)}>Cancel</Button>
+          {isTrainerView && editEvent && (
+            <Button variant="outlined" onClick={() => openCopyForEvent(editEvent)}>
+              Copy
+            </Button>
+          )}
           <Button variant="contained" onClick={handleSaveEdit}>
             Save changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openCopyDialog}
+        onClose={() => setOpenCopyDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Copy Event</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {copySourceEvent && (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  {getEventDisplayName(copySourceEvent)} • {copySourceEvent.eventType}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Original: {formatRange(copySourceEvent)}
+                </Typography>
+              </>
+            )}
+            <TextField
+              label="Date"
+              type="date"
+              value={copyDate}
+              onChange={(event) => setCopyDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Start time"
+              type="time"
+              value={copyStartTime}
+              onChange={(event) => setCopyStartTime(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="End time"
+              type="time"
+              value={copyEndTime}
+              onChange={(event) => setCopyEndTime(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCopyDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCopyEvent}>
+            Create copy
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openCopyDayDialog}
+        onClose={() => setOpenCopyDayDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Copy Day</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Copy all events for {selectedDate.format("ddd, MMM D")} to a new date.
+            </Typography>
+            <TextField
+              label="Target date"
+              type="date"
+              value={copyDayDate}
+              onChange={(event) => setCopyDayDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              Overlaps will be skipped automatically.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCopyDayDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCopyDay} disabled={!copyDayDate}>
+            Copy day
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openCopyWeekDialog}
+        onClose={() => setOpenCopyWeekDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Copy Week</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Copy all events for the week of {weekStart.format("MMM D")} to a new week.
+            </Typography>
+            <TextField
+              label="Target week start"
+              type="date"
+              value={copyWeekDate}
+              onChange={(event) => setCopyWeekDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              Overlaps will be skipped automatically.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenCopyWeekDialog(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCopyWeek} disabled={!copyWeekDate}>
+            Copy week
           </Button>
         </DialogActions>
       </Dialog>
