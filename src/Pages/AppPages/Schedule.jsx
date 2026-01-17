@@ -101,6 +101,14 @@ export default function Schedule() {
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [openEventActionDialog, setOpenEventActionDialog] = useState(false);
+  const [eventActionTarget, setEventActionTarget] = useState(null);
+  const [openTrainerBookDialog, setOpenTrainerBookDialog] = useState(false);
+  const [trainerBookSlot, setTrainerBookSlot] = useState("");
+  const [trainerBookClientId, setTrainerBookClientId] = useState("");
+  const [trainerBookCustomName, setTrainerBookCustomName] = useState("");
+  const [trainerBookCustomEmail, setTrainerBookCustomEmail] = useState("");
+  const [trainerBookCustomPhone, setTrainerBookCustomPhone] = useState("");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [activeRequestEvent, setActiveRequestEvent] = useState(null);
   const [attachEvent, setAttachEvent] = useState(null);
@@ -533,6 +541,21 @@ export default function Schedule() {
     setEditCustomEmail(event.customClientEmail || "");
     setEditCustomPhone(event.customClientPhone || "");
     setOpenEditDialog(true);
+  };
+
+  const openActionForEvent = (event) => {
+    setEventActionTarget(event);
+    setOpenEventActionDialog(true);
+  };
+
+  const openTrainerBookForEvent = (event) => {
+    setEventActionTarget(event);
+    setTrainerBookSlot("");
+    setTrainerBookClientId("");
+    setTrainerBookCustomName("");
+    setTrainerBookCustomEmail("");
+    setTrainerBookCustomPhone("");
+    setOpenTrainerBookDialog(true);
   };
 
   const openCopyForEvent = (event) => {
@@ -997,6 +1020,39 @@ export default function Schedule() {
     return slots;
   }, [queueTargetEvent]);
 
+  const trainerBookingSlots = useMemo(() => {
+    if (!eventActionTarget || eventActionTarget.eventType !== "AVAILABILITY") return [];
+    const start = dayjs(eventActionTarget.startDateTime);
+    const end = dayjs(eventActionTarget.endDateTime);
+    let cursor = start;
+    const remainder = cursor.minute() % 30;
+    if (remainder !== 0) {
+      cursor = cursor.add(30 - remainder, "minute");
+    }
+
+    const slots = [];
+    while (cursor.add(60, "minute").valueOf() <= end.valueOf()) {
+      const slotStart = cursor;
+      const slotEnd = cursor.add(60, "minute");
+      slots.push({
+        value: slotStart.toISOString(),
+        start: slotStart,
+        end: slotEnd,
+      });
+      cursor = cursor.add(30, "minute");
+    }
+    return slots;
+  }, [eventActionTarget]);
+
+  useEffect(() => {
+    if (!openTrainerBookDialog) return;
+    if (trainerBookingSlots.length > 0) {
+      setTrainerBookSlot(trainerBookingSlots[0].value);
+    } else {
+      setTrainerBookSlot("");
+    }
+  }, [openTrainerBookDialog, trainerBookingSlots]);
+
   useEffect(() => {
     if (queueBookingSlots.length > 0) {
       setSelectedQueueSlot(queueBookingSlots[0].value);
@@ -1033,6 +1089,29 @@ export default function Schedule() {
         )
       );
     }
+    refreshSchedule();
+  };
+
+  const handleTrainerBookSlot = async () => {
+    if (!eventActionTarget || eventActionTarget.eventType !== "AVAILABILITY") return;
+    const slot = trainerBookingSlots.find((item) => item.value === trainerBookSlot);
+    if (!slot) return;
+    const hasCustomName = Boolean(trainerBookCustomName.trim());
+    if (!trainerBookClientId && !hasCustomName) return;
+
+    await dispatch(
+      trainerBookAvailability({
+        availabilityEventId: eventActionTarget._id,
+        clientId: trainerBookClientId || null,
+        startDateTime: slot.start.toISOString(),
+        endDateTime: slot.end.toISOString(),
+        customClientName: hasCustomName ? trainerBookCustomName.trim() : "",
+        customClientEmail: trainerBookCustomEmail.trim(),
+        customClientPhone: trainerBookCustomPhone.trim(),
+      })
+    );
+    setOpenTrainerBookDialog(false);
+    setEventActionTarget(null);
     refreshSchedule();
   };
 
@@ -1502,7 +1581,7 @@ export default function Schedule() {
                                   }}
                                   onClick={() => {
                                     if (isTrainerView) {
-                                      openEditForEvent(event);
+                                      openActionForEvent(event);
                                       return;
                                     }
                                     if (
@@ -1751,9 +1830,9 @@ export default function Schedule() {
                           </Button>
                         )}
                       {isTrainerView && (
-                        <Button size="small" variant="outlined" onClick={() => openEditForEvent(event)}>
-                          Edit
-                        </Button>
+                      <Button size="small" variant="outlined" onClick={() => openActionForEvent(event)}>
+                        Edit
+                      </Button>
                       )}
                       {isTrainerView && event.status !== "CANCELLED" && (
                         <Button size="small" variant="outlined" onClick={() => openCopyForEvent(event)}>
@@ -2480,6 +2559,175 @@ export default function Schedule() {
           )}
           <Button variant="contained" onClick={handleSaveEdit}>
             Save changes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEventActionDialog}
+        onClose={() => setOpenEventActionDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Session Actions</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {eventActionTarget && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Stack spacing={0.5}>
+                <Typography variant="subtitle1">
+                  {eventActionTarget.eventType === "AVAILABILITY" ? "Open slot" : "Booked session"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatRange(eventActionTarget)}
+                </Typography>
+                {eventActionTarget.eventType !== "AVAILABILITY" && (
+                  <Typography variant="caption" color="text.secondary">
+                    {getEventDisplayName(eventActionTarget)}
+                  </Typography>
+                )}
+              </Stack>
+              <Stack spacing={1}>
+                {eventActionTarget.eventType === "AVAILABILITY" &&
+                  eventActionTarget.status === "OPEN" && (
+                    <Button variant="contained" onClick={() => openTrainerBookForEvent(eventActionTarget)}>
+                      Book 1-hour slot
+                    </Button>
+                  )}
+                <Button variant="outlined" onClick={() => {
+                  setOpenEventActionDialog(false);
+                  openEditForEvent(eventActionTarget);
+                }}>
+                  Edit details
+                </Button>
+                {eventActionTarget.status !== "CANCELLED" && (
+                  <Button variant="outlined" onClick={() => {
+                    setOpenEventActionDialog(false);
+                    openCopyForEvent(eventActionTarget);
+                  }}>
+                    Copy
+                  </Button>
+                )}
+                {eventActionTarget.status === "OPEN" && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setOpenEventActionDialog(false);
+                      handleCancelEvent(eventActionTarget._id);
+                    }}
+                  >
+                    Close slot
+                  </Button>
+                )}
+                <Button
+                  color="error"
+                  variant="outlined"
+                  onClick={() => {
+                    setOpenEventActionDialog(false);
+                    openDeleteConfirm(eventActionTarget);
+                  }}
+                >
+                  Delete
+                </Button>
+              </Stack>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEventActionDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openTrainerBookDialog}
+        onClose={() => setOpenTrainerBookDialog(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Book 1-hour Slot</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {eventActionTarget && (
+              <Typography variant="body2" color="text.secondary">
+                {formatRange(eventActionTarget)}
+              </Typography>
+            )}
+            {trainerBookingSlots.length > 0 ? (
+              <FormControl fullWidth>
+                <InputLabel>Choose 1-hour slot</InputLabel>
+                <Select
+                  label="Choose 1-hour slot"
+                  value={trainerBookSlot}
+                  onChange={(event) => setTrainerBookSlot(event.target.value)}
+                >
+                  {trainerBookingSlots.map((slot) => (
+                    <MenuItem key={slot.value} value={slot.value}>
+                      {`${slot.start.format("h:mm A")} - ${slot.end.format("h:mm A")}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            ) : (
+              <Typography variant="caption" color="text.secondary">
+                This availability range does not include any 1-hour slots.
+              </Typography>
+            )}
+            <FormControl fullWidth>
+              <InputLabel>Client</InputLabel>
+              <Select
+                label="Client"
+                value={trainerBookClientId}
+                onChange={(event) => {
+                  setTrainerBookClientId(event.target.value);
+                  if (event.target.value) {
+                    setTrainerBookCustomName("");
+                    setTrainerBookCustomEmail("");
+                    setTrainerBookCustomPhone("");
+                  }
+                }}
+              >
+                <MenuItem value="">Custom booking</MenuItem>
+                {clients
+                  .filter((clientRel) => clientRel.accepted)
+                  .map((clientRel) => (
+                    <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
+                      {clientRel.client.firstName} {clientRel.client.lastName}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            {!trainerBookClientId && (
+              <Stack spacing={1}>
+                <TextField
+                  label="Name"
+                  value={trainerBookCustomName}
+                  onChange={(event) => setTrainerBookCustomName(event.target.value)}
+                />
+                <TextField
+                  label="Email"
+                  value={trainerBookCustomEmail}
+                  onChange={(event) => setTrainerBookCustomEmail(event.target.value)}
+                />
+                <TextField
+                  label="Phone"
+                  value={trainerBookCustomPhone}
+                  onChange={(event) => setTrainerBookCustomPhone(event.target.value)}
+                />
+              </Stack>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenTrainerBookDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleTrainerBookSlot}
+            disabled={
+              trainerBookingSlots.length === 0 ||
+              !trainerBookSlot ||
+              (!trainerBookClientId && !trainerBookCustomName.trim())
+            }
+          >
+            Book slot
           </Button>
         </DialogActions>
       </Dialog>
