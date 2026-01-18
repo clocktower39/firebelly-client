@@ -2647,6 +2647,17 @@ export default function Schedule() {
               Copy
             </Button>
           )}
+          {isTrainerView && editEvent && editEvent.eventType !== "AVAILABILITY" && (
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                await handleReopenEvent(editEvent);
+                setOpenEditDialog(false);
+              }}
+            >
+              Reopen slot
+            </Button>
+          )}
           {isTrainerView && editEvent && (
             <Button
               color="error"
