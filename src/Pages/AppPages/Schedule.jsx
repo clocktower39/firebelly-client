@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Checkbox,
   Container,
   Dialog,
   DialogActions,
@@ -18,17 +19,26 @@ import {
   FormControlLabel,
   Grid,
   InputLabel,
+  ListItemText,
   MenuItem,
+  Menu,
   Select,
   Stack,
   Avatar,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableSortLabel,
+  TableRow,
+  IconButton,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import { ArrowBack, ArrowForward, ArrowDownward, ArrowUpward } from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { toPng } from "html-to-image";
@@ -75,6 +85,15 @@ const statusColors = {
   BOOKED: "primary",
   COMPLETED: "default",
   CANCELLED: "error",
+};
+
+const tableColumnLabels = {
+  date: "Date",
+  time: "Time",
+  type: "Type",
+  status: "Status",
+  client: "Client",
+  price: "Price",
 };
 
 const WEEK_START_HOUR = 6;
@@ -167,6 +186,19 @@ export default function Schedule() {
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
   const [shareHidePrices, setShareHidePrices] = useState(true);
+  const [tableSortKey, setTableSortKey] = useState("date");
+  const [tableSortDirection, setTableSortDirection] = useState("asc");
+  const [tableFilterTypes, setTableFilterTypes] = useState([]);
+  const [tableFilterStatuses, setTableFilterStatuses] = useState([]);
+  const [tableFilterClients, setTableFilterClients] = useState([]);
+  const [tableFilterPrices, setTableFilterPrices] = useState([]);
+  const [tableFilterTimes, setTableFilterTimes] = useState([]);
+  const [tableFilterClientQuery, setTableFilterClientQuery] = useState("");
+  const [tableFilterDates, setTableFilterDates] = useState([]);
+  const [tableFilterAnchor, setTableFilterAnchor] = useState(null);
+  const [tableFilterKey, setTableFilterKey] = useState("");
+  const [tableFilterLabel, setTableFilterLabel] = useState("");
+  const [hiddenTableColumns, setHiddenTableColumns] = useState(["type"]);
   const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
 
   const weekCaptureRef = useRef(null);
@@ -1312,7 +1344,6 @@ export default function Schedule() {
       }, {}),
     [isCountableSession]
   );
-  const dayTotals = useMemo(() => totalizePrices(filteredDayEvents), [filteredDayEvents, totalizePrices]);
   const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
   const dayTotalsByColumn = useMemo(
     () =>
@@ -1337,6 +1368,212 @@ export default function Schedule() {
     () => weekEvents.filter((event) => isCountableSession(event)).length,
     [isCountableSession, weekEvents]
   );
+  const weekEventRows = useMemo(() => {
+    return [...filteredWeekEvents].sort(
+      (a, b) => dayjs(a.startDateTime).valueOf() - dayjs(b.startDateTime).valueOf()
+    );
+  }, [filteredWeekEvents]);
+
+  const getRowClientLabel = useCallback(
+    (event) => {
+      if (isTrainerView && (event.clientId || event.customClientName)) {
+        return getEventDisplayName(event);
+      }
+      if (isClientView && selectedTrainerId) {
+        return selectedTrainerLabel || "Trainer";
+      }
+      if (event.eventType === "AVAILABILITY") return "Open slot";
+      return "—";
+    },
+    [getEventDisplayName, isClientView, isTrainerView, selectedTrainerId, selectedTrainerLabel]
+  );
+
+  const getRowPriceLabel = useCallback(
+    (event) => {
+      if (event.priceAmount == null) return "No price";
+      return formatPrice(event.priceAmount, event.priceCurrency || "USD");
+    },
+    [formatPrice]
+  );
+
+  const getRowTimeLabel = useCallback(
+    (event) => dayjs(event.startDateTime).format("h:mm A"),
+    []
+  );
+
+  const weekTypeOptions = useMemo(
+    () => Array.from(new Set(weekEventRows.map((event) => event.eventType))).sort(),
+    [weekEventRows]
+  );
+  const weekStatusOptions = useMemo(
+    () => Array.from(new Set(weekEventRows.map((event) => event.status))).sort(),
+    [weekEventRows]
+  );
+  const weekTableClientOptions = useMemo(() => {
+    const options = new Set();
+    weekEventRows.forEach((event) => options.add(getRowClientLabel(event)));
+    return Array.from(options).sort();
+  }, [getRowClientLabel, weekEventRows]);
+  const weekPriceOptions = useMemo(() => {
+    const options = new Set();
+    weekEventRows.forEach((event) => options.add(getRowPriceLabel(event)));
+    return Array.from(options).sort();
+  }, [getRowPriceLabel, weekEventRows]);
+  const weekTimeOptions = useMemo(() => {
+    const start = dayjs().hour(5).minute(0).second(0).millisecond(0);
+    const end = dayjs().hour(20).minute(0).second(0).millisecond(0);
+    const times = [];
+    let current = start;
+    while (current.isBefore(end) || current.isSame(end)) {
+      times.push(current.format("h:mm A"));
+      current = current.add(1, "hour");
+    }
+    return times;
+  }, []);
+  const filteredWeekRows = useMemo(() => {
+    return weekEventRows.filter((event) => {
+      if (tableFilterTypes.length > 0 && !tableFilterTypes.includes(event.eventType)) {
+        return false;
+      }
+      if (tableFilterStatuses.length > 0 && !tableFilterStatuses.includes(event.status)) {
+        return false;
+      }
+      if (tableFilterDates.length > 0) {
+        const eventDate = dayjs(event.startDateTime).format("YYYY-MM-DD");
+        if (!tableFilterDates.includes(eventDate)) return false;
+      }
+      if (tableFilterTimes.length > 0) {
+        const timeLabel = getRowTimeLabel(event);
+        if (!tableFilterTimes.includes(timeLabel)) return false;
+      }
+      if (tableFilterPrices.length > 0) {
+        const priceLabel = getRowPriceLabel(event);
+        if (!tableFilterPrices.includes(priceLabel)) return false;
+      }
+      if (tableFilterClients.length > 0) {
+        const display = getRowClientLabel(event);
+        if (!tableFilterClients.includes(display)) return false;
+      }
+      return true;
+    });
+  }, [
+    weekEventRows,
+    tableFilterTypes,
+    tableFilterStatuses,
+    tableFilterDates,
+    tableFilterTimes,
+    tableFilterClients,
+    tableFilterPrices,
+    getRowClientLabel,
+    getRowPriceLabel,
+    getRowTimeLabel,
+  ]);
+  const sortedWeekRows = useMemo(() => {
+    const sorted = [...filteredWeekRows];
+    const direction = tableSortDirection === "asc" ? 1 : -1;
+    sorted.sort((a, b) => {
+      switch (tableSortKey) {
+        case "time":
+        case "date": {
+          const aTime = dayjs(a.startDateTime).valueOf();
+          const bTime = dayjs(b.startDateTime).valueOf();
+          return (aTime - bTime) * direction;
+        }
+        case "type":
+          return a.eventType.localeCompare(b.eventType) * direction;
+        case "status":
+          return a.status.localeCompare(b.status) * direction;
+        case "client": {
+          const aName = getEventDisplayName(a).toLowerCase();
+          const bName = getEventDisplayName(b).toLowerCase();
+          return aName.localeCompare(bName) * direction;
+        }
+        case "price": {
+          const aPrice = Number(a.priceAmount ?? 0);
+          const bPrice = Number(b.priceAmount ?? 0);
+          return (aPrice - bPrice) * direction;
+        }
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [filteredWeekRows, tableSortDirection, tableSortKey, getEventDisplayName]);
+
+  const openTableFilter = (event, key, label) => {
+    setTableFilterKey(key);
+    setTableFilterLabel(label || "");
+    setTableFilterAnchor(event.currentTarget);
+  };
+
+  const closeTableFilter = () => {
+    setTableFilterAnchor(null);
+    setTableFilterKey("");
+    setTableFilterLabel("");
+  };
+
+  const toggleTableSort = (key) => {
+    const next =
+      tableSortKey === key && tableSortDirection === "asc" ? "desc" : "asc";
+    setTableSortKey(key);
+    setTableSortDirection(next);
+  };
+
+  const applyTableSort = (key, direction) => {
+    if (!key) return;
+    setTableSortKey(key);
+    setTableSortDirection(direction);
+  };
+
+  const isColumnHidden = useCallback(
+    (key) => hiddenTableColumns.includes(key),
+    [hiddenTableColumns]
+  );
+
+  const toggleColumnVisibility = (key) => {
+    setHiddenTableColumns((prev) =>
+      prev.includes(key) ? prev.filter((col) => col !== key) : [...prev, key]
+    );
+  };
+
+  const showAllColumns = () => {
+    setHiddenTableColumns([]);
+  };
+
+  const isTableFilterActive = useMemo(
+    () =>
+      tableFilterTypes.length > 0 ||
+      tableFilterStatuses.length > 0 ||
+      tableFilterPrices.length > 0 ||
+      tableFilterDates.length > 0 ||
+      tableFilterTimes.length > 0 ||
+      tableFilterClients.length > 0,
+    [
+      tableFilterClients,
+      tableFilterPrices,
+      tableFilterStatuses,
+      tableFilterTypes,
+      tableFilterDates,
+      tableFilterTimes,
+    ]
+  );
+
+  const tableColumnCount = useMemo(() => {
+    let count = 0;
+    if (!isColumnHidden("date")) count += 1;
+    if (!isColumnHidden("time")) count += 1;
+    if (!isColumnHidden("type")) count += 1;
+    if (!isColumnHidden("status")) count += 1;
+    if (!isColumnHidden("client")) count += 1;
+    if (
+      isTrainerView &&
+      !(isShareMode && shareHidePrices) &&
+      !isColumnHidden("price")
+    ) {
+      count += 1;
+    }
+    return count + 1;
+  }, [isColumnHidden, isTrainerView, isShareMode, shareHidePrices]);
   const formatTotals = useCallback(
     (totals) => {
       const entries = Object.entries(totals || {});
@@ -2038,8 +2275,8 @@ export default function Schedule() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid container size={12}>
-          <Stack spacing={2}>
+        <Grid container size={12} sx={{ minWidth: 0 }}>
+          <Stack spacing={2} sx={{ minWidth: 0 }}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
               <Typography variant="h6">
                 Week of {weekRangeLabel}
@@ -2079,166 +2316,241 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             )}
-            {filteredDayEvents.length === 0 && (
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary">No session events.</Typography>
-                </CardContent>
-              </Card>
-            )}
-            {isTrainerView && Object.keys(dayTotals).length > 0 && !(isShareMode && shareHidePrices) && (
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="text.secondary">
-                    Day total:{" "}
-                    {Object.entries(dayTotals)
-                      .map(([currency, total]) => `${currency} ${total.toFixed(2)}`)
-                      .join(" • ")}
-                  </Typography>
-                </CardContent>
-              </Card>
-            )}
             <Card>
               <CardContent>
-                <Typography variant="h6">Session Events</Typography>
+                  <Stack spacing={2} sx={{ minWidth: 0 }}>
+                  <Typography variant="h6">Session Events (Week)</Typography>
+                    <Box sx={{ maxWidth: "100%", overflowX: "auto" }}>
+                      <Table size="small" sx={{ minWidth: 720 }}>
+                      <TableHead>
+                        <TableRow>
+                          {!isColumnHidden("date") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "date", "Date")}
+                                >
+                                  Date
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("date")}>
+                                  {tableSortKey === "date" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("time") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "time", "Time")}
+                                >
+                                  Time
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("time")}>
+                                  {tableSortKey === "time" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("type") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "type", "Type")}
+                                >
+                                  Type
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("type")}>
+                                  {tableSortKey === "type" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("status") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "status", "Status")}
+                                >
+                                  Status
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("status")}>
+                                  {tableSortKey === "status" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("client") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "client", "Client")}
+                                >
+                                  Client
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("client")}>
+                                  {tableSortKey === "client" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {isTrainerView &&
+                            !(isShareMode && shareHidePrices) &&
+                            !isColumnHidden("price") && (
+                              <TableCell>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={(event) => openTableFilter(event, "price", "Price")}
+                                  >
+                                    Price
+                                  </Button>
+                                  <IconButton size="small" onClick={() => toggleTableSort("price")}>
+                                    {tableSortKey === "price" && tableSortDirection === "desc" ? (
+                                      <ArrowDownward fontSize="inherit" />
+                                    ) : (
+                                      <ArrowUpward fontSize="inherit" />
+                                    )}
+                                  </IconButton>
+                                </Stack>
+                              </TableCell>
+                            )}
+                          <TableCell>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {sortedWeekRows.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={tableColumnCount}>
+                              <Typography color="text.secondary">
+                                {isTableFilterActive
+                                  ? "No session events match the current filters."
+                                  : "No session events."}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {sortedWeekRows.map((event) => (
+                          <TableRow key={event._id}>
+                            {!isColumnHidden("date") && (
+                              <TableCell>
+                                {dayjs(event.startDateTime).format("ddd, MMM D")}
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("time") && (
+                              <TableCell>{formatRange(event)}</TableCell>
+                            )}
+                            {!isColumnHidden("type") && (
+                              <TableCell>
+                                <Chip
+                                  label={event.eventType}
+                                  color={scheduleColors[event.eventType] || "default"}
+                                  size="small"
+                                />
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("status") && (
+                              <TableCell>
+                                <Chip
+                                  label={event.status}
+                                  color={statusColors[event.status] || "default"}
+                                  size="small"
+                                />
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("client") && (
+                              <TableCell>
+                                {isTrainerView && (event.clientId || event.customClientName)
+                                  ? getEventDisplayName(event)
+                                  : isClientView && selectedTrainerId
+                                  ? selectedTrainerLabel || "Trainer"
+                                  : event.eventType === "AVAILABILITY"
+                                  ? "Open slot"
+                                  : "—"}
+                              </TableCell>
+                            )}
+                            {isTrainerView &&
+                              !(isShareMode && shareHidePrices) &&
+                              !isColumnHidden("price") && (
+                                <TableCell>
+                                  {event.priceAmount != null
+                                    ? formatPrice(event.priceAmount, event.priceCurrency || "USD")
+                                    : "—"}
+                                </TableCell>
+                              )}
+                            <TableCell>
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                {event.workoutId && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    component={Link}
+                                    to={`/workout/${event.workoutId}?event=${event._id}`}
+                                  >
+                                    Open Workout
+                                  </Button>
+                                )}
+                                {isTrainerView && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => openActionForEvent(event)}
+                                  >
+                                    Details
+                                  </Button>
+                                )}
+                                {isClientView &&
+                                  event.eventType === "AVAILABILITY" &&
+                                  event.status === "OPEN" && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => openRequestForEvent(event)}
+                                    >
+                                      Request
+                                    </Button>
+                                  )}
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      </Table>
+                    </Box>
+                </Stack>
               </CardContent>
             </Card>
-            {filteredDayEvents.map((event) => (
-              <Card key={event._id} variant="outlined">
-                <CardContent>
-                  <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
-                        label={event.eventType}
-                        color={scheduleColors[event.eventType] || "default"}
-                        size="small"
-                      />
-                      <Chip
-                        label={event.status}
-                        color={statusColors[event.status] || "default"}
-                        size="small"
-                      />
-                      {event.availabilitySource && (
-                        <Chip label={event.availabilitySource} size="small" />
-                      )}
-                    </Stack>
-                    <Typography variant="subtitle1">{formatRange(event)}</Typography>
-                    {isTrainerView && (event.clientId || event.customClientName) && (
-                      <Typography variant="body2" color="text.secondary">
-                        Client: {getEventDisplayName(event)}
-                      </Typography>
-                    )}
-                    {isTrainerView && event.priceAmount != null && !(isShareMode && shareHidePrices) && (
-                      <Typography variant="caption" color="text.secondary">
-                        Price: {formatPrice(event.priceAmount, event.priceCurrency || "USD")}
-                      </Typography>
-                    )}
-                    {isClientView && selectedTrainerId && (
-                      <Typography variant="body2" color="text.secondary">
-                        Trainer: {selectedTrainerLabel || "Trainer"}
-                      </Typography>
-                    )}
-                    {event.recurrenceRule && (
-                      <Typography variant="caption" color="text.secondary">
-                        Recurring availability
-                      </Typography>
-                    )}
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {event.workoutId && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          component={Link}
-                          to={`/workout/${event.workoutId}?event=${event._id}`}
-                        >
-                          Open Workout
-                        </Button>
-                      )}
-                      {isTrainerView &&
-                        event.eventType !== "AVAILABILITY" &&
-                        event.status !== "CANCELLED" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleReopenEvent(event)}
-                          >
-                            Reopen Slot
-                          </Button>
-                        )}
-                      {isTrainerView &&
-                        !event.workoutId &&
-                        event.status !== "CANCELLED" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => openAttachForEvent(event)}
-                          >
-                            Attach Workout
-                          </Button>
-                        )}
-                      {isTrainerView && (
-                      <Button size="small" variant="outlined" onClick={() => openActionForEvent(event)}>
-                        Edit
-                      </Button>
-                      )}
-                      {isTrainerView && event.status !== "CANCELLED" && (
-                        <Button size="small" variant="outlined" onClick={() => openCopyForEvent(event)}>
-                          Copy
-                        </Button>
-                      )}
-                      {isTrainerView && event.status === "REQUESTED" && (
-                        <>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => handleTrainerResponse(event._id, "BOOKED")}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleTrainerResponse(event._id, "CANCELLED")}
-                          >
-                            Decline
-                          </Button>
-                        </>
-                      )}
-                      {isTrainerView && event.status === "OPEN" && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleCancelEvent(event._id)}
-                        >
-                          Close Slot
-                        </Button>
-                      )}
-                      {isTrainerView && (
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          onClick={() => openDeleteConfirm(event)}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                      {isClientView &&
-                        event.eventType === "AVAILABILITY" &&
-                        event.status === "OPEN" && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => openRequestForEvent(event)}
-                          >
-                            Request
-                          </Button>
-                        )}
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
             {isTrainerView && (
               <Card>
                 <CardContent>
@@ -3147,6 +3459,330 @@ export default function Schedule() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Menu
+        anchorEl={tableFilterAnchor}
+        open={Boolean(tableFilterAnchor)}
+        onClose={closeTableFilter}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        PaperProps={{ sx: { minWidth: 220, p: 1 } }}
+      >
+        <Stack spacing={1}>
+          <Typography variant="subtitle1">
+            {tableFilterLabel || "Column options"}
+          </Typography>
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              Sort
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                variant={
+                  tableSortKey === tableFilterKey && tableSortDirection === "asc"
+                    ? "contained"
+                    : "outlined"
+                }
+                startIcon={<ArrowUpward fontSize="small" />}
+                onClick={() => {
+                  applyTableSort(tableFilterKey, "asc");
+                  closeTableFilter();
+                }}
+              >
+                Asc
+              </Button>
+              <Button
+                size="small"
+                variant={
+                  tableSortKey === tableFilterKey && tableSortDirection === "desc"
+                    ? "contained"
+                    : "outlined"
+                }
+                startIcon={<ArrowDownward fontSize="small" />}
+                onClick={() => {
+                  applyTableSort(tableFilterKey, "desc");
+                  closeTableFilter();
+                }}
+              >
+                Desc
+              </Button>
+            </Stack>
+          </Stack>
+          <Divider />
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              Column visibility
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                toggleColumnVisibility(tableFilterKey);
+                closeTableFilter();
+              }}
+            >
+              {isColumnHidden(tableFilterKey) ? "Show column" : "Hide column"}
+            </Button>
+            {hiddenTableColumns.length > 0 && (
+              <Stack spacing={1}>
+                <Button size="small" onClick={showAllColumns}>
+                  Show all columns
+                </Button>
+                <Stack spacing={0.5}>
+                  {hiddenTableColumns.map((columnKey) => (
+                    <Button
+                      key={columnKey}
+                      size="small"
+                      variant="text"
+                      onClick={() => toggleColumnVisibility(columnKey)}
+                    >
+                      Show {tableColumnLabels[columnKey] || columnKey}
+                    </Button>
+                  ))}
+                </Stack>
+              </Stack>
+            )}
+          </Stack>
+          <Divider />
+          <Stack spacing={1}>
+            <Typography variant="caption" color="text.secondary">
+              Filter
+            </Typography>
+            {tableFilterKey === "type" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterTypes([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTypeOptions.map((type) => {
+                    const isChecked = tableFilterTypes.includes(type);
+                    return (
+                      <MenuItem
+                        key={type}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterTypes((prev) =>
+                            prev.includes(type)
+                              ? prev.filter((item) => item !== type)
+                              : [...prev, type]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText primary={type} primaryTypographyProps={{ variant: "body2" }} />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterTypes.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterTypes([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "date" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterDates([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekDays.map((day) => {
+                    const value = day.format("YYYY-MM-DD");
+                    const isChecked = tableFilterDates.includes(value);
+                    return (
+                      <MenuItem
+                        dense
+                        key={value}
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterDates((prev) =>
+                            prev.includes(value)
+                              ? prev.filter((item) => item !== value)
+                              : [...prev, value]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={day.format("ddd, MMM D")}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterDates.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterDates([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "time" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterTimes([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTimeOptions.map((timeLabel) => {
+                    const isChecked = tableFilterTimes.includes(timeLabel);
+                    return (
+                      <MenuItem
+                        key={timeLabel}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterTimes((prev) =>
+                            prev.includes(timeLabel)
+                              ? prev.filter((item) => item !== timeLabel)
+                              : [...prev, timeLabel]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={timeLabel}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterTimes.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterTimes([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "status" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterStatuses([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekStatusOptions.map((status) => {
+                    const isChecked = tableFilterStatuses.includes(status);
+                    return (
+                      <MenuItem
+                        key={status}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterStatuses((prev) =>
+                            prev.includes(status)
+                              ? prev.filter((item) => item !== status)
+                              : [...prev, status]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={status}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterStatuses.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterStatuses([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "client" && (
+              <Stack spacing={0.75}>
+                <TextField
+                  label="Client contains"
+                  value={tableFilterClientQuery}
+                  onChange={(event) => setTableFilterClientQuery(event.target.value)}
+                  size="small"
+                  fullWidth
+                />
+                <MenuItem dense onClick={() => setTableFilterClients([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTableClientOptions
+                    .filter((client) =>
+                      client.toLowerCase().includes(tableFilterClientQuery.trim().toLowerCase())
+                    )
+                    .map((client) => {
+                      const isChecked = tableFilterClients.includes(client);
+                      return (
+                        <MenuItem
+                          key={client}
+                          dense
+                          sx={{ py: 0.25 }}
+                          onClick={() =>
+                            setTableFilterClients((prev) =>
+                              prev.includes(client)
+                                ? prev.filter((item) => item !== client)
+                                : [...prev, client]
+                            )
+                          }
+                        >
+                          <Checkbox size="small" checked={isChecked} />
+                          <ListItemText
+                            primary={client}
+                            primaryTypographyProps={{ variant: "body2" }}
+                          />
+                        </MenuItem>
+                      );
+                    })}
+                </Box>
+                {tableFilterClients.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterClients([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </Stack>
+            )}
+            {tableFilterKey === "price" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterPrices([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekPriceOptions.map((priceLabel) => {
+                    const isChecked = tableFilterPrices.includes(priceLabel);
+                    return (
+                      <MenuItem
+                        key={priceLabel}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterPrices((prev) =>
+                            prev.includes(priceLabel)
+                              ? prev.filter((item) => item !== priceLabel)
+                              : [...prev, priceLabel]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={priceLabel}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterPrices.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterPrices([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+          </Stack>
+        </Stack>
+      </Menu>
 
       <Dialog
         open={openCopyDialog}
