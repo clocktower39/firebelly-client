@@ -278,12 +278,14 @@ export default function PublicSchedule() {
                                     overflow: "hidden",
                                   }}
                                 >
-                                  <Typography variant="caption">
-                                    {event.eventType === "AVAILABILITY" ? "Open" : "Booked"}
-                                  </Typography>
-                                </Box>
-                              );
-                            })}
+                                <Typography variant="caption">
+                                  {event.eventType === "AVAILABILITY"
+                                    ? "Open"
+                                    : event.publicLabel || "Booked"}
+                                </Typography>
+                              </Box>
+                            );
+                          })}
                         </Box>
                       </Box>
                     ))}

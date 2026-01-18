@@ -135,6 +135,7 @@ export default function Schedule() {
   const [editCustomName, setEditCustomName] = useState("");
   const [editCustomEmail, setEditCustomEmail] = useState("");
   const [editCustomPhone, setEditCustomPhone] = useState("");
+  const [editPublicLabel, setEditPublicLabel] = useState("");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
   const [quickBookCustomName, setQuickBookCustomName] = useState("");
@@ -299,7 +300,7 @@ export default function Schedule() {
         ) {
           return event.customClientName;
         }
-        return "Booked";
+        return event?.publicLabel || "Booked";
       }
       if (isTrainerView) {
         if (event?.customClientName) return event.customClientName;
@@ -571,6 +572,7 @@ export default function Schedule() {
     setEditCustomName(event.customClientName || "");
     setEditCustomEmail(event.customClientEmail || "");
     setEditCustomPhone(event.customClientPhone || "");
+    setEditPublicLabel(event.publicLabel || "");
     setOpenEditDialog(true);
   };
 
@@ -839,6 +841,7 @@ export default function Schedule() {
     const updates = {
       startDateTime,
       endDateTime,
+      publicLabel: editPublicLabel.trim(),
       customClientName: customName,
       customClientEmail: editCustomEmail.trim(),
       customClientPhone: editCustomPhone.trim(),
@@ -2590,6 +2593,20 @@ export default function Schedule() {
                     Custom bookings are trainer-only and won’t create an account.
                   </Typography>
                 )}
+              </Stack>
+            )}
+            {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Public label</Typography>
+                <TextField
+                  label="Public label"
+                  value={editPublicLabel}
+                  onChange={(event) => setEditPublicLabel(event.target.value)}
+                  placeholder="Booked / Unavailable / Reserved / Custom"
+                />
+                <Typography variant="caption" color="text.secondary">
+                  Shows on public sessions and share images when client details are hidden.
+                </Typography>
               </Stack>
             )}
             <FormControl fullWidth>
