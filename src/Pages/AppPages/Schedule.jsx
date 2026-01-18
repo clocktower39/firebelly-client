@@ -160,6 +160,9 @@ export default function Schedule() {
   const [shareStatus, setShareStatus] = useState("");
   const [isShareMode, setIsShareMode] = useState(false);
   const [shareLinkStatus, setShareLinkStatus] = useState("");
+  const [shareShownKeys, setShareShownKeys] = useState([]);
+  const [shareHighlightShown, setShareHighlightShown] = useState(false);
+  const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
 
   const weekCaptureRef = useRef(null);
   const weekPickerRef = useRef(null);
@@ -286,7 +289,18 @@ export default function Schedule() {
   }, [myTrainers, selectedTrainerId]);
   const getEventDisplayName = useCallback(
     (event) => {
-      if (isShareMode && shareHideDetails) return "Booked";
+      if (isShareMode && shareHideDetails) {
+        if (event?.clientId && shareShownKeys.includes(`client:${event.clientId}`)) {
+          return clientLookup.get(event.clientId) || "Booked";
+        }
+        if (
+          event?.customClientName &&
+          shareShownKeys.includes(`custom:${event.customClientName}`)
+        ) {
+          return event.customClientName;
+        }
+        return "Booked";
+      }
       if (isTrainerView) {
         if (event?.customClientName) return event.customClientName;
         if (event?.clientId) return clientLookup.get(event.clientId) || "Assigned client";
@@ -297,8 +311,25 @@ export default function Schedule() {
       }
       return "Booked";
     },
-    [clientLookup, isShareMode, shareHideDetails, isTrainerView, user._id, user.firstName, user.lastName]
+    [
+      clientLookup,
+      isShareMode,
+      shareHideDetails,
+      shareShownKeys,
+      isTrainerView,
+      user._id,
+      user.firstName,
+      user.lastName,
+    ]
   );
+  const highlightFill = useMemo(() => {
+    const hex = shareHighlightColor.replace("#", "");
+    if (hex.length !== 6) return "rgba(255, 193, 7, 0.35)";
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, 0.35)`;
+  }, [shareHighlightColor]);
 
   const activeClientIds = useMemo(() => {
     if (!isTrainerView) return [];
@@ -1130,6 +1161,10 @@ export default function Schedule() {
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
   }, [weekStart]);
+  const acceptedClients = useMemo(
+    () => clients.filter((clientRel) => clientRel.accepted),
+    [clients]
+  );
   const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
 
   const weekEvents = useMemo(() => {
@@ -1141,6 +1176,38 @@ export default function Schedule() {
       return eventStart.isBefore(end) && eventEnd.isAfter(start);
     });
   }, [scheduleData.events, weekStart]);
+  const weekClientOptions = useMemo(() => {
+    const seen = new Map();
+    weekEvents.forEach((event) => {
+      if (event.eventType === "AVAILABILITY") return;
+      if (event.clientId) {
+        const key = `client:${event.clientId}`;
+        if (!seen.has(key)) {
+          seen.set(key, {
+            key,
+            label: clientLookup.get(event.clientId) || "Assigned client",
+            type: "client",
+          });
+        }
+        return;
+      }
+      if (event.customClientName) {
+        const key = `custom:${event.customClientName}`;
+        if (!seen.has(key)) {
+          seen.set(key, {
+            key,
+            label: event.customClientName,
+            type: "custom",
+          });
+        }
+      }
+    });
+    return Array.from(seen.values());
+  }, [clientLookup, weekEvents]);
+  useEffect(() => {
+    if (!openShareDialog) return;
+    setShareShownKeys([]);
+  }, [openShareDialog, weekClientOptions]);
   const filteredWeekEvents = useMemo(() => {
     if (!isTrainerView) return weekEvents;
     if (!activeClientIds.length) return weekEvents;
@@ -1567,9 +1634,22 @@ export default function Schedule() {
                                     right: 6,
                                     top: style.top,
                                     height: style.height,
-                                    backgroundColor: event.eventType === "AVAILABILITY"
-                                      ? "rgba(76, 175, 80, 0.25)"
-                                      : "rgba(33, 150, 243, 0.25)",
+                                    backgroundColor: (() => {
+                                      if (
+                                        isShareMode &&
+                                        shareHideDetails &&
+                                        shareHighlightShown &&
+                                        ((event.clientId &&
+                                          shareShownKeys.includes(`client:${event.clientId}`)) ||
+                                          (event.customClientName &&
+                                            shareShownKeys.includes(`custom:${event.customClientName}`)))
+                                      ) {
+                                        return highlightFill;
+                                      }
+                                      return event.eventType === "AVAILABILITY"
+                                        ? "rgba(76, 175, 80, 0.25)"
+                                        : "rgba(33, 150, 243, 0.25)";
+                                    })(),
                                     border: "1px solid rgba(25, 118, 210, 0.4)",
                                     borderRadius: 1,
                                     px: 0.5,
@@ -1597,7 +1677,15 @@ export default function Schedule() {
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
                                     <Stack direction="row" spacing={0.5} alignItems="center">
-                                      {! (isShareMode && shareHideDetails) && (event.clientId || event.customClientName) && (
+                                      {!(
+                                        isShareMode &&
+                                        shareHideDetails &&
+                                        ((event.clientId && !shareShownKeys.includes(`client:${event.clientId}`)) ||
+                                          (event.customClientName &&
+                                            !shareShownKeys.includes(`custom:${event.customClientName}`)) ||
+                                          (!event.clientId && !event.customClientName))
+                                      ) &&
+                                        event.clientId && (
                                         <Avatar
                                           src={
                                             isTrainerView
@@ -1616,13 +1704,27 @@ export default function Schedule() {
                                           sx={{ width: 20, height: 20, fontSize: "0.65rem" }}
                                         >
                                           {isTrainerView
-                                            ? (event.customClientName || clientLookup.get(event.clientId) || "B")[0]
+                                            ? (clientLookup.get(event.clientId) || "B")[0]
                                             : String(event.clientId) === String(user._id)
                                             ? user.firstName?.[0] || "M"
                                             : "B"}
                                         </Avatar>
                                       )}
-                                      <Typography variant="caption">
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          fontWeight:
+                                            isShareMode &&
+                                            shareHideDetails &&
+                                            shareHighlightShown &&
+                                            ((event.clientId &&
+                                              shareShownKeys.includes(`client:${event.clientId}`)) ||
+                                              (event.customClientName &&
+                                                shareShownKeys.includes(`custom:${event.customClientName}`)))
+                                              ? 700
+                                              : 400,
+                                        }}
+                                      >
                                         {getEventDisplayName(event)}
                                       </Typography>
                                     </Stack>
@@ -2867,6 +2969,48 @@ export default function Schedule() {
               }
               label="Hide client details (recommended)"
             />
+            {shareHideDetails && (
+              <Autocomplete
+                multiple
+                options={weekClientOptions}
+                getOptionLabel={(option) => option.label}
+                value={weekClientOptions.filter((option) =>
+                  shareShownKeys.includes(option.key)
+                )}
+                onChange={(_, value) => {
+                  setShareShownKeys(value.map((item) => item.key));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Show these clients"
+                    placeholder="All clients hidden"
+                  />
+                )}
+              />
+            )}
+            {shareHideDetails && shareShownKeys.length > 0 && (
+              <Stack spacing={1}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={shareHighlightShown}
+                      onChange={(event) => setShareHighlightShown(event.target.checked)}
+                    />
+                  }
+                  label="Highlight shown clients"
+                />
+                {shareHighlightShown && (
+                  <TextField
+                    label="Highlight color"
+                    type="color"
+                    value={shareHighlightColor}
+                    onChange={(event) => setShareHighlightColor(event.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              </Stack>
+            )}
             <FormControlLabel
               control={
                 <Switch
