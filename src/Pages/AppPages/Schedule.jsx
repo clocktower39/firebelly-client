@@ -136,6 +136,8 @@ export default function Schedule() {
   const [editCustomEmail, setEditCustomEmail] = useState("");
   const [editCustomPhone, setEditCustomPhone] = useState("");
   const [editPublicLabel, setEditPublicLabel] = useState("");
+  const [editPriceAmount, setEditPriceAmount] = useState("");
+  const [editPriceCurrency, setEditPriceCurrency] = useState("USD");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
   const [quickBookCustomName, setQuickBookCustomName] = useState("");
@@ -164,10 +166,14 @@ export default function Schedule() {
   const [shareShownKeys, setShareShownKeys] = useState([]);
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
+  const [shareHidePrices, setShareHidePrices] = useState(true);
   const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
 
   const weekCaptureRef = useRef(null);
   const weekPickerRef = useRef(null);
+  const weekScrollRef = useRef(null);
+  const totalsScrollRef = useRef(null);
+  const syncingScrollRef = useRef(false);
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -574,6 +580,10 @@ export default function Schedule() {
     setEditCustomEmail(event.customClientEmail || "");
     setEditCustomPhone(event.customClientPhone || "");
     setEditPublicLabel(event.publicLabel || "");
+    setEditPriceAmount(
+      typeof event.priceAmount === "number" ? String(event.priceAmount) : ""
+    );
+    setEditPriceCurrency(event.priceCurrency || "USD");
     setOpenEditDialog(true);
   };
 
@@ -846,6 +856,9 @@ export default function Schedule() {
       customClientName: customName,
       customClientEmail: editCustomEmail.trim(),
       customClientPhone: editCustomPhone.trim(),
+      priceAmount:
+        editPriceAmount === "" ? null : Number.parseFloat(editPriceAmount),
+      priceCurrency: editPriceCurrency || "USD",
     };
     if (editEvent.eventType === "AVAILABILITY" && (editClientId || customName)) {
       updates.clientId = editClientId || null;
@@ -1165,6 +1178,32 @@ export default function Schedule() {
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
   }, [weekStart]);
+  const timeColumnWidth = useMemo(() => (isShareMode ? 48 : 64), [isShareMode]);
+  const currencyAffix = useMemo(() => {
+    const currency = editPriceCurrency || "USD";
+    switch (currency) {
+      case "EUR":
+        return { position: "end", label: "€" };
+      case "JPY":
+        return { position: "start", label: "¥" };
+      case "USD":
+      default:
+        return { position: "start", label: "$" };
+    }
+  }, [editPriceCurrency]);
+  const formatPrice = useCallback((amount, currency) => {
+    if (amount == null || Number.isNaN(Number(amount))) return "";
+    const value = Number(amount).toFixed(2);
+    switch (currency) {
+      case "EUR":
+        return `${value} €`;
+      case "JPY":
+        return `¥${value}`;
+      case "USD":
+      default:
+        return `$${value}`;
+    }
+  }, []);
   const acceptedClients = useMemo(
     () => clients.filter((clientRel) => clientRel.accepted),
     [clients]
@@ -1214,6 +1253,31 @@ export default function Schedule() {
   }, [openShareDialog, weekClientOptions]);
 
   useEffect(() => {
+    const weekNode = weekScrollRef.current;
+    const totalsNode = totalsScrollRef.current;
+    if (!weekNode || !totalsNode) return;
+
+    const syncScroll = (source, target) => {
+      if (syncingScrollRef.current) return;
+      syncingScrollRef.current = true;
+      target.scrollLeft = source.scrollLeft;
+      requestAnimationFrame(() => {
+        syncingScrollRef.current = false;
+      });
+    };
+
+    const onWeekScroll = () => syncScroll(weekNode, totalsNode);
+    const onTotalsScroll = () => syncScroll(totalsNode, weekNode);
+
+    weekNode.addEventListener("scroll", onWeekScroll);
+    totalsNode.addEventListener("scroll", onTotalsScroll);
+    return () => {
+      weekNode.removeEventListener("scroll", onWeekScroll);
+      totalsNode.removeEventListener("scroll", onTotalsScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(pointer: coarse)");
     const update = () => setTouchSelectionEnabled(!mediaQuery.matches);
     update();
@@ -1233,6 +1297,42 @@ export default function Schedule() {
       return activeClientIds.includes(event.clientId);
     });
   }, [activeClientIds, isTrainerView, weekEvents]);
+  const totalizePrices = useCallback((events) => {
+    return (events || []).reduce((acc, event) => {
+      if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
+      const currency = event.priceCurrency || "USD";
+      acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+      return acc;
+    }, {});
+  }, []);
+  const dayTotals = useMemo(() => totalizePrices(filteredDayEvents), [filteredDayEvents, totalizePrices]);
+  const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
+  const dayTotalsByColumn = useMemo(
+    () =>
+      weekDays.map((day) =>
+        totalizePrices(
+          weekEvents.filter((event) => dayjs(event.startDateTime).isSame(day, "day"))
+        )
+      ),
+    [totalizePrices, weekDays, weekEvents]
+  );
+  const dayCountsByColumn = useMemo(
+    () =>
+      weekDays.map(
+        (day) => weekEvents.filter((event) => dayjs(event.startDateTime).isSame(day, "day"))
+          .length
+      ),
+    [weekDays, weekEvents]
+  );
+  const weekEventCount = useMemo(() => weekEvents.length, [weekEvents]);
+  const formatTotals = useCallback(
+    (totals) => {
+      const entries = Object.entries(totals || {});
+      if (!entries.length) return "—";
+      return entries.map(([currency, total]) => formatPrice(total, currency)).join(" • ");
+    },
+    [formatPrice]
+  );
 
   const getEventStyle = (event, day) => {
     const dayStart = day.startOf("day");
@@ -1528,6 +1628,7 @@ export default function Schedule() {
                   </Typography>
                 )}
                 <Box
+                  ref={weekScrollRef}
                   sx={{
                     display: "flex",
                     border: "1px solid rgba(148, 163, 184, 0.35)",
@@ -1537,7 +1638,9 @@ export default function Schedule() {
                 >
                   <Box
                     sx={{
-                      width: isShareMode ? 48 : 64,
+                      width: timeColumnWidth,
+                      minWidth: timeColumnWidth,
+                      maxWidth: timeColumnWidth,
                       borderRight: "1px solid rgba(148, 163, 184, 0.35)",
                     }}
                   >
@@ -1573,14 +1676,15 @@ export default function Schedule() {
                     })}
                   </Box>
                   <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: isShareMode
-                        ? "repeat(7, minmax(0, 1fr))"
-                        : "repeat(7, minmax(96px, 1fr))",
-                      flex: 1,
-                    }}
-                  >
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: isShareMode
+                          ? "repeat(7, minmax(0, 1fr))"
+                          : "repeat(7, minmax(96px, 1fr))",
+                        minWidth: isShareMode ? "auto" : "672px",
+                        flex: 1,
+                      }}
+                    >
                     {weekDays.map((day, dayIndex) => (
                       <Box key={day.format("YYYY-MM-DD")} sx={{ borderLeft: "1px solid rgba(148, 163, 184, 0.2)" }}>
                         <Box
@@ -1701,7 +1805,8 @@ export default function Schedule() {
                                   {event.eventType === "AVAILABILITY" ? (
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
-                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <Stack spacing={0.25}>
+                                      <Stack direction="row" spacing={0.5} alignItems="center">
                                       {!(
                                         isShareMode &&
                                         shareHideDetails &&
@@ -1752,6 +1857,14 @@ export default function Schedule() {
                                       >
                                         {getEventDisplayName(event)}
                                       </Typography>
+                                      </Stack>
+                                      {isTrainerView &&
+                                        event.priceAmount != null &&
+                                        !(isShareMode && shareHidePrices) && (
+                                        <Typography variant="caption" sx={{ opacity: 0.75 }}>
+                                          {formatPrice(event.priceAmount, event.priceCurrency || "USD")}
+                                        </Typography>
+                                      )}
                                     </Stack>
                                   )}
                                 </Box>
@@ -1762,6 +1875,76 @@ export default function Schedule() {
                     ))}
                   </Box>
                 </Box>
+                {isTrainerView && !(isShareMode && shareHidePrices) && (
+                  <Box
+                    ref={totalsScrollRef}
+                    sx={{
+                      overflowX: { xs: "auto", md: "hidden" },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: `${timeColumnWidth}px repeat(7, minmax(${isShareMode ? 0 : 96}px, 1fr))`,
+                        border: "1px solid rgba(148, 163, 184, 0.35)",
+                        borderTop: "1px solid rgba(148, 163, 184, 0.35)",
+                        borderRadius: "8px",
+                        minWidth: isShareMode ? "auto" : "736px",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          borderRight: "1px solid rgba(148, 163, 184, 0.35)",
+                          py: 1,
+                          px: 0,
+                          fontSize: "0.7rem",
+                          color: "text.secondary",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          writingMode: "vertical-rl",
+                          textOrientation: "mixed",
+                          minWidth: timeColumnWidth,
+                          maxWidth: timeColumnWidth,
+                        }}
+                      >
+                        {" "}
+                      </Box>
+                      {dayTotalsByColumn.map((totals, index) => (
+                      <Box
+                        key={`total-${index}`}
+                        sx={{
+                          borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                          py: 1,
+                          px: 1,
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
+                        {formatTotals(totals)}
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {dayCountsByColumn[index]} sessions
+                        </Typography>
+                      </Box>
+                    ))}
+                      <Box
+                        sx={{
+                          gridColumn: "2 / span 7",
+                          borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                          py: 1,
+                          px: 1,
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
+                        {formatTotals(weekTotals)}
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {weekEventCount} sessions
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
                 </Stack>
               </CardContent>
             </Card>
@@ -1849,6 +2032,14 @@ export default function Schedule() {
               <Typography variant="h6">
                 Week of {weekRangeLabel}
               </Typography>
+              {isTrainerView && Object.keys(weekTotals).length > 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Week total:{" "}
+                  {Object.entries(weekTotals)
+                    .map(([currency, total]) => `${currency} ${total.toFixed(2)}`)
+                    .join(" • ")}
+                </Typography>
+              )}
               {isTrainerView && selectedClientIds.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
                   Select one or more clients to load their workouts.
@@ -1883,6 +2074,18 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             )}
+            {isTrainerView && Object.keys(dayTotals).length > 0 && !(isShareMode && shareHidePrices) && (
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    Day total:{" "}
+                    {Object.entries(dayTotals)
+                      .map(([currency, total]) => `${currency} ${total.toFixed(2)}`)
+                      .join(" • ")}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardContent>
                 <Typography variant="h6">Session Events</Typography>
@@ -1911,6 +2114,11 @@ export default function Schedule() {
                     {isTrainerView && (event.clientId || event.customClientName) && (
                       <Typography variant="body2" color="text.secondary">
                         Client: {getEventDisplayName(event)}
+                      </Typography>
+                    )}
+                    {isTrainerView && event.priceAmount != null && !(isShareMode && shareHidePrices) && (
+                      <Typography variant="caption" color="text.secondary">
+                        Price: {formatPrice(event.priceAmount, event.priceCurrency || "USD")}
                       </Typography>
                     )}
                     {isClientView && selectedTrainerId && (
@@ -2617,6 +2825,50 @@ export default function Schedule() {
                 )}
               </Stack>
             )}
+            {isTrainerView && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Price</Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="Amount"
+                    type="number"
+                    value={editPriceAmount}
+                    onChange={(event) => setEditPriceAmount(event.target.value)}
+                    inputProps={{ min: 0, step: "0.01" }}
+                    InputProps={
+                      currencyAffix.position === "start"
+                        ? {
+                            startAdornment: (
+                              <Box sx={{ mr: 1, color: "text.secondary" }}>
+                                {currencyAffix.label}
+                              </Box>
+                            ),
+                          }
+                        : {
+                            endAdornment: (
+                              <Box sx={{ ml: 1, color: "text.secondary" }}>
+                                {currencyAffix.label}
+                              </Box>
+                            ),
+                          }
+                    }
+                    fullWidth
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      label="Currency"
+                      value={editPriceCurrency}
+                      onChange={(event) => setEditPriceCurrency(event.target.value)}
+                    >
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="JPY">YEN</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            )}
             {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
               <Stack spacing={1}>
                 <Typography variant="subtitle2">Public label</Typography>
@@ -3018,6 +3270,15 @@ export default function Schedule() {
                 />
               }
               label="Hide client details (recommended)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={shareHidePrices}
+                  onChange={(event) => setShareHidePrices(event.target.checked)}
+                />
+              }
+              label="Hide prices and totals"
             />
             {shareHideDetails && (
               <Autocomplete
