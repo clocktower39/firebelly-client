@@ -1522,7 +1522,12 @@ export default function Schedule() {
                     overflowX: { xs: "auto", md: "hidden" },
                   }}
                 >
-                  <Box sx={{ width: 64, borderRight: "1px solid rgba(148, 163, 184, 0.35)" }}>
+                  <Box
+                    sx={{
+                      width: isShareMode ? 48 : 64,
+                      borderRight: "1px solid rgba(148, 163, 184, 0.35)",
+                    }}
+                  >
                     <Box
                       sx={{
                         height: HEADER_HEIGHT,
@@ -1557,7 +1562,9 @@ export default function Schedule() {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(7, minmax(96px, 1fr))",
+                      gridTemplateColumns: isShareMode
+                        ? "repeat(7, minmax(0, 1fr))"
+                        : "repeat(7, minmax(96px, 1fr))",
                       flex: 1,
                     }}
                   >
