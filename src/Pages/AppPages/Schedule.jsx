@@ -164,6 +164,7 @@ export default function Schedule() {
   const [shareShownKeys, setShareShownKeys] = useState([]);
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
+  const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
 
   const weekCaptureRef = useRef(null);
   const weekPickerRef = useRef(null);
@@ -1211,6 +1212,18 @@ export default function Schedule() {
     if (!openShareDialog) return;
     setShareShownKeys([]);
   }, [openShareDialog, weekClientOptions]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(pointer: coarse)");
+    const update = () => setTouchSelectionEnabled(!mediaQuery.matches);
+    update();
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", update);
+      return () => mediaQuery.removeEventListener("change", update);
+    }
+    mediaQuery.addListener(update);
+    return () => mediaQuery.removeListener(update);
+  }, []);
   const filteredWeekEvents = useMemo(() => {
     if (!isTrainerView) return weekEvents;
     if (!activeClientIds.length) return weekEvents;
@@ -1599,18 +1612,20 @@ export default function Schedule() {
                               key={`slot-${dayIndex}-${slotIndex}`}
                               onMouseDown={() => handleSlotMouseDown(dayIndex, slotIndex)}
                               onMouseEnter={() => handleSlotMouseEnter(dayIndex, slotIndex)}
-                              onTouchStart={(event) =>
-                                handleSlotTouchStart(event, dayIndex, slotIndex)
+                              onTouchStart={
+                                touchSelectionEnabled
+                                  ? (event) => handleSlotTouchStart(event, dayIndex, slotIndex)
+                                  : undefined
                               }
-                              onTouchMove={handleSlotTouchMove}
-                              onTouchEnd={handleSlotTouchEnd}
+                              onTouchMove={touchSelectionEnabled ? handleSlotTouchMove : undefined}
+                              onTouchEnd={touchSelectionEnabled ? handleSlotTouchEnd : undefined}
                               data-day-index={dayIndex}
                               data-slot-index={slotIndex}
                               sx={{
                                 height: SLOT_HEIGHT,
                                 borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
                                 backgroundColor: slotIndex % 2 === 0 ? "rgba(148,163,184,0.06)" : "transparent",
-                                touchAction: "none",
+                                touchAction: touchSelectionEnabled ? "none" : "pan-y",
                               }}
                             />
                           ))}
