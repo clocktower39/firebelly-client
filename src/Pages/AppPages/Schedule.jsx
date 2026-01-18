@@ -1297,34 +1297,46 @@ export default function Schedule() {
       return activeClientIds.includes(event.clientId);
     });
   }, [activeClientIds, isTrainerView, weekEvents]);
-  const totalizePrices = useCallback((events) => {
-    return (events || []).reduce((acc, event) => {
-      if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
-      const currency = event.priceCurrency || "USD";
-      acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
-      return acc;
-    }, {});
-  }, []);
+  const isCountableSession = useCallback(
+    (event) => event.eventType !== "AVAILABILITY" && event.status !== "CANCELLED",
+    []
+  );
+  const totalizePrices = useCallback(
+    (events) =>
+      (events || []).reduce((acc, event) => {
+        if (!isCountableSession(event)) return acc;
+        if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
+        const currency = event.priceCurrency || "USD";
+        acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+        return acc;
+      }, {}),
+    [isCountableSession]
+  );
   const dayTotals = useMemo(() => totalizePrices(filteredDayEvents), [filteredDayEvents, totalizePrices]);
   const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
   const dayTotalsByColumn = useMemo(
     () =>
-      weekDays.map((day) =>
-        totalizePrices(
-          weekEvents.filter((event) => dayjs(event.startDateTime).isSame(day, "day"))
-        )
-      ),
+      weekDays.map((day) => {
+        const dayEvents = weekEvents.filter((event) =>
+          dayjs(event.startDateTime).isSame(day, "day")
+        );
+        return totalizePrices(dayEvents);
+      }),
     [totalizePrices, weekDays, weekEvents]
   );
   const dayCountsByColumn = useMemo(
     () =>
-      weekDays.map(
-        (day) => weekEvents.filter((event) => dayjs(event.startDateTime).isSame(day, "day"))
-          .length
+      weekDays.map((day) =>
+        weekEvents.filter(
+          (event) => isCountableSession(event) && dayjs(event.startDateTime).isSame(day, "day")
+        ).length
       ),
-    [weekDays, weekEvents]
+    [isCountableSession, weekDays, weekEvents]
   );
-  const weekEventCount = useMemo(() => weekEvents.length, [weekEvents]);
+  const weekEventCount = useMemo(
+    () => weekEvents.filter((event) => isCountableSession(event)).length,
+    [isCountableSession, weekEvents]
+  );
   const formatTotals = useCallback(
     (totals) => {
       const entries = Object.entries(totals || {});
