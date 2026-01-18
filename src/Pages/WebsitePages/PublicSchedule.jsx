@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Avatar, Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, Container, Divider, Stack, TextField, Typography } from "@mui/material";
+import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import SelectedDate from "../../Components/SelectedDate";
 import { serverURL } from "../../Redux/actions";
 
 dayjs.extend(utc);
@@ -20,6 +20,7 @@ export default function PublicSchedule() {
   const [events, setEvents] = useState([]);
   const [trainer, setTrainer] = useState(null);
   const [trainerError, setTrainerError] = useState("");
+  const weekPickerRef = useRef(null);
 
   useEffect(() => {
     if (!trainerId) return;
@@ -115,6 +116,11 @@ export default function PublicSchedule() {
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D")} - ${end.format("MMM D")}`;
   }, [weekStart]);
+  const weekRangeDisplay = useMemo(() => {
+    const start = weekStart;
+    const end = weekStart.add(6, "day");
+    return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
+  }, [weekStart]);
 
   return (
     <Box sx={{ px: { xs: 2, sm: 4 }, py: 3 }}>
@@ -152,10 +158,46 @@ export default function PublicSchedule() {
           )}
         </Stack>
 
-        <SelectedDate
-          selectedDate={selectedDate.format("YYYY-MM-DD")}
-          setSelectedDate={(value) => setSelectedDate(dayjs(value))}
-        />
+        <Container maxWidth="md" sx={{ height: "100%", paddingTop: "10px", maxWidth: "100%" }}>
+          <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+            <Button onClick={() => setSelectedDate(selectedDate.subtract(1, "week"))}>
+              <ArrowBack sx={{ color: "primary.dark" }} />
+            </Button>
+            <TextField
+              focused
+              label="Week"
+              type="text"
+              color="primary"
+              value={weekRangeDisplay}
+              onClick={() => {
+                if (weekPickerRef.current?.showPicker) {
+                  weekPickerRef.current.showPicker();
+                } else if (weekPickerRef.current) {
+                  weekPickerRef.current.click();
+                  weekPickerRef.current.focus();
+                }
+              }}
+              InputProps={{ readOnly: true }}
+            />
+            <Button onClick={() => setSelectedDate(selectedDate.add(1, "week"))}>
+              <ArrowForward sx={{ color: "primary.dark" }} />
+            </Button>
+            <input
+              ref={weekPickerRef}
+              type="date"
+              value={selectedDate.format("YYYY-MM-DD")}
+              onChange={(event) => setSelectedDate(dayjs(event.target.value))}
+              style={{
+                position: "absolute",
+                opacity: 0,
+                pointerEvents: "none",
+                width: 0,
+                height: 0,
+              }}
+            />
+          </Stack>
+          <Divider sx={{ margin: "15px" }} />
+        </Container>
 
         {(!trainerId || trainerError) && (
           <Typography color="text.secondary">
