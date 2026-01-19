@@ -245,7 +245,7 @@ export default function Calendar(props) {
           </Typography>
         </Grid>
       )}
-      <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ minHeight: "650px", display: "flex", flexDirection: "column" }} data-calendar-scroll>
         <Box sx={{ px: 2, py: 1 }}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems="center">
             <Typography variant="h6">Calendar</Typography>
@@ -272,22 +272,6 @@ export default function Calendar(props) {
             </Stack>
           </Stack>
         </Box>
-
-        {/* DateCalendar takes 20% of the available height */}
-        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
-          <Box sx={{ flex: "0 0 20%" }}>
-            <DateCalendar
-              value={selectedDate}
-              onChange={handleDateCalendarChange}
-              loading={isLoading}
-              renderLoading={() => <DayCalendarSkeleton />}
-              views={["year", "month", "day"]}
-              slots={{ day: ServerDay }}
-              slotProps={{ day: { highlightedDays } }}
-              onMonthChange={handleMonthChange}
-            />
-          </Box>
-        </Collapse>
 
         <Collapse in={showFilters} timeout="auto" unmountOnExit>
           <Box sx={{ px: 2, py: 1 }}>
@@ -391,8 +375,22 @@ export default function Calendar(props) {
           </Box>
         </Collapse>
 
-        {/* Workouts List takes the remaining space */}
-        <Box sx={{ flex: "1", overflow: "auto" }} data-calendar-scroll>
+        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
+          <Box>
+            <DateCalendar
+              value={selectedDate}
+              onChange={handleDateCalendarChange}
+              loading={isLoading}
+              renderLoading={() => <DayCalendarSkeleton />}
+              views={["year", "month", "day"]}
+              slots={{ day: ServerDay }}
+              slotProps={{ day: { highlightedDays } }}
+              onMonthChange={handleMonthChange}
+            />
+          </Box>
+        </Collapse>
+
+        <Box sx={{ flex: "1" }}>
           <Workouts
             history={filteredWorkouts}
             scrollToDate={scrollToDate}
@@ -505,12 +503,19 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
     const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
 
     if (testDate === scrollDate) {
-      const scrollContainer = ref.current?.closest("[data-calendar-scroll]");
-      scrollContainer?.scrollTo({
+    const scrollContainer = ref.current?.closest("[data-calendar-scroll]");
+    if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
+      scrollContainer.scrollTo({
         top: ref.current.offsetTop,
         left: 0,
         behavior: "smooth",
       });
+    } else {
+      window.scrollTo({
+        top: ref.current.getBoundingClientRect().top + window.scrollY - 16,
+        behavior: "smooth",
+      });
+    }
       setIsDateSelected(true); // Set true when dates match
     } else {
       setIsDateSelected(false); // Set false otherwise
