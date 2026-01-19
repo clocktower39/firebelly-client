@@ -86,6 +86,11 @@ export default function NavDrawer() {
       icon: <ClientsIcon />,
     },
     {
+      title: "Programs",
+      to: "/programs",
+      icon: <GoalsIcon />,
+    },
+    {
       title: "Session Counter",
       to: "/session-counter",
       icon: <SessionIcon />,

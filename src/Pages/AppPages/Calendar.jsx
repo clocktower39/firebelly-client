@@ -574,6 +574,7 @@ export default function Calendar(props) {
             setSelectedWorkout={setSelectedWorkout}
             handleModalToggle={handleModalToggle}
             viewMode={viewMode}
+            isYearView={calendarViewMode === "year"}
           />
         </Box>
       </Box>
@@ -613,13 +614,15 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode }) => {
+const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode, isYearView }) => {
   if (!history.length) {
     return (
       <List>
         <ListItem>
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            No workouts match your filters for this month.
+            {isYearView
+              ? "No workouts match your filters for this year."
+              : "No workouts match your filters for this month."}
           </Typography>
         </ListItem>
       </List>
