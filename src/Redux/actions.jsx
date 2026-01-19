@@ -1338,6 +1338,28 @@ export function addGoalComment(goalId, newComment) {
   };
 }
 
+export function removeGoalComment(goalId, commentId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/removeGoalComment`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: goalId, commentId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let goal = await response.json();
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal,
+    });
+  };
+}
+
 export function getConversations() {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
