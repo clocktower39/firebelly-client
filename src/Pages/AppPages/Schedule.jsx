@@ -38,7 +38,13 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { ArrowBack, ArrowForward, ArrowDownward, ArrowUpward } from "@mui/icons-material";
+import {
+  ArrowBack,
+  ArrowForward,
+  ArrowDownward,
+  ArrowUpward,
+  Settings,
+} from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { toPng } from "html-to-image";
@@ -186,6 +192,11 @@ export default function Schedule() {
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
   const [shareHidePrices, setShareHidePrices] = useState(true);
+  const [openTimeSettings, setOpenTimeSettings] = useState(false);
+  const [calendarStartHour, setCalendarStartHour] = useState(WEEK_START_HOUR);
+  const [calendarEndHour, setCalendarEndHour] = useState(WEEK_END_HOUR);
+  const [draftStartHour, setDraftStartHour] = useState(WEEK_START_HOUR);
+  const [draftEndHour, setDraftEndHour] = useState(WEEK_END_HOUR);
   const [tableSortKey, setTableSortKey] = useState("date");
   const [tableSortDirection, setTableSortDirection] = useState("asc");
   const [tableFilterTypes, setTableFilterTypes] = useState([]);
@@ -1240,7 +1251,7 @@ export default function Schedule() {
     () => clients.filter((clientRel) => clientRel.accepted),
     [clients]
   );
-  const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
+  const totalSlots = Math.max((calendarEndHour - calendarStartHour) * 2, 0);
 
   const weekEvents = useMemo(() => {
     const start = weekStart.startOf("day");
@@ -1283,6 +1294,12 @@ export default function Schedule() {
     if (!openShareDialog) return;
     setShareShownKeys([]);
   }, [openShareDialog, weekClientOptions]);
+
+  useEffect(() => {
+    if (!openTimeSettings) return;
+    setDraftStartHour(calendarStartHour);
+    setDraftEndHour(calendarEndHour);
+  }, [calendarEndHour, calendarStartHour, openTimeSettings]);
 
   useEffect(() => {
     const weekNode = weekScrollRef.current;
@@ -1401,6 +1418,10 @@ export default function Schedule() {
     []
   );
 
+  const hourOptions = useMemo(() => Array.from({ length: 24 }, (_, index) => index), []);
+  const formatHourLabel = useCallback((hour) => dayjs().hour(hour).minute(0).format("h A"), []);
+  const timeSettingsError = draftEndHour <= draftStartHour;
+
   const weekTypeOptions = useMemo(
     () => Array.from(new Set(weekEventRows.map((event) => event.eventType))).sort(),
     [weekEventRows]
@@ -1420,8 +1441,8 @@ export default function Schedule() {
     return Array.from(options).sort();
   }, [getRowPriceLabel, weekEventRows]);
   const weekTimeOptions = useMemo(() => {
-    const start = dayjs().hour(5).minute(0).second(0).millisecond(0);
-    const end = dayjs().hour(20).minute(0).second(0).millisecond(0);
+    const start = dayjs().hour(calendarStartHour).minute(0).second(0).millisecond(0);
+    const end = dayjs().hour(calendarEndHour).minute(0).second(0).millisecond(0);
     const times = [];
     let current = start;
     while (current.isBefore(end) || current.isSame(end)) {
@@ -1429,7 +1450,7 @@ export default function Schedule() {
       current = current.add(1, "hour");
     }
     return times;
-  }, []);
+  }, [calendarEndHour, calendarStartHour]);
   const filteredWeekRows = useMemo(() => {
     return weekEventRows.filter((event) => {
       if (tableFilterTypes.length > 0 && !tableFilterTypes.includes(event.eventType)) {
@@ -1593,10 +1614,13 @@ export default function Schedule() {
 
     const startMinutes = start.diff(dayStart, "minute");
     const endMinutes = end.diff(dayStart, "minute");
-    const topMinutes = Math.max(startMinutes - WEEK_START_HOUR * 60, 0);
-    const bottomMinutes = Math.min(endMinutes - WEEK_START_HOUR * 60, (WEEK_END_HOUR - WEEK_START_HOUR) * 60);
+    const topMinutes = Math.max(startMinutes - calendarStartHour * 60, 0);
+    const bottomMinutes = Math.min(
+      endMinutes - calendarStartHour * 60,
+      (calendarEndHour - calendarStartHour) * 60
+    );
 
-    if (bottomMinutes <= 0 || topMinutes >= (WEEK_END_HOUR - WEEK_START_HOUR) * 60) return null;
+    if (bottomMinutes <= 0 || topMinutes >= (calendarEndHour - calendarStartHour) * 60) return null;
 
     return {
       top: Math.floor(topMinutes / SLOT_MINUTES) * SLOT_HEIGHT,
@@ -1667,12 +1691,12 @@ export default function Schedule() {
   const selectionRange = useMemo(() => {
     if (!normalizedSelection) return null;
     const day = weekDays[normalizedSelection.dayIndex];
-    const startMinutes = WEEK_START_HOUR * 60 + normalizedSelection.startIndex * SLOT_MINUTES;
-    const endMinutes = WEEK_START_HOUR * 60 + (normalizedSelection.endIndex + 1) * SLOT_MINUTES;
+    const startMinutes = calendarStartHour * 60 + normalizedSelection.startIndex * SLOT_MINUTES;
+    const endMinutes = calendarStartHour * 60 + (normalizedSelection.endIndex + 1) * SLOT_MINUTES;
     const start = day.startOf("day").add(startMinutes, "minute");
     const end = day.startOf("day").add(endMinutes, "minute");
     return { start, end };
-  }, [normalizedSelection, weekDays]);
+  }, [calendarStartHour, normalizedSelection, weekDays]);
 
   useEffect(() => {
     if (!openSelectionDialog || !selectionRange) return;
@@ -1844,7 +1868,7 @@ export default function Schedule() {
                   )}
                 </Stack>
                 {isTrainerView && !isShareMode && (
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
                     <Button variant="outlined" onClick={openCopyDay}>
                       Copy day
                     </Button>
@@ -1869,6 +1893,14 @@ export default function Schedule() {
                     >
                       Copy share link
                     </Button>
+                    <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
+                    <IconButton
+                      aria-label="View settings"
+                      onClick={() => setOpenTimeSettings(true)}
+                      sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}
+                    >
+                      <Settings />
+                    </IconButton>
                   </Stack>
                 )}
                 {isTrainerView && !isShareMode && shareLinkStatus && (
@@ -1900,7 +1932,7 @@ export default function Schedule() {
                       }}
                     />
                     {Array.from({ length: totalSlots }).map((_, index) => {
-                      const minutes = WEEK_START_HOUR * 60 + index * SLOT_MINUTES;
+                      const minutes = calendarStartHour * 60 + index * SLOT_MINUTES;
                       const label =
                         minutes % 60 === 0
                           ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")
@@ -3990,6 +4022,66 @@ export default function Schedule() {
           <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
           <Button variant="contained" onClick={handleShareWeek} disabled={shareInProgress}>
             {shareInProgress ? "Copying..." : "Copy image"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openTimeSettings}
+        onClose={() => setOpenTimeSettings(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Calendar hours</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel>Start time</InputLabel>
+              <Select
+                label="Start time"
+                value={draftStartHour}
+                onChange={(event) => setDraftStartHour(Number(event.target.value))}
+              >
+                {hourOptions.map((hour) => (
+                  <MenuItem key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth error={timeSettingsError}>
+              <InputLabel>End time</InputLabel>
+              <Select
+                label="End time"
+                value={draftEndHour}
+                onChange={(event) => setDraftEndHour(Number(event.target.value))}
+              >
+                {hourOptions.map((hour) => (
+                  <MenuItem key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </MenuItem>
+                ))}
+              </Select>
+              {timeSettingsError && (
+                <Typography variant="caption" color="error">
+                  End time must be after the start time.
+                </Typography>
+              )}
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenTimeSettings(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={timeSettingsError}
+            onClick={() => {
+              setCalendarStartHour(draftStartHour);
+              setCalendarEndHour(draftEndHour);
+              setOpenTimeSettings(false);
+            }}
+          >
+            Save
           </Button>
         </DialogActions>
       </Dialog>
