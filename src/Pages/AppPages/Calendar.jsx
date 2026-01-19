@@ -511,8 +511,13 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
         behavior: "smooth",
       });
     } else {
+      const nav =
+        document.querySelector("header.MuiAppBar-root") ||
+        document.querySelector(".MuiAppBar-root") ||
+        document.querySelector("nav");
+      const navHeight = nav?.getBoundingClientRect().height || 0;
       window.scrollTo({
-        top: ref.current.getBoundingClientRect().top + window.scrollY - 16,
+        top: ref.current.getBoundingClientRect().top + window.scrollY - navHeight - 16,
         behavior: "smooth",
       });
     }
