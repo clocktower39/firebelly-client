@@ -234,6 +234,7 @@ export default function ProgramBuilder() {
             title: `${program.title || "Program"} • Week ${weekIndex + 1} Day ${dayIndex + 1}`,
             category: [],
             training: [[]],
+            isTemplate: true,
           }),
         });
         const data = await response.json();
@@ -243,7 +244,11 @@ export default function ProgramBuilder() {
         const newWorkout = data.training;
         setWorkoutCache((prev) => ({ ...prev, [newWorkout._id]: newWorkout }));
         await updateDaySlot(weekIndex, dayIndex, newWorkout._id);
-        navigate(`/workout/${newWorkout._id}?return=${encodeURIComponent(location.pathname)}`);
+        navigate(
+          `/workout/${newWorkout._id}?source=program&return=${encodeURIComponent(
+            location.pathname
+          )}`
+        );
       } catch (err) {
         setErrorMessage(err.message || "Unable to create workout.");
       }
@@ -254,7 +259,11 @@ export default function ProgramBuilder() {
   const handleEditDay = useCallback(
     (weekIndex, dayIndex, workoutId) => {
       if (workoutId) {
-        navigate(`/workout/${workoutId}?return=${encodeURIComponent(location.pathname)}`);
+        navigate(
+          `/workout/${workoutId}?source=program&return=${encodeURIComponent(
+            location.pathname
+          )}`
+        );
         return;
       }
       createWorkoutForDay(weekIndex, dayIndex);

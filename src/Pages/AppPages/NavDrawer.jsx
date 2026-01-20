@@ -63,6 +63,11 @@ export default function NavDrawer() {
       icon: <CalendarIcon />,
     },
     {
+      title: "Workout Templates",
+      to: "/workout-templates",
+      icon: <CalendarIcon />,
+    },
+    {
       title: "Goals",
       to: "/goals",
       icon: <GoalsIcon />,

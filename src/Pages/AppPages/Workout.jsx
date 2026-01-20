@@ -66,6 +66,10 @@ export default function Workout({ socket }) {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const returnPath = searchParams.get("return");
+  const sourceView = searchParams.get("source");
+  const isProgramBuilder = sourceView === "program";
   const isLocalUpdate = useRef(true);
   const hasSynced = useRef(false);
 
@@ -550,7 +554,16 @@ export default function Workout({ socket }) {
                   </Grid>
                 )}
                 <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  {training.date ? (
+                  {returnPath ? (
+                    <IconButton
+                      onClick={async () => {
+                        await save();
+                        navigate(returnPath);
+                      }}
+                    >
+                      <ArrowBack />
+                    </IconButton>
+                  ) : training.date ? (
                     <IconButton
                       onClick={async () => {
                         const isToday = dayjs.utc(training.date).format("YYYY-MM-DD") ===
@@ -571,7 +584,7 @@ export default function Workout({ socket }) {
                     <IconButton
                       onClick={() => {
                         save();
-                        navigate("/sessions");
+                        navigate(training.isTemplate ? "/workout-templates" : "/sessions");
                       }}
                     >
                       <ArrowBack />
@@ -579,11 +592,20 @@ export default function Workout({ socket }) {
                   )}
                 </Grid>
                 <Grid size={10} container sx={{ justifyContent: "center" }}>
-                  <Typography variant="h5">
-                    {training.date
-                      ? dayjs.utc(training.date).format("MMMM Do, YYYY")
-                      : "Queued Workout"}
-                  </Typography>
+                  <Stack spacing={0.5} alignItems="center">
+                    <Typography variant="h5">
+                      {training.date
+                        ? dayjs.utc(training.date).format("MMMM Do, YYYY")
+                        : isProgramBuilder
+                        ? "Workout Builder"
+                        : training.isTemplate
+                        ? "Template Workout"
+                        : "Workout Builder"}
+                    </Typography>
+                    {training.isTemplate && (
+                      <Chip label="Template Workout" size="small" variant="outlined" />
+                    )}
+                  </Stack>
                 </Grid>
                 <Grid size={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
                   <Tooltip title="Workout Settings">

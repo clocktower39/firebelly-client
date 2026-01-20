@@ -22,6 +22,7 @@ import Schedule from "./Pages/AppPages/Schedule";
 import ProgramBuilder from "./Pages/AppPages/ProgramBuilder";
 import Programs from "./Pages/AppPages/Programs";
 import ProgramsMarketplacePreview from "./Pages/AppPages/ProgramsMarketplacePreview";
+import WorkoutTemplates from "./Pages/AppPages/WorkoutTemplates";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Exercises from "./Pages/AppPages/Exercises";
 import Clients from "./Pages/AppPages/Clients";
@@ -132,6 +133,7 @@ function App({ }) {
                   <Route exact path="/" element={<Home />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
+                  <Route exact path="/workout-templates" element={<WorkoutTemplates />} />
                   <Route exact path="/sessions" element={<Schedule />} />
                   <Route exact path="/schedule" element={<Navigate to="/sessions" replace />} />
                   <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
