@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Box,
   Button,
@@ -21,12 +22,14 @@ const formatTemplateSummary = (workout) => {
 };
 
 export default function WorkoutTemplates() {
+  const user = useSelector((state) => state.user);
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.isTrainer) return;
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const loadTemplates = async () => {
       setLoading(true);
@@ -51,7 +54,23 @@ export default function WorkoutTemplates() {
       }
     };
     loadTemplates();
-  }, []);
+  }, [user?.isTrainer]);
+
+  if (!user?.isTrainer) {
+    return (
+      <Box sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
+        <Stack spacing={2} alignItems="flex-start">
+          <Typography variant="h5">Template Workouts</Typography>
+          <Typography color="text.secondary">
+            Template workouts are only available to trainers.
+          </Typography>
+          <Button variant="outlined" onClick={() => navigate("/calendar")}>
+            Back to calendar
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
 
   const sortedTemplates = useMemo(() => {
     return [...templates].sort(

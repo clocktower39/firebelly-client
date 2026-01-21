@@ -63,11 +63,6 @@ export default function NavDrawer() {
       icon: <CalendarIcon />,
     },
     {
-      title: "Workout Templates",
-      to: "/workout-templates",
-      icon: <CalendarIcon />,
-    },
-    {
       title: "Goals",
       to: "/goals",
       icon: <GoalsIcon />,
@@ -94,6 +89,11 @@ export default function NavDrawer() {
       title: "Programs",
       to: "/programs",
       icon: <GoalsIcon />,
+    },
+    {
+      title: "Workout Templates",
+      to: "/workout-templates",
+      icon: <CalendarIcon />,
     },
     {
       title: "Session Counter",
