@@ -28,6 +28,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -35,6 +36,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  ArrowBack,
+  ArrowForward,
   FitnessCenter as FitnessCenterIcon,
   GridView as GridViewIcon,
   List as ListIcon,
@@ -42,7 +45,7 @@ import {
   Today as TodayIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
-import { requestWorkoutsByMonth, serverURL } from "../../Redux/actions";
+import { requestWorkoutsByMonth, requestWorkoutsByYear, serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
 import {
   LocalizationProvider,
@@ -111,6 +114,7 @@ export default function Calendar(props) {
   const [categoryFilter, setCategoryFilter] = useState([]);
   const [sortMode, setSortMode] = useState("date-desc");
   const [viewMode, setViewMode] = useState("list");
+  const [calendarViewMode, setCalendarViewMode] = useState("month");
   const [showCalendar, setShowCalendar] = useState(true);
   const [showFilters, setShowFilters] = useState(true);
 
@@ -155,12 +159,42 @@ export default function Calendar(props) {
     getWorkoutMonthData(e);
   };
 
+  useEffect(() => {
+    if (calendarViewMode !== "year") return;
+    let cancelled = false;
+    const loadYear = async () => {
+      setIsLoading(true);
+      const target = view === "client" ? user : client;
+      await dispatch(requestWorkoutsByYear(currentYear, target));
+      if (!cancelled) {
+        setIsLoading(false);
+      }
+    };
+    loadYear();
+    return () => {
+      cancelled = true;
+    };
+  }, [calendarViewMode, client, currentYear, dispatch, user, view]);
+
   const [scrollToDate, setScrollToDate] = useState(dayjs().format("YYYY-MM-DD"));
 
   const handleDateCalendarChange = (e) => {
     const newDate = dayjs(e);
     setScrollToDate(newDate.format("YYYY-MM-DD"));
     setSelectedDate(newDate);
+  };
+
+  const handleYearDaySelect = (day) => {
+    handleMonthChange(day);
+    handleDateCalendarChange(day);
+    setCalendarViewMode("month");
+  };
+
+  const handleYearViewChange = (direction) => {
+    const nextYear = currentYear + direction;
+    const base = selectedDate.year(nextYear);
+    setSelectedDate(base);
+    setCurrentYear(nextYear);
   };
 
   const monthWorkouts = useMemo(() => {
@@ -171,13 +205,56 @@ export default function Calendar(props) {
     );
   }, [workouts, currentMonth, currentYear]);
 
+  const yearStatusMap = useMemo(() => {
+    const statusMap = new Map();
+    workouts.forEach((workout) => {
+      const workoutDate = dayjs.utc(workout.date);
+      if (workoutDate.year() !== currentYear) return;
+      const key = workoutDate.format("YYYY-MM-DD");
+      const existing = statusMap.get(key);
+      if (workout.complete === false) {
+        statusMap.set(key, "incomplete");
+      } else if (!existing) {
+        statusMap.set(key, "complete");
+      }
+    });
+    return statusMap;
+  }, [currentYear, workouts]);
+
+  const yearGridDays = useMemo(() => {
+    const yearStart = dayjs().year(currentYear).startOf("year").startOf("week");
+    const yearEnd = dayjs().year(currentYear).endOf("year").endOf("week");
+    const days = [];
+    let current = yearStart;
+    while (current.isBefore(yearEnd) || current.isSame(yearEnd, "day")) {
+      days.push(current);
+      current = current.add(1, "day");
+    }
+    return days;
+  }, [currentYear]);
+
+  const yearWeekColumns = useMemo(() => {
+    const columns = [];
+    yearGridDays.forEach((day, index) => {
+      const weekIndex = Math.floor(index / 7);
+      if (!columns[weekIndex]) columns[weekIndex] = [];
+      columns[weekIndex].push(day);
+    });
+    return columns;
+  }, [yearGridDays]);
+
+  const yearWorkouts = useMemo(() => {
+    return workouts.filter((workout) => dayjs.utc(workout.date).year() === currentYear);
+  }, [currentYear, workouts]);
+
   const categoryOptions = useMemo(() => {
+    const source = calendarViewMode === "year" ? yearWorkouts : monthWorkouts;
     const categories = new Set();
-    monthWorkouts.forEach((workout) => {
+    source.forEach((workout) => {
       workout?.category?.forEach((item) => categories.add(item));
     });
     return Array.from(categories).sort((a, b) => a.localeCompare(b));
-  }, [monthWorkouts]);
+  }, [calendarViewMode, monthWorkouts, yearWorkouts]);
 
   const filteredWorkouts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -207,7 +284,8 @@ export default function Calendar(props) {
       return categoryFilter.every((category) => workoutCategories.includes(category));
     };
 
-    return [...monthWorkouts]
+    const source = calendarViewMode === "year" ? yearWorkouts : monthWorkouts;
+    return [...source]
       .filter((workout) => matchesSearch(workout) && matchesStatus(workout) && matchesCategories(workout))
       .sort((a, b) => {
         if (sortMode === "date-asc") return dayjs(a.date).valueOf() - dayjs(b.date).valueOf();
@@ -215,7 +293,7 @@ export default function Calendar(props) {
         if (sortMode === "title-desc") return (b.title || "").localeCompare(a.title || "");
         return dayjs(b.date).valueOf() - dayjs(a.date).valueOf();
       });
-  }, [categoryFilter, monthWorkouts, searchQuery, sortMode, statusFilter]);
+  }, [calendarViewMode, categoryFilter, monthWorkouts, yearWorkouts, searchQuery, sortMode, statusFilter]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -245,7 +323,7 @@ export default function Calendar(props) {
           </Typography>
         </Grid>
       )}
-      <Box sx={{ height: "90vh", minHeight: "650px", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ minHeight: "650px", display: "flex", flexDirection: "column" }} data-calendar-scroll>
         <Box sx={{ px: 2, py: 1 }}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems="center">
             <Typography variant="h6">Calendar</Typography>
@@ -256,6 +334,19 @@ export default function Calendar(props) {
               <Button size="small" variant="outlined" onClick={() => setShowFilters((prev) => !prev)}>
                 {showFilters ? "Hide filters" : "Show filters"}
               </Button>
+              <ToggleButtonGroup
+                value={calendarViewMode}
+                exclusive
+                size="small"
+                onChange={(event, value) => value && setCalendarViewMode(value)}
+              >
+                <ToggleButton value="month" aria-label="Month view">
+                  Month
+                </ToggleButton>
+                <ToggleButton value="year" aria-label="Year view">
+                  Year
+                </ToggleButton>
+              </ToggleButtonGroup>
               <ToggleButtonGroup
                 value={viewMode}
                 exclusive
@@ -272,22 +363,6 @@ export default function Calendar(props) {
             </Stack>
           </Stack>
         </Box>
-
-        {/* DateCalendar takes 20% of the available height */}
-        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
-          <Box sx={{ flex: "0 0 20%" }}>
-            <DateCalendar
-              value={selectedDate}
-              onChange={handleDateCalendarChange}
-              loading={isLoading}
-              renderLoading={() => <DayCalendarSkeleton />}
-              views={["year", "month", "day"]}
-              slots={{ day: ServerDay }}
-              slotProps={{ day: { highlightedDays } }}
-              onMonthChange={handleMonthChange}
-            />
-          </Box>
-        </Collapse>
 
         <Collapse in={showFilters} timeout="auto" unmountOnExit>
           <Box sx={{ px: 2, py: 1 }}>
@@ -381,24 +456,125 @@ export default function Calendar(props) {
             <Divider sx={{ my: 2 }} />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between">
               <Typography variant="body2">
-                Showing {filteredWorkouts.length} of {monthWorkouts.length} workouts
+                Showing {filteredWorkouts.length} of{" "}
+                {calendarViewMode === "year" ? yearWorkouts.length : monthWorkouts.length} workouts
               </Typography>
               <Stack direction="row" spacing={1}>
-                <Chip label={`Complete: ${monthWorkouts.filter((workout) => workout.complete).length}`} variant="outlined" />
-                <Chip label={`Incomplete: ${monthWorkouts.filter((workout) => !workout.complete).length}`} variant="outlined" />
+                <Chip
+                  label={`Complete: ${
+                    calendarViewMode === "year"
+                      ? yearWorkouts.filter((workout) => workout.complete).length
+                      : monthWorkouts.filter((workout) => workout.complete).length
+                  }`}
+                  variant="outlined"
+                />
+                <Chip
+                  label={`Incomplete: ${
+                    calendarViewMode === "year"
+                      ? yearWorkouts.filter((workout) => !workout.complete).length
+                      : monthWorkouts.filter((workout) => !workout.complete).length
+                  }`}
+                  variant="outlined"
+                />
               </Stack>
             </Stack>
           </Box>
         </Collapse>
 
-        {/* Workouts List takes the remaining space */}
-        <Box sx={{ flex: "1", overflow: "auto" }} data-calendar-scroll>
+        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
+          <Box>
+            {calendarViewMode === "year" ? (
+              <Box sx={{ px: 2, pb: 2 }}>
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                  <Button size="small" onClick={() => handleYearViewChange(-1)}>
+                    <ArrowBack fontSize="small" />
+                  </Button>
+                  <Typography variant="subtitle1">{currentYear}</Typography>
+                  <Button size="small" onClick={() => handleYearViewChange(1)}>
+                    <ArrowForward fontSize="small" />
+                  </Button>
+                </Stack>
+                <Box sx={{ overflowX: "auto", mt: 1, pb: 1 }}>
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                    {yearWeekColumns.map((week, weekIndex) => (
+                      <Stack key={`week-${weekIndex}`} spacing={0.5}>
+                        {week.map((day) => {
+                          const dayKey = day.format("YYYY-MM-DD");
+                          const status = yearStatusMap.get(dayKey);
+                          const isCurrentYear = day.year() === currentYear;
+                          const isSelected = day.isSame(selectedDate, "day");
+                          const fill =
+                            status === "complete"
+                              ? "primary.main"
+                              : status === "incomplete"
+                              ? "warning.main"
+                              : "transparent";
+                          return (
+                            <Tooltip
+                              key={dayKey}
+                              title={
+                                status
+                                  ? `${day.format("MMM D")}: ${
+                                      status === "complete" ? "Completed" : "Incomplete"
+                                    }`
+                                  : day.format("MMM D")
+                              }
+                            >
+                              <Box
+                                onClick={() => handleYearDaySelect(day)}
+                                sx={{
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: 0.5,
+                                  backgroundColor: fill,
+                                  border: isSelected ? "2px solid" : "1px solid",
+                                  borderColor: isSelected ? "primary.dark" : "rgba(148, 163, 184, 0.4)",
+                                  opacity: isCurrentYear ? 1 : 0.3,
+                                  cursor: "pointer",
+                                }}
+                              />
+                            </Tooltip>
+                          );
+                        })}
+                      </Stack>
+                    ))}
+                  </Box>
+                </Box>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="caption" color="text.secondary">
+                    Complete
+                  </Typography>
+                  <Box sx={{ width: 12, height: 12, bgcolor: "primary.main", borderRadius: 0.5 }} />
+                  <Typography variant="caption" color="text.secondary">
+                    Incomplete
+                  </Typography>
+                  <Box sx={{ width: 12, height: 12, bgcolor: "warning.main", borderRadius: 0.5 }} />
+                </Stack>
+              </Box>
+            ) : (
+              <DateCalendar
+                value={selectedDate}
+                onChange={handleDateCalendarChange}
+                loading={isLoading}
+                renderLoading={() => <DayCalendarSkeleton />}
+                views={["year", "month", "day"]}
+                openTo="day"
+                slots={{ day: ServerDay }}
+                slotProps={{ day: { highlightedDays } }}
+                onMonthChange={handleMonthChange}
+              />
+            )}
+          </Box>
+        </Collapse>
+
+        <Box sx={{ flex: "1" }}>
           <Workouts
             history={filteredWorkouts}
             scrollToDate={scrollToDate}
             setSelectedWorkout={setSelectedWorkout}
             handleModalToggle={handleModalToggle}
             viewMode={viewMode}
+            isYearView={calendarViewMode === "year"}
           />
         </Box>
       </Box>
@@ -438,13 +614,15 @@ function ServerDay(props) {
   );
 }
 
-const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode }) => {
+const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle, viewMode, isYearView }) => {
   if (!history.length) {
     return (
       <List>
         <ListItem>
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
-            No workouts match your filters for this month.
+            {isYearView
+              ? "No workouts match your filters for this year."
+              : "No workouts match your filters for this month."}
           </Typography>
         </ListItem>
       </List>
@@ -505,12 +683,24 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
     const scrollDate = dayjs(scrollToDate).format("YYYY-MM-DD");
 
     if (testDate === scrollDate) {
-      const scrollContainer = ref.current?.closest("[data-calendar-scroll]");
-      scrollContainer?.scrollTo({
+    const scrollContainer = ref.current?.closest("[data-calendar-scroll]");
+    if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
+      scrollContainer.scrollTo({
         top: ref.current.offsetTop,
         left: 0,
         behavior: "smooth",
       });
+    } else {
+      const nav =
+        document.querySelector("header.MuiAppBar-root") ||
+        document.querySelector(".MuiAppBar-root") ||
+        document.querySelector("nav");
+      const navHeight = nav?.getBoundingClientRect().height || 0;
+      window.scrollTo({
+        top: ref.current.getBoundingClientRect().top + window.scrollY - navHeight - 16,
+        behavior: "smooth",
+      });
+    }
       setIsDateSelected(true); // Set true when dates match
     } else {
       setIsDateSelected(false); // Set false otherwise

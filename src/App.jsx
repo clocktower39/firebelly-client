@@ -19,6 +19,10 @@ import Home from "./Pages/AppPages/Home";
 import Workout from "./Pages/AppPages/Workout";
 import Calendar from "./Pages/AppPages/Calendar";
 import Schedule from "./Pages/AppPages/Schedule";
+import ProgramBuilder from "./Pages/AppPages/ProgramBuilder";
+import Programs from "./Pages/AppPages/Programs";
+import ProgramsMarketplacePreview from "./Pages/AppPages/ProgramsMarketplacePreview";
+import WorkoutTemplates from "./Pages/AppPages/WorkoutTemplates";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Exercises from "./Pages/AppPages/Exercises";
 import Clients from "./Pages/AppPages/Clients";
@@ -129,6 +133,7 @@ function App({ }) {
                   <Route exact path="/" element={<Home />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
+                  <Route exact path="/workout-templates" element={<WorkoutTemplates />} />
                   <Route exact path="/sessions" element={<Schedule />} />
                   <Route exact path="/schedule" element={<Navigate to="/sessions" replace />} />
                   <Route exact path="/workout/:_id" element={<Workout socket={socket} />} />
@@ -136,6 +141,10 @@ function App({ }) {
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />
                   <Route exact path="/session-counter" element={<SessionCounter />} />
+                  <Route exact path="/programs" element={<Programs />} />
+                  <Route exact path="/programs/marketplace-preview" element={<ProgramsMarketplacePreview />} />
+                  <Route exact path="/programs/builder" element={<ProgramBuilder />} />
+                  <Route exact path="/programs/:programId/edit" element={<ProgramBuilder />} />
 
                   <Route exact path="/account/*" element={<Account />}>
                     <Route index={true} exact path="" element={<MyAccount />} />

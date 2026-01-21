@@ -1,15 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Avatar, Box, Card, CardContent, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, Container, Divider, Stack, TextField, Typography } from "@mui/material";
+import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import SelectedDate from "../../Components/SelectedDate";
 import { serverURL } from "../../Redux/actions";
 
 dayjs.extend(utc);
 
-const WEEK_START_HOUR = 6;
-const WEEK_END_HOUR = 20;
+const DEFAULT_START_HOUR = 6;
+const DEFAULT_END_HOUR = 20;
 const SLOT_MINUTES = 30;
 const SLOT_HEIGHT = 28;
 const HEADER_HEIGHT = 56;
@@ -20,6 +20,7 @@ export default function PublicSchedule() {
   const [events, setEvents] = useState([]);
   const [trainer, setTrainer] = useState(null);
   const [trainerError, setTrainerError] = useState("");
+  const weekPickerRef = useRef(null);
 
   useEffect(() => {
     if (!trainerId) return;
@@ -77,8 +78,6 @@ export default function PublicSchedule() {
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
     [weekStart]
   );
-  const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
-
   const weekEvents = useMemo(() => {
     const start = weekStart.startOf("day");
     const end = weekStart.add(7, "day").startOf("day");
@@ -88,6 +87,31 @@ export default function PublicSchedule() {
       return eventStart.isBefore(end) && eventEnd.isAfter(start);
     });
   }, [events, weekStart]);
+
+  const { calendarStartHour, calendarEndHour } = useMemo(() => {
+    if (!weekEvents.length) {
+      return { calendarStartHour: DEFAULT_START_HOUR, calendarEndHour: DEFAULT_END_HOUR };
+    }
+    let minStart = 23;
+    let maxEnd = 0;
+    weekEvents.forEach((event) => {
+      const startTime = dayjs(event.startDateTime);
+      const endTime = dayjs(event.endDateTime);
+      const startHour = startTime.hour();
+      const endHour = endTime.hour();
+      minStart = Math.min(minStart, startHour);
+      maxEnd = Math.max(maxEnd, endTime.minute() > 0 ? endHour + 1 : endHour);
+    });
+    if (maxEnd <= minStart) {
+      maxEnd = Math.min(minStart + 1, 24);
+    }
+    return {
+      calendarStartHour: Math.max(0, Math.min(23, minStart)),
+      calendarEndHour: Math.max(1, Math.min(24, maxEnd)),
+    };
+  }, [weekEvents]);
+
+  const totalSlots = Math.max((calendarEndHour - calendarStartHour) * 2, 0);
 
   const getEventStyle = (event, day) => {
     const dayStart = day.startOf("day");
@@ -99,10 +123,13 @@ export default function PublicSchedule() {
 
     const startMinutes = start.diff(dayStart, "minute");
     const endMinutes = end.diff(dayStart, "minute");
-    const topMinutes = Math.max(startMinutes - WEEK_START_HOUR * 60, 0);
-    const bottomMinutes = Math.min(endMinutes - WEEK_START_HOUR * 60, (WEEK_END_HOUR - WEEK_START_HOUR) * 60);
+    const topMinutes = Math.max(startMinutes - calendarStartHour * 60, 0);
+    const bottomMinutes = Math.min(
+      endMinutes - calendarStartHour * 60,
+      (calendarEndHour - calendarStartHour) * 60
+    );
 
-    if (bottomMinutes <= 0 || topMinutes >= (WEEK_END_HOUR - WEEK_START_HOUR) * 60) return null;
+    if (bottomMinutes <= 0 || topMinutes >= (calendarEndHour - calendarStartHour) * 60) return null;
 
     return {
       top: Math.floor(topMinutes / SLOT_MINUTES) * SLOT_HEIGHT,
@@ -114,6 +141,11 @@ export default function PublicSchedule() {
     const start = weekStart;
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D")} - ${end.format("MMM D")}`;
+  }, [weekStart]);
+  const weekRangeDisplay = useMemo(() => {
+    const start = weekStart;
+    const end = weekStart.add(6, "day");
+    return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
   }, [weekStart]);
 
   return (
@@ -152,10 +184,46 @@ export default function PublicSchedule() {
           )}
         </Stack>
 
-        <SelectedDate
-          selectedDate={selectedDate.format("YYYY-MM-DD")}
-          setSelectedDate={(value) => setSelectedDate(dayjs(value))}
-        />
+        <Container maxWidth="md" sx={{ height: "100%", paddingTop: "10px", maxWidth: "100%" }}>
+          <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
+            <Button onClick={() => setSelectedDate(selectedDate.subtract(1, "week"))}>
+              <ArrowBack sx={{ color: "primary.dark" }} />
+            </Button>
+            <TextField
+              focused
+              label="Week"
+              type="text"
+              color="primary"
+              value={weekRangeDisplay}
+              onClick={() => {
+                if (weekPickerRef.current?.showPicker) {
+                  weekPickerRef.current.showPicker();
+                } else if (weekPickerRef.current) {
+                  weekPickerRef.current.click();
+                  weekPickerRef.current.focus();
+                }
+              }}
+              InputProps={{ readOnly: true }}
+            />
+            <Button onClick={() => setSelectedDate(selectedDate.add(1, "week"))}>
+              <ArrowForward sx={{ color: "primary.dark" }} />
+            </Button>
+            <input
+              ref={weekPickerRef}
+              type="date"
+              value={selectedDate.format("YYYY-MM-DD")}
+              onChange={(event) => setSelectedDate(dayjs(event.target.value))}
+              style={{
+                position: "absolute",
+                opacity: 0,
+                pointerEvents: "none",
+                width: 0,
+                height: 0,
+              }}
+            />
+          </Stack>
+          <Divider sx={{ margin: "15px" }} />
+        </Container>
 
         {(!trainerId || trainerError) && (
           <Typography color="text.secondary">
@@ -189,7 +257,7 @@ export default function PublicSchedule() {
                       }}
                     />
                     {Array.from({ length: totalSlots }).map((_, index) => {
-                      const minutes = WEEK_START_HOUR * 60 + index * SLOT_MINUTES;
+                      const minutes = calendarStartHour * 60 + index * SLOT_MINUTES;
                       const label =
                         minutes % 60 === 0
                           ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")

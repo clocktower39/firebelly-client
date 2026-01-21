@@ -13,11 +13,15 @@ import {
   Dialog,
   DialogContent,
   Divider,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
+  MenuItem,
+  Select,
   Stack,
   Slide,
   TextField,
@@ -62,6 +66,10 @@ export default function Workout({ socket }) {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const returnPath = searchParams.get("return");
+  const sourceView = searchParams.get("source");
+  const isProgramBuilder = sourceView === "program";
   const isLocalUpdate = useRef(true);
   const hasSynced = useRef(false);
 
@@ -266,11 +274,30 @@ export default function Workout({ socket }) {
   };
 
   // Create a new exercise on the current set
-  const confirmedNewExercise = (index, selectedExercises, setSelectedExercises, setCount, setSelectedExercisesSetCount,) => {
+  const confirmedNewExercise = (
+    index,
+    selectedExercises,
+    setSelectedExercises,
+    setCount,
+    setSelectedExercisesSetCount,
+    selectedHistoryByExercise,
+    exerciseList,
+  ) => {
     if (selectedExercises.length > 0) {
       const newTraining = localTraining.map((group, i) => {
         if (index === i) {
           selectedExercises.forEach((exercise) => {
+            const reduxExercise = exerciseList.find((item) => item._id === exercise._id);
+            const history = reduxExercise?.history?.[user._id] || [];
+            const selectedHistoryId = selectedHistoryByExercise?.[exercise._id];
+            const selectedHistory =
+              history.find((item) => item._id === selectedHistoryId) ||
+              history[history.length - 1];
+            const achieved = selectedHistory?.achieved || {};
+            const normalizeToSets = (values) => {
+              const source = Array.isArray(values) ? values : [];
+              return Array.from({ length: setCount }, (_, idx) => source[idx] ?? 0);
+            };
             group.push({
               exercise: exercise,
               exerciseType: "Reps",
@@ -278,10 +305,10 @@ export default function Workout({ socket }) {
                 sets: setCount,
                 minReps: Array(setCount).fill(0),
                 maxReps: Array(setCount).fill(0),
-                exactReps: Array(setCount).fill(0),
-                weight: Array(setCount).fill(0),
-                percent: Array(setCount).fill(0),
-                seconds: Array(setCount).fill(0),
+                exactReps: normalizeToSets(achieved.reps),
+                weight: normalizeToSets(achieved.weight),
+                percent: normalizeToSets(achieved.percent),
+                seconds: normalizeToSets(achieved.seconds),
               },
               achieved: {
                 sets: 0,
@@ -527,7 +554,16 @@ export default function Workout({ socket }) {
                   </Grid>
                 )}
                 <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
-                  {training.date ? (
+                  {returnPath ? (
+                    <IconButton
+                      onClick={async () => {
+                        await save();
+                        navigate(returnPath);
+                      }}
+                    >
+                      <ArrowBack />
+                    </IconButton>
+                  ) : training.date ? (
                     <IconButton
                       onClick={async () => {
                         const isToday = dayjs.utc(training.date).format("YYYY-MM-DD") ===
@@ -548,7 +584,7 @@ export default function Workout({ socket }) {
                     <IconButton
                       onClick={() => {
                         save();
-                        navigate("/sessions");
+                        navigate(training.isTemplate ? "/workout-templates" : "/sessions");
                       }}
                     >
                       <ArrowBack />
@@ -556,11 +592,20 @@ export default function Workout({ socket }) {
                   )}
                 </Grid>
                 <Grid size={10} container sx={{ justifyContent: "center" }}>
-                  <Typography variant="h5">
-                    {training.date
-                      ? dayjs.utc(training.date).format("MMMM Do, YYYY")
-                      : "Queued Workout"}
-                  </Typography>
+                  <Stack spacing={0.5} alignItems="center">
+                    <Typography variant="h5">
+                      {training.date
+                        ? dayjs.utc(training.date).format("MMMM Do, YYYY")
+                        : isProgramBuilder
+                        ? "Workout Builder"
+                        : training.isTemplate
+                        ? "Template Workout"
+                        : "Workout Builder"}
+                    </Typography>
+                    {training.isTemplate && (
+                      <Chip label="Template Workout" size="small" variant="outlined" />
+                    )}
+                  </Stack>
                 </Grid>
                 <Grid size={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
                   <Tooltip title="Workout Settings">
@@ -773,9 +818,44 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
 
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
+  const [selectedHistoryByExercise, setSelectedHistoryByExercise] = useState({});
 
   const handleSelectedExercisesSetCountChange = (e) =>
     setSelectedExercisesSetCount(Number(e.target.value));
+
+  useEffect(() => {
+    setSelectedHistoryByExercise((prev) => {
+      const next = { ...prev };
+      selectedExercises.forEach((exercise) => {
+        if (next[exercise._id] !== undefined) return;
+        const reduxExercise = exerciseList.find((item) => item._id === exercise._id);
+        const history = reduxExercise?.history?.[user._id] || [];
+        next[exercise._id] = history.length > 0 ? history[history.length - 1]._id : "";
+      });
+      Object.keys(next).forEach((exerciseId) => {
+        if (!selectedExercises.some((exercise) => exercise._id === exerciseId)) {
+          delete next[exerciseId];
+        }
+      });
+      return next;
+    });
+  }, [exerciseList, selectedExercises, user._id]);
+
+  const formatHistoryLabel = (historyItem) => {
+    if (!historyItem) return "No history";
+    const achieved = historyItem.achieved || {};
+    const weight = Array.isArray(achieved.weight) ? achieved.weight.filter(Boolean) : [];
+    const reps = Array.isArray(achieved.reps) ? achieved.reps.filter(Boolean) : [];
+    const seconds = Array.isArray(achieved.seconds) ? achieved.seconds.filter(Boolean) : [];
+    const percent = Array.isArray(achieved.percent) ? achieved.percent.filter(Boolean) : [];
+    const details = [];
+    if (reps.length) details.push(`${reps.join(", ")} reps`);
+    if (weight.length) details.push(`${weight.join(", ")} lb`);
+    if (seconds.length) details.push(`${seconds.join(", ")} sec`);
+    if (percent.length) details.push(`${percent.join(", ")}%`);
+    const summary = details.length ? ` • ${details.join(" | ")}` : "";
+    return `${dayjs(historyItem.date).format("MM/DD/YYYY")}${summary}`;
+  };
 
   return (
     <Dialog
@@ -804,7 +884,17 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
           </Typography>
           <Button
             variant="contained"
-            onClick={() => confirmedNewExercise(activeStep, selectedExercises, setSelectedExercises, selectedExercisesSetCount, setSelectedExercisesSetCount)}
+            onClick={() =>
+              confirmedNewExercise(
+                activeStep,
+                selectedExercises,
+                setSelectedExercises,
+                selectedExercisesSetCount,
+                setSelectedExercisesSetCount,
+                selectedHistoryByExercise,
+                exerciseList
+              )
+            }
           >
             Confirm
           </Button>
@@ -840,16 +930,39 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
                 {selectedExercises.map((exercise, exerciseIndex, exercises) => {
                   const reduxExercise = exerciseList.find((ex) => ex._id === exercise._id);
                   const history = reduxExercise?.history?.[user._id];
+                  const historyOptions = history ? history.slice(history.length - 3, history.length) : [];
 
                   return (
                     <Fragment key={`${exercise.exerciseTitle}-${exerciseIndex}`} >
                       <ListItem >
-                        <ListItemText
-                          secondary={history && history
-                            .slice(history.length - 3, history.length)
-                            .map((historyItem, historyItemIndex) => <Typography variant="subtitle1" key={`${historyItem._id}-${historyItemIndex}`} ><strong>{dayjs(historyItem.date).format("MM/DD/YYYY")}:</strong> {historyItem.achieved.weight.join(', ')}</Typography>)}>
-                          {exercise?.exerciseTitle}
-                        </ListItemText>
+                        <Stack spacing={1} sx={{ width: "100%" }}>
+                          <Typography variant="subtitle1">{exercise?.exerciseTitle}</Typography>
+                          {historyOptions.length > 0 ? (
+                            <FormControl fullWidth size="small">
+                              <InputLabel>Use previous achieved</InputLabel>
+                              <Select
+                                label="Use previous achieved"
+                                value={selectedHistoryByExercise[exercise._id] ?? ""}
+                                onChange={(event) =>
+                                  setSelectedHistoryByExercise((prev) => ({
+                                    ...prev,
+                                    [exercise._id]: event.target.value,
+                                  }))
+                                }
+                              >
+                                {historyOptions.map((historyItem) => (
+                                  <MenuItem key={historyItem._id} value={historyItem._id}>
+                                    {formatHistoryLabel(historyItem)}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              No recent history for this exercise.
+                            </Typography>
+                          )}
+                        </Stack>
                       </ListItem>
                       {exerciseIndex !== exercises.length - 1 && <Divider component="li" />}
                     </Fragment>

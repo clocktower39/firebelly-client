@@ -8,6 +8,7 @@ import {
   CardActions,
   CardContent,
   Chip,
+  Checkbox,
   Container,
   Dialog,
   DialogActions,
@@ -19,18 +20,32 @@ import {
   FormControlLabel,
   Grid,
   InputLabel,
-  InputAdornment,
+  ListItemText,
   MenuItem,
+  Menu,
   Select,
   Stack,
   Avatar,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableSortLabel,
+  TableRow,
+  IconButton,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { ArrowBack, ArrowForward } from "@mui/icons-material";
+import {
+  ArrowBack,
+  ArrowForward,
+  ArrowDownward,
+  ArrowUpward,
+  Settings,
+} from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { toPng } from "html-to-image";
@@ -78,8 +93,15 @@ const statusColors = {
   COMPLETED: "default",
   CANCELLED: "error",
 };
-const currencySymbols = { USD: "$", EUR: "€", YEN: "¥" };
-const currencyLocales = { USD: "en-US", EUR: "de-DE", YEN: "ja-JP" };
+
+const tableColumnLabels = {
+  date: "Date",
+  time: "Time",
+  type: "Type",
+  status: "Status",
+  client: "Client",
+  price: "Price",
+};
 
 const WEEK_START_HOUR = 6;
 const WEEK_END_HOUR = 20;
@@ -172,6 +194,25 @@ export default function Schedule() {
   const [shareShownKeys, setShareShownKeys] = useState([]);
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
+  const [shareHidePrices, setShareHidePrices] = useState(true);
+  const [openTimeSettings, setOpenTimeSettings] = useState(false);
+  const [calendarStartHour, setCalendarStartHour] = useState(WEEK_START_HOUR);
+  const [calendarEndHour, setCalendarEndHour] = useState(WEEK_END_HOUR);
+  const [draftStartHour, setDraftStartHour] = useState(WEEK_START_HOUR);
+  const [draftEndHour, setDraftEndHour] = useState(WEEK_END_HOUR);
+  const [tableSortKey, setTableSortKey] = useState("date");
+  const [tableSortDirection, setTableSortDirection] = useState("asc");
+  const [tableFilterTypes, setTableFilterTypes] = useState([]);
+  const [tableFilterStatuses, setTableFilterStatuses] = useState([]);
+  const [tableFilterClients, setTableFilterClients] = useState([]);
+  const [tableFilterPrices, setTableFilterPrices] = useState([]);
+  const [tableFilterTimes, setTableFilterTimes] = useState([]);
+  const [tableFilterClientQuery, setTableFilterClientQuery] = useState("");
+  const [tableFilterDates, setTableFilterDates] = useState([]);
+  const [tableFilterAnchor, setTableFilterAnchor] = useState(null);
+  const [tableFilterKey, setTableFilterKey] = useState("");
+  const [tableFilterLabel, setTableFilterLabel] = useState("");
+  const [hiddenTableColumns, setHiddenTableColumns] = useState(["type"]);
   const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
   const [sessionTypes, setSessionTypes] = useState([]);
   const [sessionTypesStatus, setSessionTypesStatus] = useState("");
@@ -187,6 +228,9 @@ export default function Schedule() {
 
   const weekCaptureRef = useRef(null);
   const weekPickerRef = useRef(null);
+  const weekScrollRef = useRef(null);
+  const totalsScrollRef = useRef(null);
+  const syncingScrollRef = useRef(false);
 
   const isTrainerView = user.isTrainer && !bookingAsClient;
   const isClientView = !isTrainerView;
@@ -395,17 +439,6 @@ export default function Schedule() {
     },
     [sessionTypeLookup]
   );
-  const formatCurrency = useCallback((amount, currency) => {
-    if (amount === null || amount === undefined) return "";
-    const normalizedCurrency = currency || "USD";
-    const formatter = new Intl.NumberFormat(currencyLocales[normalizedCurrency] || "en-US", {
-      style: "currency",
-      currency: normalizedCurrency === "YEN" ? "JPY" : normalizedCurrency,
-      minimumFractionDigits: normalizedCurrency === "YEN" ? 0 : 2,
-      maximumFractionDigits: normalizedCurrency === "YEN" ? 0 : 2,
-    });
-    return formatter.format(Number(amount));
-  }, []);
   const highlightFill = useMemo(() => {
     const hex = shareHighlightColor.replace("#", "");
     if (hex.length !== 6) return "rgba(255, 193, 7, 0.35)";
@@ -745,7 +778,7 @@ export default function Schedule() {
     setEditPublicLabel(event.publicLabel || "");
     setEditSessionTypeId(event.sessionTypeId || "");
     setEditPriceAmount(
-      event.priceAmount === 0 || event.priceAmount ? String(event.priceAmount) : defaultPrice
+      typeof event.priceAmount === "number" ? String(event.priceAmount) : defaultPrice
     );
     setEditPriceCurrency(event.priceCurrency || sessionType?.currency || "USD");
     setOpenEditDialog(true);
@@ -790,8 +823,6 @@ export default function Schedule() {
       customClientPhone: event.customClientPhone || "",
       workoutId: null,
       sessionTypeId: event.sessionTypeId || null,
-      priceAmount: event.priceAmount ?? null,
-      priceCurrency: event.priceCurrency || "USD",
       availabilitySource: isAvailability ? event.availabilitySource || "MANUAL" : undefined,
       recurrenceRule: null,
     };
@@ -1024,6 +1055,9 @@ export default function Schedule() {
       customClientName: customName,
       customClientEmail: editCustomEmail.trim(),
       customClientPhone: editCustomPhone.trim(),
+      priceAmount:
+        editPriceAmount === "" ? null : Number.parseFloat(editPriceAmount),
+      priceCurrency: editPriceCurrency || "USD",
     };
     if (editEvent.eventType === "AVAILABILITY" && (editClientId || customName)) {
       updates.clientId = editClientId || null;
@@ -1046,8 +1080,6 @@ export default function Schedule() {
       updates.workoutId = null;
     }
     updates.sessionTypeId = editSessionTypeId || null;
-    updates.priceAmount = editPriceAmount === "" ? null : Number(editPriceAmount);
-    updates.priceCurrency = editPriceCurrency || "USD";
     await dispatch(
       updateScheduleEvent(editEvent._id, {
         ...updates,
@@ -1350,11 +1382,37 @@ export default function Schedule() {
     const end = weekStart.add(6, "day");
     return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
   }, [weekStart]);
+  const timeColumnWidth = useMemo(() => (isShareMode ? 48 : 64), [isShareMode]);
+  const currencyAffix = useMemo(() => {
+    const currency = editPriceCurrency || "USD";
+    switch (currency) {
+      case "EUR":
+        return { position: "end", label: "€" };
+      case "JPY":
+        return { position: "start", label: "¥" };
+      case "USD":
+      default:
+        return { position: "start", label: "$" };
+    }
+  }, [editPriceCurrency]);
+  const formatPrice = useCallback((amount, currency) => {
+    if (amount == null || Number.isNaN(Number(amount))) return "";
+    const value = Number(amount).toFixed(2);
+    switch (currency) {
+      case "EUR":
+        return `${value} €`;
+      case "JPY":
+        return `¥${value}`;
+      case "USD":
+      default:
+        return `$${value}`;
+    }
+  }, []);
   const acceptedClients = useMemo(
     () => clients.filter((clientRel) => clientRel.accepted),
     [clients]
   );
-  const totalSlots = (WEEK_END_HOUR - WEEK_START_HOUR) * 2;
+  const totalSlots = Math.max((calendarEndHour - calendarStartHour) * 2, 0);
 
   const weekEvents = useMemo(() => {
     const start = weekStart.startOf("day");
@@ -1399,6 +1457,37 @@ export default function Schedule() {
   }, [openShareDialog, weekClientOptions]);
 
   useEffect(() => {
+    if (!openTimeSettings) return;
+    setDraftStartHour(calendarStartHour);
+    setDraftEndHour(calendarEndHour);
+  }, [calendarEndHour, calendarStartHour, openTimeSettings]);
+
+  useEffect(() => {
+    const weekNode = weekScrollRef.current;
+    const totalsNode = totalsScrollRef.current;
+    if (!weekNode || !totalsNode) return;
+
+    const syncScroll = (source, target) => {
+      if (syncingScrollRef.current) return;
+      syncingScrollRef.current = true;
+      target.scrollLeft = source.scrollLeft;
+      requestAnimationFrame(() => {
+        syncingScrollRef.current = false;
+      });
+    };
+
+    const onWeekScroll = () => syncScroll(weekNode, totalsNode);
+    const onTotalsScroll = () => syncScroll(totalsNode, weekNode);
+
+    weekNode.addEventListener("scroll", onWeekScroll);
+    totalsNode.addEventListener("scroll", onTotalsScroll);
+    return () => {
+      weekNode.removeEventListener("scroll", onWeekScroll);
+      totalsNode.removeEventListener("scroll", onTotalsScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(pointer: coarse)");
     const update = () => setTouchSelectionEnabled(!mediaQuery.matches);
     update();
@@ -1418,33 +1507,263 @@ export default function Schedule() {
       return activeClientIds.includes(event.clientId);
     });
   }, [activeClientIds, isTrainerView, weekEvents]);
-  const weekTotals = useMemo(() => {
-    const start = weekStart.startOf("day");
-    const dayTotals = Array.from({ length: 7 }, () => ({
-      count: 0,
-      amounts: new Map(),
-    }));
-    const weekAmounts = new Map();
-    let weekCount = 0;
+  const isCountableSession = useCallback(
+    (event) => event.eventType !== "AVAILABILITY" && event.status !== "CANCELLED",
+    []
+  );
+  const totalizePrices = useCallback(
+    (events) =>
+      (events || []).reduce((acc, event) => {
+        if (!isCountableSession(event)) return acc;
+        if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
+        const currency = event.priceCurrency || "USD";
+        acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+        return acc;
+      }, {}),
+    [isCountableSession]
+  );
+  const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
+  const dayTotalsByColumn = useMemo(
+    () =>
+      weekDays.map((day) => {
+        const dayEvents = weekEvents.filter((event) =>
+          dayjs(event.startDateTime).isSame(day, "day")
+        );
+        return totalizePrices(dayEvents);
+      }),
+    [totalizePrices, weekDays, weekEvents]
+  );
+  const dayCountsByColumn = useMemo(
+    () =>
+      weekDays.map((day) =>
+        weekEvents.filter(
+          (event) => isCountableSession(event) && dayjs(event.startDateTime).isSame(day, "day")
+        ).length
+      ),
+    [isCountableSession, weekDays, weekEvents]
+  );
+  const weekEventCount = useMemo(
+    () => weekEvents.filter((event) => isCountableSession(event)).length,
+    [isCountableSession, weekEvents]
+  );
+  const weekEventRows = useMemo(() => {
+    return [...filteredWeekEvents].sort(
+      (a, b) => dayjs(a.startDateTime).valueOf() - dayjs(b.startDateTime).valueOf()
+    );
+  }, [filteredWeekEvents]);
 
-    filteredWeekEvents.forEach((event) => {
-      if (event.eventType === "AVAILABILITY") return;
-      if (event.status === "CANCELLED") return;
-      const dayIndex = dayjs(event.startDateTime).startOf("day").diff(start, "day");
-      if (dayIndex < 0 || dayIndex > 6) return;
-      dayTotals[dayIndex].count += 1;
-      weekCount += 1;
+  const getRowClientLabel = useCallback(
+    (event) => {
+      if (isTrainerView && (event.clientId || event.customClientName)) {
+        return getEventDisplayName(event);
+      }
+      if (isClientView && selectedTrainerId) {
+        return selectedTrainerLabel || "Trainer";
+      }
+      if (event.eventType === "AVAILABILITY") return "Open slot";
+      return "—";
+    },
+    [getEventDisplayName, isClientView, isTrainerView, selectedTrainerId, selectedTrainerLabel]
+  );
 
-      if (event.priceAmount === null || event.priceAmount === undefined) return;
-      const currency = event.priceCurrency || "USD";
-      const dayCurrent = dayTotals[dayIndex].amounts.get(currency) || 0;
-      dayTotals[dayIndex].amounts.set(currency, dayCurrent + Number(event.priceAmount));
-      const weekCurrent = weekAmounts.get(currency) || 0;
-      weekAmounts.set(currency, weekCurrent + Number(event.priceAmount));
+  const getRowPriceLabel = useCallback(
+    (event) => {
+      if (event.priceAmount == null) return "No price";
+      return formatPrice(event.priceAmount, event.priceCurrency || "USD");
+    },
+    [formatPrice]
+  );
+
+  const getRowTimeLabel = useCallback(
+    (event) => dayjs(event.startDateTime).format("h:mm A"),
+    []
+  );
+
+  const hourOptions = useMemo(() => Array.from({ length: 24 }, (_, index) => index), []);
+  const formatHourLabel = useCallback((hour) => dayjs().hour(hour).minute(0).format("h A"), []);
+  const timeSettingsError = draftEndHour <= draftStartHour;
+
+  const weekTypeOptions = useMemo(
+    () => Array.from(new Set(weekEventRows.map((event) => event.eventType))).sort(),
+    [weekEventRows]
+  );
+  const weekStatusOptions = useMemo(
+    () => Array.from(new Set(weekEventRows.map((event) => event.status))).sort(),
+    [weekEventRows]
+  );
+  const weekTableClientOptions = useMemo(() => {
+    const options = new Set();
+    weekEventRows.forEach((event) => options.add(getRowClientLabel(event)));
+    return Array.from(options).sort();
+  }, [getRowClientLabel, weekEventRows]);
+  const weekPriceOptions = useMemo(() => {
+    const options = new Set();
+    weekEventRows.forEach((event) => options.add(getRowPriceLabel(event)));
+    return Array.from(options).sort();
+  }, [getRowPriceLabel, weekEventRows]);
+  const weekTimeOptions = useMemo(() => {
+    const start = dayjs().hour(calendarStartHour).minute(0).second(0).millisecond(0);
+    const end = dayjs().hour(calendarEndHour).minute(0).second(0).millisecond(0);
+    const times = [];
+    let current = start;
+    while (current.isBefore(end) || current.isSame(end)) {
+      times.push(current.format("h:mm A"));
+      current = current.add(1, "hour");
+    }
+    return times;
+  }, [calendarEndHour, calendarStartHour]);
+  const filteredWeekRows = useMemo(() => {
+    return weekEventRows.filter((event) => {
+      if (tableFilterTypes.length > 0 && !tableFilterTypes.includes(event.eventType)) {
+        return false;
+      }
+      if (tableFilterStatuses.length > 0 && !tableFilterStatuses.includes(event.status)) {
+        return false;
+      }
+      if (tableFilterDates.length > 0) {
+        const eventDate = dayjs(event.startDateTime).format("YYYY-MM-DD");
+        if (!tableFilterDates.includes(eventDate)) return false;
+      }
+      if (tableFilterTimes.length > 0) {
+        const timeLabel = getRowTimeLabel(event);
+        if (!tableFilterTimes.includes(timeLabel)) return false;
+      }
+      if (tableFilterPrices.length > 0) {
+        const priceLabel = getRowPriceLabel(event);
+        if (!tableFilterPrices.includes(priceLabel)) return false;
+      }
+      if (tableFilterClients.length > 0) {
+        const display = getRowClientLabel(event);
+        if (!tableFilterClients.includes(display)) return false;
+      }
+      return true;
     });
+  }, [
+    weekEventRows,
+    tableFilterTypes,
+    tableFilterStatuses,
+    tableFilterDates,
+    tableFilterTimes,
+    tableFilterClients,
+    tableFilterPrices,
+    getRowClientLabel,
+    getRowPriceLabel,
+    getRowTimeLabel,
+  ]);
+  const sortedWeekRows = useMemo(() => {
+    const sorted = [...filteredWeekRows];
+    const direction = tableSortDirection === "asc" ? 1 : -1;
+    sorted.sort((a, b) => {
+      switch (tableSortKey) {
+        case "time":
+        case "date": {
+          const aTime = dayjs(a.startDateTime).valueOf();
+          const bTime = dayjs(b.startDateTime).valueOf();
+          return (aTime - bTime) * direction;
+        }
+        case "type":
+          return a.eventType.localeCompare(b.eventType) * direction;
+        case "status":
+          return a.status.localeCompare(b.status) * direction;
+        case "client": {
+          const aName = getEventDisplayName(a).toLowerCase();
+          const bName = getEventDisplayName(b).toLowerCase();
+          return aName.localeCompare(bName) * direction;
+        }
+        case "price": {
+          const aPrice = Number(a.priceAmount ?? 0);
+          const bPrice = Number(b.priceAmount ?? 0);
+          return (aPrice - bPrice) * direction;
+        }
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [filteredWeekRows, tableSortDirection, tableSortKey, getEventDisplayName]);
 
-    return { dayTotals, weekTotals: { count: weekCount, amounts: weekAmounts } };
-  }, [filteredWeekEvents, weekStart]);
+  const openTableFilter = (event, key, label) => {
+    setTableFilterKey(key);
+    setTableFilterLabel(label || "");
+    setTableFilterAnchor(event.currentTarget);
+  };
+
+  const closeTableFilter = () => {
+    setTableFilterAnchor(null);
+    setTableFilterKey("");
+    setTableFilterLabel("");
+  };
+
+  const toggleTableSort = (key) => {
+    const next =
+      tableSortKey === key && tableSortDirection === "asc" ? "desc" : "asc";
+    setTableSortKey(key);
+    setTableSortDirection(next);
+  };
+
+  const applyTableSort = (key, direction) => {
+    if (!key) return;
+    setTableSortKey(key);
+    setTableSortDirection(direction);
+  };
+
+  const isColumnHidden = useCallback(
+    (key) => hiddenTableColumns.includes(key),
+    [hiddenTableColumns]
+  );
+
+  const toggleColumnVisibility = (key) => {
+    setHiddenTableColumns((prev) =>
+      prev.includes(key) ? prev.filter((col) => col !== key) : [...prev, key]
+    );
+  };
+
+  const showAllColumns = () => {
+    setHiddenTableColumns([]);
+  };
+
+  const isTableFilterActive = useMemo(
+    () =>
+      tableFilterTypes.length > 0 ||
+      tableFilterStatuses.length > 0 ||
+      tableFilterPrices.length > 0 ||
+      tableFilterDates.length > 0 ||
+      tableFilterTimes.length > 0 ||
+      tableFilterClients.length > 0,
+    [
+      tableFilterClients,
+      tableFilterPrices,
+      tableFilterStatuses,
+      tableFilterTypes,
+      tableFilterDates,
+      tableFilterTimes,
+    ]
+  );
+
+  const tableColumnCount = useMemo(() => {
+    let count = 0;
+    if (!isColumnHidden("date")) count += 1;
+    if (!isColumnHidden("time")) count += 1;
+    if (!isColumnHidden("type")) count += 1;
+    if (!isColumnHidden("status")) count += 1;
+    if (!isColumnHidden("client")) count += 1;
+    if (
+      isTrainerView &&
+      !(isShareMode && shareHidePrices) &&
+      !isColumnHidden("price")
+    ) {
+      count += 1;
+    }
+    return count + 1;
+  }, [isColumnHidden, isTrainerView, isShareMode, shareHidePrices]);
+  const formatTotals = useCallback(
+    (totals) => {
+      const entries = Object.entries(totals || {});
+      if (!entries.length) return "—";
+      return entries.map(([currency, total]) => formatPrice(total, currency)).join(" • ");
+    },
+    [formatPrice]
+  );
 
   const getEventStyle = (event, day) => {
     const dayStart = day.startOf("day");
@@ -1456,10 +1775,13 @@ export default function Schedule() {
 
     const startMinutes = start.diff(dayStart, "minute");
     const endMinutes = end.diff(dayStart, "minute");
-    const topMinutes = Math.max(startMinutes - WEEK_START_HOUR * 60, 0);
-    const bottomMinutes = Math.min(endMinutes - WEEK_START_HOUR * 60, (WEEK_END_HOUR - WEEK_START_HOUR) * 60);
+    const topMinutes = Math.max(startMinutes - calendarStartHour * 60, 0);
+    const bottomMinutes = Math.min(
+      endMinutes - calendarStartHour * 60,
+      (calendarEndHour - calendarStartHour) * 60
+    );
 
-    if (bottomMinutes <= 0 || topMinutes >= (WEEK_END_HOUR - WEEK_START_HOUR) * 60) return null;
+    if (bottomMinutes <= 0 || topMinutes >= (calendarEndHour - calendarStartHour) * 60) return null;
 
     return {
       top: Math.floor(topMinutes / SLOT_MINUTES) * SLOT_HEIGHT,
@@ -1530,12 +1852,12 @@ export default function Schedule() {
   const selectionRange = useMemo(() => {
     if (!normalizedSelection) return null;
     const day = weekDays[normalizedSelection.dayIndex];
-    const startMinutes = WEEK_START_HOUR * 60 + normalizedSelection.startIndex * SLOT_MINUTES;
-    const endMinutes = WEEK_START_HOUR * 60 + (normalizedSelection.endIndex + 1) * SLOT_MINUTES;
+    const startMinutes = calendarStartHour * 60 + normalizedSelection.startIndex * SLOT_MINUTES;
+    const endMinutes = calendarStartHour * 60 + (normalizedSelection.endIndex + 1) * SLOT_MINUTES;
     const start = day.startOf("day").add(startMinutes, "minute");
     const end = day.startOf("day").add(endMinutes, "minute");
     return { start, end };
-  }, [normalizedSelection, weekDays]);
+  }, [calendarStartHour, normalizedSelection, weekDays]);
 
   useEffect(() => {
     if (!openSelectionDialog || !selectionRange) return;
@@ -1708,7 +2030,7 @@ export default function Schedule() {
                   )}
                 </Stack>
                 {isTrainerView && !isShareMode && (
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
                     <Button variant="outlined" onClick={openCopyDay}>
                       Copy day
                     </Button>
@@ -1733,6 +2055,14 @@ export default function Schedule() {
                     >
                       Copy share link
                     </Button>
+                    <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
+                    <IconButton
+                      aria-label="View settings"
+                      onClick={() => setOpenTimeSettings(true)}
+                      sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}
+                    >
+                      <Settings />
+                    </IconButton>
                   </Stack>
                 )}
                 {isTrainerView && !isShareMode && shareLinkStatus && (
@@ -1741,6 +2071,7 @@ export default function Schedule() {
                   </Typography>
                 )}
                 <Box
+                  ref={weekScrollRef}
                   sx={{
                     display: "flex",
                     border: "1px solid rgba(148, 163, 184, 0.35)",
@@ -1750,7 +2081,9 @@ export default function Schedule() {
                 >
                   <Box
                     sx={{
-                      width: isShareMode ? 48 : 64,
+                      width: timeColumnWidth,
+                      minWidth: timeColumnWidth,
+                      maxWidth: timeColumnWidth,
                       borderRight: "1px solid rgba(148, 163, 184, 0.35)",
                     }}
                   >
@@ -1761,7 +2094,7 @@ export default function Schedule() {
                       }}
                     />
                     {Array.from({ length: totalSlots }).map((_, index) => {
-                      const minutes = WEEK_START_HOUR * 60 + index * SLOT_MINUTES;
+                      const minutes = calendarStartHour * 60 + index * SLOT_MINUTES;
                       const label =
                         minutes % 60 === 0
                           ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")
@@ -1786,14 +2119,15 @@ export default function Schedule() {
                     })}
                   </Box>
                   <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: isShareMode
-                        ? "repeat(7, minmax(0, 1fr))"
-                        : "repeat(7, minmax(96px, 1fr))",
-                      flex: 1,
-                    }}
-                  >
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: isShareMode
+                          ? "repeat(7, minmax(0, 1fr))"
+                          : "repeat(7, minmax(96px, 1fr))",
+                        minWidth: isShareMode ? "auto" : "672px",
+                        flex: 1,
+                      }}
+                    >
                     {weekDays.map((day, dayIndex) => (
                       <Box key={day.format("YYYY-MM-DD")} sx={{ borderLeft: "1px solid rgba(148, 163, 184, 0.2)" }}>
                         <Box
@@ -1914,7 +2248,8 @@ export default function Schedule() {
                                   {event.eventType === "AVAILABILITY" ? (
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
-                                    <Stack direction="row" spacing={0.5} alignItems="flex-start">
+                                    <Stack spacing={0.25}>
+                                      <Stack direction="row" spacing={0.5} alignItems="center">
                                       {!(
                                         isShareMode &&
                                         shareHideDetails &&
@@ -1948,30 +2283,31 @@ export default function Schedule() {
                                             : "B"}
                                         </Avatar>
                                       )}
-                                      <Stack spacing={0}>
-                                        <Typography
-                                          variant="caption"
-                                          sx={{
-                                            fontWeight:
-                                              isShareMode &&
-                                              shareHideDetails &&
-                                              shareHighlightShown &&
-                                              ((event.clientId &&
-                                                shareShownKeys.includes(`client:${event.clientId}`)) ||
-                                                (event.customClientName &&
-                                                  shareShownKeys.includes(`custom:${event.customClientName}`)))
-                                                ? 700
-                                                : 400,
-                                          }}
-                                        >
-                                          {getEventDisplayName(event)}
-                                        </Typography>
-                                        {isTrainerView && event.priceAmount !== null && (
-                                          <Typography variant="caption" color="text.secondary">
-                                            {formatCurrency(event.priceAmount, event.priceCurrency)}
-                                          </Typography>
-                                        )}
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          fontWeight:
+                                            isShareMode &&
+                                            shareHideDetails &&
+                                            shareHighlightShown &&
+                                            ((event.clientId &&
+                                              shareShownKeys.includes(`client:${event.clientId}`)) ||
+                                              (event.customClientName &&
+                                                shareShownKeys.includes(`custom:${event.customClientName}`)))
+                                              ? 700
+                                              : 400,
+                                        }}
+                                      >
+                                        {getEventDisplayName(event)}
+                                      </Typography>
                                       </Stack>
+                                      {isTrainerView &&
+                                        event.priceAmount != null &&
+                                        !(isShareMode && shareHidePrices) && (
+                                        <Typography variant="caption" sx={{ opacity: 0.75 }}>
+                                          {formatPrice(event.priceAmount, event.priceCurrency || "USD")}
+                                        </Typography>
+                                      )}
                                     </Stack>
                                   )}
                                 </Box>
@@ -1982,74 +2318,77 @@ export default function Schedule() {
                     ))}
                   </Box>
                 </Box>
-                {isTrainerView && !isShareMode && (
+                {isTrainerView && !(isShareMode && shareHidePrices) && (
                   <Box
+                    ref={totalsScrollRef}
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: isShareMode
-                        ? "48px repeat(8, minmax(0, 1fr))"
-                        : "64px repeat(8, minmax(96px, 1fr))",
-                      border: "1px solid rgba(148, 163, 184, 0.35)",
-                      borderRadius: 2,
                       overflowX: { xs: "auto", md: "hidden" },
                     }}
                   >
                     <Box
                       sx={{
-                        borderRight: "1px solid rgba(148, 163, 184, 0.35)",
-                        backgroundColor: "rgba(148,163,184,0.05)",
-                      }}
-                    />
-                    {weekDays.map((day, dayIndex) => {
-                      const totals = weekTotals.dayTotals[dayIndex];
-                      const amounts = Array.from(totals.amounts.entries());
-                      const amountLabel =
-                        amounts.length === 0
-                          ? "—"
-                          : amounts
-                              .map(([currency, amount]) => formatCurrency(amount, currency))
-                              .join(" ");
-                      return (
-                        <Box
-                          key={`totals-${day.format("YYYY-MM-DD")}`}
-                          sx={{
-                            borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
-                            p: 0.75,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Typography variant="subtitle2">{amountLabel}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {totals.count} sessions
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                    <Box
-                      sx={{
-                        borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
-                        p: 0.75,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
+                        display: "grid",
+                        gridTemplateColumns: `${timeColumnWidth}px repeat(7, minmax(${isShareMode ? 0 : 96}px, 1fr))`,
+                        border: "1px solid rgba(148, 163, 184, 0.35)",
+                        borderTop: "1px solid rgba(148, 163, 184, 0.35)",
+                        borderRadius: "8px",
+                        minWidth: isShareMode ? "auto" : "736px",
                       }}
                     >
-                      <Typography variant="subtitle2">
-                        {weekTotals.weekTotals.amounts.size === 0
-                          ? "—"
-                          : Array.from(weekTotals.weekTotals.amounts.entries())
-                              .map(([currency, amount]) => formatCurrency(amount, currency))
-                              .join(" ")}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {weekTotals.weekTotals.count} sessions
-                      </Typography>
+                      <Box
+                        sx={{
+                          borderRight: "1px solid rgba(148, 163, 184, 0.35)",
+                          py: 1,
+                          px: 0,
+                          fontSize: "0.7rem",
+                          color: "text.secondary",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          writingMode: "vertical-rl",
+                          textOrientation: "mixed",
+                          minWidth: timeColumnWidth,
+                          maxWidth: timeColumnWidth,
+                        }}
+                      >
+                        {" "}
+                      </Box>
+                      {dayTotalsByColumn.map((totals, index) => (
+                      <Box
+                        key={`total-${index}`}
+                        sx={{
+                          borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                          py: 1,
+                          px: 1,
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
+                        {formatTotals(totals)}
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {dayCountsByColumn[index]} sessions
+                        </Typography>
+                      </Box>
+                    ))}
+                      <Box
+                        sx={{
+                          gridColumn: "2 / span 7",
+                          borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                          py: 1,
+                          px: 1,
+                          fontSize: "0.75rem",
+                          color: "text.secondary",
+                        }}
+                      >
+                        {formatTotals(weekTotals)}
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {weekEventCount} sessions
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 )}
-              </Stack>
+                </Stack>
               </CardContent>
             </Card>
           </Box>
@@ -2140,12 +2479,20 @@ export default function Schedule() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid container size={12}>
-          <Stack spacing={2}>
+        <Grid container size={12} sx={{ minWidth: 0 }}>
+          <Stack spacing={2} sx={{ minWidth: 0 }}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
               <Typography variant="h6">
                 Week of {weekRangeLabel}
               </Typography>
+              {isTrainerView && Object.keys(weekTotals).length > 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Week total:{" "}
+                  {Object.entries(weekTotals)
+                    .map(([currency, total]) => `${currency} ${total.toFixed(2)}`)
+                    .join(" • ")}
+                </Typography>
+              )}
               {isTrainerView && selectedClientIds.length === 0 && (
                 <Typography variant="body2" color="text.secondary">
                   Select one or more clients to load their workouts.
@@ -2173,154 +2520,241 @@ export default function Schedule() {
                 </CardContent>
               </Card>
             )}
-            {filteredDayEvents.length === 0 && (
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary">No session events.</Typography>
-                </CardContent>
-              </Card>
-            )}
             <Card>
               <CardContent>
-                <Typography variant="h6">Session Events</Typography>
+                  <Stack spacing={2} sx={{ minWidth: 0 }}>
+                  <Typography variant="h6">Session Events (Week)</Typography>
+                    <Box sx={{ maxWidth: "100%", overflowX: "auto" }}>
+                      <Table size="small" sx={{ minWidth: 720 }}>
+                      <TableHead>
+                        <TableRow>
+                          {!isColumnHidden("date") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "date", "Date")}
+                                >
+                                  Date
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("date")}>
+                                  {tableSortKey === "date" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("time") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "time", "Time")}
+                                >
+                                  Time
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("time")}>
+                                  {tableSortKey === "time" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("type") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "type", "Type")}
+                                >
+                                  Type
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("type")}>
+                                  {tableSortKey === "type" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("status") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "status", "Status")}
+                                >
+                                  Status
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("status")}>
+                                  {tableSortKey === "status" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {!isColumnHidden("client") && (
+                            <TableCell>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={(event) => openTableFilter(event, "client", "Client")}
+                                >
+                                  Client
+                                </Button>
+                                <IconButton size="small" onClick={() => toggleTableSort("client")}>
+                                  {tableSortKey === "client" && tableSortDirection === "desc" ? (
+                                    <ArrowDownward fontSize="inherit" />
+                                  ) : (
+                                    <ArrowUpward fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Stack>
+                            </TableCell>
+                          )}
+                          {isTrainerView &&
+                            !(isShareMode && shareHidePrices) &&
+                            !isColumnHidden("price") && (
+                              <TableCell>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={(event) => openTableFilter(event, "price", "Price")}
+                                  >
+                                    Price
+                                  </Button>
+                                  <IconButton size="small" onClick={() => toggleTableSort("price")}>
+                                    {tableSortKey === "price" && tableSortDirection === "desc" ? (
+                                      <ArrowDownward fontSize="inherit" />
+                                    ) : (
+                                      <ArrowUpward fontSize="inherit" />
+                                    )}
+                                  </IconButton>
+                                </Stack>
+                              </TableCell>
+                            )}
+                          <TableCell>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {sortedWeekRows.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={tableColumnCount}>
+                              <Typography color="text.secondary">
+                                {isTableFilterActive
+                                  ? "No session events match the current filters."
+                                  : "No session events."}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {sortedWeekRows.map((event) => (
+                          <TableRow key={event._id}>
+                            {!isColumnHidden("date") && (
+                              <TableCell>
+                                {dayjs(event.startDateTime).format("ddd, MMM D")}
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("time") && (
+                              <TableCell>{formatRange(event)}</TableCell>
+                            )}
+                            {!isColumnHidden("type") && (
+                              <TableCell>
+                                <Chip
+                                  label={event.eventType}
+                                  color={scheduleColors[event.eventType] || "default"}
+                                  size="small"
+                                />
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("status") && (
+                              <TableCell>
+                                <Chip
+                                  label={event.status}
+                                  color={statusColors[event.status] || "default"}
+                                  size="small"
+                                />
+                              </TableCell>
+                            )}
+                            {!isColumnHidden("client") && (
+                              <TableCell>
+                                {isTrainerView && (event.clientId || event.customClientName)
+                                  ? getEventDisplayName(event)
+                                  : isClientView && selectedTrainerId
+                                  ? selectedTrainerLabel || "Trainer"
+                                  : event.eventType === "AVAILABILITY"
+                                  ? "Open slot"
+                                  : "—"}
+                              </TableCell>
+                            )}
+                            {isTrainerView &&
+                              !(isShareMode && shareHidePrices) &&
+                              !isColumnHidden("price") && (
+                                <TableCell>
+                                  {event.priceAmount != null
+                                    ? formatPrice(event.priceAmount, event.priceCurrency || "USD")
+                                    : "—"}
+                                </TableCell>
+                              )}
+                            <TableCell>
+                              <Stack direction="row" spacing={1} flexWrap="wrap">
+                                {event.workoutId && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    component={Link}
+                                    to={`/workout/${event.workoutId}?event=${event._id}`}
+                                  >
+                                    Open Workout
+                                  </Button>
+                                )}
+                                {isTrainerView && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => openActionForEvent(event)}
+                                  >
+                                    Details
+                                  </Button>
+                                )}
+                                {isClientView &&
+                                  event.eventType === "AVAILABILITY" &&
+                                  event.status === "OPEN" && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => openRequestForEvent(event)}
+                                    >
+                                      Request
+                                    </Button>
+                                  )}
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      </Table>
+                    </Box>
+                </Stack>
               </CardContent>
             </Card>
-            {filteredDayEvents.map((event) => (
-              <Card key={event._id} variant="outlined">
-                <CardContent>
-                  <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip
-                        label={event.eventType}
-                        color={scheduleColors[event.eventType] || "default"}
-                        size="small"
-                      />
-                      <Chip
-                        label={event.status}
-                        color={statusColors[event.status] || "default"}
-                        size="small"
-                      />
-                      {event.availabilitySource && (
-                        <Chip label={event.availabilitySource} size="small" />
-                      )}
-                    </Stack>
-                    <Typography variant="subtitle1">{formatRange(event)}</Typography>
-                    {isTrainerView && (event.clientId || event.customClientName) && (
-                      <Typography variant="body2" color="text.secondary">
-                        Client: {getEventDisplayName(event)}
-                      </Typography>
-                    )}
-                    {isClientView && selectedTrainerId && (
-                      <Typography variant="body2" color="text.secondary">
-                        Trainer: {selectedTrainerLabel || "Trainer"}
-                      </Typography>
-                    )}
-                    {isTrainerView && getSessionTypeLabel(event) && (
-                      <Typography variant="body2" color="text.secondary">
-                        Session type: {getSessionTypeLabel(event)}
-                      </Typography>
-                    )}
-                    {event.recurrenceRule && (
-                      <Typography variant="caption" color="text.secondary">
-                        Recurring availability
-                      </Typography>
-                    )}
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {event.workoutId && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          component={Link}
-                          to={`/workout/${event.workoutId}?event=${event._id}`}
-                        >
-                          Open Workout
-                        </Button>
-                      )}
-                      {isTrainerView &&
-                        event.eventType !== "AVAILABILITY" &&
-                        event.status !== "CANCELLED" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleReopenEvent(event)}
-                          >
-                            Reopen Slot
-                          </Button>
-                        )}
-                      {isTrainerView &&
-                        !event.workoutId &&
-                        event.status !== "CANCELLED" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => openAttachForEvent(event)}
-                          >
-                            Attach Workout
-                          </Button>
-                        )}
-                      {isTrainerView && (
-                      <Button size="small" variant="outlined" onClick={() => openActionForEvent(event)}>
-                        Edit
-                      </Button>
-                      )}
-                      {isTrainerView && event.status !== "CANCELLED" && (
-                        <Button size="small" variant="outlined" onClick={() => openCopyForEvent(event)}>
-                          Copy
-                        </Button>
-                      )}
-                      {isTrainerView && event.status === "REQUESTED" && (
-                        <>
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => handleTrainerResponse(event._id, "BOOKED")}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleTrainerResponse(event._id, "CANCELLED")}
-                          >
-                            Decline
-                          </Button>
-                        </>
-                      )}
-                      {isTrainerView && event.status === "OPEN" && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => handleCancelEvent(event._id)}
-                        >
-                          Close Slot
-                        </Button>
-                      )}
-                      {isTrainerView && (
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          onClick={() => openDeleteConfirm(event)}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                      {isClientView &&
-                        event.eventType === "AVAILABILITY" &&
-                        event.status === "OPEN" && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            onClick={() => openRequestForEvent(event)}
-                          >
-                            Request
-                          </Button>
-                        )}
-                    </Stack>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
             {isTrainerView && (
               <Card>
                 <CardContent>
@@ -2934,6 +3368,50 @@ export default function Schedule() {
                 )}
               </Stack>
             )}
+            {isTrainerView && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Price</Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="Amount"
+                    type="number"
+                    value={editPriceAmount}
+                    onChange={(event) => setEditPriceAmount(event.target.value)}
+                    inputProps={{ min: 0, step: "0.01" }}
+                    InputProps={
+                      currencyAffix.position === "start"
+                        ? {
+                            startAdornment: (
+                              <Box sx={{ mr: 1, color: "text.secondary" }}>
+                                {currencyAffix.label}
+                              </Box>
+                            ),
+                          }
+                        : {
+                            endAdornment: (
+                              <Box sx={{ ml: 1, color: "text.secondary" }}>
+                                {currencyAffix.label}
+                              </Box>
+                            ),
+                          }
+                    }
+                    fullWidth
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      label="Currency"
+                      value={editPriceCurrency}
+                      onChange={(event) => setEditPriceCurrency(event.target.value)}
+                    >
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="JPY">YEN</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            )}
             {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
               <Stack spacing={1}>
                 <Typography variant="subtitle2">Public label</Typography>
@@ -2965,37 +3443,6 @@ export default function Schedule() {
                   ))}
                 </Select>
               </FormControl>
-            )}
-            {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                <TextField
-                  label="Price"
-                  type="number"
-                  value={editPriceAmount}
-                  onChange={(event) => setEditPriceAmount(event.target.value)}
-                  inputProps={{ min: 0, step: "0.01" }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        {currencySymbols[editPriceCurrency] || editPriceCurrency}
-                      </InputAdornment>
-                    ),
-                  }}
-                  fullWidth
-                />
-                <FormControl fullWidth>
-                  <InputLabel>Currency</InputLabel>
-                  <Select
-                    label="Currency"
-                    value={editPriceCurrency}
-                    onChange={(event) => setEditPriceCurrency(event.target.value)}
-                  >
-                    <MenuItem value="USD">USD</MenuItem>
-                    <MenuItem value="EUR">EUR</MenuItem>
-                    <MenuItem value="YEN">YEN</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
             )}
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
@@ -3215,7 +3662,7 @@ export default function Schedule() {
                     <MenuItem key={clientRel.client._id} value={clientRel.client._id}>
                       {clientRel.client.firstName} {clientRel.client.lastName}
                     </MenuItem>
-                  ))}
+                ))}
               </Select>
             </FormControl>
             <FormControl fullWidth>
@@ -3269,6 +3716,455 @@ export default function Schedule() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={openSessionTypesDialog}
+        onClose={() => setOpenSessionTypesDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Session Types</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {sessionTypesStatus && (
+              <Typography variant="caption" color="error">
+                {sessionTypesStatus}
+              </Typography>
+            )}
+            {sessionTypes.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No session types yet.
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {sessionTypes.map((type) => (
+                  <Card key={type._id} variant="outlined">
+                    <CardContent>
+                      <Stack spacing={0.5}>
+                        <Typography variant="subtitle1">{type.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {formatPrice(type.defaultPrice || 0, type.currency || "USD")}
+                        </Typography>
+                        {type.description && (
+                          <Typography variant="body2" color="text.secondary">
+                            {type.description}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </CardContent>
+                    <CardActions sx={{ px: 2, pb: 2 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleEditSessionType(type)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="text"
+                        onClick={() => handleDeleteSessionType(type._id)}
+                      >
+                        Delete
+                      </Button>
+                    </CardActions>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+            <Divider />
+            <Typography variant="subtitle1">
+              {editingSessionTypeId ? "Edit session type" : "New session type"}
+            </Typography>
+            <TextField
+              label="Name"
+              value={sessionTypeForm.name}
+              onChange={(event) =>
+                setSessionTypeForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={sessionTypeForm.description}
+              onChange={(event) =>
+                setSessionTypeForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+              multiline
+              minRows={2}
+              fullWidth
+            />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <TextField
+                label="Default price"
+                type="number"
+                value={sessionTypeForm.defaultPrice}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({ ...prev, defaultPrice: event.target.value }))
+                }
+                inputProps={{ min: 0, step: "0.01" }}
+                fullWidth
+              />
+              <FormControl fullWidth>
+                <InputLabel>Currency</InputLabel>
+                <Select
+                  label="Currency"
+                  value={sessionTypeForm.currency}
+                  onChange={(event) =>
+                    setSessionTypeForm((prev) => ({ ...prev, currency: event.target.value }))
+                  }
+                >
+                  <MenuItem value="USD">USD</MenuItem>
+                  <MenuItem value="EUR">EUR</MenuItem>
+                  <MenuItem value="JPY">YEN</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                onClick={handleSaveSessionType}
+                disabled={!sessionTypeForm.name.trim()}
+              >
+                {editingSessionTypeId ? "Save changes" : "Add session type"}
+              </Button>
+              {editingSessionTypeId && (
+                <Button variant="text" onClick={resetSessionTypeForm}>
+                  Cancel edit
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSessionTypesDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Menu
+        anchorEl={tableFilterAnchor}
+        open={Boolean(tableFilterAnchor)}
+        onClose={closeTableFilter}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+        PaperProps={{ sx: { minWidth: 220, p: 1 } }}
+      >
+        <Stack spacing={1}>
+          <Typography variant="subtitle1">
+            {tableFilterLabel || "Column options"}
+          </Typography>
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              Sort
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                variant={
+                  tableSortKey === tableFilterKey && tableSortDirection === "asc"
+                    ? "contained"
+                    : "outlined"
+                }
+                startIcon={<ArrowUpward fontSize="small" />}
+                onClick={() => {
+                  applyTableSort(tableFilterKey, "asc");
+                  closeTableFilter();
+                }}
+              >
+                Asc
+              </Button>
+              <Button
+                size="small"
+                variant={
+                  tableSortKey === tableFilterKey && tableSortDirection === "desc"
+                    ? "contained"
+                    : "outlined"
+                }
+                startIcon={<ArrowDownward fontSize="small" />}
+                onClick={() => {
+                  applyTableSort(tableFilterKey, "desc");
+                  closeTableFilter();
+                }}
+              >
+                Desc
+              </Button>
+            </Stack>
+          </Stack>
+          <Divider />
+          <Stack spacing={0.75}>
+            <Typography variant="caption" color="text.secondary">
+              Column visibility
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                toggleColumnVisibility(tableFilterKey);
+                closeTableFilter();
+              }}
+            >
+              {isColumnHidden(tableFilterKey) ? "Show column" : "Hide column"}
+            </Button>
+            {hiddenTableColumns.length > 0 && (
+              <Stack spacing={1}>
+                <Button size="small" onClick={showAllColumns}>
+                  Show all columns
+                </Button>
+                <Stack spacing={0.5}>
+                  {hiddenTableColumns.map((columnKey) => (
+                    <Button
+                      key={columnKey}
+                      size="small"
+                      variant="text"
+                      onClick={() => toggleColumnVisibility(columnKey)}
+                    >
+                      Show {tableColumnLabels[columnKey] || columnKey}
+                    </Button>
+                  ))}
+                </Stack>
+              </Stack>
+            )}
+          </Stack>
+          <Divider />
+          <Stack spacing={1}>
+            <Typography variant="caption" color="text.secondary">
+              Filter
+            </Typography>
+            {tableFilterKey === "type" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterTypes([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTypeOptions.map((type) => {
+                    const isChecked = tableFilterTypes.includes(type);
+                    return (
+                      <MenuItem
+                        key={type}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterTypes((prev) =>
+                            prev.includes(type)
+                              ? prev.filter((item) => item !== type)
+                              : [...prev, type]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText primary={type} primaryTypographyProps={{ variant: "body2" }} />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterTypes.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterTypes([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "date" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterDates([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekDays.map((day) => {
+                    const value = day.format("YYYY-MM-DD");
+                    const isChecked = tableFilterDates.includes(value);
+                    return (
+                      <MenuItem
+                        dense
+                        key={value}
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterDates((prev) =>
+                            prev.includes(value)
+                              ? prev.filter((item) => item !== value)
+                              : [...prev, value]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={day.format("ddd, MMM D")}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterDates.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterDates([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "time" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterTimes([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTimeOptions.map((timeLabel) => {
+                    const isChecked = tableFilterTimes.includes(timeLabel);
+                    return (
+                      <MenuItem
+                        key={timeLabel}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterTimes((prev) =>
+                            prev.includes(timeLabel)
+                              ? prev.filter((item) => item !== timeLabel)
+                              : [...prev, timeLabel]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={timeLabel}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterTimes.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterTimes([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "status" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterStatuses([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekStatusOptions.map((status) => {
+                    const isChecked = tableFilterStatuses.includes(status);
+                    return (
+                      <MenuItem
+                        key={status}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterStatuses((prev) =>
+                            prev.includes(status)
+                              ? prev.filter((item) => item !== status)
+                              : [...prev, status]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={status}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterStatuses.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterStatuses([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+            {tableFilterKey === "client" && (
+              <Stack spacing={0.75}>
+                <TextField
+                  label="Client contains"
+                  value={tableFilterClientQuery}
+                  onChange={(event) => setTableFilterClientQuery(event.target.value)}
+                  size="small"
+                  fullWidth
+                />
+                <MenuItem dense onClick={() => setTableFilterClients([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekTableClientOptions
+                    .filter((client) =>
+                      client.toLowerCase().includes(tableFilterClientQuery.trim().toLowerCase())
+                    )
+                    .map((client) => {
+                      const isChecked = tableFilterClients.includes(client);
+                      return (
+                        <MenuItem
+                          key={client}
+                          dense
+                          sx={{ py: 0.25 }}
+                          onClick={() =>
+                            setTableFilterClients((prev) =>
+                              prev.includes(client)
+                                ? prev.filter((item) => item !== client)
+                                : [...prev, client]
+                            )
+                          }
+                        >
+                          <Checkbox size="small" checked={isChecked} />
+                          <ListItemText
+                            primary={client}
+                            primaryTypographyProps={{ variant: "body2" }}
+                          />
+                        </MenuItem>
+                      );
+                    })}
+                </Box>
+                {tableFilterClients.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterClients([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </Stack>
+            )}
+            {tableFilterKey === "price" && (
+              <>
+                <MenuItem dense onClick={() => setTableFilterPrices([])}>
+                  All
+                </MenuItem>
+                <Box sx={{ maxHeight: 220, overflowY: "auto" }}>
+                  {weekPriceOptions.map((priceLabel) => {
+                    const isChecked = tableFilterPrices.includes(priceLabel);
+                    return (
+                      <MenuItem
+                        key={priceLabel}
+                        dense
+                        sx={{ py: 0.25 }}
+                        onClick={() =>
+                          setTableFilterPrices((prev) =>
+                            prev.includes(priceLabel)
+                              ? prev.filter((item) => item !== priceLabel)
+                              : [...prev, priceLabel]
+                          )
+                        }
+                      >
+                        <Checkbox size="small" checked={isChecked} />
+                        <ListItemText
+                          primary={priceLabel}
+                          primaryTypographyProps={{ variant: "body2" }}
+                        />
+                      </MenuItem>
+                    );
+                  })}
+                </Box>
+                {tableFilterPrices.length > 0 && (
+                  <Button size="small" onClick={() => setTableFilterPrices([])}>
+                    Clear filter
+                  </Button>
+                )}
+              </>
+            )}
+          </Stack>
+        </Stack>
+      </Menu>
 
       <Dialog
         open={openCopyDialog}
@@ -3405,6 +4301,15 @@ export default function Schedule() {
               }
               label="Hide client details (recommended)"
             />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={shareHidePrices}
+                  onChange={(event) => setShareHidePrices(event.target.checked)}
+                />
+              }
+              label="Hide prices and totals"
+            />
             {shareHideDetails && (
               <Autocomplete
                 multiple
@@ -3472,6 +4377,66 @@ export default function Schedule() {
       </Dialog>
 
       <Dialog
+        open={openTimeSettings}
+        onClose={() => setOpenTimeSettings(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Calendar hours</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <FormControl fullWidth>
+              <InputLabel>Start time</InputLabel>
+              <Select
+                label="Start time"
+                value={draftStartHour}
+                onChange={(event) => setDraftStartHour(Number(event.target.value))}
+              >
+                {hourOptions.map((hour) => (
+                  <MenuItem key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth error={timeSettingsError}>
+              <InputLabel>End time</InputLabel>
+              <Select
+                label="End time"
+                value={draftEndHour}
+                onChange={(event) => setDraftEndHour(Number(event.target.value))}
+              >
+                {hourOptions.map((hour) => (
+                  <MenuItem key={hour} value={hour}>
+                    {formatHourLabel(hour)}
+                  </MenuItem>
+                ))}
+              </Select>
+              {timeSettingsError && (
+                <Typography variant="caption" color="error">
+                  End time must be after the start time.
+                </Typography>
+              )}
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenTimeSettings(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={timeSettingsError}
+            onClick={() => {
+              setCalendarStartHour(draftStartHour);
+              setCalendarEndHour(draftEndHour);
+              setOpenTimeSettings(false);
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         maxWidth="xs"
@@ -3500,132 +4465,6 @@ export default function Schedule() {
           >
             Delete
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={openSessionTypesDialog}
-        onClose={() => setOpenSessionTypesDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Session Types</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {sessionTypesStatus && (
-              <Typography variant="caption" color="error">
-                {sessionTypesStatus}
-              </Typography>
-            )}
-            {sessionTypes.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">
-                No session types yet.
-              </Typography>
-            ) : (
-              <Stack spacing={1}>
-                {sessionTypes.map((type) => (
-                  <Card key={type._id} variant="outlined">
-                    <CardContent>
-                      <Stack spacing={0.5}>
-                        <Typography variant="subtitle1">{type.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {currencySymbols[type.currency] || type.currency}
-                          {type.defaultPrice || 0}
-                        </Typography>
-                        {type.description && (
-                          <Typography variant="body2" color="text.secondary">
-                            {type.description}
-                          </Typography>
-                        )}
-                      </Stack>
-                    </CardContent>
-                    <CardActions sx={{ px: 2, pb: 2 }}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleEditSessionType(type)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        variant="text"
-                        onClick={() => handleDeleteSessionType(type._id)}
-                      >
-                        Delete
-                      </Button>
-                    </CardActions>
-                  </Card>
-                ))}
-              </Stack>
-            )}
-            <Divider />
-            <Typography variant="subtitle1">
-              {editingSessionTypeId ? "Edit session type" : "New session type"}
-            </Typography>
-            <TextField
-              label="Name"
-              value={sessionTypeForm.name}
-              onChange={(event) =>
-                setSessionTypeForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              fullWidth
-            />
-            <TextField
-              label="Description"
-              value={sessionTypeForm.description}
-              onChange={(event) =>
-                setSessionTypeForm((prev) => ({ ...prev, description: event.target.value }))
-              }
-              multiline
-              minRows={2}
-              fullWidth
-            />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <TextField
-                label="Default price"
-                type="number"
-                value={sessionTypeForm.defaultPrice}
-                onChange={(event) =>
-                  setSessionTypeForm((prev) => ({ ...prev, defaultPrice: event.target.value }))
-                }
-                inputProps={{ min: 0, step: "0.01" }}
-                fullWidth
-              />
-              <FormControl fullWidth>
-                <InputLabel>Currency</InputLabel>
-                <Select
-                  label="Currency"
-                  value={sessionTypeForm.currency}
-                  onChange={(event) =>
-                    setSessionTypeForm((prev) => ({ ...prev, currency: event.target.value }))
-                  }
-                >
-                  <MenuItem value="USD">USD</MenuItem>
-                  <MenuItem value="EUR">EUR</MenuItem>
-                  <MenuItem value="YEN">YEN</MenuItem>
-                </Select>
-              </FormControl>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                onClick={handleSaveSessionType}
-                disabled={!sessionTypeForm.name.trim()}
-              >
-                {editingSessionTypeId ? "Save changes" : "Add session type"}
-              </Button>
-              {editingSessionTypeId && (
-                <Button variant="text" onClick={resetSessionTypeForm}>
-                  Cancel edit
-                </Button>
-              )}
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenSessionTypesDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </>

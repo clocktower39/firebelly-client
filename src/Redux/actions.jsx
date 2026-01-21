@@ -574,6 +574,47 @@ export function requestWorkoutsByMonth(date, client) {
   };
 }
 
+export function requestWorkoutsByYear(year, client) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const endpoint = "workoutYear";
+    const payload = JSON.stringify({
+      year,
+      client,
+    });
+
+    const response = await fetch(`${serverURL}/${endpoint}`, {
+      method: "post",
+      body: payload,
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    data.workouts.map((workout) =>
+      workout.training.map((set) => {
+        set.map((exercise) => {
+          if (!exercise.achieved.weight) {
+            exercise.achieved.weight = [0];
+          }
+          return exercise;
+        });
+        return set;
+      })
+    );
+
+    return dispatch({
+      type: EDIT_WORKOUTS,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: data.user._id,
+    });
+  };
+}
+
 // Creates new daily training workouts
 export function createTraining({ training, user }) {
   return async (dispatch) => {
@@ -1324,6 +1365,28 @@ export function addGoalComment(goalId, newComment) {
       method: "post",
       dataType: "json",
       body: JSON.stringify({ _id: goalId, comment: newComment }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let goal = await response.json();
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal,
+    });
+  };
+}
+
+export function removeGoalComment(goalId, commentId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/removeGoalComment`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ _id: goalId, commentId }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
