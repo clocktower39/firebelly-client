@@ -5,6 +5,7 @@ import {
   Button,
   Box,
   Card,
+  CardActions,
   CardContent,
   Chip,
   Container,
@@ -18,6 +19,7 @@ import {
   FormControlLabel,
   Grid,
   InputLabel,
+  InputAdornment,
   MenuItem,
   Select,
   Stack,
@@ -76,6 +78,8 @@ const statusColors = {
   COMPLETED: "default",
   CANCELLED: "error",
 };
+const currencySymbols = { USD: "$", EUR: "€", YEN: "¥" };
+const currencyLocales = { USD: "en-US", EUR: "de-DE", YEN: "ja-JP" };
 
 const WEEK_START_HOUR = 6;
 const WEEK_END_HOUR = 20;
@@ -136,11 +140,15 @@ export default function Schedule() {
   const [editCustomEmail, setEditCustomEmail] = useState("");
   const [editCustomPhone, setEditCustomPhone] = useState("");
   const [editPublicLabel, setEditPublicLabel] = useState("");
+  const [editSessionTypeId, setEditSessionTypeId] = useState("");
+  const [editPriceAmount, setEditPriceAmount] = useState("");
+  const [editPriceCurrency, setEditPriceCurrency] = useState("USD");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
   const [quickBookCustomName, setQuickBookCustomName] = useState("");
   const [quickBookCustomEmail, setQuickBookCustomEmail] = useState("");
   const [quickBookCustomPhone, setQuickBookCustomPhone] = useState("");
+  const [quickBookSessionTypeId, setQuickBookSessionTypeId] = useState("");
   const [openSelectionDialog, setOpenSelectionDialog] = useState(false);
   const [selectedQueueSlot, setSelectedQueueSlot] = useState("");
   const [selectionStartTime, setSelectionStartTime] = useState("");
@@ -165,6 +173,17 @@ export default function Schedule() {
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
   const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
+  const [sessionTypes, setSessionTypes] = useState([]);
+  const [sessionTypesStatus, setSessionTypesStatus] = useState("");
+  const [openSessionTypesDialog, setOpenSessionTypesDialog] = useState(false);
+  const [sessionTypeForm, setSessionTypeForm] = useState({
+    name: "",
+    description: "",
+    defaultPrice: "",
+    currency: "USD",
+  });
+  const [editingSessionTypeId, setEditingSessionTypeId] = useState("");
+  const [trainerBookSessionTypeId, setTrainerBookSessionTypeId] = useState("");
 
   const weekCaptureRef = useRef(null);
   const weekPickerRef = useRef(null);
@@ -180,6 +199,50 @@ export default function Schedule() {
       dispatch(requestMyTrainers());
     }
   }, [dispatch, user.isTrainer]);
+
+  const loadSessionTypes = useCallback(async () => {
+    if (!user.isTrainer) return;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    try {
+      setSessionTypesStatus("");
+      const response = await fetch(`${serverURL}/session-types`, {
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setSessionTypes(data.sessionTypes || []);
+    } catch (err) {
+      setSessionTypesStatus(err.message || "Unable to load session types.");
+    }
+  }, [user.isTrainer]);
+
+  useEffect(() => {
+    if (!user.isTrainer) return;
+    loadSessionTypes();
+  }, [loadSessionTypes, user.isTrainer]);
+
+  const sessionTypeLookup = useMemo(() => {
+    const map = new Map();
+    sessionTypes.forEach((type) => {
+      map.set(type._id, type);
+    });
+    return map;
+  }, [sessionTypes]);
+
+  const resetSessionTypeForm = useCallback(() => {
+    setSessionTypeForm({
+      name: "",
+      description: "",
+      defaultPrice: "",
+      currency: "USD",
+    });
+    setEditingSessionTypeId("");
+  }, []);
 
   useEffect(() => {
     if (!user.isTrainer) return;
@@ -324,6 +387,25 @@ export default function Schedule() {
       user.lastName,
     ]
   );
+  const getSessionTypeLabel = useCallback(
+    (event) => {
+      if (!event?.sessionTypeId) return "";
+      const type = sessionTypeLookup.get(event.sessionTypeId);
+      return type?.name || "Session type";
+    },
+    [sessionTypeLookup]
+  );
+  const formatCurrency = useCallback((amount, currency) => {
+    if (amount === null || amount === undefined) return "";
+    const normalizedCurrency = currency || "USD";
+    const formatter = new Intl.NumberFormat(currencyLocales[normalizedCurrency] || "en-US", {
+      style: "currency",
+      currency: normalizedCurrency === "YEN" ? "JPY" : normalizedCurrency,
+      minimumFractionDigits: normalizedCurrency === "YEN" ? 0 : 2,
+      maximumFractionDigits: normalizedCurrency === "YEN" ? 0 : 2,
+    });
+    return formatter.format(Number(amount));
+  }, []);
   const highlightFill = useMemo(() => {
     const hex = shareHighlightColor.replace("#", "");
     if (hex.length !== 6) return "rgba(255, 193, 7, 0.35)";
@@ -479,6 +561,85 @@ export default function Schedule() {
     refreshSchedule();
   };
 
+  const handleSaveSessionType = async () => {
+    if (!sessionTypeForm.name.trim()) return;
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const payload = {
+      name: sessionTypeForm.name.trim(),
+      description: sessionTypeForm.description.trim(),
+      defaultPrice: sessionTypeForm.defaultPrice === "" ? 0 : Number(sessionTypeForm.defaultPrice),
+      currency: sessionTypeForm.currency || "USD",
+    };
+    try {
+      if (editingSessionTypeId) {
+        const response = await fetch(
+          `${serverURL}/session-types/${editingSessionTypeId}`,
+          {
+            method: "put",
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+              Authorization: bearer,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await response.json();
+        if (data?.error) throw new Error(data.error);
+      } else {
+        const response = await fetch(`${serverURL}/session-types`, {
+          method: "post",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+            Authorization: bearer,
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (data?.error) throw new Error(data.error);
+      }
+      setSessionTypesStatus("");
+      resetSessionTypeForm();
+      loadSessionTypes();
+    } catch (err) {
+      setSessionTypesStatus(err.message || "Unable to save session type.");
+    }
+  };
+
+  const handleEditSessionType = (type) => {
+    setEditingSessionTypeId(type._id);
+    setSessionTypeForm({
+      name: type.name || "",
+      description: type.description || "",
+      defaultPrice:
+        type.defaultPrice === 0 || type.defaultPrice
+          ? String(type.defaultPrice)
+          : "",
+      currency: type.currency || "USD",
+    });
+  };
+
+  const handleDeleteSessionType = async (typeId) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    try {
+      const response = await fetch(`${serverURL}/session-types/${typeId}`, {
+        method: "delete",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+      const data = await response.json();
+      if (data?.error) throw new Error(data.error);
+      if (editingSessionTypeId === typeId) {
+        resetSessionTypeForm();
+      }
+      setSessionTypesStatus("");
+      loadSessionTypes();
+    } catch (err) {
+      setSessionTypesStatus(err.message || "Unable to delete session type.");
+    }
+  };
+
   const openDeleteConfirm = (event) => {
     setDeleteEvent(event);
     setOpenDeleteDialog(true);
@@ -489,6 +650,7 @@ export default function Schedule() {
       updateScheduleEvent(event._id, {
         clientId: null,
         workoutId: null,
+        sessionTypeId: null,
         eventType: "AVAILABILITY",
         status: "OPEN",
       })
@@ -563,6 +725,13 @@ export default function Schedule() {
   };
 
   const openEditForEvent = (event) => {
+    const sessionType = event?.sessionTypeId
+      ? sessionTypeLookup.get(event.sessionTypeId)
+      : null;
+    const defaultPrice =
+      sessionType?.defaultPrice === 0 || sessionType?.defaultPrice
+        ? String(sessionType.defaultPrice)
+        : "";
     setEditEvent(event);
     setEditDate(dayjs(event.startDateTime).format("YYYY-MM-DD"));
     setEditStartTime(dayjs(event.startDateTime).format("HH:mm"));
@@ -574,6 +743,11 @@ export default function Schedule() {
     setEditCustomEmail(event.customClientEmail || "");
     setEditCustomPhone(event.customClientPhone || "");
     setEditPublicLabel(event.publicLabel || "");
+    setEditSessionTypeId(event.sessionTypeId || "");
+    setEditPriceAmount(
+      event.priceAmount === 0 || event.priceAmount ? String(event.priceAmount) : defaultPrice
+    );
+    setEditPriceCurrency(event.priceCurrency || sessionType?.currency || "USD");
     setOpenEditDialog(true);
   };
 
@@ -589,6 +763,7 @@ export default function Schedule() {
     setTrainerBookCustomName("");
     setTrainerBookCustomEmail("");
     setTrainerBookCustomPhone("");
+    setTrainerBookSessionTypeId("");
     setOpenTrainerBookDialog(true);
   };
 
@@ -614,6 +789,9 @@ export default function Schedule() {
       customClientEmail: event.customClientEmail || "",
       customClientPhone: event.customClientPhone || "",
       workoutId: null,
+      sessionTypeId: event.sessionTypeId || null,
+      priceAmount: event.priceAmount ?? null,
+      priceCurrency: event.priceCurrency || "USD",
       availabilitySource: isAvailability ? event.availabilitySource || "MANUAL" : undefined,
       recurrenceRule: null,
     };
@@ -867,6 +1045,9 @@ export default function Schedule() {
     } else if (editEvent?.workoutId) {
       updates.workoutId = null;
     }
+    updates.sessionTypeId = editSessionTypeId || null;
+    updates.priceAmount = editPriceAmount === "" ? null : Number(editPriceAmount);
+    updates.priceCurrency = editPriceCurrency || "USD";
     await dispatch(
       updateScheduleEvent(editEvent._id, {
         ...updates,
@@ -919,6 +1100,7 @@ export default function Schedule() {
       eventType: "APPOINTMENT",
       status: "BOOKED",
       clientId: quickBookClientId,
+      sessionTypeId: quickBookSessionTypeId || null,
     };
     if (quickBookWorkoutId) {
       payload.workoutId = quickBookWorkoutId;
@@ -941,6 +1123,7 @@ export default function Schedule() {
         customClientName: quickBookCustomName.trim(),
         customClientEmail: quickBookCustomEmail.trim(),
         customClientPhone: quickBookCustomPhone.trim(),
+        sessionTypeId: quickBookSessionTypeId || null,
       })
     );
     setDragSelection(null);
@@ -968,6 +1151,7 @@ export default function Schedule() {
         status: "BOOKED",
         clientId: quickBookClientId,
         workoutId: created._id,
+        sessionTypeId: quickBookSessionTypeId || null,
       })
     );
     setDragSelection(null);
@@ -1143,6 +1327,7 @@ export default function Schedule() {
         customClientName: hasCustomName ? trainerBookCustomName.trim() : "",
         customClientEmail: trainerBookCustomEmail.trim(),
         customClientPhone: trainerBookCustomPhone.trim(),
+        sessionTypeId: trainerBookSessionTypeId || null,
       })
     );
     setOpenTrainerBookDialog(false);
@@ -1233,6 +1418,33 @@ export default function Schedule() {
       return activeClientIds.includes(event.clientId);
     });
   }, [activeClientIds, isTrainerView, weekEvents]);
+  const weekTotals = useMemo(() => {
+    const start = weekStart.startOf("day");
+    const dayTotals = Array.from({ length: 7 }, () => ({
+      count: 0,
+      amounts: new Map(),
+    }));
+    const weekAmounts = new Map();
+    let weekCount = 0;
+
+    filteredWeekEvents.forEach((event) => {
+      if (event.eventType === "AVAILABILITY") return;
+      if (event.status === "CANCELLED") return;
+      const dayIndex = dayjs(event.startDateTime).startOf("day").diff(start, "day");
+      if (dayIndex < 0 || dayIndex > 6) return;
+      dayTotals[dayIndex].count += 1;
+      weekCount += 1;
+
+      if (event.priceAmount === null || event.priceAmount === undefined) return;
+      const currency = event.priceCurrency || "USD";
+      const dayCurrent = dayTotals[dayIndex].amounts.get(currency) || 0;
+      dayTotals[dayIndex].amounts.set(currency, dayCurrent + Number(event.priceAmount));
+      const weekCurrent = weekAmounts.get(currency) || 0;
+      weekAmounts.set(currency, weekCurrent + Number(event.priceAmount));
+    });
+
+    return { dayTotals, weekTotals: { count: weekCount, amounts: weekAmounts } };
+  }, [filteredWeekEvents, weekStart]);
 
   const getEventStyle = (event, day) => {
     const dayStart = day.startOf("day");
@@ -1381,6 +1593,7 @@ export default function Schedule() {
     setQuickBookCustomName("");
     setQuickBookCustomEmail("");
     setQuickBookCustomPhone("");
+    setQuickBookSessionTypeId("");
   };
 
   return (
@@ -1701,7 +1914,7 @@ export default function Schedule() {
                                   {event.eventType === "AVAILABILITY" ? (
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
-                                    <Stack direction="row" spacing={0.5} alignItems="center">
+                                    <Stack direction="row" spacing={0.5} alignItems="flex-start">
                                       {!(
                                         isShareMode &&
                                         shareHideDetails &&
@@ -1735,23 +1948,30 @@ export default function Schedule() {
                                             : "B"}
                                         </Avatar>
                                       )}
-                                      <Typography
-                                        variant="caption"
-                                        sx={{
-                                          fontWeight:
-                                            isShareMode &&
-                                            shareHideDetails &&
-                                            shareHighlightShown &&
-                                            ((event.clientId &&
-                                              shareShownKeys.includes(`client:${event.clientId}`)) ||
-                                              (event.customClientName &&
-                                                shareShownKeys.includes(`custom:${event.customClientName}`)))
-                                              ? 700
-                                              : 400,
-                                        }}
-                                      >
-                                        {getEventDisplayName(event)}
-                                      </Typography>
+                                      <Stack spacing={0}>
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            fontWeight:
+                                              isShareMode &&
+                                              shareHideDetails &&
+                                              shareHighlightShown &&
+                                              ((event.clientId &&
+                                                shareShownKeys.includes(`client:${event.clientId}`)) ||
+                                                (event.customClientName &&
+                                                  shareShownKeys.includes(`custom:${event.customClientName}`)))
+                                                ? 700
+                                                : 400,
+                                          }}
+                                        >
+                                          {getEventDisplayName(event)}
+                                        </Typography>
+                                        {isTrainerView && event.priceAmount !== null && (
+                                          <Typography variant="caption" color="text.secondary">
+                                            {formatCurrency(event.priceAmount, event.priceCurrency)}
+                                          </Typography>
+                                        )}
+                                      </Stack>
                                     </Stack>
                                   )}
                                 </Box>
@@ -1762,7 +1982,74 @@ export default function Schedule() {
                     ))}
                   </Box>
                 </Box>
-                </Stack>
+                {isTrainerView && !isShareMode && (
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: isShareMode
+                        ? "48px repeat(8, minmax(0, 1fr))"
+                        : "64px repeat(8, minmax(96px, 1fr))",
+                      border: "1px solid rgba(148, 163, 184, 0.35)",
+                      borderRadius: 2,
+                      overflowX: { xs: "auto", md: "hidden" },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        borderRight: "1px solid rgba(148, 163, 184, 0.35)",
+                        backgroundColor: "rgba(148,163,184,0.05)",
+                      }}
+                    />
+                    {weekDays.map((day, dayIndex) => {
+                      const totals = weekTotals.dayTotals[dayIndex];
+                      const amounts = Array.from(totals.amounts.entries());
+                      const amountLabel =
+                        amounts.length === 0
+                          ? "—"
+                          : amounts
+                              .map(([currency, amount]) => formatCurrency(amount, currency))
+                              .join(" ");
+                      return (
+                        <Box
+                          key={`totals-${day.format("YYYY-MM-DD")}`}
+                          sx={{
+                            borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                            p: 0.75,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Typography variant="subtitle2">{amountLabel}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {totals.count} sessions
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                    <Box
+                      sx={{
+                        borderLeft: "1px solid rgba(148, 163, 184, 0.2)",
+                        p: 0.75,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography variant="subtitle2">
+                        {weekTotals.weekTotals.amounts.size === 0
+                          ? "—"
+                          : Array.from(weekTotals.weekTotals.amounts.entries())
+                              .map(([currency, amount]) => formatCurrency(amount, currency))
+                              .join(" ")}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {weekTotals.weekTotals.count} sessions
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              </Stack>
               </CardContent>
             </Card>
           </Box>
@@ -1789,6 +2076,16 @@ export default function Schedule() {
                       <ToggleButton value="trainer">Manage sessions</ToggleButton>
                       <ToggleButton value="client">Book with trainer</ToggleButton>
                     </ToggleButtonGroup>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => {
+                        setSessionTypesStatus("");
+                        setOpenSessionTypesDialog(true);
+                      }}
+                    >
+                      Manage session types
+                    </Button>
                   </Stack>
                 )}
 
@@ -1916,6 +2213,11 @@ export default function Schedule() {
                     {isClientView && selectedTrainerId && (
                       <Typography variant="body2" color="text.secondary">
                         Trainer: {selectedTrainerLabel || "Trainer"}
+                      </Typography>
+                    )}
+                    {isTrainerView && getSessionTypeLabel(event) && (
+                      <Typography variant="body2" color="text.secondary">
+                        Session type: {getSessionTypeLabel(event)}
                       </Typography>
                     )}
                     {event.recurrenceRule && (
@@ -2239,6 +2541,21 @@ export default function Schedule() {
                     </Select>
                   </FormControl>
                 </Stack>
+                <FormControl fullWidth>
+                  <InputLabel>Session type</InputLabel>
+                  <Select
+                    label="Session type"
+                    value={quickBookSessionTypeId}
+                    onChange={(event) => setQuickBookSessionTypeId(event.target.value)}
+                  >
+                    <MenuItem value="">No session type</MenuItem>
+                    {sessionTypes.map((type) => (
+                      <MenuItem key={type._id} value={type._id}>
+                        {type.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                   <Button
                     variant="contained"
@@ -2631,6 +2948,55 @@ export default function Schedule() {
                 </Typography>
               </Stack>
             )}
+            {isTrainerView &&
+              (editEvent?.eventType !== "AVAILABILITY" || editClientId || editCustomName) && (
+              <FormControl fullWidth>
+                <InputLabel>Session type</InputLabel>
+                <Select
+                  label="Session type"
+                  value={editSessionTypeId}
+                  onChange={(event) => setEditSessionTypeId(event.target.value)}
+                >
+                  <MenuItem value="">No session type</MenuItem>
+                  {sessionTypes.map((type) => (
+                    <MenuItem key={type._id} value={type._id}>
+                      {type.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                <TextField
+                  label="Price"
+                  type="number"
+                  value={editPriceAmount}
+                  onChange={(event) => setEditPriceAmount(event.target.value)}
+                  inputProps={{ min: 0, step: "0.01" }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        {currencySymbols[editPriceCurrency] || editPriceCurrency}
+                      </InputAdornment>
+                    ),
+                  }}
+                  fullWidth
+                />
+                <FormControl fullWidth>
+                  <InputLabel>Currency</InputLabel>
+                  <Select
+                    label="Currency"
+                    value={editPriceCurrency}
+                    onChange={(event) => setEditPriceCurrency(event.target.value)}
+                  >
+                    <MenuItem value="USD">USD</MenuItem>
+                    <MenuItem value="EUR">EUR</MenuItem>
+                    <MenuItem value="YEN">YEN</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            )}
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select
@@ -2735,6 +3101,11 @@ export default function Schedule() {
                 {eventActionTarget.eventType !== "AVAILABILITY" && (
                   <Typography variant="caption" color="text.secondary">
                     {getEventDisplayName(eventActionTarget)}
+                  </Typography>
+                )}
+                {isTrainerView && getSessionTypeLabel(eventActionTarget) && (
+                  <Typography variant="caption" color="text.secondary">
+                    Session type: {getSessionTypeLabel(eventActionTarget)}
                   </Typography>
                 )}
               </Stack>
@@ -2845,6 +3216,21 @@ export default function Schedule() {
                       {clientRel.client.firstName} {clientRel.client.lastName}
                     </MenuItem>
                   ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Session type</InputLabel>
+              <Select
+                label="Session type"
+                value={trainerBookSessionTypeId}
+                onChange={(event) => setTrainerBookSessionTypeId(event.target.value)}
+              >
+                <MenuItem value="">No session type</MenuItem>
+                {sessionTypes.map((type) => (
+                  <MenuItem key={type._id} value={type._id}>
+                    {type.name}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             {!trainerBookClientId && (
@@ -3114,6 +3500,132 @@ export default function Schedule() {
           >
             Delete
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openSessionTypesDialog}
+        onClose={() => setOpenSessionTypesDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Session Types</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {sessionTypesStatus && (
+              <Typography variant="caption" color="error">
+                {sessionTypesStatus}
+              </Typography>
+            )}
+            {sessionTypes.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                No session types yet.
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {sessionTypes.map((type) => (
+                  <Card key={type._id} variant="outlined">
+                    <CardContent>
+                      <Stack spacing={0.5}>
+                        <Typography variant="subtitle1">{type.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {currencySymbols[type.currency] || type.currency}
+                          {type.defaultPrice || 0}
+                        </Typography>
+                        {type.description && (
+                          <Typography variant="body2" color="text.secondary">
+                            {type.description}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </CardContent>
+                    <CardActions sx={{ px: 2, pb: 2 }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleEditSessionType(type)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        variant="text"
+                        onClick={() => handleDeleteSessionType(type._id)}
+                      >
+                        Delete
+                      </Button>
+                    </CardActions>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+            <Divider />
+            <Typography variant="subtitle1">
+              {editingSessionTypeId ? "Edit session type" : "New session type"}
+            </Typography>
+            <TextField
+              label="Name"
+              value={sessionTypeForm.name}
+              onChange={(event) =>
+                setSessionTypeForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              fullWidth
+            />
+            <TextField
+              label="Description"
+              value={sessionTypeForm.description}
+              onChange={(event) =>
+                setSessionTypeForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+              multiline
+              minRows={2}
+              fullWidth
+            />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <TextField
+                label="Default price"
+                type="number"
+                value={sessionTypeForm.defaultPrice}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({ ...prev, defaultPrice: event.target.value }))
+                }
+                inputProps={{ min: 0, step: "0.01" }}
+                fullWidth
+              />
+              <FormControl fullWidth>
+                <InputLabel>Currency</InputLabel>
+                <Select
+                  label="Currency"
+                  value={sessionTypeForm.currency}
+                  onChange={(event) =>
+                    setSessionTypeForm((prev) => ({ ...prev, currency: event.target.value }))
+                  }
+                >
+                  <MenuItem value="USD">USD</MenuItem>
+                  <MenuItem value="EUR">EUR</MenuItem>
+                  <MenuItem value="YEN">YEN</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                onClick={handleSaveSessionType}
+                disabled={!sessionTypeForm.name.trim()}
+              >
+                {editingSessionTypeId ? "Save changes" : "Add session type"}
+              </Button>
+              {editingSessionTypeId && (
+                <Button variant="text" onClick={resetSessionTypeForm}>
+                  Cancel edit
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSessionTypesDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </>
