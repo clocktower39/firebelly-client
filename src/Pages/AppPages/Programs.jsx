@@ -33,6 +33,7 @@ export default function Programs() {
   const [programs, setPrograms] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [ownerFilter, setOwnerFilter] = useState("all");
   const [openAssignDialog, setOpenAssignDialog] = useState(false);
   const [assignProgram, setAssignProgram] = useState(null);
   const [assignClientId, setAssignClientId] = useState("");
@@ -81,7 +82,7 @@ export default function Programs() {
     const loadPrograms = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${serverURL}/programs`, {
+        const response = await fetch(`${serverURL}/programs?includeShared=true`, {
           headers: {
             "Content-type": "application/json; charset=UTF-8",
             Authorization: bearer,
@@ -107,11 +108,22 @@ export default function Programs() {
     dispatch(requestClients());
   }, [dispatch, user?.isTrainer]);
 
-  const sortedPrograms = useMemo(() => {
-    return [...programs].sort(
+  const hasSharedPrograms = useMemo(() => 
+    programs.some((p) => p.isShared), [programs]);
+
+  const filteredAndSortedPrograms = useMemo(() => {
+    let result = [...programs];
+
+    if (ownerFilter === "mine") {
+      result = result.filter((p) => p.isOwn);
+    } else if (ownerFilter === "shared") {
+      result = result.filter((p) => p.isShared);
+    }
+
+    return result.sort(
       (a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf()
     );
-  }, [programs]);
+  }, [programs, ownerFilter]);
 
   const acceptedClients = useMemo(
     () => clients.filter((clientRel) => clientRel.accepted),
@@ -175,19 +187,37 @@ export default function Programs() {
           </Button>
         </Stack>
 
+        {!loading && !error && hasSharedPrograms && (
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Owner</InputLabel>
+            <Select
+              value={ownerFilter}
+              label="Owner"
+              onChange={(e) => setOwnerFilter(e.target.value)}
+            >
+              <MenuItem value="all">All Programs</MenuItem>
+              <MenuItem value="mine">My Programs</MenuItem>
+              <MenuItem value="shared">Shared with Me</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
         {loading && <Typography>Loading programs...</Typography>}
         {error && <Typography color="error">{error}</Typography>}
-        {!loading && !error && sortedPrograms.length === 0 && (
+        {!loading && !error && programs.length === 0 && (
           <Typography color="text.secondary">No programs yet.</Typography>
+        )}
+        {!loading && !error && programs.length > 0 && filteredAndSortedPrograms.length === 0 && (
+          <Typography color="text.secondary">No programs match your filter.</Typography>
         )}
 
         <Grid container spacing={2}>
-          {sortedPrograms.map((program) => (
+          {filteredAndSortedPrograms.map((program) => (
             <Grid key={program._id} size={{ xs: 12, md: 6 }}>
               <Card variant="outlined" sx={{ height: "100%" }}>
                 <CardContent>
                   <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                       <Typography variant="h6">
                         {program.title || "Untitled Program"}
                       </Typography>
@@ -197,6 +227,14 @@ export default function Programs() {
                         variant={program.status === "PUBLISHED" ? "filled" : "outlined"}
                         size="small"
                       />
+                      {program.isShared && (
+                        <Chip
+                          label={`From ${program.ownerId?.firstName} ${program.ownerId?.lastName}`}
+                          size="small"
+                          color="info"
+                          variant="outlined"
+                        />
+                      )}
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
                       {program.description || "No description"}
@@ -207,14 +245,24 @@ export default function Programs() {
                   </Stack>
                 </CardContent>
                 <CardActions sx={{ px: 2, pb: 2 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => navigate(`/programs/${program._id}/edit`)}
-                  >
-                    Edit
-                  </Button>
-                  {user?.isTrainer && (
+                  {program.isOwn ? (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigate(`/programs/${program._id}/edit`)}
+                    >
+                      Edit
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigate(`/programs/${program._id}/edit`)}
+                    >
+                      View
+                    </Button>
+                  )}
+                  {user?.isTrainer && program.isOwn && (
                     <Button
                       size="small"
                       variant="contained"

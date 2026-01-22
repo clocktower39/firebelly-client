@@ -50,6 +50,7 @@ export default function WorkoutTemplates() {
   const [sortBy, setSortBy] = useState("newest");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [viewMode, setViewMode] = useState("grid");
+  const [ownerFilter, setOwnerFilter] = useState("all");
 
   useEffect(() => {
     if (!user?.isTrainer) return;
@@ -63,6 +64,7 @@ export default function WorkoutTemplates() {
             "Content-type": "application/json; charset=UTF-8",
             Authorization: bearer,
           },
+          body: JSON.stringify({ includeShared: true }),
         });
         const data = await response.json();
         if (data?.error) {
@@ -105,15 +107,27 @@ export default function WorkoutTemplates() {
     return Array.from(cats).sort();
   }, [templates]);
 
+  const hasSharedTemplates = useMemo(() => 
+    templates.some((t) => t.isShared), [templates]);
+
   const filteredAndSortedTemplates = useMemo(() => {
     let result = [...templates];
+
+    // Owner filter
+    if (ownerFilter === "mine") {
+      result = result.filter((t) => t.isOwn);
+    } else if (ownerFilter === "shared") {
+      result = result.filter((t) => t.isShared);
+    }
 
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((t) =>
         (t.title || "").toLowerCase().includes(query) ||
-        (t.category || []).some((c) => c.toLowerCase().includes(query))
+        (t.category || []).some((c) => c.toLowerCase().includes(query)) ||
+        (t.user?.firstName || "").toLowerCase().includes(query) ||
+        (t.user?.lastName || "").toLowerCase().includes(query)
       );
     }
 
@@ -150,7 +164,7 @@ export default function WorkoutTemplates() {
     }
 
     return result;
-  }, [templates, searchQuery, categoryFilter, sortBy]);
+  }, [templates, searchQuery, categoryFilter, sortBy, ownerFilter]);
 
   return (
     <Box sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
@@ -180,6 +194,20 @@ export default function WorkoutTemplates() {
               }}
               sx={{ minWidth: 200 }}
             />
+            {hasSharedTemplates && (
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Owner</InputLabel>
+                <Select
+                  value={ownerFilter}
+                  label="Owner"
+                  onChange={(e) => setOwnerFilter(e.target.value)}
+                >
+                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="mine">My Templates</MenuItem>
+                  <MenuItem value="shared">Shared with Me</MenuItem>
+                </Select>
+              </FormControl>
+            )}
             <FormControl size="small" sx={{ minWidth: 150 }}>
               <InputLabel>Category</InputLabel>
               <Select
@@ -244,6 +272,14 @@ export default function WorkoutTemplates() {
                       <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                         <Typography variant="h6">{workout.title || "Untitled Workout"}</Typography>
                         <Chip label="Template" size="small" variant="outlined" />
+                        {workout.isShared && (
+                          <Chip 
+                            label={`From ${workout.user?.firstName} ${workout.user?.lastName}`} 
+                            size="small" 
+                            color="info" 
+                            variant="outlined" 
+                          />
+                        )}
                       </Stack>
                       <Typography variant="body2" color="text.secondary">
                         {formatTemplateSummary(workout)}
@@ -299,9 +335,17 @@ export default function WorkoutTemplates() {
                   >
                     <ListItemText
                       primary={
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                           <Typography>{workout.title || "Untitled Workout"}</Typography>
                           <Chip label="Template" size="small" variant="outlined" />
+                          {workout.isShared && (
+                            <Chip 
+                              label={`From ${workout.user?.firstName} ${workout.user?.lastName}`} 
+                              size="small" 
+                              color="info" 
+                              variant="outlined" 
+                            />
+                          )}
                         </Stack>
                       }
                       secondary={
