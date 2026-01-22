@@ -15,6 +15,7 @@ import {
   Divider,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   List,
   ListItemButton,
@@ -28,6 +29,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
 import { Alert } from "@mui/material";
 import { serverURL } from "../../Redux/actions";
 
@@ -78,6 +80,9 @@ export default function ProgramBuilder() {
   const [templates, setTemplates] = useState([]);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importTarget, setImportTarget] = useState({ weekIndex: null, dayIndex: null });
+  const [importSearch, setImportSearch] = useState("");
+  const [importSort, setImportSort] = useState("newest");
+  const [importCategory, setImportCategory] = useState("");
   const [copyWeekDialogOpen, setCopyWeekDialogOpen] = useState(false);
   const [copyWeekTarget, setCopyWeekTarget] = useState("");
   const [isCopyingWeek, setIsCopyingWeek] = useState(false);
@@ -333,6 +338,53 @@ export default function ProgramBuilder() {
     },
     [importTarget, templates, updateDaySlot]
   );
+
+  const importCategories = useMemo(() => {
+    const cats = new Set();
+    templates.forEach((t) => {
+      if (Array.isArray(t.category)) {
+        t.category.forEach((c) => cats.add(c));
+      }
+    });
+    return Array.from(cats).sort();
+  }, [templates]);
+
+  const filteredImportTemplates = useMemo(() => {
+    let result = [...templates];
+
+    if (importSearch.trim()) {
+      const query = importSearch.toLowerCase();
+      result = result.filter((t) =>
+        (t.title || "").toLowerCase().includes(query) ||
+        (t.category || []).some((c) => c.toLowerCase().includes(query))
+      );
+    }
+
+    if (importCategory) {
+      result = result.filter((t) =>
+        Array.isArray(t.category) && t.category.includes(importCategory)
+      );
+    }
+
+    switch (importSort) {
+      case "newest":
+        result.sort((a, b) => new Date(b.updatedAt || b.createdAt).valueOf() - new Date(a.updatedAt || a.createdAt).valueOf());
+        break;
+      case "oldest":
+        result.sort((a, b) => new Date(a.updatedAt || a.createdAt).valueOf() - new Date(b.updatedAt || b.createdAt).valueOf());
+        break;
+      case "title-asc":
+        result.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        break;
+      case "title-desc":
+        result.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+        break;
+      default:
+        break;
+    }
+
+    return result;
+  }, [templates, importSearch, importCategory, importSort]);
 
   const handleCopyWeekToNext = useCallback(async () => {
     if (!program?._id || copyWeekTarget === "") return;
@@ -648,7 +700,11 @@ export default function ProgramBuilder() {
 
       <Dialog
         open={importDialogOpen}
-        onClose={() => setImportDialogOpen(false)}
+        onClose={() => {
+          setImportDialogOpen(false);
+          setImportSearch("");
+          setImportCategory("");
+        }}
         maxWidth="sm"
         fullWidth
       >
@@ -657,23 +713,86 @@ export default function ProgramBuilder() {
           {templates.length === 0 ? (
             <Typography color="text.secondary">No workout templates available.</Typography>
           ) : (
-            <List>
-              {templates.map((template) => (
-                <ListItemButton
-                  key={template._id}
-                  onClick={() => handleImportTemplate(template._id)}
-                >
-                  <ListItemText
-                    primary={template.title || "Untitled Workout"}
-                    secondary={`${template.training?.reduce((count, circuit) => count + circuit.length, 0) || 0} exercises`}
-                  />
-                </ListItemButton>
-              ))}
-            </List>
+            <Stack spacing={2}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ pt: 1 }}>
+                <TextField
+                  size="small"
+                  placeholder="Search..."
+                  value={importSearch}
+                  onChange={(e) => setImportSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ flex: 1 }}
+                />
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={importCategory}
+                    label="Category"
+                    onChange={(e) => setImportCategory(e.target.value)}
+                  >
+                    <MenuItem value="">All</MenuItem>
+                    {importCategories.map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>Sort</InputLabel>
+                  <Select
+                    value={importSort}
+                    label="Sort"
+                    onChange={(e) => setImportSort(e.target.value)}
+                  >
+                    <MenuItem value="newest">Newest</MenuItem>
+                    <MenuItem value="oldest">Oldest</MenuItem>
+                    <MenuItem value="title-asc">Title (A-Z)</MenuItem>
+                    <MenuItem value="title-desc">Title (Z-A)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+              {filteredImportTemplates.length === 0 ? (
+                <Typography color="text.secondary">No templates match your filters.</Typography>
+              ) : (
+                <List sx={{ maxHeight: 300, overflow: "auto" }}>
+                  {filteredImportTemplates.map((template) => (
+                    <ListItemButton
+                      key={template._id}
+                      onClick={() => handleImportTemplate(template._id)}
+                    >
+                      <ListItemText
+                        primary={template.title || "Untitled Workout"}
+                        secondary={
+                          <>
+                            {`${template.training?.reduce((count, circuit) => count + circuit.length, 0) || 0} exercises`}
+                            {template.category?.length > 0 && ` • ${template.category.join(", ")}`}
+                          </>
+                        }
+                      />
+                    </ListItemButton>
+                  ))}
+                </List>
+              )}
+            </Stack>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setImportDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setImportDialogOpen(false);
+              setImportSearch("");
+              setImportCategory("");
+            }}
+          >
+            Cancel
+          </Button>
         </DialogActions>
       </Dialog>
 
