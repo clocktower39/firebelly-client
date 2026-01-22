@@ -35,6 +35,7 @@ import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import Trainers from "./Components/AccountComponents/Trainers";
 import ChangePassword from "./Components/AccountComponents/ChangePassword";
 import LogoutConfirmation from "./Components/AccountComponents/LogoutConfirmation";
+import WorkoutPreferences from "./Components/AccountComponents/WorkoutPreferences";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
@@ -149,6 +150,7 @@ function App({ }) {
                   <Route exact path="/account/*" element={<Account />}>
                     <Route index={true} exact path="" element={<MyAccount />} />
                     <Route index={true} exact path="theme" element={<ThemeSettings />} />
+                    <Route index={true} exact path="workout-preferences" element={<WorkoutPreferences />} />
                     <Route
                       index={true}
                       exact

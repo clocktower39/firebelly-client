@@ -30,6 +30,9 @@ export default function Account() {
         <ListItem button component={Link} to="/account/theme">
           <ListItemText primary="Theme" sx={{ color: "primary.contrastText" }} />
         </ListItem>
+        <ListItem button component={Link} to="/account/workout-preferences">
+          <ListItemText primary="Workout Preferences" sx={{ color: "primary.contrastText" }} />
+        </ListItem>
         <ListItem button component={Link} to="/account/password">
           <ListItemText primary="Change Password" sx={{ color: "primary.contrastText" }} />
         </ListItem>
