@@ -1401,6 +1401,28 @@ export function removeGoalComment(goalId, commentId) {
   };
 }
 
+export function markAchievementSeen(goalId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/goals/markAchievementSeen`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ goalId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let goal = await response.json();
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal,
+    });
+  };
+}
+
 export function getConversations() {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
