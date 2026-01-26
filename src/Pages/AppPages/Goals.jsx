@@ -43,7 +43,34 @@ import {
   serverURL,
 } from "../../Redux/actions";
 
-const GOAL_CATEGORIES = ["Strength", "Cardio", "Skill", "Weight"];
+const GOAL_CATEGORIES = ["General", "Strength", "Cardio", "Skill", "Weight"];
+const DISTANCE_UNITS = ["Miles", "Kilometers", "Meters", "Yards"];
+const DISTANCE_UNIT_TO_METERS = {
+  Miles: 1609.344,
+  Kilometers: 1000,
+  Meters: 1,
+  Yards: 0.9144,
+};
+
+const convertDistanceValue = (value, fromUnit, toUnit) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return value;
+  const fromFactor = DISTANCE_UNIT_TO_METERS[fromUnit];
+  const toFactor = DISTANCE_UNIT_TO_METERS[toUnit];
+  if (!fromFactor || !toFactor) return value;
+  const converted = (numericValue * fromFactor) / toFactor;
+  return Number.isFinite(converted) ? String(converted) : value;
+};
+
+const formatRaceTime = (value) => {
+  const digitsOnly = String(value).replace(/\D/g, "");
+  if (!digitsOnly) return "";
+  const padded = digitsOnly.slice(-6).padStart(6, "0");
+  const hours = padded.slice(0, 2);
+  const minutes = Math.min(Number(padded.slice(2, 4)), 59).toString().padStart(2, "0");
+  const seconds = Math.min(Number(padded.slice(4, 6)), 59).toString().padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+};
 
 const getCategoryColor = (category) => {
   switch (category) {
@@ -141,6 +168,9 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
   const [selectedExercise, setSelectedExercise] = useState(goal.exercise || null);
   const [targetWeight, setTargetWeight] = useState(goal.targetWeight || '');
   const [targetReps, setTargetReps] = useState(goal.targetReps || '');
+  const [distanceUnit, setDistanceUnit] = useState(goal.distanceUnit || 'Miles');
+  const [distanceValue, setDistanceValue] = useState(goal.distanceValue || '');
+  const [goalTime, setGoalTime] = useState(goal.goalTime || '');
   const [currentMax, setCurrentMax] = useState(null);
   const [targetDate, setTargetDate] = useState(goal.targetDate || '');
   const [achievedDate, setAchievedDate] = useState(goal.achievedDate || '');
@@ -148,8 +178,16 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
   const [openDeleteConfirmation, setOpenDeleteConfirmation] = useState(false);
 
   const isStrengthGoal = category === "Strength";
+  const isCardioGoal = category === "Cardio";
 
   const handleChange = (e, setter) => setter(e.target.value);
+  const handleDistanceUnitChange = (nextUnit) => {
+    if (distanceValue !== '') {
+      setDistanceValue(convertDistanceValue(distanceValue, distanceUnit, nextUnit));
+    }
+    setDistanceUnit(nextUnit);
+  };
+  const handleGoalTimeChange = (e) => setGoalTime(formatRaceTime(e.target.value));
 
   const fetchCurrentMax = useCallback(async () => {
     if (!selectedExercise?._id || !targetReps) {
@@ -195,7 +233,18 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
       goalData.targetWeight = Number(targetWeight);
       goalData.targetReps = Number(targetReps);
       // achievedDate is auto-calculated for strength goals
+      goalData.distanceUnit = null;
+      goalData.distanceValue = null;
+      goalData.goalTime = null;
+    } else if (isCardioGoal) {
+      goalData.distanceUnit = distanceUnit;
+      goalData.distanceValue = distanceValue === '' ? null : Number(distanceValue);
+      goalData.goalTime = goalTime || null;
+      goalData.achievedDate = achievedDate;
     } else {
+      goalData.distanceUnit = null;
+      goalData.distanceValue = null;
+      goalData.goalTime = null;
       goalData.achievedDate = achievedDate;
     }
     dispatch(updateGoal(goalData));
@@ -208,6 +257,9 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
     setSelectedExercise(goal.exercise || null);
     setTargetWeight(goal.targetWeight || '');
     setTargetReps(goal.targetReps || '');
+    setDistanceUnit(goal.distanceUnit || 'Miles');
+    setDistanceValue(goal.distanceValue || '');
+    setGoalTime(goal.goalTime || '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
   };
@@ -278,6 +330,9 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
     setSelectedExercise(goal.exercise || null);
     setTargetWeight(goal.targetWeight || '');
     setTargetReps(goal.targetReps || '');
+    setDistanceUnit(goal.distanceUnit || 'Miles');
+    setDistanceValue(goal.distanceValue || '');
+    setGoalTime(goal.goalTime || '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
   }, [goalId]);
@@ -326,7 +381,6 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
                 label="Category"
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <MenuItem value="">None</MenuItem>
                 {GOAL_CATEGORIES.map((cat) => (
                   <MenuItem key={cat} value={cat}>
                     {cat}
@@ -382,16 +436,62 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
               </Grid>
             </>
           ) : (
-            <Grid container size={{ xs: 12, sm: 8 }}>
-              <TextField
-                type="text"
-                fullWidth
-                label="Title"
-                value={title}
-                onChange={(e) => handleChange(e, setTitle)}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
+            <>
+              <Grid container size={{ xs: 12, sm: 8 }}>
+                <TextField
+                  type="text"
+                  fullWidth
+                  label="Title"
+                  value={title}
+                  onChange={(e) => handleChange(e, setTitle)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              {isCardioGoal && (
+                <>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Distance Unit</InputLabel>
+                      <Select
+                        value={distanceUnit}
+                        label="Distance Unit"
+                      onChange={(e) => handleDistanceUnitChange(e.target.value)}
+                      >
+                        {DISTANCE_UNITS.map((unit) => (
+                          <MenuItem key={unit} value={unit}>
+                            {unit}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      label="Distance"
+                      value={distanceValue}
+                      onChange={(e) => setDistanceValue(e.target.value)}
+                      inputProps={{ step: "0.01" }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="text"
+                      fullWidth
+                      label="Goal Time"
+                      value={goalTime}
+                      onChange={handleGoalTimeChange}
+                      placeholder="HH:MM:SS"
+                      inputProps={{ inputMode: "numeric", pattern: "[0-9:]*" }}
+                      helperText="Format: HH:MM:SS (minutes/seconds 00-59)"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </>
+              )}
+            </>
           )}
           <Grid container size={{ xs: 12, sm: isStrengthGoal ? 12 : 6 }}>
             <TextField
@@ -514,16 +614,27 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
 const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('General');
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [targetWeight, setTargetWeight] = useState('');
   const [targetReps, setTargetReps] = useState('');
+  const [distanceUnit, setDistanceUnit] = useState('Miles');
+  const [distanceValue, setDistanceValue] = useState('');
+  const [goalTime, setGoalTime] = useState('');
   const [currentMax, setCurrentMax] = useState(null);
   const [targetDate, setTargetDate] = useState('');
 
   const isStrengthGoal = category === "Strength";
+  const isCardioGoal = category === "Cardio";
 
   const handleChange = (e, setter) => setter(e.target.value);
+  const handleDistanceUnitChange = (nextUnit) => {
+    if (distanceValue !== '') {
+      setDistanceValue(convertDistanceValue(distanceValue, distanceUnit, nextUnit));
+    }
+    setDistanceUnit(nextUnit);
+  };
+  const handleGoalTimeChange = (e) => setGoalTime(formatRaceTime(e.target.value));
 
   const fetchCurrentMax = useCallback(async () => {
     if (!selectedExercise?._id || !targetReps) {
@@ -559,10 +670,13 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setCategory('');
+    setCategory('General');
     setSelectedExercise(null);
     setTargetWeight('');
     setTargetReps('');
+    setDistanceUnit('Miles');
+    setDistanceValue('');
+    setGoalTime('');
     setCurrentMax(null);
     setTargetDate('');
   };
@@ -578,6 +692,10 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
       goalData.exercise = selectedExercise?._id;
       goalData.targetWeight = Number(targetWeight);
       goalData.targetReps = Number(targetReps);
+    } else if (isCardioGoal) {
+      goalData.distanceUnit = distanceUnit;
+      goalData.distanceValue = distanceValue === '' ? null : Number(distanceValue);
+      goalData.goalTime = goalTime || null;
     }
     dispatch(addNewGoal(goalData))
       .then(() => {
@@ -612,7 +730,6 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
                 label="Category"
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <MenuItem value="">None</MenuItem>
                 {GOAL_CATEGORIES.map((cat) => (
                   <MenuItem key={cat} value={cat}>
                     {cat}
@@ -668,16 +785,62 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
               </Grid>
             </>
           ) : (
-            <Grid container size={{ xs: 12, sm: 8 }}>
-              <TextField
-                type="text"
-                fullWidth
-                label="Title"
-                value={title}
-                onChange={(e) => handleChange(e, setTitle)}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
+            <>
+              <Grid container size={{ xs: 12, sm: 8 }}>
+                <TextField
+                  type="text"
+                  fullWidth
+                  label="Title"
+                  value={title}
+                  onChange={(e) => handleChange(e, setTitle)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              {isCardioGoal && (
+                <>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <FormControl fullWidth>
+                      <InputLabel>Distance Unit</InputLabel>
+                      <Select
+                        value={distanceUnit}
+                        label="Distance Unit"
+                      onChange={(e) => handleDistanceUnitChange(e.target.value)}
+                      >
+                        {DISTANCE_UNITS.map((unit) => (
+                          <MenuItem key={unit} value={unit}>
+                            {unit}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      label="Distance"
+                      value={distanceValue}
+                      onChange={(e) => setDistanceValue(e.target.value)}
+                      inputProps={{ step: "0.01" }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="text"
+                      fullWidth
+                      label="Goal Time"
+                      value={goalTime}
+                      onChange={handleGoalTimeChange}
+                      placeholder="HH:MM:SS"
+                      inputProps={{ inputMode: "numeric", pattern: "[0-9:]*" }}
+                      helperText="Format: HH:MM:SS (minutes/seconds 00-59)"
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </>
+              )}
+            </>
           )}
           <Grid container size={12}>
             <TextField
