@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useLocation, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
 import dayjs from "dayjs";
 import Loading from "../../Components/Loading";
 import SelectedDate from "../../Components/SelectedDate";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
-import { requestWorkoutsByDate, serverURL } from "../../Redux/actions";
-import { Avatar, Grid, Typography } from '@mui/material';
+import { requestWorkoutsByDate, requestLatestMetric, serverURL } from "../../Redux/actions";
+import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
 
 function Home() {
   const location = useLocation();
@@ -26,6 +26,9 @@ function Home() {
   const workoutsUser = useSelector((state) => {
     return state.workouts?.[isPersonalWorkout() ? user._id : client]?.user ?? {};
   });
+  const latestMetric = useSelector(
+    (state) => state.metrics.latestByUser[(client || user._id)] || null
+  );
   const [loading, setLoading] = useState(true);
 
   const isValidDate = (date) => {
@@ -106,6 +109,10 @@ function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, isPersonalWorkout]);
 
+  useEffect(() => {
+    dispatch(requestLatestMetric({ userId: isPersonalWorkout() ? undefined : client }));
+  }, [dispatch, isPersonalWorkout, client]);
+
 
   return loading ? (
     <Loading />
@@ -128,6 +135,39 @@ function Home() {
       )}
       <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
       <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} workoutsUser={workoutsUser} workouts={workouts} />
+      {latestMetric && (
+        <Grid container size={12} sx={{ marginTop: "10px" }}>
+          <Paper elevation={5} sx={{ width: "100%", padding: "5px", margin: "5px" }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Typography variant="h6" color="text.primary">Latest Body Metrics</Typography>
+              <Button
+                component={Link}
+                to={`/progress?${client ? `client=${client}&` : ""}tab=metrics`}
+                size="small"
+                variant="outlined"
+              >
+                View Body Metrics
+              </Button>
+            </Stack>
+            <Typography variant="caption" color="text.secondary">
+              {new Date(latestMetric.recordedAt).toLocaleDateString()}{" "}
+              {new Date(latestMetric.recordedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </Typography>
+            <Paper sx={{ padding: "4px 8px", marginTop: "6px" }}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                sx={{ "& p": { color: "text.primary" } }}
+              >
+                <Typography variant="body1">Weight: {latestMetric.weight ?? "—"} lbs</Typography>
+                <Typography variant="body1">Body Fat: {latestMetric.bodyFatPercent ?? "—"}%</Typography>
+                <Typography variant="body1">BMI: {latestMetric.bmi ?? "—"}</Typography>
+                <Typography variant="body1">RHR: {latestMetric.restingHeartRate ?? "—"} bpm</Typography>
+              </Stack>
+            </Paper>
+          </Paper>
+        </Grid>
+      )}
       {localWorkouts && (
         <WorkoutOverview
           localWorkouts={localWorkouts}

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Avatar,
+  Badge,
   Box,
   Button,
   Container,
@@ -44,7 +45,13 @@ import Barcode from "react-barcode";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
+  const goals = useSelector((state) => state.goals);
   const navigate = useNavigate();
+
+  // Count unseen achieved goals
+  const unseenAchievements = goals?.filter(
+    (goal) => goal.achievedDate && !goal.achievementSeen
+  )?.length || 0;
 
   const pages = [
     {
@@ -53,7 +60,7 @@ export default function NavDrawer() {
       icon: <HomeIcon />,
     },
     {
-      title: "Sessions",
+      title: "Scheduling",
       to: "/sessions",
       icon: <CalendarIcon />,
     },
@@ -66,6 +73,7 @@ export default function NavDrawer() {
       title: "Goals",
       to: "/goals",
       icon: <GoalsIcon />,
+      badge: unseenAchievements,
     },
     {
       title: "Progress",
@@ -182,6 +190,9 @@ export default function NavDrawer() {
                 <ListItemButton component={Link} to={page.to}>
                   <ListItemIcon>{page.icon}</ListItemIcon>
                   <ListItemText primary={page.title} />
+                  {page.badge > 0 && (
+                    <Badge badgeContent={page.badge} color="error" sx={{ mr: 2 }} />
+                  )}
                 </ListItemButton>
               </ListItem>
             ))}
@@ -255,7 +266,9 @@ export default function NavDrawer() {
                   },
                 }}
               >
-                <NavIcon />
+                <Badge badgeContent={unseenAchievements} color="error">
+                  <NavIcon />
+                </Badge>
               </IconButton>
               <Button component={Link} to="/"
                 onClick={(e) => {

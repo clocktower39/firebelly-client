@@ -1766,7 +1766,7 @@ export default function Schedule() {
             alignItems={{ xs: "flex-start", sm: "center" }}
             spacing={1}
           >
-            <Typography variant="h4">Sessions</Typography>
+            <Typography variant="h4">Scheduling</Typography>
             {isTrainerView && (
               <Button variant="contained" onClick={handleOpenAvailability}>
                 Open Slot

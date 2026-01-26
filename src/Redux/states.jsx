@@ -27,6 +27,12 @@ export let goals = [];
 
 export let conversations = [];
 
+export let metrics = {
+    entriesByUser: {},
+    pendingByUser: {},
+    latestByUser: {},
+};
+
 export let scheduleEvents = {
     // scopeKey: {
     //   events: [ ...events ],

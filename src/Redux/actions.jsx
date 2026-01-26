@@ -20,6 +20,13 @@ export const GET_GOALS = "GET_GOALS";
 export const UPDATE_GOAL = "UPDATE_GOAL";
 export const ADD_NEW_GOAL = "ADD_NEW_GOAL";
 export const DELETE_GOAL = "DELETE_GOAL";
+export const EDIT_METRICS_ENTRIES = "EDIT_METRICS_ENTRIES";
+export const EDIT_METRICS_PENDING = "EDIT_METRICS_PENDING";
+export const EDIT_METRICS_LATEST = "EDIT_METRICS_LATEST";
+export const ADD_METRIC_ENTRY = "ADD_METRIC_ENTRY";
+export const REVIEW_METRIC_ENTRY = "REVIEW_METRIC_ENTRY";
+export const UPDATE_METRIC_ENTRY = "UPDATE_METRIC_ENTRY";
+export const DELETE_METRIC_ENTRY = "DELETE_METRIC_ENTRY";
 export const UPDATE_CONVERSATIONS = "UPDATE_CONVERSATIONS";
 export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 export const EDIT_SCHEDULE_EVENTS = "EDIT_SCHEDULE_EVENTS";
@@ -1250,6 +1257,31 @@ export function removeRelationship(trainer, client) {
   };
 }
 
+export function updateMetricsApproval(trainer, metricsApprovalRequired) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/relationships/metricsApproval`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ trainer, metricsApprovalRequired }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
+    return dispatch(requestMyTrainers());
+  };
+}
+
 export function getGoals({ requestedBy = "client", client }) {
   return async (dispatch, getState) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -1398,6 +1430,195 @@ export function removeGoalComment(goalId, commentId) {
       type: UPDATE_GOAL,
       goal,
     });
+  };
+}
+
+export function markAchievementSeen(goalId) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/goals/markAchievementSeen`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ goalId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    let goal = await response.json();
+
+    return dispatch({
+      type: UPDATE_GOAL,
+      goal,
+    });
+  };
+}
+
+export function requestMetrics({ userId } = {}) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/list`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ userId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const entries = await response.json();
+
+    dispatch({
+      type: EDIT_METRICS_ENTRIES,
+      userId,
+      entries,
+    });
+
+    return entries;
+  };
+}
+
+export function requestPendingMetrics() {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/pending`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({}),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const entries = await response.json();
+
+    dispatch({
+      type: EDIT_METRICS_PENDING,
+      entries,
+    });
+
+    return entries;
+  };
+}
+
+export function requestLatestMetric({ userId } = {}) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/latest`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ userId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const latest = await response.json();
+
+    dispatch({
+      type: EDIT_METRICS_LATEST,
+      userId,
+      entry: latest,
+    });
+
+    return latest;
+  };
+}
+
+export function createMetricEntry(payload) {
+  return async (dispatch, getState) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/create`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const entry = await response.json();
+
+    dispatch({
+      type: ADD_METRIC_ENTRY,
+      entry,
+      userId: payload?.userId,
+    });
+
+    return entry;
+  };
+}
+
+export function reviewMetricEntry(entryId, approved) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/review`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ entryId, approved }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const entry = await response.json();
+
+    dispatch({
+      type: REVIEW_METRIC_ENTRY,
+      entry,
+    });
+
+    return entry;
+  };
+}
+
+export function updateMetricEntry(payload) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/update`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const entry = await response.json();
+
+    dispatch({
+      type: UPDATE_METRIC_ENTRY,
+      entry,
+    });
+
+    return entry;
+  };
+}
+
+export function deleteMetricEntry(entryId, userId) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const response = await fetch(`${serverURL}/metrics/delete`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ entryId }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+    const data = await response.json();
+
+    if (data?.status === "success") {
+      dispatch({
+        type: DELETE_METRIC_ENTRY,
+        entryId,
+        userId: userId || data.userId,
+      });
+    }
+
+    return data;
   };
 }
 

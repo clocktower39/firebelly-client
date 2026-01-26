@@ -14,10 +14,13 @@ import {
   IconButton,
   LinearProgress,
   Paper,
+  Stack,
+  Switch,
+  FormControlLabel,
   Typography,
 } from "@mui/material";
 import { AddCircle, Delete, Done, Message as MessageIcon, PendingActions } from "@mui/icons-material";
-import { requestMyTrainers, removeRelationship, serverURL } from "../../Redux/actions";
+import { requestMyTrainers, removeRelationship, updateMetricsApproval, serverURL } from "../../Redux/actions";
 import SearchTrainerDialog from "./SearchTrainerDialog";
 import Messages from "../Messages";
 
@@ -79,6 +82,30 @@ export default function Trainers({ socket }) {
             title={`${trainer.firstName} ${trainer.lastName}`}
             subheader={trainer.accepted ? "Accepted" : "Pending"}
           />
+          {trainer.accepted && (
+            <Box sx={{ px: 2, pb: 2 }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Trainer body metric entries
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={!trainer.metricsApprovalRequired}
+                      onChange={(e) =>
+                        dispatch(updateMetricsApproval(trainer.trainer, !e.target.checked))
+                      }
+                    />
+                  }
+                  label={
+                    trainer.metricsApprovalRequired
+                      ? "Auto-Approve Disabled"
+                      : "Auto-Approve Enabled"
+                  }
+                />
+              </Stack>
+            </Box>
+          )}
         </Card>
         <Dialog open={deleteConfirmationOpen} onClose={handleDeleteConfirmationClose}>
           <DialogTitle id="alert-dialog-title">
