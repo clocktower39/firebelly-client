@@ -1,23 +1,49 @@
-import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useLocation, useOutletContext } from "react-router-dom";
 import {
   Autocomplete,
   Box,
   Chip,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
   Modal,
+  Paper,
+  Select,
   Slider,
+  Stack,
+  Tab,
+  Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  requestMyExerciseList,
+  requestClients,
   requestExerciseProgress,
   getExerciseList,
+  requestMetrics,
+  requestPendingMetrics,
+  requestLatestMetric,
+  createMetricEntry,
+  reviewMetricEntry,
+  updateMetricEntry,
+  deleteMetricEntry,
 } from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { theme } from "../../theme";
+import queryString from "query-string";
 
 const modalStyle = () => ({
   position: "absolute",
@@ -30,6 +56,85 @@ const modalStyle = () => ({
   boxShadow: 24,
   p: 4,
 });
+
+const CIRCUMFERENCE_FIELDS = [
+  { key: "neck", label: "Neck" },
+  { key: "shoulders", label: "Shoulders" },
+  { key: "arms", label: "Arms" },
+  { key: "forearms", label: "Forearms" },
+  { key: "chest", label: "Chest" },
+  { key: "waist", label: "Waist" },
+  { key: "glutes", label: "Glutes" },
+  { key: "thighs", label: "Thighs" },
+  { key: "calves", label: "Calves" },
+];
+
+const parseHeightToInches = (heightValue) => {
+  if (!heightValue) return null;
+  const heightStr = String(heightValue).trim();
+  const ftInMatch = heightStr.match(/(\d+)\s*'\s*(\d+)?/);
+  if (ftInMatch) {
+    const feet = Number(ftInMatch[1] || 0);
+    const inches = Number(ftInMatch[2] || 0);
+    const totalInches = feet * 12 + inches;
+    return Number.isFinite(totalInches) && totalInches > 0 ? totalInches : null;
+  }
+  const numericHeight = Number(heightStr.replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(numericHeight) || numericHeight <= 0) return null;
+  if (numericHeight > 100) {
+    return numericHeight / 2.54;
+  }
+  return numericHeight;
+};
+
+const calculateBmi = (weightLbs, heightInches) => {
+  if (!Number.isFinite(weightLbs) || !Number.isFinite(heightInches) || heightInches <= 0) {
+    return "";
+  }
+  const bmi = (weightLbs / (heightInches * heightInches)) * 703;
+  return Number.isFinite(bmi) ? (Math.round(bmi * 10) / 10).toFixed(1) : "";
+};
+
+const formatRecordedAt = (value) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+};
+
+const WEIGHT_UNITS = [
+  { value: "lbs", label: "lbs" },
+  { value: "kg", label: "kg" },
+];
+
+const CIRCUMFERENCE_UNITS = [
+  { value: "in", label: "in" },
+  { value: "cm", label: "cm" },
+];
+
+const toLbs = (value, unit) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return null;
+  return unit === "kg" ? numericValue * 2.20462 : numericValue;
+};
+
+const fromLbs = (value, unit) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "";
+  return unit === "kg" ? numericValue / 2.20462 : numericValue;
+};
+
+const toInches = (value, unit) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return null;
+  return unit === "cm" ? numericValue / 2.54 : numericValue;
+};
+
+const fromInches = (value, unit) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "";
+  return unit === "cm" ? numericValue * 2.54 : numericValue;
+};
 
 const exerciseTypeFields = (exerciseType) => {
   switch (exerciseType) {
@@ -328,29 +433,712 @@ const ExerciseListAutocomplete = (props) => {
   );
 };
 
+const BodyMetrics = ({ targetUser, isTrainerView }) => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
+  const metricsState = useSelector((state) => state.metrics);
+  const userId = targetUser?._id;
+  const entries = metricsState.entriesByUser[userId] || [];
+  const pending = metricsState.pendingByUser[userId] || [];
+  const latest = metricsState.latestByUser[userId] || null;
+
+  const [recordedAt, setRecordedAt] = useState(() => new Date().toISOString().slice(0, 16));
+  const [weight, setWeight] = useState("");
+  const [bodyFatPercent, setBodyFatPercent] = useState("");
+  const [restingHeartRate, setRestingHeartRate] = useState("");
+  const [circumference, setCircumference] = useState({});
+  const [weightUnit, setWeightUnit] = useState("lbs");
+  const [circumferenceUnit, setCircumferenceUnit] = useState("in");
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editRecordedAt, setEditRecordedAt] = useState("");
+  const [editWeight, setEditWeight] = useState("");
+  const [editBodyFatPercent, setEditBodyFatPercent] = useState("");
+  const [editRestingHeartRate, setEditRestingHeartRate] = useState("");
+  const [editCircumference, setEditCircumference] = useState({});
+
+  const heightInches = useMemo(() => parseHeightToInches(targetUser?.height), [targetUser?.height]);
+  const bmiPreview = useMemo(
+    () => calculateBmi(toLbs(weight, weightUnit), heightInches),
+    [weight, weightUnit, heightInches]
+  );
+
+  useEffect(() => {
+    if (!userId) return;
+    const requestUserId = isTrainerView ? userId : undefined;
+    dispatch(requestMetrics({ userId: requestUserId }));
+    dispatch(requestLatestMetric({ userId: requestUserId }));
+    if (!isTrainerView) {
+      dispatch(requestPendingMetrics());
+    }
+  }, [dispatch, userId, isTrainerView]);
+
+  useEffect(() => {
+    if (!isTrainerView && entries.length === 0) {
+      setOnboardingOpen(true);
+    }
+  }, [entries.length, isTrainerView]);
+
+  const handleCircumferenceChange = (key, value) => {
+    setCircumference((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleWeightUnitChange = (nextUnit) => {
+    if (weight !== "") {
+      const weightInLbs = toLbs(weight, weightUnit);
+      const converted = fromLbs(weightInLbs, nextUnit);
+      setWeight(converted === "" ? "" : String(converted));
+    }
+    setWeightUnit(nextUnit);
+  };
+
+  const handleCircumferenceUnitChange = (nextUnit) => {
+    if (Object.keys(circumference).length > 0) {
+      const updated = {};
+      CIRCUMFERENCE_FIELDS.forEach((field) => {
+        const value = circumference[field.key];
+        if (value === "" || value === undefined) return;
+        const inches = toInches(value, circumferenceUnit);
+        const converted = fromInches(inches, nextUnit);
+        updated[field.key] = converted === "" ? "" : String(converted);
+      });
+      setCircumference((prev) => ({ ...prev, ...updated }));
+    }
+    setCircumferenceUnit(nextUnit);
+  };
+
+  const resetForm = () => {
+    setRecordedAt(new Date().toISOString().slice(0, 16));
+    setWeight("");
+    setBodyFatPercent("");
+    setRestingHeartRate("");
+    setCircumference({});
+    setWeightUnit("lbs");
+    setCircumferenceUnit("in");
+  };
+
+  const handleSubmit = () => {
+    if (!userId) return;
+    const payload = {
+      userId: isTrainerView ? userId : undefined,
+      recordedAt,
+      weight: weight === "" ? undefined : toLbs(weight, weightUnit),
+      bodyFatPercent: bodyFatPercent === "" ? undefined : Number(bodyFatPercent),
+      restingHeartRate: restingHeartRate === "" ? undefined : Number(restingHeartRate),
+    };
+
+    const cleanedCircumference = Object.fromEntries(
+      Object.entries(circumference).filter(([, value]) => value !== "" && value !== undefined)
+    );
+    if (Object.keys(cleanedCircumference).length > 0) {
+      const convertedCircumference = Object.fromEntries(
+        Object.entries(cleanedCircumference).map(([key, value]) => [
+          key,
+          toInches(value, circumferenceUnit),
+        ])
+      );
+      payload.circumference = convertedCircumference;
+    }
+
+    dispatch(createMetricEntry(payload)).then(() => {
+      const requestUserId = isTrainerView ? userId : undefined;
+      dispatch(requestMetrics({ userId: requestUserId }));
+      dispatch(requestLatestMetric({ userId: requestUserId }));
+      if (!isTrainerView) {
+        dispatch(requestPendingMetrics());
+      }
+      resetForm();
+      setOnboardingOpen(false);
+    });
+  };
+
+  const latestEntry = latest || entries[0] || null;
+  const formatCircumference = (entry) => {
+    if (!entry?.circumference) return "";
+    const parts = CIRCUMFERENCE_FIELDS.map((field) => {
+      const value = entry.circumference?.[field.key];
+      const formatted = fromInches(value, circumferenceUnit);
+      return formatted !== "" ? `${field.label}: ${Number(formatted).toFixed(1)}` : null;
+    }).filter(Boolean);
+    return parts.join(" • ");
+  };
+
+  const openEditEntry = (entry) => {
+    setEditingEntry(entry);
+    setEditRecordedAt(entry.recordedAt ? new Date(entry.recordedAt).toISOString().slice(0, 16) : "");
+    const displayWeight = fromLbs(entry.weight, weightUnit);
+    setEditWeight(displayWeight === "" ? "" : String(Number(displayWeight).toFixed(1)));
+    setEditBodyFatPercent(entry.bodyFatPercent ?? "");
+    setEditRestingHeartRate(entry.restingHeartRate ?? "");
+    const displayCircumference = {};
+    CIRCUMFERENCE_FIELDS.forEach((field) => {
+      const value = entry.circumference?.[field.key];
+      const converted = fromInches(value, circumferenceUnit);
+      if (converted !== "") {
+        displayCircumference[field.key] = Number(converted).toFixed(1);
+      }
+    });
+    setEditCircumference(displayCircumference);
+    setEditOpen(true);
+  };
+
+  const handleEditWeightUnitChange = (nextUnit) => {
+    if (editWeight !== "") {
+      const weightInLbs = toLbs(editWeight, weightUnit);
+      const converted = fromLbs(weightInLbs, nextUnit);
+      setEditWeight(converted === "" ? "" : String(Number(converted).toFixed(1)));
+    }
+    setWeightUnit(nextUnit);
+  };
+
+  const handleEditCircumferenceUnitChange = (nextUnit) => {
+    if (Object.keys(editCircumference).length > 0) {
+      const updated = {};
+      CIRCUMFERENCE_FIELDS.forEach((field) => {
+        const value = editCircumference[field.key];
+        if (value === "" || value === undefined) return;
+        const inches = toInches(value, circumferenceUnit);
+        const converted = fromInches(inches, nextUnit);
+        updated[field.key] = converted === "" ? "" : String(Number(converted).toFixed(1));
+      });
+      setEditCircumference((prev) => ({ ...prev, ...updated }));
+    }
+    setCircumferenceUnit(nextUnit);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editingEntry) return;
+    const payload = {
+      entryId: editingEntry._id,
+      recordedAt: editRecordedAt,
+      weight: editWeight === "" ? undefined : toLbs(editWeight, weightUnit),
+      bodyFatPercent: editBodyFatPercent === "" ? undefined : Number(editBodyFatPercent),
+      restingHeartRate: editRestingHeartRate === "" ? undefined : Number(editRestingHeartRate),
+    };
+
+    const cleanedCircumference = Object.fromEntries(
+      Object.entries(editCircumference).filter(([, value]) => value !== "" && value !== undefined)
+    );
+    if (Object.keys(cleanedCircumference).length > 0) {
+      const convertedCircumference = Object.fromEntries(
+        Object.entries(cleanedCircumference).map(([key, value]) => [
+          key,
+          toInches(value, circumferenceUnit),
+        ])
+      );
+      payload.circumference = convertedCircumference;
+    }
+
+    dispatch(updateMetricEntry(payload)).then(() => {
+      const requestUserId = isTrainerView ? userId : undefined;
+      dispatch(requestMetrics({ userId: requestUserId }));
+      dispatch(requestLatestMetric({ userId: requestUserId }));
+      setEditOpen(false);
+      setEditingEntry(null);
+    });
+  };
+
+  const handleDeleteEntry = () => {
+    if (!editingEntry) return;
+    dispatch(deleteMetricEntry(editingEntry._id, userId)).then(() => {
+      const requestUserId = isTrainerView ? userId : undefined;
+      dispatch(requestMetrics({ userId: requestUserId }));
+      dispatch(requestLatestMetric({ userId: requestUserId }));
+      setDeleteConfirmOpen(false);
+      setEditOpen(false);
+      setEditingEntry(null);
+    });
+  };
+
+  return (
+    <Grid container spacing={2} sx={{ marginTop: "15px" }}>
+      <Grid container size={12}>
+        <Typography variant="h5">Body Metrics</Typography>
+      </Grid>
+
+      {isTrainerView && (
+        <Grid container size={12}>
+          <Typography variant="body2" color="text.secondary">
+            Entries you submit require client approval before they appear in progress.
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid container size={12}>
+        <Paper sx={{ width: "100%", padding: "16px" }}>
+          <Grid container spacing={2}>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="datetime-local"
+                fullWidth
+                label="Recorded At"
+                value={recordedAt}
+                onChange={(e) => setRecordedAt(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 3 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Weight"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                inputProps={{ step: "0.1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={weightUnit}
+                  label="Unit"
+                  onChange={(e) => handleWeightUnitChange(e.target.value)}
+                >
+                  {WEIGHT_UNITS.map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Body Fat %"
+                value={bodyFatPercent}
+                onChange={(e) => setBodyFatPercent(e.target.value)}
+                inputProps={{ step: "0.1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Resting HR (bpm)"
+                value={restingHeartRate}
+                onChange={(e) => setRestingHeartRate(e.target.value)}
+                inputProps={{ step: "1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="text"
+                fullWidth
+                label="BMI (auto)"
+                value={bmiPreview}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
+            <Grid container size={12}>
+              <Divider sx={{ width: "100%", margin: "10px 0" }} />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 6 }} alignItems="center">
+              <Typography variant="subtitle1">Circumference ({circumferenceUnit})</Typography>
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={circumferenceUnit}
+                  label="Unit"
+                  onChange={(e) => handleCircumferenceUnitChange(e.target.value)}
+                >
+                  {CIRCUMFERENCE_UNITS.map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            {CIRCUMFERENCE_FIELDS.map((field) => (
+              <Grid key={field.key} container size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={field.label}
+                  value={circumference[field.key] || ""}
+                  onChange={(e) => handleCircumferenceChange(field.key, e.target.value)}
+                  inputProps={{ step: "0.1" }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            ))}
+            <Grid container size={12} sx={{ justifyContent: "flex-end", marginTop: "8px" }}>
+              <Stack direction="row" spacing={2}>
+                <Button color="secondaryButton" variant="contained" onClick={resetForm}>
+                  Clear
+                </Button>
+                <Button variant="contained" onClick={handleSubmit}>
+                  Save Entry
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Grid>
+
+      {latestEntry && (
+        <Grid container size={12}>
+          <Paper sx={{ width: "100%", padding: "16px" }}>
+            <Typography variant="subtitle1">Latest Metrics</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {formatRecordedAt(latestEntry.recordedAt)}
+            </Typography>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ marginTop: "8px" }}>
+              <Typography variant="body1">
+                Weight:{" "}
+                {latestEntry.weight !== undefined
+                  ? `${Number(fromLbs(latestEntry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                  : "—"}
+              </Typography>
+              <Typography variant="body1">Body Fat: {latestEntry.bodyFatPercent ?? "—"}%</Typography>
+              <Typography variant="body1">BMI: {latestEntry.bmi ?? "—"}</Typography>
+              <Typography variant="body1">RHR: {latestEntry.restingHeartRate ?? "—"} bpm</Typography>
+            </Stack>
+            {formatCircumference(latestEntry) && (
+              <Typography variant="body2" sx={{ marginTop: "6px" }}>
+                {formatCircumference(latestEntry)}
+              </Typography>
+            )}
+          </Paper>
+        </Grid>
+      )}
+
+      {!isTrainerView && pending.length > 0 && (
+        <Grid container size={12}>
+          <Paper sx={{ width: "100%", padding: "16px" }}>
+            <Typography variant="subtitle1">Pending Trainer Entries</Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Recorded</TableCell>
+                  <TableCell>Weight</TableCell>
+                  <TableCell>Body Fat</TableCell>
+                  <TableCell>BMI</TableCell>
+                  <TableCell>RHR</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pending.map((entry) => (
+                  <TableRow key={entry._id}>
+                    <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
+                    <TableCell>
+                      {entry.weight !== undefined
+                        ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
+                    <TableCell>{entry.bmi ?? "—"}</TableCell>
+                    <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() =>
+                            dispatch(reviewMetricEntry(entry._id, true)).then(() => {
+                              dispatch(requestMetrics());
+                              dispatch(requestLatestMetric());
+                              dispatch(requestPendingMetrics());
+                            })
+                          }
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() =>
+                            dispatch(reviewMetricEntry(entry._id, false)).then(() => {
+                              dispatch(requestMetrics());
+                              dispatch(requestLatestMetric());
+                              dispatch(requestPendingMetrics());
+                            })
+                          }
+                        >
+                          Reject
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+      )}
+
+      <Grid container size={12}>
+        <Paper sx={{ width: "100%", padding: "16px" }}>
+          <Typography variant="subtitle1">History</Typography>
+          {entries.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No entries yet.
+            </Typography>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Recorded</TableCell>
+                  <TableCell>Weight</TableCell>
+                  <TableCell>Body Fat</TableCell>
+                  <TableCell>BMI</TableCell>
+                  <TableCell>RHR</TableCell>
+                  <TableCell>Circumference</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {entries.slice(0, 10).map((entry) => (
+                  <TableRow key={entry._id}>
+                    <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
+                    <TableCell>
+                      {entry.weight !== undefined
+                        ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
+                    <TableCell>{entry.bmi ?? "—"}</TableCell>
+                    <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
+                    <TableCell>{formatCircumference(entry) || "—"}</TableCell>
+                    <TableCell>
+                      {String(entry.createdBy) === String(user._id) && (
+                        <Stack direction="row" spacing={1}>
+                          <Button size="small" onClick={() => openEditEntry(entry)}>
+                            Edit
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => {
+                              openEditEntry(entry);
+                              setDeleteConfirmOpen(true);
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </Stack>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Paper>
+      </Grid>
+
+      <Modal open={onboardingOpen} onClose={() => setOnboardingOpen(false)}>
+        <Box sx={modalStyle()}>
+          <Typography variant="h5" sx={{ marginBottom: "8px" }}>
+            Add Your First Metrics
+          </Typography>
+          <Typography variant="body1" sx={{ marginBottom: "16px" }}>
+            Track weight, body fat, resting heart rate, and measurements over time.
+          </Typography>
+          <Button variant="contained" onClick={() => setOnboardingOpen(false)}>
+            Start Tracking
+          </Button>
+        </Box>
+      </Modal>
+
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>Edit Metrics Entry</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ marginTop: "4px" }}>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="datetime-local"
+                fullWidth
+                label="Recorded At"
+                value={editRecordedAt}
+                onChange={(e) => setEditRecordedAt(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 3 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Weight"
+                value={editWeight}
+                onChange={(e) => setEditWeight(e.target.value)}
+                inputProps={{ step: "0.1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={weightUnit}
+                  label="Unit"
+                  onChange={(e) => handleEditWeightUnitChange(e.target.value)}
+                >
+                  {WEIGHT_UNITS.map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Body Fat %"
+                value={editBodyFatPercent}
+                onChange={(e) => setEditBodyFatPercent(e.target.value)}
+                inputProps={{ step: "0.1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="number"
+                fullWidth
+                label="Resting HR (bpm)"
+                value={editRestingHeartRate}
+                onChange={(e) => setEditRestingHeartRate(e.target.value)}
+                inputProps={{ step: "1" }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 4 }}>
+              <TextField
+                type="text"
+                fullWidth
+                label="BMI (auto)"
+                value={calculateBmi(toLbs(editWeight, weightUnit), heightInches)}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+
+            <Grid container size={12}>
+              <Divider sx={{ width: "100%", margin: "10px 0" }} />
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 6 }} alignItems="center">
+              <Typography variant="subtitle1">Circumference ({circumferenceUnit})</Typography>
+            </Grid>
+            <Grid container size={{ xs: 12, sm: 6 }}>
+              <FormControl fullWidth>
+                <InputLabel>Unit</InputLabel>
+                <Select
+                  value={circumferenceUnit}
+                  label="Unit"
+                  onChange={(e) => handleEditCircumferenceUnitChange(e.target.value)}
+                >
+                  {CIRCUMFERENCE_UNITS.map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            {CIRCUMFERENCE_FIELDS.map((field) => (
+              <Grid key={field.key} container size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={field.label}
+                  value={editCircumference[field.key] || ""}
+                  onChange={(e) =>
+                    setEditCircumference((prev) => ({
+                      ...prev,
+                      [field.key]: e.target.value,
+                    }))
+                  }
+                  inputProps={{ step: "0.1" }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            ))}
+            <Grid container size={12} sx={{ justifyContent: "flex-end", marginTop: "8px" }}>
+              <Stack direction="row" spacing={2}>
+                <Button color="secondaryButton" variant="contained" onClick={() => setEditOpen(false)}>
+                  Cancel
+                </Button>
+                <Button color="error" variant="outlined" onClick={() => setDeleteConfirmOpen(true)}>
+                  Delete
+                </Button>
+                <Button variant="contained" onClick={handleEditSubmit}>
+                  Save Changes
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+        <DialogTitle>Delete Metrics Entry</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Are you sure you want to delete this metrics entry? This cannot be undone.
+          </Typography>
+          <Stack direction="row" spacing={2} sx={{ marginTop: "16px", justifyContent: "flex-end" }}>
+            <Button color="secondaryButton" variant="contained" onClick={() => setDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button color="error" variant="contained" onClick={handleDeleteEntry}>
+              Delete
+            </Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    </Grid>
+  );
+};
+
 export default function Progress(props) {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const { client, tab } = queryString.parse(location.search);
   const [searchValue, setSearchValue] = useState(props.searchExercise || "");
+  const [activeTab, setActiveTab] = useState(tab === "metrics" ? 1 : 0);
   const user = useSelector((state) => state.user);
+  const clients = useSelector((state) => state.clients);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
-  const matchedExercise = exerciseList.find(item => item.exerciseTitle === searchValue);
-  const targetExerciseHistory = matchedExercise?.history?.[user._id] || [];
+  const targetClient = client
+    ? clients.find((relationship) => relationship?.client?._id === client)?.client
+    : null;
+  const targetUser = client ? targetClient : user;
+  const isTrainerView = Boolean(client);
+
+  const matchedExercise = exerciseList.find((item) => item.exerciseTitle === searchValue);
+  const targetExerciseHistory = matchedExercise?.history?.[targetUser?._id] || [];
 
   const loadExerciseProgress = (exercise) => {
-    dispatch(requestExerciseProgress(exercise, user));
+    if (!targetUser?._id) return;
+    dispatch(requestExerciseProgress(exercise, targetUser));
   };
 
   useEffect(() => {
-    const matchedExercise = exerciseList.find(item => item.exerciseTitle === searchValue);
+    if (!targetUser?._id) return;
+    const matchedExercise = exerciseList.find((item) => item.exerciseTitle === searchValue);
     if (matchedExercise) {
-      const id = matchedExercise._id;
       loadExerciseProgress(matchedExercise);
     } else {
       console.log("No matching exercise found");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchValue]);
+  }, [searchValue, targetUser?._id]);
 
   useEffect(() => {
     if (exerciseList.length < 1) {
@@ -362,20 +1150,63 @@ export default function Progress(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (client && clients.length === 0) {
+      dispatch(requestClients());
+    }
+  }, [client, clients.length, dispatch]);
+
+  useEffect(() => {
+    if (tab === "metrics") {
+      setActiveTab(1);
+    } else if (tab === "exercise") {
+      setActiveTab(0);
+    }
+  }, [tab]);
+
+  if (client && !targetUser) {
+    return (
+      <Grid container sx={{ justifyContent: "center", marginTop: "25px" }}>
+        <Typography variant="body1">Loading client metrics...</Typography>
+      </Grid>
+    );
+  }
+
   return (
     <>
       <Grid container sx={{ justifyContent: "center", marginTop: "25px" }}>
-        <Grid size={{ xs: 12, sm: 8, }} container>
-          <ExerciseListAutocomplete
-            exercise={{ set: setSearchValue, exercise: searchValue }}
-            exerciseList={exerciseList}
-          />
+        <Grid size={{ xs: 12, sm: 10 }} container>
+          <Tabs
+            value={activeTab}
+            onChange={(_, value) => setActiveTab(value)}
+            sx={{ marginBottom: "15px" }}
+          >
+            <Tab label="Exercise Progress" />
+            <Tab label="Body Metrics" />
+          </Tabs>
         </Grid>
-        <Grid container size={12}>
-          <Grid size={12}>
-            <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
+
+        {activeTab === 0 && (
+          <>
+            <Grid size={{ xs: 12, sm: 8 }} container>
+              <ExerciseListAutocomplete
+                exercise={{ set: setSearchValue, exercise: searchValue }}
+                exerciseList={exerciseList}
+              />
+            </Grid>
+            <Grid container size={12}>
+              <Grid size={12}>
+                <BarChartHistory targetExerciseHistory={targetExerciseHistory || []} />
+              </Grid>
+            </Grid>
+          </>
+        )}
+
+        {activeTab === 1 && (
+          <Grid container size={{ xs: 12, sm: 10 }}>
+            <BodyMetrics targetUser={targetUser} isTrainerView={isTrainerView} />
           </Grid>
-        </Grid>
+        )}
       </Grid>
     </>
   );

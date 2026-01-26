@@ -170,7 +170,9 @@ export default function Clients({ socket }) {
                 Training Sessions
               </Button>
               <Button onClick={() => null} disabled >Invoices</Button>
-              <Button onClick={() => null} disabled >Progress</Button>
+              <Button component={Link} to={`/progress?client=${clientRelationship.client._id}`}>
+                Progress
+              </Button>
               <Button onClick={() => null} disabled >Programs</Button>
               <Button onClick={() => null} disabled >Alerts</Button>
             </>

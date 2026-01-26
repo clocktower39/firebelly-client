@@ -16,6 +16,13 @@ import {
   UPDATE_GOAL,
   ADD_NEW_GOAL,
   DELETE_GOAL,
+  EDIT_METRICS_ENTRIES,
+  EDIT_METRICS_PENDING,
+  EDIT_METRICS_LATEST,
+  ADD_METRIC_ENTRY,
+  REVIEW_METRIC_ENTRY,
+  UPDATE_METRIC_ENTRY,
+  DELETE_METRIC_ENTRY,
   UPDATE_CONVERSATIONS,
   UPDATE_CONVERSATION_MESSAGES,
   EDIT_SCHEDULE_EVENTS,
@@ -33,6 +40,7 @@ import {
   goals,
   clients,
   conversations,
+  metrics,
   scheduleEvents,
   sessionSummary,
   workoutQueue,
@@ -49,6 +57,7 @@ export let reducer = (
     goals,
     clients,
     conversations,
+    metrics,
     scheduleEvents,
     sessionSummary,
     workoutQueue,
@@ -229,6 +238,134 @@ export let reducer = (
         ...state,
         goals: [...state.goals.filter((goal) => goal._id !== action.goalId)],
       };
+    case EDIT_METRICS_ENTRIES: {
+      const userId = action.userId || state.user._id;
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          entriesByUser: {
+            ...state.metrics.entriesByUser,
+            [userId]: action.entries || [],
+          },
+        },
+      };
+    }
+    case EDIT_METRICS_PENDING: {
+      const userId = state.user._id;
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          pendingByUser: {
+            ...state.metrics.pendingByUser,
+            [userId]: action.entries || [],
+          },
+        },
+      };
+    }
+    case EDIT_METRICS_LATEST: {
+      const userId = action.userId || state.user._id;
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          latestByUser: {
+            ...state.metrics.latestByUser,
+            [userId]: action.entry || null,
+          },
+        },
+      };
+    }
+    case ADD_METRIC_ENTRY: {
+      const userId = action.userId || action.entry?.user || state.user._id;
+      const existingEntries = state.metrics.entriesByUser[userId] || [];
+      const updatedEntries = [action.entry, ...existingEntries.filter((entry) => entry._id !== action.entry?._id)];
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          entriesByUser: {
+            ...state.metrics.entriesByUser,
+            [userId]: updatedEntries,
+          },
+        },
+      };
+    }
+    case REVIEW_METRIC_ENTRY: {
+      const userId = action.entry?.user || state.user._id;
+      const existingEntries = state.metrics.entriesByUser[userId] || [];
+      const updatedEntries =
+        action.entry?.status === "rejected"
+          ? existingEntries.filter((entry) => entry._id !== action.entry?._id)
+          : existingEntries.map((entry) =>
+              entry._id === action.entry?._id ? action.entry : entry
+            );
+      const existingPending = state.metrics.pendingByUser[userId] || [];
+      const updatedPending = existingPending.filter((entry) => entry._id !== action.entry?._id);
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          entriesByUser: {
+            ...state.metrics.entriesByUser,
+            [userId]: updatedEntries,
+          },
+          pendingByUser: {
+            ...state.metrics.pendingByUser,
+            [userId]: updatedPending,
+          },
+        },
+      };
+    }
+    case UPDATE_METRIC_ENTRY: {
+      const userId = action.entry?.user || state.user._id;
+      const existingEntries = state.metrics.entriesByUser[userId] || [];
+      const updatedEntries = existingEntries.map((entry) =>
+        entry._id === action.entry?._id ? action.entry : entry
+      );
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          entriesByUser: {
+            ...state.metrics.entriesByUser,
+            [userId]: updatedEntries,
+          },
+          latestByUser: {
+            ...state.metrics.latestByUser,
+            [userId]:
+              state.metrics.latestByUser[userId]?._id === action.entry?._id
+                ? action.entry
+                : state.metrics.latestByUser[userId],
+          },
+        },
+      };
+    }
+    case DELETE_METRIC_ENTRY: {
+      const userId = action.userId || state.user._id;
+      const existingEntries = state.metrics.entriesByUser[userId] || [];
+      const updatedEntries = existingEntries.filter((entry) => entry._id !== action.entryId);
+      const latestEntry = state.metrics.latestByUser[userId];
+      const nextLatest =
+        latestEntry && latestEntry._id === action.entryId
+          ? updatedEntries[0] || null
+          : latestEntry;
+      return {
+        ...state,
+        metrics: {
+          ...state.metrics,
+          entriesByUser: {
+            ...state.metrics.entriesByUser,
+            [userId]: updatedEntries,
+          },
+          latestByUser: {
+            ...state.metrics.latestByUser,
+            [userId]: nextLatest,
+          },
+        },
+      };
+    }
     case UPDATE_CONVERSATIONS:
       return {
         ...state,

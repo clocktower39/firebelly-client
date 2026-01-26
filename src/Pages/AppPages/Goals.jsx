@@ -40,6 +40,7 @@ import {
   deleteGoal,
   requestExerciseLibrary,
   markAchievementSeen,
+  requestLatestMetric,
   serverURL,
 } from "../../Redux/actions";
 
@@ -161,7 +162,7 @@ const GoalCard = ({ goal, onOpen }) => {
   );
 };
 
-const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) => {
+const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, latestMetric }) => {
   const [title, setTitle] = useState(goal.title || '');
   const [description, setDescription] = useState(goal.description || '');
   const [category, setCategory] = useState(goal.category || '');
@@ -171,6 +172,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
   const [distanceUnit, setDistanceUnit] = useState(goal.distanceUnit || 'Miles');
   const [distanceValue, setDistanceValue] = useState(goal.distanceValue || '');
   const [goalTime, setGoalTime] = useState(goal.goalTime || '');
+  const [goalWeight, setGoalWeight] = useState(goal.goalWeight || '');
   const [currentMax, setCurrentMax] = useState(null);
   const [targetDate, setTargetDate] = useState(goal.targetDate || '');
   const [achievedDate, setAchievedDate] = useState(goal.achievedDate || '');
@@ -179,6 +181,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
 
   const isStrengthGoal = category === "Strength";
   const isCardioGoal = category === "Cardio";
+  const isWeightGoal = category === "Weight";
 
   const handleChange = (e, setter) => setter(e.target.value);
   const handleDistanceUnitChange = (nextUnit) => {
@@ -236,15 +239,24 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
       goalData.distanceUnit = null;
       goalData.distanceValue = null;
       goalData.goalTime = null;
+      goalData.goalWeight = null;
     } else if (isCardioGoal) {
       goalData.distanceUnit = distanceUnit;
       goalData.distanceValue = distanceValue === '' ? null : Number(distanceValue);
       goalData.goalTime = goalTime || null;
+      goalData.goalWeight = null;
+      goalData.achievedDate = achievedDate;
+    } else if (isWeightGoal) {
+      goalData.distanceUnit = null;
+      goalData.distanceValue = null;
+      goalData.goalTime = null;
+      goalData.goalWeight = goalWeight === '' ? null : Number(goalWeight);
       goalData.achievedDate = achievedDate;
     } else {
       goalData.distanceUnit = null;
       goalData.distanceValue = null;
       goalData.goalTime = null;
+      goalData.goalWeight = null;
       goalData.achievedDate = achievedDate;
     }
     dispatch(updateGoal(goalData));
@@ -260,6 +272,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
     setDistanceUnit(goal.distanceUnit || 'Miles');
     setDistanceValue(goal.distanceValue || '');
     setGoalTime(goal.goalTime || '');
+    setGoalWeight(goal.goalWeight || '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
   };
@@ -333,6 +346,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
     setDistanceUnit(goal.distanceUnit || 'Miles');
     setDistanceValue(goal.distanceValue || '');
     setGoalTime(goal.goalTime || '');
+    setGoalWeight(goal.goalWeight || '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
   }, [goalId]);
@@ -491,6 +505,58 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
                   </Grid>
                 </>
               )}
+              {isWeightGoal && (
+                <>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="text"
+                      fullWidth
+                      label="Current Weight (lbs)"
+                      value={latestMetric?.weight ?? ""}
+                      InputProps={{ readOnly: true }}
+                      helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      label="Goal Weight (lbs)"
+                      value={goalWeight}
+                      onChange={(e) => setGoalWeight(e.target.value)}
+                      inputProps={{ step: "0.1" }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </>
+              )}
+              {isWeightGoal && (
+                <>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="text"
+                      fullWidth
+                      label="Current Weight (lbs)"
+                      value={latestMetric?.weight ?? ""}
+                      InputProps={{ readOnly: true }}
+                      helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid container size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      type="number"
+                      fullWidth
+                      label="Goal Weight (lbs)"
+                      value={goalWeight}
+                      onChange={(e) => setGoalWeight(e.target.value)}
+                      inputProps={{ step: "0.1" }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </>
+              )}
             </>
           )}
           <Grid container size={{ xs: 12, sm: isStrengthGoal ? 12 : 6 }}>
@@ -611,7 +677,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary }) =
   );
 };
 
-const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
+const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('General');
@@ -621,11 +687,13 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
   const [distanceUnit, setDistanceUnit] = useState('Miles');
   const [distanceValue, setDistanceValue] = useState('');
   const [goalTime, setGoalTime] = useState('');
+  const [goalWeight, setGoalWeight] = useState('');
   const [currentMax, setCurrentMax] = useState(null);
   const [targetDate, setTargetDate] = useState('');
 
   const isStrengthGoal = category === "Strength";
   const isCardioGoal = category === "Cardio";
+  const isWeightGoal = category === "Weight";
 
   const handleChange = (e, setter) => setter(e.target.value);
   const handleDistanceUnitChange = (nextUnit) => {
@@ -677,6 +745,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
     setDistanceUnit('Miles');
     setDistanceValue('');
     setGoalTime('');
+    setGoalWeight('');
     setCurrentMax(null);
     setTargetDate('');
   };
@@ -696,6 +765,8 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary }) => {
       goalData.distanceUnit = distanceUnit;
       goalData.distanceValue = distanceValue === '' ? null : Number(distanceValue);
       goalData.goalTime = goalTime || null;
+    } else if (isWeightGoal) {
+      goalData.goalWeight = goalWeight === '' ? null : Number(goalWeight);
     }
     dispatch(addNewGoal(goalData))
       .then(() => {
@@ -886,6 +957,9 @@ export default function Goals({ view = "client", client, }) {
   const goals = useSelector((state) => state.goals);
   const user = useSelector((state) => state.user);
   const exerciseLibrary = useSelector((state) => state.exerciseLibrary);
+  const latestMetric = useSelector(
+    (state) => state.metrics.latestByUser[(client?._id || user._id)]
+  );
 
   const [selectedGoal, setSelectedGoal] = useState({});
   const [openGoalDetails, setOpenGoalDetails] = useState(false);
@@ -910,8 +984,8 @@ export default function Goals({ view = "client", client, }) {
   useEffect(() => {
     dispatch(getGoals({ requestedBy: view, client: client?._id }));
     dispatch(requestExerciseLibrary());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    dispatch(requestLatestMetric({ userId: view === "trainer" ? client?._id : undefined }));
+  }, [dispatch, view, client?._id]);
 
   return (
     <>
@@ -944,9 +1018,16 @@ export default function Goals({ view = "client", client, }) {
           dispatch={dispatch}
           user={user}
           exerciseLibrary={exerciseLibrary}
+          latestMetric={latestMetric}
         />
       )}
-      <AddNewGoal open={openAddNewGoal} onClose={handleCloseAddNewGoal} dispatch={dispatch} exerciseLibrary={exerciseLibrary} />
+      <AddNewGoal
+        open={openAddNewGoal}
+        onClose={handleCloseAddNewGoal}
+        dispatch={dispatch}
+        exerciseLibrary={exerciseLibrary}
+        latestMetric={latestMetric}
+      />
     </>
   );
 }
