@@ -1063,6 +1063,37 @@ export default function Schedule() {
 
   const handleCalendarMenuClose = () => setCalendarMenuAnchor(null);
 
+  const getDefaultPriceValue = (typeId) => {
+    if (!typeId) return null;
+    const type = sessionTypeLookup.get(typeId);
+    if (!type) return null;
+    const hasDefault =
+      type.defaultPrice === 0 || type.defaultPrice || type.defaultPrice === "0";
+    if (!hasDefault) return null;
+    return { amount: String(type.defaultPrice), currency: type.currency || "USD" };
+  };
+
+  const applyDefaultPriceForType = (
+    nextTypeId,
+    prevTypeId,
+    currentAmount,
+    setAmount,
+    setCurrency
+  ) => {
+    const nextDefault = getDefaultPriceValue(nextTypeId);
+    const prevDefault = getDefaultPriceValue(prevTypeId);
+    const shouldUpdate =
+      currentAmount === "" ||
+      (prevDefault && String(currentAmount) === String(prevDefault.amount));
+    if (!shouldUpdate) return;
+    if (!nextDefault) {
+      setAmount("");
+      return;
+    }
+    setAmount(String(nextDefault.amount));
+    if (nextDefault.currency) setCurrency(nextDefault.currency);
+  };
+
   const handleSaveEdit = async () => {
     if (!editEvent) return;
     const startDateTime = dayjs(`${editDate}T${editStartTime}`).toISOString();
@@ -3540,7 +3571,18 @@ export default function Schedule() {
                 <Select
                   label="Session type"
                   value={editSessionTypeId}
-                  onChange={(event) => setEditSessionTypeId(event.target.value)}
+                  onChange={(event) => {
+                    const nextTypeId = event.target.value;
+                    const prevTypeId = editSessionTypeId;
+                    setEditSessionTypeId(nextTypeId);
+                    applyDefaultPriceForType(
+                      nextTypeId,
+                      prevTypeId,
+                      editPriceAmount,
+                      setEditPriceAmount,
+                      setEditPriceCurrency
+                    );
+                  }}
                 >
                   <MenuItem value="">No session type</MenuItem>
                   {sessionTypes.map((type) => (
