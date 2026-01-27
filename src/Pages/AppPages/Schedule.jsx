@@ -165,6 +165,8 @@ export default function Schedule() {
   const [editSessionTypeId, setEditSessionTypeId] = useState("");
   const [editPriceAmount, setEditPriceAmount] = useState("");
   const [editPriceCurrency, setEditPriceCurrency] = useState("USD");
+  const [editPayoutAmount, setEditPayoutAmount] = useState("");
+  const [editPayoutCurrency, setEditPayoutCurrency] = useState("USD");
   const [quickBookClientId, setQuickBookClientId] = useState("");
   const [quickBookWorkoutId, setQuickBookWorkoutId] = useState("");
   const [quickBookCustomName, setQuickBookCustomName] = useState("");
@@ -233,6 +235,8 @@ export default function Schedule() {
     description: "",
     defaultPrice: "",
     currency: "USD",
+    defaultPayout: "",
+    payoutCurrency: "USD",
   });
   const [editingSessionTypeId, setEditingSessionTypeId] = useState("");
   const [trainerBookSessionTypeId, setTrainerBookSessionTypeId] = useState("");
@@ -295,6 +299,8 @@ export default function Schedule() {
       description: "",
       defaultPrice: "",
       currency: "USD",
+      defaultPayout: "",
+      payoutCurrency: "USD",
     });
     setEditingSessionTypeId("");
   }, []);
@@ -613,6 +619,9 @@ export default function Schedule() {
       description: sessionTypeForm.description.trim(),
       defaultPrice: sessionTypeForm.defaultPrice === "" ? 0 : Number(sessionTypeForm.defaultPrice),
       currency: sessionTypeForm.currency || "USD",
+      defaultPayout:
+        sessionTypeForm.defaultPayout === "" ? 0 : Number(sessionTypeForm.defaultPayout),
+      payoutCurrency: sessionTypeForm.payoutCurrency || "USD",
     };
     try {
       if (editingSessionTypeId) {
@@ -659,6 +668,11 @@ export default function Schedule() {
           ? String(type.defaultPrice)
           : "",
       currency: type.currency || "USD",
+      defaultPayout:
+        type.defaultPayout === 0 || type.defaultPayout
+          ? String(type.defaultPayout)
+          : "",
+      payoutCurrency: type.payoutCurrency || "USD",
     });
   };
 
@@ -776,6 +790,10 @@ export default function Schedule() {
       sessionType?.defaultPrice === 0 || sessionType?.defaultPrice
         ? String(sessionType.defaultPrice)
         : "";
+    const defaultPayout =
+      sessionType?.defaultPayout === 0 || sessionType?.defaultPayout
+        ? String(sessionType.defaultPayout)
+        : "";
     setEditEvent(event);
     setEditDate(dayjs(event.startDateTime).format("YYYY-MM-DD"));
     setEditStartTime(dayjs(event.startDateTime).format("HH:mm"));
@@ -792,6 +810,12 @@ export default function Schedule() {
       typeof event.priceAmount === "number" ? String(event.priceAmount) : defaultPrice
     );
     setEditPriceCurrency(event.priceCurrency || sessionType?.currency || "USD");
+    setEditPayoutAmount(
+      typeof event.payoutAmount === "number" ? String(event.payoutAmount) : defaultPayout
+    );
+    setEditPayoutCurrency(
+      event.payoutCurrency || sessionType?.payoutCurrency || event.priceCurrency || "USD"
+    );
     setOpenEditDialog(true);
   };
 
@@ -836,6 +860,8 @@ export default function Schedule() {
       sessionTypeId: event.sessionTypeId || null,
       priceAmount: event.priceAmount ?? null,
       priceCurrency: event.priceCurrency || "USD",
+      payoutAmount: event.payoutAmount ?? null,
+      payoutCurrency: event.payoutCurrency || event.priceCurrency || "USD",
       availabilitySource: isAvailability ? event.availabilitySource || "MANUAL" : undefined,
       recurrenceRule: null,
     };
@@ -1075,6 +1101,16 @@ export default function Schedule() {
     return { amount: String(type.defaultPrice), currency: type.currency || "USD" };
   };
 
+  const getDefaultPayoutValue = (typeId) => {
+    if (!typeId) return null;
+    const type = sessionTypeLookup.get(typeId);
+    if (!type) return null;
+    const hasDefault =
+      type.defaultPayout === 0 || type.defaultPayout || type.defaultPayout === "0";
+    if (!hasDefault) return null;
+    return { amount: String(type.defaultPayout), currency: type.payoutCurrency || "USD" };
+  };
+
   const applyDefaultPriceForType = (
     nextTypeId,
     prevTypeId,
@@ -1084,6 +1120,27 @@ export default function Schedule() {
   ) => {
     const nextDefault = getDefaultPriceValue(nextTypeId);
     const prevDefault = getDefaultPriceValue(prevTypeId);
+    const shouldUpdate =
+      currentAmount === "" ||
+      (prevDefault && String(currentAmount) === String(prevDefault.amount));
+    if (!shouldUpdate) return;
+    if (!nextDefault) {
+      setAmount("");
+      return;
+    }
+    setAmount(String(nextDefault.amount));
+    if (nextDefault.currency) setCurrency(nextDefault.currency);
+  };
+
+  const applyDefaultPayoutForType = (
+    nextTypeId,
+    prevTypeId,
+    currentAmount,
+    setAmount,
+    setCurrency
+  ) => {
+    const nextDefault = getDefaultPayoutValue(nextTypeId);
+    const prevDefault = getDefaultPayoutValue(prevTypeId);
     const shouldUpdate =
       currentAmount === "" ||
       (prevDefault && String(currentAmount) === String(prevDefault.amount));
@@ -1133,6 +1190,9 @@ export default function Schedule() {
     } else if (editEvent?.workoutId) {
       updates.workoutId = null;
     }
+    updates.payoutAmount =
+      editPayoutAmount === "" ? null : Number.parseFloat(editPayoutAmount);
+    updates.payoutCurrency = editPayoutCurrency || "USD";
     updates.sessionTypeId = editSessionTypeId || null;
     await dispatch(
       updateScheduleEvent(editEvent._id, {
@@ -3602,6 +3662,33 @@ export default function Schedule() {
                 </Stack>
               </Stack>
             )}
+            {isTrainerView && (
+              <Stack spacing={1}>
+                <Typography variant="subtitle2">Trainer payout</Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  <TextField
+                    label="Amount"
+                    type="number"
+                    value={editPayoutAmount}
+                    onChange={(event) => setEditPayoutAmount(event.target.value)}
+                    inputProps={{ min: 0, step: "0.01" }}
+                    fullWidth
+                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      label="Currency"
+                      value={editPayoutCurrency}
+                      onChange={(event) => setEditPayoutCurrency(event.target.value)}
+                    >
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="JPY">YEN</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+            )}
             {isTrainerView && editEvent?.eventType !== "AVAILABILITY" && (
               <Stack spacing={1}>
                 <Typography variant="subtitle2">Public label</Typography>
@@ -3633,6 +3720,13 @@ export default function Schedule() {
                       editPriceAmount,
                       setEditPriceAmount,
                       setEditPriceCurrency
+                    );
+                    applyDefaultPayoutForType(
+                      nextTypeId,
+                      prevTypeId,
+                      editPayoutAmount,
+                      setEditPayoutAmount,
+                      setEditPayoutCurrency
                     );
                   }}
                 >
@@ -3946,6 +4040,11 @@ export default function Schedule() {
                         <Typography variant="body2" color="text.secondary">
                           {formatPrice(type.defaultPrice || 0, type.currency || "USD")}
                         </Typography>
+                        {type.defaultPayout != null && (
+                          <Typography variant="caption" color="text.secondary">
+                            Payout: {formatPrice(type.defaultPayout || 0, type.payoutCurrency || "USD")}
+                          </Typography>
+                        )}
                         {type.description && (
                           <Typography variant="body2" color="text.secondary">
                             {type.description}
@@ -4014,6 +4113,32 @@ export default function Schedule() {
                   value={sessionTypeForm.currency}
                   onChange={(event) =>
                     setSessionTypeForm((prev) => ({ ...prev, currency: event.target.value }))
+                  }
+                >
+                  <MenuItem value="USD">USD</MenuItem>
+                  <MenuItem value="EUR">EUR</MenuItem>
+                  <MenuItem value="JPY">YEN</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <TextField
+                label="Default payout"
+                type="number"
+                value={sessionTypeForm.defaultPayout}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({ ...prev, defaultPayout: event.target.value }))
+                }
+                inputProps={{ min: 0, step: "0.01" }}
+                fullWidth
+              />
+              <FormControl fullWidth>
+                <InputLabel>Payout currency</InputLabel>
+                <Select
+                  label="Payout currency"
+                  value={sessionTypeForm.payoutCurrency}
+                  onChange={(event) =>
+                    setSessionTypeForm((prev) => ({ ...prev, payoutCurrency: event.target.value }))
                   }
                 >
                   <MenuItem value="USD">USD</MenuItem>
