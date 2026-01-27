@@ -1,6 +1,7 @@
 export let user = {
     isTrainer: false,
     themeMode: localStorage.getItem('theme'),
+    customThemes: [],
 }
 
 export let exerciseLibrary = [];
