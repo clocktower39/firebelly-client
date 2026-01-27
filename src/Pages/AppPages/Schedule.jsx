@@ -191,6 +191,7 @@ export default function Schedule() {
   const touchStartRef = useRef({ x: 0, y: 0 });
   const touchSelectionRef = useRef({ active: false, dayIndex: 0, slotIndex: 0 });
   const touchTimerRef = useRef(null);
+  const [calendarMenuAnchor, setCalendarMenuAnchor] = useState(null);
   const [shareStatus, setShareStatus] = useState("");
   const [isShareMode, setIsShareMode] = useState(false);
   const [shareLinkStatus, setShareLinkStatus] = useState("");
@@ -217,6 +218,12 @@ export default function Schedule() {
   const [tableFilterLabel, setTableFilterLabel] = useState("");
   const [hiddenTableColumns, setHiddenTableColumns] = useState(["type"]);
   const [touchSelectionEnabled, setTouchSelectionEnabled] = useState(false);
+  const [calendarScale, setCalendarScale] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    const stored = window.localStorage.getItem("schedule.calendarScale");
+    const parsed = stored ? Number(stored) : 1;
+    return Number.isFinite(parsed) ? parsed : 1;
+  });
   const [sessionTypes, setSessionTypes] = useState([]);
   const [sessionTypesStatus, setSessionTypesStatus] = useState("");
   const [openSessionTypesDialog, setOpenSessionTypesDialog] = useState(false);
@@ -1044,6 +1051,13 @@ export default function Schedule() {
       setEditWorkoutId("");
     }
   }, [editEvent?.clientId, editWorkoutClientId, openEditDialog]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("schedule.calendarScale", String(calendarScale));
+  }, [calendarScale]);
+
+  const handleCalendarMenuClose = () => setCalendarMenuAnchor(null);
 
   const handleSaveEdit = async () => {
     if (!editEvent) return;
@@ -2061,38 +2075,7 @@ export default function Schedule() {
                 </Stack>
                 {isTrainerView && !isShareMode && (
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
-                    <Button variant="outlined" onClick={openCopyDay}>
-                      Copy day
-                    </Button>
-                    <Button variant="outlined" onClick={openCopyWeek}>
-                      Copy week
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={() => {
-                        setShareStatus("");
-                        setOpenShareDialog(true);
-                      }}
-                    >
-                      Copy week image
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={() => {
-                        setShareLinkStatus("");
-                        handleCopyShareLink();
-                      }}
-                    >
-                      Copy share link
-                    </Button>
                     <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
-                    <IconButton
-                      aria-label="View settings"
-                      onClick={() => setOpenTimeSettings(true)}
-                      sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}
-                    >
-                      <Settings />
-                    </IconButton>
                   </Stack>
                 )}
                 {isTrainerView && !isShareMode && shareLinkStatus && (
@@ -2100,55 +2083,144 @@ export default function Schedule() {
                     {shareLinkStatus}
                   </Typography>
                 )}
+                {!isShareMode && (
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                    <Typography variant="caption" color="text.secondary">
+                      Zoom
+                    </Typography>
+                    <ToggleButtonGroup
+                      exclusive
+                      size="small"
+                      value={calendarScale}
+                      onChange={(_, value) => {
+                        if (!value) return;
+                        setCalendarScale(value);
+                      }}
+                    >
+                      <ToggleButton value={0.85}>Compact</ToggleButton>
+                      <ToggleButton value={1}>Normal</ToggleButton>
+                      <ToggleButton value={1.15}>Large</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Stack>
+                )}
+                <Menu
+                  anchorEl={calendarMenuAnchor}
+                  open={Boolean(calendarMenuAnchor)}
+                  onClose={handleCalendarMenuClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleCalendarMenuClose();
+                      openCopyDay();
+                    }}
+                  >
+                    Copy day
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleCalendarMenuClose();
+                      openCopyWeek();
+                    }}
+                  >
+                    Copy week
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleCalendarMenuClose();
+                      setShareStatus("");
+                      setOpenShareDialog(true);
+                    }}
+                  >
+                    Copy week image
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleCalendarMenuClose();
+                      setShareLinkStatus("");
+                      handleCopyShareLink();
+                    }}
+                  >
+                    Copy share link
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleCalendarMenuClose();
+                      setOpenTimeSettings(true);
+                    }}
+                  >
+                    Calendar hours
+                  </MenuItem>
+                </Menu>
                 <Box
                   ref={weekScrollRef}
                   sx={{
-                    display: "flex",
                     border: "1px solid rgba(148, 163, 184, 0.35)",
                     borderRadius: 2,
                     overflowX: { xs: "auto", md: "hidden" },
+                    overflowY: "auto",
                   }}
                 >
                   <Box
                     sx={{
-                      width: timeColumnWidth,
-                      minWidth: timeColumnWidth,
-                      maxWidth: timeColumnWidth,
-                      borderRight: "1px solid rgba(148, 163, 184, 0.35)",
+                      display: "flex",
+                      transform: `scale(${calendarScale})`,
+                      transformOrigin: "top left",
+                      width: `calc(100% / ${calendarScale})`,
+                      WebkitTextSizeAdjust: "100%",
+                      textSizeAdjust: "100%",
                     }}
                   >
                     <Box
                       sx={{
-                        height: HEADER_HEIGHT,
-                        borderBottom: "1px solid rgba(148, 163, 184, 0.2)",
+                        width: timeColumnWidth,
+                        minWidth: timeColumnWidth,
+                        maxWidth: timeColumnWidth,
+                        borderRight: "1px solid rgba(148, 163, 184, 0.35)",
                       }}
-                    />
-                    {Array.from({ length: totalSlots }).map((_, index) => {
-                      const minutes = calendarStartHour * 60 + index * SLOT_MINUTES;
-                      const label =
-                        minutes % 60 === 0
-                          ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")
-                          : "";
-                      return (
-                        <Box
-                          key={`label-${index}`}
-                          sx={{
-                            height: SLOT_HEIGHT,
-                            borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
-                            fontSize: "0.75rem",
-                            color: "text.secondary",
-                            display: "flex",
-                            alignItems: "flex-start",
-                            justifyContent: "center",
-                            pt: 0.5,
-                          }}
+                    >
+                      <Box
+                        sx={{
+                          height: HEADER_HEIGHT,
+                          borderBottom: "1px solid rgba(148, 163, 184, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <IconButton
+                          aria-label="Calendar settings"
+                          onClick={(event) => setCalendarMenuAnchor(event.currentTarget)}
+                          size="small"
                         >
-                          {label}
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                  <Box
+                          <Settings fontSize="small" />
+                        </IconButton>
+                      </Box>
+                      {Array.from({ length: totalSlots }).map((_, index) => {
+                        const minutes = calendarStartHour * 60 + index * SLOT_MINUTES;
+                        const label =
+                          minutes % 60 === 0
+                            ? dayjs().hour(Math.floor(minutes / 60)).minute(0).format("h A")
+                            : "";
+                        return (
+                          <Box
+                            key={`label-${index}`}
+                            sx={{
+                              height: SLOT_HEIGHT,
+                              borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
+                              fontSize: "0.75rem",
+                              color: "text.secondary",
+                              display: "flex",
+                              alignItems: "flex-start",
+                              justifyContent: "center",
+                              pt: 0.5,
+                            }}
+                          >
+                            {label}
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                    <Box
                       sx={{
                         display: "grid",
                         gridTemplateColumns: isShareMode
@@ -2346,6 +2418,7 @@ export default function Schedule() {
                         </Box>
                       </Box>
                     ))}
+                    </Box>
                   </Box>
                 </Box>
                 {isTrainerView && !(isShareMode && shareHidePrices) && (
