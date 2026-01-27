@@ -1576,7 +1576,23 @@ export default function Schedule() {
       }, {}),
     [isCountableSession]
   );
+  const totalizeCancelled = useCallback(
+    (events) =>
+      (events || []).reduce((acc, event) => {
+        if (event.eventType === "AVAILABILITY") return acc;
+        if (event.status !== "CANCELLED") return acc;
+        if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
+        const currency = event.priceCurrency || "USD";
+        acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+        return acc;
+      }, {}),
+    []
+  );
   const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
+  const weekCancelledTotals = useMemo(
+    () => totalizeCancelled(filteredWeekEvents),
+    [filteredWeekEvents, totalizeCancelled]
+  );
   const dayTotalsByColumn = useMemo(
     () =>
       weekDays.map((day) => {
@@ -1586,6 +1602,16 @@ export default function Schedule() {
         return totalizePrices(dayEvents);
       }),
     [totalizePrices, weekDays, weekEvents]
+  );
+  const dayCancelledByColumn = useMemo(
+    () =>
+      weekDays.map((day) => {
+        const dayEvents = weekEvents.filter((event) =>
+          dayjs(event.startDateTime).isSame(day, "day")
+        );
+        return totalizeCancelled(dayEvents);
+      }),
+    [totalizeCancelled, weekDays, weekEvents]
   );
   const dayCountsByColumn = useMemo(
     () =>
@@ -2357,15 +2383,22 @@ export default function Schedule() {
                                       ) {
                                         return highlightFill;
                                       }
+                                      if (event.status === "CANCELLED") {
+                                        return "rgba(244, 67, 54, 0.12)";
+                                      }
                                       return event.eventType === "AVAILABILITY"
                                         ? "rgba(76, 175, 80, 0.25)"
                                         : "rgba(33, 150, 243, 0.25)";
                                     })(),
-                                    border: "1px solid rgba(25, 118, 210, 0.4)",
+                                    border:
+                                      event.status === "CANCELLED"
+                                        ? "1px dashed rgba(244, 67, 54, 0.6)"
+                                        : "1px solid rgba(25, 118, 210, 0.4)",
                                     borderRadius: 1,
                                     px: 0.5,
                                     py: 0.25,
                                     overflow: "hidden",
+                                    opacity: event.status === "CANCELLED" ? 0.75 : 1,
                                     cursor: isTrainerView || (isClientView && event.eventType === "AVAILABILITY")
                                       ? "pointer"
                                       : "default",
@@ -2435,11 +2468,18 @@ export default function Schedule() {
                                                 shareShownKeys.includes(`custom:${event.customClientName}`)))
                                               ? 700
                                               : 400,
+                                          textDecoration:
+                                            event.status === "CANCELLED" ? "line-through" : "none",
                                         }}
                                       >
                                         {getEventDisplayName(event)}
                                       </Typography>
                                       </Stack>
+                                      {event.status === "CANCELLED" && (
+                                        <Typography variant="caption" color="error">
+                                          Cancelled
+                                        </Typography>
+                                      )}
                                       {isTrainerView &&
                                         event.priceAmount != null &&
                                         !(isShareMode && shareHidePrices) && (
@@ -2505,6 +2545,11 @@ export default function Schedule() {
                         }}
                       >
                         {formatTotals(totals)}
+                        {Object.keys(dayCancelledByColumn[index] || {}).length > 0 && (
+                          <Typography variant="caption" color="error" display="block">
+                            Lost: {formatTotals(dayCancelledByColumn[index])}
+                          </Typography>
+                        )}
                         <Typography variant="caption" color="text.secondary" display="block">
                           {dayCountsByColumn[index]} sessions
                         </Typography>
@@ -2521,6 +2566,11 @@ export default function Schedule() {
                         }}
                       >
                         {formatTotals(weekTotals)}
+                        {Object.keys(weekCancelledTotals || {}).length > 0 && (
+                          <Typography variant="caption" color="error" display="block">
+                            Lost: {formatTotals(weekCancelledTotals)}
+                          </Typography>
+                        )}
                         <Typography variant="caption" color="text.secondary" display="block">
                           {weekEventCount} sessions
                         </Typography>
