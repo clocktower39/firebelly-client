@@ -183,6 +183,7 @@ export default function Schedule() {
   const [openCopyDayDialog, setOpenCopyDayDialog] = useState(false);
   const [openCopyWeekDialog, setOpenCopyWeekDialog] = useState(false);
   const [copyDayDate, setCopyDayDate] = useState("");
+  const [copyDaySourceDate, setCopyDaySourceDate] = useState("");
   const [copyWeekDate, setCopyWeekDate] = useState("");
   const [openShareDialog, setOpenShareDialog] = useState(false);
   const [shareHideDetails, setShareHideDetails] = useState(true);
@@ -859,6 +860,7 @@ export default function Schedule() {
   };
 
   const openCopyDay = () => {
+    setCopyDaySourceDate(selectedDate.format("YYYY-MM-DD"));
     setCopyDayDate(selectedDate.add(1, "week").format("YYYY-MM-DD"));
     setOpenCopyDayDialog(true);
   };
@@ -869,8 +871,8 @@ export default function Schedule() {
   };
 
   const handleCopyDay = async () => {
-    if (!isTrainerView || !copyDayDate) return;
-    const sourceDayStart = selectedDate.startOf("day");
+    if (!isTrainerView || !copyDayDate || !copyDaySourceDate) return;
+    const sourceDayStart = dayjs(copyDaySourceDate).startOf("day");
     const targetDay = dayjs(copyDayDate).startOf("day");
     const offsetDays = targetDay.diff(sourceDayStart, "day");
     const targetStart = targetDay.toISOString();
@@ -888,7 +890,9 @@ export default function Schedule() {
 
     const existingEvents = rangeData?.events || [];
     const createdEvents = [];
-    const sourceEvents = filteredDayEvents.filter((event) => event.status !== "CANCELLED");
+    const sourceEvents = weekEvents
+      .filter((event) => dayjs(event.startDateTime).isSame(sourceDayStart, "day"))
+      .filter((event) => event.status !== "CANCELLED");
 
     for (const event of sourceEvents) {
       const start = dayjs(event.startDateTime).add(offsetDays, "day");
@@ -4329,8 +4333,15 @@ export default function Schedule() {
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Copy all events for {selectedDate.format("ddd, MMM D")} to a new date.
+              Select the day to copy and the target date.
             </Typography>
+            <TextField
+              label="Source day"
+              type="date"
+              value={copyDaySourceDate}
+              onChange={(event) => setCopyDaySourceDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
             <TextField
               label="Target date"
               type="date"
@@ -4345,7 +4356,11 @@ export default function Schedule() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenCopyDayDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleCopyDay} disabled={!copyDayDate}>
+          <Button
+            variant="contained"
+            onClick={handleCopyDay}
+            disabled={!copyDayDate || !copyDaySourceDate}
+          >
             Copy day
           </Button>
         </DialogActions>
