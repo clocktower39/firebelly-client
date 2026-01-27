@@ -188,6 +188,9 @@ export default function Schedule() {
   const [shareHideDetails, setShareHideDetails] = useState(true);
   const [shareIncludeHeader, setShareIncludeHeader] = useState(true);
   const [shareInProgress, setShareInProgress] = useState(false);
+  const touchStartRef = useRef({ x: 0, y: 0 });
+  const touchSelectionRef = useRef({ active: false, dayIndex: 0, slotIndex: 0 });
+  const touchTimerRef = useRef(null);
   const [shareStatus, setShareStatus] = useState("");
   const [isShareMode, setIsShareMode] = useState(false);
   const [shareLinkStatus, setShareLinkStatus] = useState("");
@@ -1489,7 +1492,7 @@ export default function Schedule() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(pointer: coarse)");
-    const update = () => setTouchSelectionEnabled(!mediaQuery.matches);
+    const update = () => setTouchSelectionEnabled(true);
     update();
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener("change", update);
@@ -1789,8 +1792,9 @@ export default function Schedule() {
     };
   };
 
-  const handleSlotMouseDown = (dayIndex, slotIndex) => {
+  const handleSlotMouseDown = (event, dayIndex, slotIndex) => {
     if (!isTrainerView) return;
+    if (event.button !== 0) return;
     setOpenSelectionDialog(false);
     setIsDragging(true);
     setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
@@ -1818,28 +1822,54 @@ export default function Schedule() {
 
   const handleSlotTouchStart = (event, dayIndex, slotIndex) => {
     if (!isTrainerView) return;
-    event.preventDefault();
+    const touch = event.touches?.[0];
+    if (touch) {
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    }
+    touchSelectionRef.current = { active: false, dayIndex, slotIndex };
     setOpenSelectionDialog(false);
-    setIsDragging(true);
-    setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
-    setSelectedDate(weekDays[dayIndex]);
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+    }
+    touchTimerRef.current = setTimeout(() => {
+      touchSelectionRef.current = { active: true, dayIndex, slotIndex };
+      setIsDragging(true);
+      setDragSelection({ dayIndex, startIndex: slotIndex, endIndex: slotIndex });
+      setSelectedDate(weekDays[dayIndex]);
+    }, 220);
   };
 
   const handleSlotTouchMove = (event) => {
-    if (!isDragging) return;
     const touch = event.touches?.[0];
     if (!touch) return;
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    if (!touchSelectionRef.current.active) {
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        if (touchTimerRef.current) {
+          clearTimeout(touchTimerRef.current);
+          touchTimerRef.current = null;
+        }
+      }
+      return;
+    }
+    if (Math.abs(deltaX) > Math.abs(deltaY)) return;
     event.preventDefault();
     updateSelectionFromPoint(touch.clientX, touch.clientY);
   };
 
   const handleSlotTouchEnd = () => {
-    if (!isDragging) return;
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+    if (!touchSelectionRef.current.active) return;
     setIsDragging(false);
     if (!isTrainerView) return;
     if (!selectionRange) return;
     if (selectionRange.end.valueOf() <= selectionRange.start.valueOf()) return;
     setOpenSelectionDialog(true);
+    touchSelectionRef.current = { active: false, dayIndex: 0, slotIndex: 0 };
   };
 
   const normalizedSelection = useMemo(() => {
@@ -2157,7 +2187,7 @@ export default function Schedule() {
                           {Array.from({ length: totalSlots }).map((_, slotIndex) => (
                             <Box
                               key={`slot-${dayIndex}-${slotIndex}`}
-                              onMouseDown={() => handleSlotMouseDown(dayIndex, slotIndex)}
+                              onMouseDown={(event) => handleSlotMouseDown(event, dayIndex, slotIndex)}
                               onMouseEnter={() => handleSlotMouseEnter(dayIndex, slotIndex)}
                               onTouchStart={
                                 touchSelectionEnabled
@@ -2172,7 +2202,7 @@ export default function Schedule() {
                                 height: SLOT_HEIGHT,
                                 borderBottom: "1px solid rgba(148, 163, 184, 0.15)",
                                 backgroundColor: slotIndex % 2 === 0 ? "rgba(148,163,184,0.06)" : "transparent",
-                                touchAction: touchSelectionEnabled ? "none" : "pan-y",
+                                touchAction: "pan-x pan-y",
                               }}
                             />
                           ))}
