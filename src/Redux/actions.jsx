@@ -1114,13 +1114,13 @@ export function mergeExercises({ sourceExerciseId, targetExerciseId, deleteSourc
   };
 }
 
-export function updateThemeMode(mode) {
+export function updateUserSettings(payload) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const response = await fetch(`${serverURL}/updateUser`, {
       method: "post",
       dataType: "json",
-      body: JSON.stringify({ themeMode: mode }),
+      body: JSON.stringify(payload),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
         Authorization: bearer,
@@ -1142,6 +1142,10 @@ export function updateThemeMode(mode) {
       user: decodedAccessToken,
     });
   };
+}
+
+export function updateThemeMode(mode) {
+  return updateUserSettings({ themeMode: mode });
 }
 
 export function requestMyTrainers() {

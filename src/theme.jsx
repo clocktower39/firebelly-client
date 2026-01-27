@@ -208,6 +208,146 @@ const moor = {
   },
 };
 
+// Black/Red theme palette
+const ember = {
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#ef4444",
+      contrastText: "#ffffff",
+    },
+    secondary: {
+      main: "#f87171",
+      contrastText: "#ffffff",
+    },
+    secondaryButton: {
+      main: "#ef4444",
+      contrastText: "#ffffff",
+    },
+    background: {
+      default: "#000000",
+      paper: "#121212",
+      NavDrawer: "linear-gradient(90deg, #000000, #121212, #1f1f1f)",
+      ATCPaperBackground: "#121212",
+      DashboardCard: "#1f1f1f",
+      ChartToopTip: "#000000",
+      Footer: "rgba(0, 0, 0, 0.98)",
+    },
+    text: {
+      primary: "#f8fafc",
+      secondary: "#e2e8f0",
+    },
+    divider: "rgba(239, 68, 68, 0.18)",
+  },
+  typography: {
+    fontFamily: "'Roboto', 'Inter', sans-serif",
+    h1: { fontFamily: "'Montserrat', sans-serif", fontWeight: 700 },
+    h2: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h3: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h4: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h5: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    h6: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+    subtitle1: { fontSize: "1.1rem", fontWeight: 500 },
+    button: { fontWeight: 600, textTransform: "none" },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: "#000000",
+          scrollbarColor: "#b91c1c #000000",
+          "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+            backgroundColor: "#000000",
+            width: "8px",
+          },
+          "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+            borderRadius: 8,
+            backgroundColor: "#b91c1c",
+            minHeight: 24,
+            border: "2px solid #000000",
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          boxShadow: "none",
+          "&:hover": {
+            boxShadow: "0 6px 16px rgba(239, 68, 68, 0.25)",
+          },
+        },
+        containedPrimary: {
+          background: "linear-gradient(45deg, #b91c1c 30%, #ef4444 90%)",
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          backgroundImage: "none",
+          backgroundColor: "#121212",
+          border: "1px solid rgba(239, 68, 68, 0.12)",
+          boxShadow: "0 6px 18px rgba(0, 0, 0, 0.45)",
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: "none",
+        },
+        rounded: {
+          borderRadius: 16,
+        },
+      },
+    },
+    MuiTextField: {
+      defaultProps: {
+        variant: "outlined",
+      },
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 12,
+            backgroundColor: "rgba(255, 255, 255, 0.02)",
+            "& fieldset": {
+              borderColor: "rgba(239, 68, 68, 0.35)",
+            },
+            "&:hover fieldset": {
+              borderColor: "rgba(239, 68, 68, 0.55)",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#ef4444",
+            },
+          },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 20,
+          backgroundColor: "#121212",
+          border: "1px solid rgba(239, 68, 68, 0.16)",
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontWeight: 500,
+        },
+      },
+    },
+  },
+};
+
 // Modern Light Theme Palette
 const light = {
   palette: {
@@ -356,16 +496,189 @@ const light = {
   },
 };
 
+const buildCustomTheme = (customTheme) => {
+  const colors = customTheme?.colors;
+  if (!colors) {
+    return dark;
+  }
+
+  const {
+    primary,
+    secondary,
+    backgroundDefault,
+    backgroundPaper,
+    textPrimary,
+    textSecondary,
+  } = colors;
+
+  return {
+    palette: {
+      mode: "dark",
+      primary: {
+        main: primary,
+        contrastText: "#ffffff",
+      },
+      secondary: {
+        main: secondary,
+        contrastText: "#ffffff",
+      },
+      secondaryButton: {
+        main: secondary,
+        contrastText: "#ffffff",
+      },
+      background: {
+        default: backgroundDefault,
+        paper: backgroundPaper,
+        NavDrawer: `linear-gradient(90deg, ${backgroundDefault}, ${backgroundPaper})`,
+        ATCPaperBackground: backgroundPaper,
+        DashboardCard: backgroundPaper,
+        ChartToopTip: backgroundDefault,
+        Footer: backgroundDefault,
+      },
+      text: {
+        primary: textPrimary,
+        secondary: textSecondary,
+      },
+      divider: "rgba(148, 163, 184, 0.18)",
+    },
+    typography: {
+      fontFamily: "'Roboto', 'Inter', sans-serif",
+      h1: { fontFamily: "'Montserrat', sans-serif", fontWeight: 700 },
+      h2: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+      h3: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+      h4: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+      h5: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+      h6: { fontFamily: "'Montserrat', sans-serif", fontWeight: 600 },
+      subtitle1: { fontSize: "1.1rem", fontWeight: 500 },
+      button: { fontWeight: 600, textTransform: "none" },
+    },
+    shape: {
+      borderRadius: 12,
+    },
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            backgroundColor: backgroundDefault,
+            scrollbarColor: `${primary} ${backgroundDefault}`,
+            "&::-webkit-scrollbar, & *::-webkit-scrollbar": {
+              backgroundColor: backgroundDefault,
+              width: "8px",
+            },
+            "&::-webkit-scrollbar-thumb, & *::-webkit-scrollbar-thumb": {
+              borderRadius: 8,
+              backgroundColor: primary,
+              minHeight: 24,
+              border: `2px solid ${backgroundDefault}`,
+            },
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            boxShadow: "none",
+          },
+          containedPrimary: {
+            background: primary,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 16,
+            backgroundImage: "none",
+            backgroundColor: backgroundPaper,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+          },
+          rounded: {
+            borderRadius: 16,
+          },
+        },
+      },
+      MuiTextField: {
+        defaultProps: {
+          variant: "outlined",
+        },
+        styleOverrides: {
+          root: {
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 12,
+              backgroundColor: "rgba(255, 255, 255, 0.02)",
+              "& fieldset": {
+                borderColor: textSecondary,
+              },
+              "&:hover fieldset": {
+                borderColor: textPrimary,
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: primary,
+              },
+            },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 20,
+            backgroundColor: backgroundPaper,
+            border: `1px solid ${textSecondary}`,
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            fontWeight: 500,
+          },
+        },
+      },
+    },
+  };
+};
+
 // Exporting the same function signature to maintain compatibility
 export const theme = () => {
-  const userTheme = store.getState().user.themeMode;
-  localStorage.setItem('theme', userTheme);
+  const { themeMode, customThemes = [] } = store.getState().user;
+  const userTheme = themeMode;
+  if (userTheme) {
+    localStorage.setItem("theme", userTheme);
+  } else {
+    localStorage.removeItem("theme");
+  }
+
+  const resolveCustomTheme = () => {
+    if (!userTheme) return null;
+    if (userTheme.startsWith("custom:")) {
+      const customId = userTheme.split(":")[1];
+      return customThemes.find((t) => t.id === customId) || null;
+    }
+    const directMatch = customThemes.find((t) => t.id === userTheme);
+    return directMatch || null;
+  };
+
+  const customTheme = resolveCustomTheme();
+
   const selectedTheme = () => {
+    if (customTheme) {
+      return buildCustomTheme(customTheme);
+    }
     switch (userTheme) {
       case 'dark':
         return dark;
       case 'moor':
         return moor;
+      case 'ember':
+        return ember;
       case 'light':
         return light;
       default:
