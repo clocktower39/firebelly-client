@@ -834,6 +834,8 @@ export default function Schedule() {
       customClientPhone: event.customClientPhone || "",
       workoutId: null,
       sessionTypeId: event.sessionTypeId || null,
+      priceAmount: event.priceAmount ?? null,
+      priceCurrency: event.priceCurrency || "USD",
       availabilitySource: isAvailability ? event.availabilitySource || "MANUAL" : undefined,
       recurrenceRule: null,
     };
