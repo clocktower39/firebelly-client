@@ -1625,28 +1625,41 @@ export default function Schedule() {
     (event) => event.eventType !== "AVAILABILITY" && event.status !== "CANCELLED",
     []
   );
+  const resolveEventAmount = useCallback((event) => {
+    if (
+      event.payoutAmount != null &&
+      !Number.isNaN(Number(event.payoutAmount))
+    ) {
+      return {
+        amount: Number(event.payoutAmount),
+        currency: event.payoutCurrency || event.priceCurrency || "USD",
+      };
+    }
+    if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return null;
+    return { amount: Number(event.priceAmount), currency: event.priceCurrency || "USD" };
+  }, []);
   const totalizePrices = useCallback(
     (events) =>
       (events || []).reduce((acc, event) => {
         if (!isCountableSession(event)) return acc;
-        if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
-        const currency = event.priceCurrency || "USD";
-        acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+        const resolved = resolveEventAmount(event);
+        if (!resolved) return acc;
+        acc[resolved.currency] = (acc[resolved.currency] || 0) + resolved.amount;
         return acc;
       }, {}),
-    [isCountableSession]
+    [isCountableSession, resolveEventAmount]
   );
   const totalizeCancelled = useCallback(
     (events) =>
       (events || []).reduce((acc, event) => {
         if (event.eventType === "AVAILABILITY") return acc;
         if (event.status !== "CANCELLED") return acc;
-        if (event.priceAmount == null || Number.isNaN(Number(event.priceAmount))) return acc;
-        const currency = event.priceCurrency || "USD";
-        acc[currency] = (acc[currency] || 0) + Number(event.priceAmount);
+        const resolved = resolveEventAmount(event);
+        if (!resolved) return acc;
+        acc[resolved.currency] = (acc[resolved.currency] || 0) + resolved.amount;
         return acc;
       }, {}),
-    []
+    [resolveEventAmount]
   );
   const weekTotals = useMemo(() => totalizePrices(filteredWeekEvents), [filteredWeekEvents, totalizePrices]);
   const weekCancelledTotals = useMemo(
@@ -1710,6 +1723,18 @@ export default function Schedule() {
     (event) => {
       if (event.priceAmount == null) return "No price";
       return formatPrice(event.priceAmount, event.priceCurrency || "USD");
+    },
+    [formatPrice]
+  );
+  const getRowPayoutLabel = useCallback(
+    (event) => {
+      if (event.payoutAmount != null && !Number.isNaN(Number(event.payoutAmount))) {
+        return formatPrice(event.payoutAmount, event.payoutCurrency || "USD");
+      }
+      if (event.priceAmount != null && !Number.isNaN(Number(event.priceAmount))) {
+        return formatPrice(event.priceAmount, event.priceCurrency || "USD");
+      }
+      return "No payout";
     },
     [formatPrice]
   );
@@ -1811,8 +1836,8 @@ export default function Schedule() {
           return aName.localeCompare(bName) * direction;
         }
         case "price": {
-          const aPrice = Number(a.priceAmount ?? 0);
-          const bPrice = Number(b.priceAmount ?? 0);
+          const aPrice = Number(a.payoutAmount ?? 0);
+          const bPrice = Number(b.payoutAmount ?? 0);
           return (aPrice - bPrice) * direction;
         }
         default:
@@ -2541,10 +2566,9 @@ export default function Schedule() {
                                         </Typography>
                                       )}
                                       {isTrainerView &&
-                                        event.priceAmount != null &&
                                         !(isShareMode && shareHidePrices) && (
                                         <Typography variant="caption" sx={{ opacity: 0.75 }}>
-                                          {formatPrice(event.priceAmount, event.priceCurrency || "USD")}
+                                          {getRowPayoutLabel(event)}
                                         </Typography>
                                       )}
                                     </Stack>
@@ -2958,9 +2982,7 @@ export default function Schedule() {
                               !(isShareMode && shareHidePrices) &&
                               !isColumnHidden("price") && (
                                 <TableCell>
-                                  {event.priceAmount != null
-                                    ? formatPrice(event.priceAmount, event.priceCurrency || "USD")
-                                    : "—"}
+                                  {getRowPayoutLabel(event)}
                                 </TableCell>
                               )}
                             <TableCell>
