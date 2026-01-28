@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation, useOutletContext } from "react-router-dom";
 import {
   Autocomplete,
   Box,
   Chip,
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -12,6 +13,9 @@ import {
   FormControl,
   Grid,
   InputLabel,
+  IconButton,
+  ListItemText,
+  Menu,
   MenuItem,
   Modal,
   Paper,
@@ -20,6 +24,7 @@ import {
   Stack,
   Tab,
   Tabs,
+  TableContainer,
   Table,
   TableBody,
   TableCell,
@@ -28,6 +33,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { ArrowDownward, ArrowUpward, FilterList } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import {
   requestClients,
@@ -483,6 +489,13 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   const [editBodyFatPercent, setEditBodyFatPercent] = useState("");
   const [editRestingHeartRate, setEditRestingHeartRate] = useState("");
   const [editCircumference, setEditCircumference] = useState({});
+  const [metricsSortKey, setMetricsSortKey] = useState("recordedAt");
+  const [metricsSortDirection, setMetricsSortDirection] = useState("desc");
+  const [metricsFilterAnchor, setMetricsFilterAnchor] = useState(null);
+  const [metricsFilterKey, setMetricsFilterKey] = useState("");
+  const [metricsFilterLabel, setMetricsFilterLabel] = useState("");
+  const [metricsDateRange, setMetricsDateRange] = useState({ from: "", to: "" });
+  const [metricsRangeFilters, setMetricsRangeFilters] = useState({});
 
   const heightInches = useMemo(() => parseHeightToInches(targetUser?.height), [targetUser?.height]);
   const bmiPreview = useMemo(
@@ -593,6 +606,158 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     }).filter(Boolean);
     return parts.join(" • ");
   };
+
+  const metricBounds = useMemo(() => {
+    const values = {
+      weight: [],
+      bodyFatPercent: [],
+      bmi: [],
+      restingHeartRate: [],
+    };
+    entries.forEach((entry) => {
+      if (entry.weight !== undefined && entry.weight !== null) {
+        const display = fromLbs(entry.weight, weightUnit);
+        const numeric = Number(display);
+        if (Number.isFinite(numeric)) values.weight.push(numeric);
+      }
+      if (entry.bodyFatPercent != null && Number.isFinite(Number(entry.bodyFatPercent))) {
+        values.bodyFatPercent.push(Number(entry.bodyFatPercent));
+      }
+      if (entry.bmi != null && Number.isFinite(Number(entry.bmi))) {
+        values.bmi.push(Number(entry.bmi));
+      }
+      if (entry.restingHeartRate != null && Number.isFinite(Number(entry.restingHeartRate))) {
+        values.restingHeartRate.push(Number(entry.restingHeartRate));
+      }
+    });
+    const build = (list) => {
+      if (!list.length) return null;
+      return [Math.min(...list), Math.max(...list)];
+    };
+    return {
+      weight: build(values.weight),
+      bodyFatPercent: build(values.bodyFatPercent),
+      bmi: build(values.bmi),
+      restingHeartRate: build(values.restingHeartRate),
+    };
+  }, [entries, weightUnit]);
+
+  useEffect(() => {
+    setMetricsRangeFilters((prev) => {
+      const next = { ...prev };
+      Object.entries(metricBounds).forEach(([key, bounds]) => {
+        if (!bounds) return;
+        if (!next[key]) next[key] = bounds;
+      });
+      return next;
+    });
+  }, [metricBounds]);
+
+  const getMetricValue = useCallback(
+    (entry, key) => {
+      switch (key) {
+        case "weight": {
+          if (entry.weight == null) return null;
+          const display = fromLbs(entry.weight, weightUnit);
+          const numeric = Number(display);
+          return Number.isFinite(numeric) ? numeric : null;
+        }
+        case "bodyFatPercent":
+          return entry.bodyFatPercent == null ? null : Number(entry.bodyFatPercent);
+        case "bmi":
+          return entry.bmi == null ? null : Number(entry.bmi);
+        case "restingHeartRate":
+          return entry.restingHeartRate == null ? null : Number(entry.restingHeartRate);
+        default:
+          return null;
+      }
+    },
+    [weightUnit]
+  );
+
+  const openMetricsFilter = (event, key, label) => {
+    setMetricsFilterAnchor(event.currentTarget);
+    setMetricsFilterKey(key);
+    setMetricsFilterLabel(label);
+  };
+
+  const closeMetricsFilter = () => {
+    setMetricsFilterAnchor(null);
+    setMetricsFilterKey("");
+    setMetricsFilterLabel("");
+  };
+
+  const toggleMetricsSort = (key) => {
+    setMetricsSortDirection((prev) =>
+      metricsSortKey === key ? (prev === "asc" ? "desc" : "asc") : "asc"
+    );
+    setMetricsSortKey(key);
+  };
+
+  const filteredEntries = useMemo(() => {
+    let list = [...entries];
+    if (metricsDateRange.from) {
+      const from = new Date(metricsDateRange.from);
+      list = list.filter((entry) => new Date(entry.recordedAt) >= from);
+    }
+    if (metricsDateRange.to) {
+      const to = new Date(metricsDateRange.to);
+      to.setHours(23, 59, 59, 999);
+      list = list.filter((entry) => new Date(entry.recordedAt) <= to);
+    }
+    ["weight", "bodyFatPercent", "bmi", "restingHeartRate"].forEach((key) => {
+      const range = metricsRangeFilters[key];
+      if (!range) return;
+      list = list.filter((entry) => {
+        const value = getMetricValue(entry, key);
+        if (value == null || !Number.isFinite(value)) return false;
+        return value >= range[0] && value <= range[1];
+      });
+    });
+    const direction = metricsSortDirection === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      switch (metricsSortKey) {
+        case "recordedAt":
+          return (new Date(a.recordedAt) - new Date(b.recordedAt)) * direction;
+        case "weight": {
+          const av = getMetricValue(a, "weight") ?? -Infinity;
+          const bv = getMetricValue(b, "weight") ?? -Infinity;
+          return (av - bv) * direction;
+        }
+        case "bodyFatPercent": {
+          const av = getMetricValue(a, "bodyFatPercent") ?? -Infinity;
+          const bv = getMetricValue(b, "bodyFatPercent") ?? -Infinity;
+          return (av - bv) * direction;
+        }
+        case "bmi": {
+          const av = getMetricValue(a, "bmi") ?? -Infinity;
+          const bv = getMetricValue(b, "bmi") ?? -Infinity;
+          return (av - bv) * direction;
+        }
+        case "restingHeartRate": {
+          const av = getMetricValue(a, "restingHeartRate") ?? -Infinity;
+          const bv = getMetricValue(b, "restingHeartRate") ?? -Infinity;
+          return (av - bv) * direction;
+        }
+        case "circumference": {
+          const av = formatCircumference(a) ? 1 : 0;
+          const bv = formatCircumference(b) ? 1 : 0;
+          return (av - bv) * direction;
+        }
+        default:
+          return 0;
+      }
+    });
+    return list;
+  }, [
+    entries,
+    formatCircumference,
+    getMetricValue,
+    metricsDateRange,
+    metricsRangeFilters,
+    metricsSortDirection,
+    metricsSortKey,
+  ]);
 
   const openEditEntry = (entry) => {
     setEditingEntry(entry);
@@ -848,63 +1013,65 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
         <Grid container size={12}>
           <Paper sx={{ width: "100%", padding: "16px" }}>
             <Typography variant="subtitle1">Pending Trainer Entries</Typography>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Recorded</TableCell>
-                  <TableCell>Weight</TableCell>
-                  <TableCell>Body Fat</TableCell>
-                  <TableCell>BMI</TableCell>
-                  <TableCell>RHR</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pending.map((entry) => (
-                  <TableRow key={entry._id}>
-                    <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
-                    <TableCell>
-                      {entry.weight !== undefined
-                        ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
-                    <TableCell>{entry.bmi ?? "—"}</TableCell>
-                    <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() =>
-                            dispatch(reviewMetricEntry(entry._id, true)).then(() => {
-                              dispatch(requestMetrics());
-                              dispatch(requestLatestMetric());
-                              dispatch(requestPendingMetrics());
-                            })
-                          }
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() =>
-                            dispatch(reviewMetricEntry(entry._id, false)).then(() => {
-                              dispatch(requestMetrics());
-                              dispatch(requestLatestMetric());
-                              dispatch(requestPendingMetrics());
-                            })
-                          }
-                        >
-                          Reject
-                        </Button>
-                      </Stack>
-                    </TableCell>
+            <TableContainer sx={{ maxHeight: 320 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Recorded</TableCell>
+                    <TableCell>Weight</TableCell>
+                    <TableCell>Body Fat</TableCell>
+                    <TableCell>BMI</TableCell>
+                    <TableCell>RHR</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {pending.map((entry) => (
+                    <TableRow key={entry._id}>
+                      <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
+                      <TableCell>
+                        {entry.weight !== undefined
+                          ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
+                      <TableCell>{entry.bmi ?? "—"}</TableCell>
+                      <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() =>
+                              dispatch(reviewMetricEntry(entry._id, true)).then(() => {
+                                dispatch(requestMetrics());
+                                dispatch(requestLatestMetric());
+                                dispatch(requestPendingMetrics());
+                              })
+                            }
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() =>
+                              dispatch(reviewMetricEntry(entry._id, false)).then(() => {
+                                dispatch(requestMetrics());
+                                dispatch(requestLatestMetric());
+                                dispatch(requestPendingMetrics());
+                              })
+                            }
+                          >
+                            Reject
+                          </Button>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Paper>
         </Grid>
       )}
@@ -917,54 +1084,162 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
               No entries yet.
             </Typography>
           ) : (
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Recorded</TableCell>
-                  <TableCell>Weight</TableCell>
-                  <TableCell>Body Fat</TableCell>
-                  <TableCell>BMI</TableCell>
-                  <TableCell>RHR</TableCell>
-                  <TableCell>Circumference</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {entries.slice(0, 10).map((entry) => (
-                  <TableRow key={entry._id}>
-                    <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
+            <TableContainer sx={{ maxHeight: 360 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
                     <TableCell>
-                      {entry.weight !== undefined
-                        ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
-                        : "—"}
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">Recorded</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("recordedAt")}>
+                          {metricsSortKey === "recordedAt" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => openMetricsFilter(event, "recordedAt", "Recorded")}
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
                     </TableCell>
-                    <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
-                    <TableCell>{entry.bmi ?? "—"}</TableCell>
-                    <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
-                    <TableCell>{formatCircumference(entry) || "—"}</TableCell>
                     <TableCell>
-                      {String(entry.createdBy) === String(user._id) && (
-                        <Stack direction="row" spacing={1}>
-                          <Button size="small" onClick={() => openEditEntry(entry)}>
-                            Edit
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => {
-                              openEditEntry(entry);
-                              setDeleteConfirmOpen(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </Stack>
-                      )}
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">Weight</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("weight")}>
+                          {metricsSortKey === "weight" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => openMetricsFilter(event, "weight", "Weight")}
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
                     </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">Body Fat</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("bodyFatPercent")}>
+                          {metricsSortKey === "bodyFatPercent" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => openMetricsFilter(event, "bodyFatPercent", "Body Fat")}
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">BMI</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("bmi")}>
+                          {metricsSortKey === "bmi" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => openMetricsFilter(event, "bmi", "BMI")}
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">RHR</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("restingHeartRate")}>
+                          {metricsSortKey === "restingHeartRate" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) =>
+                            openMetricsFilter(event, "restingHeartRate", "Resting Heart Rate")
+                          }
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography variant="caption">Circumference</Typography>
+                        <IconButton size="small" onClick={() => toggleMetricsSort("circumference")}>
+                          {metricsSortKey === "circumference" && metricsSortDirection === "desc" ? (
+                            <ArrowDownward fontSize="inherit" />
+                          ) : (
+                            <ArrowUpward fontSize="inherit" />
+                          )}
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(event) =>
+                            openMetricsFilter(event, "circumference", "Circumference")
+                          }
+                        >
+                          <FilterList fontSize="inherit" />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {filteredEntries.slice(0, 10).map((entry) => (
+                    <TableRow key={entry._id}>
+                      <TableCell>{formatRecordedAt(entry.recordedAt)}</TableCell>
+                      <TableCell>
+                        {entry.weight !== undefined
+                          ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
+                      <TableCell>{entry.bmi ?? "—"}</TableCell>
+                      <TableCell>{entry.restingHeartRate ?? "—"}</TableCell>
+                      <TableCell>{formatCircumference(entry) || "—"}</TableCell>
+                      <TableCell>
+                        {String(entry.createdBy) === String(user._id) && (
+                          <Stack direction="row" spacing={1}>
+                            <Button size="small" onClick={() => openEditEntry(entry)}>
+                              Edit
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                openEditEntry(entry);
+                                setDeleteConfirmOpen(true);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </Stack>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
         </Paper>
       </Grid>
@@ -1113,6 +1388,70 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
           </Grid>
         </DialogContent>
       </Dialog>
+
+      <Menu
+        anchorEl={metricsFilterAnchor}
+        open={Boolean(metricsFilterAnchor)}
+        onClose={closeMetricsFilter}
+        PaperProps={{ sx: { minWidth: 260, p: 2 } }}
+      >
+        <Stack spacing={2}>
+          <Typography variant="subtitle2">{metricsFilterLabel || "Filter"}</Typography>
+          {metricsFilterKey === "recordedAt" && (
+            <Stack spacing={1}>
+              <TextField
+                label="From"
+                type="date"
+                value={metricsDateRange.from}
+                onChange={(event) =>
+                  setMetricsDateRange((prev) => ({ ...prev, from: event.target.value }))
+                }
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="To"
+                type="date"
+                value={metricsDateRange.to}
+                onChange={(event) =>
+                  setMetricsDateRange((prev) => ({ ...prev, to: event.target.value }))
+                }
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button size="small" onClick={() => setMetricsDateRange({ from: "", to: "" })}>
+                Clear
+              </Button>
+            </Stack>
+          )}
+          {["weight", "bodyFatPercent", "bmi", "restingHeartRate"].includes(metricsFilterKey) && (
+            <Stack spacing={1}>
+              <Slider
+                value={metricsRangeFilters[metricsFilterKey] || [0, 0]}
+                min={(metricBounds[metricsFilterKey] || [0, 0])[0]}
+                max={(metricBounds[metricsFilterKey] || [0, 0])[1]}
+                onChange={(_, value) =>
+                  setMetricsRangeFilters((prev) => ({
+                    ...prev,
+                    [metricsFilterKey]: value,
+                  }))
+                }
+                valueLabelDisplay="auto"
+                disabled={!metricBounds[metricsFilterKey]}
+              />
+              <Button
+                size="small"
+                onClick={() =>
+                  setMetricsRangeFilters((prev) => ({
+                    ...prev,
+                    [metricsFilterKey]: metricBounds[metricsFilterKey] || prev[metricsFilterKey],
+                  }))
+                }
+              >
+                Reset range
+              </Button>
+            </Stack>
+          )}
+        </Stack>
+      </Menu>
 
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>Delete Metrics Entry</DialogTitle>
