@@ -95,6 +95,27 @@ const calculateBmi = (weightLbs, heightInches) => {
   return Number.isFinite(bmi) ? (Math.round(bmi * 10) / 10).toFixed(1) : "";
 };
 
+const pad2 = (value) => String(value).padStart(2, "0");
+
+const toLocalDateTimeInput = (value) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = pad2(date.getMonth() + 1);
+  const day = pad2(date.getDate());
+  const hours = pad2(date.getHours());
+  const minutes = pad2(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const toUtcISOString = (value) => {
+  if (!value) return value;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString();
+};
+
 const formatRecordedAt = (value) => {
   if (!value) return "";
   const date = new Date(value);
@@ -441,8 +462,12 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   const entries = metricsState.entriesByUser[userId] || [];
   const pending = metricsState.pendingByUser[userId] || [];
   const latest = metricsState.latestByUser[userId] || null;
+  const hasLoadedEntries = useMemo(
+    () => Object.prototype.hasOwnProperty.call(metricsState.entriesByUser, userId),
+    [metricsState.entriesByUser, userId]
+  );
 
-  const [recordedAt, setRecordedAt] = useState(() => new Date().toISOString().slice(0, 16));
+  const [recordedAt, setRecordedAt] = useState(() => toLocalDateTimeInput(new Date()));
   const [weight, setWeight] = useState("");
   const [bodyFatPercent, setBodyFatPercent] = useState("");
   const [restingHeartRate, setRestingHeartRate] = useState("");
@@ -476,10 +501,14 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   }, [dispatch, userId, isTrainerView]);
 
   useEffect(() => {
-    if (!isTrainerView && entries.length === 0) {
+    if (entries.length > 0) {
+      setOnboardingOpen(false);
+      return;
+    }
+    if (!isTrainerView && hasLoadedEntries && entries.length === 0) {
       setOnboardingOpen(true);
     }
-  }, [entries.length, isTrainerView]);
+  }, [entries.length, hasLoadedEntries, isTrainerView]);
 
   const handleCircumferenceChange = (key, value) => {
     setCircumference((prev) => ({ ...prev, [key]: value }));
@@ -510,7 +539,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   };
 
   const resetForm = () => {
-    setRecordedAt(new Date().toISOString().slice(0, 16));
+    setRecordedAt(toLocalDateTimeInput(new Date()));
     setWeight("");
     setBodyFatPercent("");
     setRestingHeartRate("");
@@ -523,7 +552,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     if (!userId) return;
     const payload = {
       userId: isTrainerView ? userId : undefined,
-      recordedAt,
+      recordedAt: toUtcISOString(recordedAt),
       weight: weight === "" ? undefined : toLbs(weight, weightUnit),
       bodyFatPercent: bodyFatPercent === "" ? undefined : Number(bodyFatPercent),
       restingHeartRate: restingHeartRate === "" ? undefined : Number(restingHeartRate),
@@ -567,7 +596,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
 
   const openEditEntry = (entry) => {
     setEditingEntry(entry);
-    setEditRecordedAt(entry.recordedAt ? new Date(entry.recordedAt).toISOString().slice(0, 16) : "");
+    setEditRecordedAt(entry.recordedAt ? toLocalDateTimeInput(entry.recordedAt) : "");
     const displayWeight = fromLbs(entry.weight, weightUnit);
     setEditWeight(displayWeight === "" ? "" : String(Number(displayWeight).toFixed(1)));
     setEditBodyFatPercent(entry.bodyFatPercent ?? "");
@@ -612,7 +641,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     if (!editingEntry) return;
     const payload = {
       entryId: editingEntry._id,
-      recordedAt: editRecordedAt,
+      recordedAt: toUtcISOString(editRecordedAt),
       weight: editWeight === "" ? undefined : toLbs(editWeight, weightUnit),
       bodyFatPercent: editBodyFatPercent === "" ? undefined : Number(editBodyFatPercent),
       restingHeartRate: editRestingHeartRate === "" ? undefined : Number(editRestingHeartRate),
