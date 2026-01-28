@@ -1527,6 +1527,7 @@ export default function Schedule() {
     [clients]
   );
   const totalSlots = Math.max((calendarEndHour - calendarStartHour) * 2, 0);
+  const calendarContentHeight = HEADER_HEIGHT + totalSlots * SLOT_HEIGHT;
 
   const weekEvents = useMemo(() => {
     const start = weekStart.startOf("day");
@@ -2247,7 +2248,6 @@ export default function Schedule() {
                     >
                       <ToggleButton value={0.85}>Compact</ToggleButton>
                       <ToggleButton value={1}>Normal</ToggleButton>
-                      <ToggleButton value={1.15}>Large</ToggleButton>
                     </ToggleButtonGroup>
                   </Stack>
                 )}
@@ -2305,7 +2305,15 @@ export default function Schedule() {
                     border: "1px solid rgba(148, 163, 184, 0.35)",
                     borderRadius: 2,
                     overflowX: { xs: "auto", md: "hidden" },
-                    overflowY: "auto",
+                    overflowY: calendarScale < 1 ? "hidden" : "auto",
+                    height:
+                      calendarScale < 1
+                        ? `${calendarContentHeight * calendarScale}px`
+                        : "auto",
+                    minHeight:
+                      calendarScale < 1
+                        ? `${calendarContentHeight * calendarScale}px`
+                        : undefined,
                   }}
                 >
                   <Box
