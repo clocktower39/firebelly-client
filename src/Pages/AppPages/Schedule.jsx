@@ -202,6 +202,8 @@ export default function Schedule() {
   const [shareHighlightShown, setShareHighlightShown] = useState(false);
   const [shareHighlightColor, setShareHighlightColor] = useState("#ffc107");
   const [shareHidePrices, setShareHidePrices] = useState(true);
+  const [shareWeekStartDate, setShareWeekStartDate] = useState("");
+  const [shareEvents, setShareEvents] = useState([]);
   const [openTimeSettings, setOpenTimeSettings] = useState(false);
   const [calendarStartHour, setCalendarStartHour] = useState(WEEK_START_HOUR);
   const [calendarEndHour, setCalendarEndHour] = useState(WEEK_END_HOUR);
@@ -987,6 +989,27 @@ export default function Schedule() {
     setShareInProgress(true);
     setShareStatus("");
     setIsShareMode(true);
+    if (!shareWeekStartDate) {
+      setShareWeekStartDate(selectedDate.startOf("week").format("YYYY-MM-DD"));
+    }
+
+    const shareStart = dayjs(shareWeekStartDate || selectedDate.startOf("week").format("YYYY-MM-DD"))
+      .startOf("day");
+    const shareEnd = shareStart.add(7, "day").startOf("day");
+    try {
+      const rangeData = await dispatch(
+        requestScheduleRange({
+          startDate: shareStart.toISOString(),
+          endDate: shareEnd.toISOString(),
+          trainerId: selectedTrainerId || user._id,
+          clientId: null,
+          includeAvailability: true,
+        })
+      );
+      setShareEvents(rangeData?.events || []);
+    } catch (err) {
+      setShareEvents([]);
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 80));
 
@@ -1481,7 +1504,12 @@ export default function Schedule() {
     refreshSchedule();
   };
 
-  const weekStart = useMemo(() => selectedDate.startOf("week"), [selectedDate]);
+  const weekStart = useMemo(() => {
+    if (isShareMode && shareWeekStartDate) {
+      return dayjs(shareWeekStartDate).startOf("day");
+    }
+    return selectedDate.startOf("week");
+  }, [isShareMode, selectedDate, shareWeekStartDate]);
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day")),
     [weekStart]
@@ -1532,12 +1560,13 @@ export default function Schedule() {
   const weekEvents = useMemo(() => {
     const start = weekStart.startOf("day");
     const end = weekStart.add(7, "day").startOf("day");
-    return (scheduleData.events || []).filter((event) => {
+    const sourceEvents = isShareMode ? shareEvents : scheduleData.events || [];
+    return sourceEvents.filter((event) => {
       const eventStart = dayjs(event.startDateTime);
       const eventEnd = dayjs(event.endDateTime);
       return eventStart.isBefore(end) && eventEnd.isAfter(start);
     });
-  }, [scheduleData.events, weekStart]);
+  }, [isShareMode, scheduleData.events, shareEvents, weekStart]);
   const weekClientOptions = useMemo(() => {
     const seen = new Map();
     weekEvents.forEach((event) => {
@@ -2276,6 +2305,7 @@ export default function Schedule() {
                     onClick={() => {
                       handleCalendarMenuClose();
                       setShareStatus("");
+                      setShareWeekStartDate(selectedDate.startOf("week").format("YYYY-MM-DD"));
                       setOpenShareDialog(true);
                     }}
                   >
@@ -4659,6 +4689,13 @@ export default function Schedule() {
             <Typography variant="body2" color="text.secondary">
               Create a shareable snapshot of this week’s sessions.
             </Typography>
+            <TextField
+              label="Week starting"
+              type="date"
+              value={shareWeekStartDate}
+              onChange={(event) => setShareWeekStartDate(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
             <FormControlLabel
               control={
                 <Switch
