@@ -232,6 +232,7 @@ export default function Schedule() {
   const [sessionTypes, setSessionTypes] = useState([]);
   const [sessionTypesStatus, setSessionTypesStatus] = useState("");
   const [openSessionTypesDialog, setOpenSessionTypesDialog] = useState(false);
+  const [openSessionTypeFormDialog, setOpenSessionTypeFormDialog] = useState(false);
   const [sessionTypeForm, setSessionTypeForm] = useState({
     name: "",
     description: "",
@@ -305,6 +306,7 @@ export default function Schedule() {
       payoutCurrency: "USD",
     });
     setEditingSessionTypeId("");
+    setOpenSessionTypeFormDialog(false);
   }, []);
 
   useEffect(() => {
@@ -676,6 +678,7 @@ export default function Schedule() {
           : "",
       payoutCurrency: type.payoutCurrency || "USD",
     });
+    setOpenSessionTypeFormDialog(true);
   };
 
   const handleDeleteSessionType = async (typeId) => {
@@ -4106,7 +4109,11 @@ export default function Schedule() {
                           </Typography>
                         )}
                         {type.description && (
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ whiteSpace: "pre-wrap" }}
+                          >
                             {type.description}
                           </Typography>
                         )}
@@ -4134,9 +4141,33 @@ export default function Schedule() {
               </Stack>
             )}
             <Divider />
-            <Typography variant="subtitle1">
-              {editingSessionTypeId ? "Edit session type" : "New session type"}
-            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => {
+                resetSessionTypeForm();
+                setOpenSessionTypeFormDialog(true);
+              }}
+            >
+              New session type
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenSessionTypesDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openSessionTypeFormDialog}
+        onClose={() => setOpenSessionTypeFormDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {editingSessionTypeId ? "Edit session type" : "New session type"}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Name"
               value={sessionTypeForm.name}
@@ -4152,7 +4183,7 @@ export default function Schedule() {
                 setSessionTypeForm((prev) => ({ ...prev, description: event.target.value }))
               }
               multiline
-              minRows={2}
+              minRows={3}
               fullWidth
             />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
@@ -4207,24 +4238,22 @@ export default function Schedule() {
                 </Select>
               </FormControl>
             </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                onClick={handleSaveSessionType}
-                disabled={!sessionTypeForm.name.trim()}
-              >
-                {editingSessionTypeId ? "Save changes" : "Add session type"}
-              </Button>
-              {editingSessionTypeId && (
-                <Button variant="text" onClick={resetSessionTypeForm}>
-                  Cancel edit
-                </Button>
-              )}
-            </Stack>
+            {sessionTypesStatus && (
+              <Typography variant="caption" color="error">
+                {sessionTypesStatus}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenSessionTypesDialog(false)}>Close</Button>
+          <Button onClick={resetSessionTypeForm}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveSessionType}
+            disabled={!sessionTypeForm.name.trim()}
+          >
+            {editingSessionTypeId ? "Save changes" : "Add session type"}
+          </Button>
         </DialogActions>
       </Dialog>
 
