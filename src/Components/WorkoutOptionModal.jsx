@@ -6,8 +6,11 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   Grid,
   IconButton,
+  MenuItem,
   Modal,
   TextField,
   Tooltip,
@@ -25,11 +28,18 @@ import {
 import {
   updateWorkoutDateById,
   copyWorkoutById,
+  bulkMoveCopyWorkouts,
+  getTrainingRangeEnd,
   deleteWorkoutById,
+  requestWorkoutsByRange,
+  undoBulkMoveCopy,
 } from "../Redux/actions";
 import SelectedDate from "./SelectedDate";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+dayjs.extend(advancedFormat);
 
 const classes = {
   modalStyle: {
@@ -62,7 +72,28 @@ export function ModalAction(props) {
     const navigate = useNavigate();
     const user = useSelector((state) => state.user);
     const clients = useSelector((state) => state.clients);
+    const lastBulkOperation = useSelector((state) => state.lastBulkOperation);
     const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
+    const [moveMode, setMoveMode] = useState("single");
+    const [rangeStart, setRangeStart] = useState(
+      dayjs.utc(training?.date || new Date()).format("YYYY-MM-DD")
+    );
+    const [rangeEnd, setRangeEnd] = useState("");
+    const [rangeEndManual, setRangeEndManual] = useState(false);
+    const [rangeTargetDate, setRangeTargetDate] = useState(
+      dayjs.utc(training?.date || new Date()).format("YYYY-MM-DD")
+    );
+    const [targetQueue, setTargetQueue] = useState(false);
+    const [conflictPolicy, setConflictPolicy] = useState("abort");
+    const [includeCompleted, setIncludeCompleted] = useState(true);
+    const [includeTemplates, setIncludeTemplates] = useState(true);
+    const [categoriesInclude, setCategoriesInclude] = useState([]);
+    const [categoriesExclude, setCategoriesExclude] = useState([]);
+    const [availableCategories, setAvailableCategories] = useState([]);
+    const [titlePrefix, setTitlePrefix] = useState("");
+    const [titleSuffix, setTitleSuffix] = useState("");
+    const [previewWorkouts, setPreviewWorkouts] = useState([]);
+    const [previewLoading, setPreviewLoading] = useState(false);
     const [copyOption, setCopyOption] = useState(null);
     const [newAccount, setNewAccount] = useState({
       label: `${training?.user?.lastName}, ${training?.user?.firstName}`,
@@ -75,8 +106,47 @@ export function ModalAction(props) {
       () => user._id.toString() === training?.user?._id?.toString(),
       [user._id, training?.user?._id]
     );
+    const canUndoBulk =
+      lastBulkOperation &&
+      training?.user?._id &&
+      String(lastBulkOperation.userId) === String(training.user._id);
   
     const handleTitleChange = (e) => setNewTitle(e.target.value);
+    const handleMoveModeChange = (e) => setMoveMode(e.target.value);
+    const handleRangeStartChange = (e) => {
+      setRangeStart(e.target.value);
+      setRangeEndManual(false);
+    };
+    const handleRangeEndChange = (e) => {
+      setRangeEnd(e.target.value);
+      setRangeEndManual(true);
+    };
+    const handleRangeTargetChange = (e) => setRangeTargetDate(e.target.value);
+    const handleTargetQueueChange = (e) => setTargetQueue(e.target.checked);
+    const handleConflictPolicyChange = (e) => setConflictPolicy(e.target.value);
+    const handleIncludeCompletedChange = (e) => setIncludeCompleted(e.target.checked);
+    const handleIncludeTemplatesChange = (e) => setIncludeTemplates(e.target.checked);
+    const handleCategoriesIncludeChange = (e, values) => setCategoriesInclude(values);
+    const handleCategoriesExcludeChange = (e, values) => setCategoriesExclude(values);
+    const handleTitlePrefixChange = (e) => setTitlePrefix(e.target.value);
+    const handleTitleSuffixChange = (e) => setTitleSuffix(e.target.value);
+
+    const handleRangeShortcut = (rangeType) => {
+      const anchor = dayjs.utc(rangeStart || new Date());
+      if (rangeType === "thisWeek") {
+        setRangeStart(anchor.startOf("week").format("YYYY-MM-DD"));
+        setRangeEnd(anchor.endOf("week").format("YYYY-MM-DD"));
+      }
+      if (rangeType === "next2Weeks") {
+        setRangeStart(anchor.startOf("week").format("YYYY-MM-DD"));
+        setRangeEnd(anchor.startOf("week").add(13, "day").format("YYYY-MM-DD"));
+      }
+      if (rangeType === "month") {
+        setRangeStart(anchor.startOf("month").format("YYYY-MM-DD"));
+        setRangeEnd(anchor.endOf("month").format("YYYY-MM-DD"));
+      }
+      setRangeEndManual(true);
+    };
   
     const handleMove = () => {
       dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
@@ -89,7 +159,37 @@ export function ModalAction(props) {
         }
       });
     };
-  
+
+    const handleMoveRange = () => {
+      dispatch(
+        bulkMoveCopyWorkouts({
+          action: "move",
+          rangeStart,
+          rangeEnd,
+          targetStartDate: rangeTargetDate,
+          userId: training?.user?._id,
+          targetQueue,
+          conflictPolicy,
+          filters: {
+            categoriesInclude,
+            categoriesExclude,
+            includeCompleted,
+            includeTemplates,
+          },
+          titlePrefix,
+          titleSuffix,
+        })
+      ).then((res) => {
+        if (res?.error !== undefined) {
+          setActionError(res.error);
+        } else {
+          setActionError(false);
+          handleModalToggle();
+          setSelectedDate && setSelectedDate(dayjs.utc(rangeTargetDate).format("YYYY-MM-DD"));
+        }
+      });
+    };
+
     const handleMoveToQueue = () => {
       dispatch(updateWorkoutDateById(training, null)).then((res) => {
         if (res?.error !== undefined) {
@@ -115,6 +215,45 @@ export function ModalAction(props) {
           : dayjs.utc(newDate).format("YYYY-MM-DD") === dayjs(new Date()).format("YYYY-MM-DD")
           ? navigate("/")
           : navigate(`/?date=${dayjs.utc(newDate).format("YYYYMMDD")}`);
+      });
+    };
+
+    const handleCopyRange = () => {
+      dispatch(
+        bulkMoveCopyWorkouts({
+          action: "copy",
+          rangeStart,
+          rangeEnd,
+          targetStartDate: rangeTargetDate,
+          option: copyOption?.value,
+          userId: training?.user?._id,
+          newAccount: newAccount?.value,
+          targetQueue,
+          conflictPolicy,
+          filters: {
+            categoriesInclude,
+            categoriesExclude,
+            includeCompleted,
+            includeTemplates,
+          },
+          titlePrefix,
+          titleSuffix,
+        })
+      ).then((res) => {
+        if (res?.error !== undefined) {
+          setActionError(res.error);
+        } else {
+          setActionError(false);
+          handleModalToggle();
+          !isPersonalWorkout()
+            ? navigate("/clients")
+            : setSelectedDate
+            ? setSelectedDate(dayjs.utc(rangeTargetDate).format("YYYY-MM-DD"))
+            : dayjs.utc(rangeTargetDate).format("YYYY-MM-DD") ===
+              dayjs(new Date()).format("YYYY-MM-DD")
+            ? navigate("/")
+            : navigate(`/?date=${dayjs.utc(rangeTargetDate).format("YYYYMMDD")}`);
+        }
       });
     };
   
@@ -168,24 +307,271 @@ export function ModalAction(props) {
   
     useEffect(() => {
       setActionError(false);
-    }, [newDate]);
+    }, [newDate, moveMode, rangeStart, rangeEnd, rangeTargetDate]);
+
+    useEffect(() => {
+      if (!training?.date) return;
+      const dateString = dayjs.utc(training.date).format("YYYY-MM-DD");
+      setRangeStart(dateString);
+      setRangeTargetDate(dateString);
+      setRangeEnd("");
+      setRangeEndManual(false);
+    }, [training?._id]);
+
+    useEffect(() => {
+      setMoveMode("single");
+      setTargetQueue(false);
+      setConflictPolicy("abort");
+      setIncludeCompleted(true);
+      setIncludeTemplates(true);
+      setCategoriesInclude([]);
+      setCategoriesExclude([]);
+      setTitlePrefix("");
+      setTitleSuffix("");
+      setPreviewWorkouts([]);
+      setPreviewLoading(false);
+    }, [actionType]);
+
+    useEffect(() => {
+      if (moveMode !== "range" || !rangeStart || rangeEndManual) return;
+
+      dispatch(getTrainingRangeEnd(rangeStart, training?.user?._id)).then((data) => {
+        if (data?.error) {
+          setActionError(data.error);
+          return;
+        }
+        const maxDate = data?.maxDate
+          ? dayjs.utc(data.maxDate).format("YYYY-MM-DD")
+          : rangeStart;
+        setRangeEnd(maxDate);
+      });
+    }, [dispatch, moveMode, rangeStart, rangeEndManual, training?.user?._id]);
+
+    useEffect(() => {
+      if (moveMode !== "range" || !rangeStart || !rangeEnd) return;
+      setPreviewLoading(true);
+      dispatch(
+        requestWorkoutsByRange(rangeStart, rangeEnd, training?.user?._id, {
+          categoriesInclude,
+          categoriesExclude,
+          includeCompleted,
+          includeTemplates,
+        })
+      ).then((data) => {
+        if (data?.error) {
+          setActionError(data.error);
+          setPreviewWorkouts([]);
+          setPreviewLoading(false);
+          return;
+        }
+        const workouts = data?.workouts || [];
+        setPreviewWorkouts(workouts);
+        const categories = new Set();
+        workouts.forEach((workout) => {
+          (workout.category || []).forEach((category) => categories.add(category));
+        });
+        setAvailableCategories([...categories]);
+        setPreviewLoading(false);
+      });
+    }, [
+      dispatch,
+      moveMode,
+      rangeStart,
+      rangeEnd,
+      training?.user?._id,
+      categoriesInclude,
+      categoriesExclude,
+      includeCompleted,
+      includeTemplates,
+    ]);
   
     switch (actionType) {
       case "move":
         return (
           <>
-            <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
-            <Grid container spacing={1} sx={{ justifyContent: "center" }}>
-              <TextField
-                fullWidth
-                label="Update Workout Title"
-                value={newTitle}
-                onChange={handleTitleChange}
-              />
-              <Button variant="contained" onClick={handleMove}>
-                Move
-              </Button>
-            </Grid>
+            <TextField
+              fullWidth
+              select
+              label="Mode"
+              value={moveMode}
+              onChange={handleMoveModeChange}
+              sx={{ marginBottom: "10px" }}
+            >
+              <MenuItem value="single">Single training</MenuItem>
+              <MenuItem value="range">Date range</MenuItem>
+            </TextField>
+
+            {moveMode === "single" ? (
+              <>
+                <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
+                <Grid container spacing={1} sx={{ justifyContent: "center" }}>
+                  <TextField
+                    fullWidth
+                    label="Update Workout Title"
+                    value={newTitle}
+                    onChange={handleTitleChange}
+                  />
+                  <Button variant="contained" onClick={handleMove}>
+                    Move
+                  </Button>
+                </Grid>
+              </>
+            ) : (
+              <>
+                <Grid container spacing={1} sx={{ justifyContent: "center", marginBottom: "10px" }}>
+                  <TextField
+                    fullWidth
+                    label="Range Start"
+                    type="date"
+                    value={rangeStart}
+                    onChange={handleRangeStartChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Range End"
+                    type="date"
+                    value={rangeEnd}
+                    onChange={handleRangeEndChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                  <Grid container size={12} sx={{ justifyContent: "center" }}>
+                    <Button size="small" onClick={() => handleRangeShortcut("thisWeek")}>
+                      This week
+                    </Button>
+                    <Button size="small" onClick={() => handleRangeShortcut("next2Weeks")}>
+                      Next 2 weeks
+                    </Button>
+                    <Button size="small" onClick={() => handleRangeShortcut("month")}>
+                      Month
+                    </Button>
+                  </Grid>
+                  <TextField
+                    fullWidth
+                    label="Move start to"
+                    type="date"
+                    value={rangeTargetDate}
+                    onChange={handleRangeTargetChange}
+                    InputLabelProps={{ shrink: true }}
+                    disabled={targetQueue}
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={targetQueue} onChange={handleTargetQueueChange} />}
+                    label="Move to queue (no dates)"
+                  />
+                  <TextField
+                    fullWidth
+                    select
+                    label="Conflict behavior"
+                    value={conflictPolicy}
+                    onChange={handleConflictPolicyChange}
+                  >
+                    <MenuItem value="abort">Abort if conflicts</MenuItem>
+                    <MenuItem value="skip">Skip conflicting dates</MenuItem>
+                    <MenuItem value="replace">Replace conflicts</MenuItem>
+                  </TextField>
+                  <FormControlLabel
+                    control={
+                      <Checkbox checked={includeCompleted} onChange={handleIncludeCompletedChange} />
+                    }
+                    label="Include completed"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox checked={includeTemplates} onChange={handleIncludeTemplatesChange} />
+                    }
+                    label="Include templates"
+                  />
+                  <Autocomplete
+                    multiple
+                    options={availableCategories}
+                    value={categoriesInclude}
+                    onChange={handleCategoriesIncludeChange}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Include categories" />
+                    )}
+                  />
+                  <Autocomplete
+                    multiple
+                    options={availableCategories}
+                    value={categoriesExclude}
+                    onChange={handleCategoriesExcludeChange}
+                    renderInput={(params) => (
+                      <TextField {...params} label="Exclude categories" />
+                    )}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Title prefix"
+                    value={titlePrefix}
+                    onChange={handleTitlePrefixChange}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Title suffix"
+                    value={titleSuffix}
+                    onChange={handleTitleSuffixChange}
+                  />
+                  <Grid container size={12} sx={{ justifyContent: "center" }}>
+                    <Button size="small" onClick={() => setTitleSuffix(" (moved)")}>
+                      Append "(moved)"
+                    </Button>
+                  </Grid>
+                  <Grid container size={12} sx={{ justifyContent: "center" }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {targetQueue
+                        ? "Moves all workouts in the range to the queue."
+                        : `Moves all workouts in the range by ${dayjs
+                            .utc(rangeTargetDate)
+                            .diff(dayjs.utc(rangeStart), "day")} day(s).`}{" "}
+                      Range end auto-fills to the latest workout on/after the start date.
+                    </Typography>
+                  </Grid>
+                  <Grid container size={12} sx={{ justifyContent: "center" }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {previewLoading
+                        ? "Loading preview..."
+                        : `Preview: ${previewWorkouts.length} workout(s)`}
+                    </Typography>
+                  </Grid>
+                  {!previewLoading && previewWorkouts.length > 0 && (
+                    <Box sx={{ maxHeight: 140, overflowY: "auto", width: "100%" }}>
+                      {previewWorkouts
+                        .slice()
+                        .sort((a, b) => dayjs.utc(a.date).valueOf() - dayjs.utc(b.date).valueOf())
+                        .slice(0, 8)
+                        .map((workout) => (
+                          <Typography variant="caption" key={workout._id} display="block">
+                            {dayjs.utc(workout.date).format("MMM D")} -{" "}
+                            {workout.title || "Untitled"}
+                          </Typography>
+                        ))}
+                      {previewWorkouts.length > 8 && (
+                        <Typography variant="caption" display="block">
+                          +{previewWorkouts.length - 8} more
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </Grid>
+                <Grid container sx={{ justifyContent: "center" }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleMoveRange}
+                    disabled={!rangeStart || !rangeEnd || (!targetQueue && !rangeTargetDate)}
+                  >
+                    Move Range
+                  </Button>
+                </Grid>
+                {canUndoBulk && (
+                  <Grid container sx={{ justifyContent: "center", marginTop: "10px" }}>
+                    <Button variant="outlined" onClick={() => dispatch(undoBulkMoveCopy(lastBulkOperation))}>
+                      Undo last bulk action
+                    </Button>
+                  </Grid>
+                )}
+              </>
+            )}
             {actionError && (
               <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Typography variant="caption" sx={{ color: "red" }}>
@@ -239,8 +625,164 @@ export function ModalAction(props) {
   
         return (
           <>
-            <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
-  
+            <TextField
+              fullWidth
+              select
+              label="Mode"
+              value={moveMode}
+              onChange={handleMoveModeChange}
+              sx={{ marginBottom: "10px" }}
+            >
+              <MenuItem value="single">Single training</MenuItem>
+              <MenuItem value="range">Date range</MenuItem>
+            </TextField>
+
+            {moveMode === "single" && (
+              <SelectedDate selectedDate={newDate} setSelectedDate={setNewDate} />
+            )}
+
+            {moveMode === "range" && (
+              <Grid container spacing={1} sx={{ justifyContent: "center", marginBottom: "10px" }}>
+                <TextField
+                  fullWidth
+                  label="Range Start"
+                  type="date"
+                  value={rangeStart}
+                  onChange={handleRangeStartChange}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  fullWidth
+                  label="Range End"
+                  type="date"
+                  value={rangeEnd}
+                  onChange={handleRangeEndChange}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
+                  <Button size="small" onClick={() => handleRangeShortcut("thisWeek")}>
+                    This week
+                  </Button>
+                  <Button size="small" onClick={() => handleRangeShortcut("next2Weeks")}>
+                    Next 2 weeks
+                  </Button>
+                  <Button size="small" onClick={() => handleRangeShortcut("month")}>
+                    Month
+                  </Button>
+                </Grid>
+                <TextField
+                  fullWidth
+                  label="Copy start to"
+                  type="date"
+                  value={rangeTargetDate}
+                  onChange={handleRangeTargetChange}
+                  InputLabelProps={{ shrink: true }}
+                  disabled={targetQueue}
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={targetQueue} onChange={handleTargetQueueChange} />}
+                  label="Copy to queue (no dates)"
+                />
+                <TextField
+                  fullWidth
+                  select
+                  label="Conflict behavior"
+                  value={conflictPolicy}
+                  onChange={handleConflictPolicyChange}
+                >
+                  <MenuItem value="abort">Abort if conflicts</MenuItem>
+                  <MenuItem value="skip">Skip conflicting dates</MenuItem>
+                  <MenuItem value="replace">Replace conflicts</MenuItem>
+                </TextField>
+                <FormControlLabel
+                  control={
+                    <Checkbox checked={includeCompleted} onChange={handleIncludeCompletedChange} />
+                  }
+                  label="Include completed"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox checked={includeTemplates} onChange={handleIncludeTemplatesChange} />
+                  }
+                  label="Include templates"
+                />
+                <Autocomplete
+                  multiple
+                  options={availableCategories}
+                  value={categoriesInclude}
+                  onChange={handleCategoriesIncludeChange}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Include categories" />
+                  )}
+                />
+                <Autocomplete
+                  multiple
+                  options={availableCategories}
+                  value={categoriesExclude}
+                  onChange={handleCategoriesExcludeChange}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Exclude categories" />
+                  )}
+                />
+                <TextField
+                  fullWidth
+                  label="Title prefix"
+                  value={titlePrefix}
+                  onChange={handleTitlePrefixChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Title suffix"
+                  value={titleSuffix}
+                  onChange={handleTitleSuffixChange}
+                />
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
+                  <Button size="small" onClick={() => setTitlePrefix("Copy of ")}>
+                    Prefix "Copy of"
+                  </Button>
+                  <Button size="small" onClick={() => setTitleSuffix(" (moved)")}>
+                    Append "(moved)"
+                  </Button>
+                </Grid>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
+                    <Typography variant="caption" color="text.secondary">
+                    {targetQueue
+                      ? "Copies all workouts in the range to the queue."
+                      : `Copies all workouts in the range by ${dayjs
+                          .utc(rangeTargetDate)
+                          .diff(dayjs.utc(rangeStart), "day")} day(s).`}{" "}
+                    Range end auto-fills to the latest workout on/after the start date.
+                    </Typography>
+                  </Grid>
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {previewLoading
+                      ? "Loading preview..."
+                      : `Preview: ${previewWorkouts.length} workout(s)`}
+                  </Typography>
+                </Grid>
+                {!previewLoading && previewWorkouts.length > 0 && (
+                  <Box sx={{ maxHeight: 140, overflowY: "auto", width: "100%" }}>
+                    {previewWorkouts
+                      .slice()
+                      .sort((a, b) => dayjs.utc(a.date).valueOf() - dayjs.utc(b.date).valueOf())
+                      .slice(0, 8)
+                      .map((workout) => (
+                        <Typography variant="caption" key={workout._id} display="block">
+                          {dayjs.utc(workout.date).format("MMM D")} -{" "}
+                          {workout.title || "Untitled"}
+                        </Typography>
+                      ))}
+                    {previewWorkouts.length > 8 && (
+                      <Typography variant="caption" display="block">
+                        +{previewWorkouts.length - 8} more
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Grid>
+            )}
+
             {user.isTrainer && (
               <Grid container size={12} sx={{ paddingBottom: "15px" }}>
                 <Autocomplete
@@ -255,14 +797,16 @@ export function ModalAction(props) {
                 />
               </Grid>
             )}
-  
-            <TextField
-              fullWidth
-              label="Copied Workout Title"
-              value={newTitle}
-              onChange={handleTitleChange}
-            />
-  
+
+            {moveMode === "single" && (
+              <TextField
+                fullWidth
+                label="Copied Workout Title"
+                value={newTitle}
+                onChange={handleTitleChange}
+              />
+            )}
+
             <Grid container sx={{ justifyContent: "center" }}>
               <Grid container size={12} sx={{ paddingBottom: "15px" }}>
                 <Autocomplete
@@ -274,13 +818,35 @@ export function ModalAction(props) {
                   onChange={handleOptionChange}
                 />
               </Grid>
-  
+
               <Grid container size={12} sx={{ justifyContent: "center" }}>
-                <Button variant="contained" onClick={handleCopy} disabled={!copyOption}>
-                  Copy
-                </Button>
+                {moveMode === "single" ? (
+                  <Button variant="contained" onClick={handleCopy} disabled={!copyOption}>
+                    Copy
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleCopyRange}
+                    disabled={
+                      !copyOption ||
+                      !rangeStart ||
+                      !rangeEnd ||
+                      (!targetQueue && !rangeTargetDate)
+                    }
+                  >
+                    Copy Range
+                  </Button>
+                )}
               </Grid>
-  
+              {moveMode === "range" && canUndoBulk && (
+                <Grid container size={12} sx={{ justifyContent: "center", marginTop: "10px" }}>
+                  <Button variant="outlined" onClick={() => dispatch(undoBulkMoveCopy(lastBulkOperation))}>
+                    Undo last bulk action
+                  </Button>
+                </Grid>
+              )}
+
               {actionError && (
                 <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography variant="caption" sx={{ color: "red" }}>

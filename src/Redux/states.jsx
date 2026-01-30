@@ -46,3 +46,5 @@ export let sessionSummary = {};
 export let workoutQueue = {
     // accountId: [ ...workouts ]
 };
+
+export let lastBulkOperation = null;

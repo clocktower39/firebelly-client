@@ -28,6 +28,9 @@ import {
   EDIT_SCHEDULE_EVENTS,
   EDIT_SESSION_SUMMARY,
   EDIT_WORKOUT_QUEUE,
+  SET_LAST_BULK_OPERATION,
+  CLEAR_LAST_BULK_OPERATION,
+  REMOVE_WORKOUTS,
 } from "./actions";
 import {
   user,
@@ -44,6 +47,7 @@ import {
   scheduleEvents,
   sessionSummary,
   workoutQueue,
+  lastBulkOperation,
 } from "./states";
 export let reducer = (
   state = {
@@ -61,6 +65,7 @@ export let reducer = (
     scheduleEvents,
     sessionSummary,
     workoutQueue,
+    lastBulkOperation,
   },
   action
 ) => {
@@ -113,6 +118,20 @@ export let reducer = (
             ...(state.workouts[workoutUser._id] || {}),
             workouts: updatedWorkouts,
             user: { ...workoutUser, },
+          },
+        },
+      };
+    }
+    case REMOVE_WORKOUTS: {
+      const existing = state.workouts[action.accountId]?.workouts || [];
+      const filtered = existing.filter((workout) => !action.workoutIds.includes(workout._id));
+      return {
+        ...state,
+        workouts: {
+          ...state.workouts,
+          [action.accountId]: {
+            ...(state.workouts[action.accountId] || {}),
+            workouts: filtered,
           },
         },
       };
@@ -411,6 +430,16 @@ export let reducer = (
           ...state.workoutQueue,
           [action.accountId]: action.workouts,
         },
+      };
+    case SET_LAST_BULK_OPERATION:
+      return {
+        ...state,
+        lastBulkOperation: action.operation,
+      };
+    case CLEAR_LAST_BULK_OPERATION:
+      return {
+        ...state,
+        lastBulkOperation: null,
       };
     case ERROR:
       return {
