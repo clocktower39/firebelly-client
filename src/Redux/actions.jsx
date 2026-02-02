@@ -32,6 +32,9 @@ export const UPDATE_CONVERSATION_MESSAGES = "UPDATE_CONVERSATION_MESSAGES";
 export const EDIT_SCHEDULE_EVENTS = "EDIT_SCHEDULE_EVENTS";
 export const EDIT_SESSION_SUMMARY = "EDIT_SESSION_SUMMARY";
 export const EDIT_WORKOUT_QUEUE = "EDIT_WORKOUT_QUEUE";
+export const SET_LAST_BULK_OPERATION = "SET_LAST_BULK_OPERATION";
+export const CLEAR_LAST_BULK_OPERATION = "CLEAR_LAST_BULK_OPERATION";
+export const REMOVE_WORKOUTS = "REMOVE_WORKOUTS";
 
 // dev server
 const currentIP = window.location.href.split(":")[1];
@@ -52,10 +55,11 @@ export function signupUser(user) {
     });
     const data = await response.json();
     if (data.error) {
-      return dispatch({
+      dispatch({
         type: ERROR,
         error: data.error,
       });
+      return data;
     }
 
     return dispatch(loginUser({ email: user.email, password: user.password }));
@@ -530,6 +534,62 @@ export function requestWorkoutsByDate(date, client = null,) {
         return set;
       })
     );
+    dispatch({
+      type: EDIT_WORKOUTS,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: client,
+    });
+    return data;
+  };
+}
+
+export function requestWorkoutsByRange(rangeStart, rangeEnd, client = null, filters = {}) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/workoutsRange`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        rangeStart,
+        rangeEnd,
+        client,
+        filters,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      const text = await response.text();
+      data = { error: text || `HTTP ${response.status}` };
+    }
+
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
+    data.workouts.map((workout) =>
+      workout.training.map((set) => {
+        set.map((exercise) => {
+          if (!exercise.achieved.weight) {
+            exercise.achieved.weight = [0];
+          }
+          return exercise;
+        });
+        return set;
+      })
+    );
+
     return dispatch({
       type: EDIT_WORKOUTS,
       workouts: [...data.workouts],
@@ -835,6 +895,162 @@ export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTi
   };
 }
 
+export function getTrainingRangeEnd(startDate, userId) {
+  return async () => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/trainingRangeEnd`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        startDate,
+        userId,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    try {
+      return await response.json();
+    } catch (err) {
+      const text = await response.text();
+      return { error: text || `HTTP ${response.status}` };
+    }
+  };
+}
+
+export function bulkMoveCopyWorkouts({
+  action,
+  rangeStart,
+  rangeEnd,
+  targetStartDate,
+  option = "exact",
+  userId,
+  newAccount,
+  targetQueue = false,
+  filters = {},
+  titlePrefix = "",
+  titleSuffix = "",
+}) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/bulkMoveCopyWorkouts`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        action,
+        rangeStart,
+        rangeEnd,
+        targetStartDate,
+        option,
+        userId,
+        newAccount,
+        targetQueue,
+        filters,
+        titlePrefix,
+        titleSuffix,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      const text = await response.text();
+      data = { error: text || `HTTP ${response.status}` };
+    }
+
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
+    if (data.operation) {
+      dispatch({
+        type: SET_LAST_BULK_OPERATION,
+        operation: data.operation,
+      });
+    }
+
+    if (data.deletedIds?.length) {
+      dispatch({
+        type: REMOVE_WORKOUTS,
+        accountId: data.user?._id,
+        workoutIds: data.deletedIds,
+      });
+    }
+
+    dispatch({
+      type: EDIT_WORKOUTS,
+      workouts: [...data.workouts],
+      user: data.user,
+      accountId: data.user?._id,
+    });
+    return data;
+  };
+}
+
+export function undoBulkMoveCopy(operation) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/undoBulkMoveCopy`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ operation }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      const text = await response.text();
+      data = { error: text || `HTTP ${response.status}` };
+    }
+
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
+    if (data.workouts) {
+      dispatch({
+        type: EDIT_WORKOUTS,
+        workouts: [...data.workouts],
+        user: data.workouts[0]?.user,
+        accountId: data.workouts[0]?.user?._id,
+      });
+    }
+
+    if (data.deletedIds?.length) {
+      dispatch({
+        type: REMOVE_WORKOUTS,
+        accountId: operation.userId,
+        workoutIds: data.deletedIds,
+      });
+    }
+
+    return dispatch({
+      type: CLEAR_LAST_BULK_OPERATION,
+    });
+  };
+}
+
 // Delete a training record
 export function deleteWorkoutById(trainingId, accountId) {
   return async (dispatch, getState) => {
@@ -894,6 +1110,7 @@ export function requestTrainingWeek(date, workoutUser) {
       },
     });
     let data = await response.json();
+    console.log(data)
 
     return dispatch({
       type: EDIT_WORKOUTS,

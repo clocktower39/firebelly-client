@@ -3,12 +3,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import Loading from "../../Components/Loading";
 import SelectedDate from "../../Components/SelectedDate";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
 import { requestWorkoutsByDate, requestLatestMetric, serverURL } from "../../Redux/actions";
 import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
+
+dayjs.extend(utc);
 
 function Home() {
   const location = useLocation();
@@ -50,7 +53,7 @@ function Home() {
 
   const handleCancelEdit = () => {
     const matchedDateWorkouts = workouts.filter((workout) =>
-      dayjs(workout.date).add(1, "day").isSame(selectedDate, "day")
+      dayjs.utc(workout.date).isSame(dayjs.utc(selectedDate), "day")
     );
     setLocalWorkouts([...matchedDateWorkouts]);
   };
@@ -70,7 +73,7 @@ function Home() {
 
   useEffect(() => {
     const matchedDateWorkouts = workouts.filter((workout) =>
-      dayjs(workout.date).add(1, "day").isSame(selectedDate, "day")
+      dayjs.utc(workout.date).isSame(dayjs.utc(selectedDate), "day")
     );
 
     const isDifferent =

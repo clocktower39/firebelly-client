@@ -584,6 +584,7 @@ export default function Calendar(props) {
         handleSetModalAction={handleSetModalAction}
         modalActionType={modalActionType}
         training={selectedWorkout}
+        setSelectedDate={(date) => setSelectedDate(dayjs.utc(date))}
       />
     </LocalizationProvider>
   );
