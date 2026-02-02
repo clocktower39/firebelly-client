@@ -55,10 +55,11 @@ export function signupUser(user) {
     });
     const data = await response.json();
     if (data.error) {
-      return dispatch({
+      dispatch({
         type: ERROR,
         error: data.error,
       });
+      return data;
     }
 
     return dispatch(loginUser({ email: user.email, password: user.password }));
@@ -990,12 +991,13 @@ export function bulkMoveCopyWorkouts({
       });
     }
 
-    return dispatch({
+    dispatch({
       type: EDIT_WORKOUTS,
       workouts: [...data.workouts],
       user: data.user,
       accountId: data.user?._id,
     });
+    return data;
   };
 }
 
@@ -1110,6 +1112,7 @@ export function requestTrainingWeek(date, workoutUser) {
       },
     });
     let data = await response.json();
+    console.log(data)
 
     return dispatch({
       type: EDIT_WORKOUTS,

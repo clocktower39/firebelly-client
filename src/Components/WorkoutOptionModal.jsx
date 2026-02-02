@@ -48,6 +48,8 @@ const classes = {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
+    maxHeight: "85vh",
+    overflowY: "auto",
     bgcolor: "background.paper",
     border: "2px solid #000",
     boxShadow: 24,
@@ -67,6 +69,16 @@ export function ModalAction(props) {
       setSelectedDate,
       setLocalTraining,
     } = props;
+
+    if (!training?._id) {
+      return (
+        <Grid container sx={{ justifyContent: "center", padding: "10px" }}>
+          <Typography variant="caption" color="text.secondary">
+            Loading workout options...
+          </Typography>
+        </Grid>
+      );
+    }
   
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -84,14 +96,7 @@ export function ModalAction(props) {
       dayjs.utc(training?.date || new Date()).format("YYYY-MM-DD")
     );
     const [targetQueue, setTargetQueue] = useState(false);
-    const [conflictPolicy, setConflictPolicy] = useState("abort");
-    const [includeCompleted, setIncludeCompleted] = useState(true);
-    const [includeTemplates, setIncludeTemplates] = useState(true);
-    const [categoriesInclude, setCategoriesInclude] = useState([]);
-    const [categoriesExclude, setCategoriesExclude] = useState([]);
-    const [availableCategories, setAvailableCategories] = useState([]);
-    const [titlePrefix, setTitlePrefix] = useState("");
-    const [titleSuffix, setTitleSuffix] = useState("");
+    const [includeCompleted, setIncludeCompleted] = useState(false);
     const [previewWorkouts, setPreviewWorkouts] = useState([]);
     const [previewLoading, setPreviewLoading] = useState(false);
     const [copyOption, setCopyOption] = useState(null);
@@ -100,12 +105,15 @@ export function ModalAction(props) {
       value: training?.user?._id,
     });
     const [actionError, setActionError] = useState(false);
-    const [newTitle, setNewTitle] = useState(training.title || "");
+    const [newTitle, setNewTitle] = useState(training?.title || "");
   
     const isPersonalWorkout = useCallback(
       () => user._id.toString() === training?.user?._id?.toString(),
       [user._id, training?.user?._id]
     );
+    const previewDeltaDays = targetQueue
+      ? 0
+      : dayjs.utc(rangeTargetDate).diff(dayjs.utc(rangeStart), "day");
     const canUndoBulk =
       lastBulkOperation &&
       training?.user?._id &&
@@ -123,30 +131,7 @@ export function ModalAction(props) {
     };
     const handleRangeTargetChange = (e) => setRangeTargetDate(e.target.value);
     const handleTargetQueueChange = (e) => setTargetQueue(e.target.checked);
-    const handleConflictPolicyChange = (e) => setConflictPolicy(e.target.value);
     const handleIncludeCompletedChange = (e) => setIncludeCompleted(e.target.checked);
-    const handleIncludeTemplatesChange = (e) => setIncludeTemplates(e.target.checked);
-    const handleCategoriesIncludeChange = (e, values) => setCategoriesInclude(values);
-    const handleCategoriesExcludeChange = (e, values) => setCategoriesExclude(values);
-    const handleTitlePrefixChange = (e) => setTitlePrefix(e.target.value);
-    const handleTitleSuffixChange = (e) => setTitleSuffix(e.target.value);
-
-    const handleRangeShortcut = (rangeType) => {
-      const anchor = dayjs.utc(rangeStart || new Date());
-      if (rangeType === "thisWeek") {
-        setRangeStart(anchor.startOf("week").format("YYYY-MM-DD"));
-        setRangeEnd(anchor.endOf("week").format("YYYY-MM-DD"));
-      }
-      if (rangeType === "next2Weeks") {
-        setRangeStart(anchor.startOf("week").format("YYYY-MM-DD"));
-        setRangeEnd(anchor.startOf("week").add(13, "day").format("YYYY-MM-DD"));
-      }
-      if (rangeType === "month") {
-        setRangeStart(anchor.startOf("month").format("YYYY-MM-DD"));
-        setRangeEnd(anchor.endOf("month").format("YYYY-MM-DD"));
-      }
-      setRangeEndManual(true);
-    };
   
     const handleMove = () => {
       dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
@@ -169,19 +154,15 @@ export function ModalAction(props) {
           targetStartDate: rangeTargetDate,
           userId: training?.user?._id,
           targetQueue,
-          conflictPolicy,
           filters: {
-            categoriesInclude,
-            categoriesExclude,
             includeCompleted,
-            includeTemplates,
           },
-          titlePrefix,
-          titleSuffix,
         })
       ).then((res) => {
         if (res?.error !== undefined) {
           setActionError(res.error);
+        } else if (!res?.workouts?.length) {
+          setActionError("No workouts matched the range and filters.");
         } else {
           setActionError(false);
           handleModalToggle();
@@ -229,30 +210,36 @@ export function ModalAction(props) {
           userId: training?.user?._id,
           newAccount: newAccount?.value,
           targetQueue,
-          conflictPolicy,
           filters: {
-            categoriesInclude,
-            categoriesExclude,
             includeCompleted,
-            includeTemplates,
           },
-          titlePrefix,
-          titleSuffix,
         })
       ).then((res) => {
         if (res?.error !== undefined) {
           setActionError(res.error);
+        } else if (!res?.workouts?.length) {
+          setActionError("No workouts matched the range and filters.");
         } else {
           setActionError(false);
           handleModalToggle();
+          const firstCopiedDate = res?.workouts?.length
+            ? dayjs
+                .utc(
+                  res.workouts
+                    .map((workout) => workout.date)
+                    .filter(Boolean)
+                    .sort((a, b) => new Date(a) - new Date(b))[0]
+                )
+                .format("YYYY-MM-DD")
+            : dayjs.utc(rangeTargetDate).format("YYYY-MM-DD");
+
           !isPersonalWorkout()
             ? navigate("/clients")
             : setSelectedDate
-            ? setSelectedDate(dayjs.utc(rangeTargetDate).format("YYYY-MM-DD"))
-            : dayjs.utc(rangeTargetDate).format("YYYY-MM-DD") ===
-              dayjs(new Date()).format("YYYY-MM-DD")
+            ? setSelectedDate(firstCopiedDate)
+            : firstCopiedDate === dayjs(new Date()).format("YYYY-MM-DD")
             ? navigate("/")
-            : navigate(`/?date=${dayjs.utc(rangeTargetDate).format("YYYYMMDD")}`);
+            : navigate(`/?date=${dayjs.utc(firstCopiedDate).format("YYYYMMDD")}`);
         }
       });
     };
@@ -310,6 +297,10 @@ export function ModalAction(props) {
     }, [newDate, moveMode, rangeStart, rangeEnd, rangeTargetDate]);
 
     useEffect(() => {
+      setNewTitle(training?.title || "");
+    }, [training?._id, training?.title]);
+
+    useEffect(() => {
       if (!training?.date) return;
       const dateString = dayjs.utc(training.date).format("YYYY-MM-DD");
       setRangeStart(dateString);
@@ -321,13 +312,7 @@ export function ModalAction(props) {
     useEffect(() => {
       setMoveMode("single");
       setTargetQueue(false);
-      setConflictPolicy("abort");
-      setIncludeCompleted(true);
-      setIncludeTemplates(true);
-      setCategoriesInclude([]);
-      setCategoriesExclude([]);
-      setTitlePrefix("");
-      setTitleSuffix("");
+      setIncludeCompleted(false);
       setPreviewWorkouts([]);
       setPreviewLoading(false);
     }, [actionType]);
@@ -352,10 +337,7 @@ export function ModalAction(props) {
       setPreviewLoading(true);
       dispatch(
         requestWorkoutsByRange(rangeStart, rangeEnd, training?.user?._id, {
-          categoriesInclude,
-          categoriesExclude,
           includeCompleted,
-          includeTemplates,
         })
       ).then((data) => {
         if (data?.error) {
@@ -366,11 +348,6 @@ export function ModalAction(props) {
         }
         const workouts = data?.workouts || [];
         setPreviewWorkouts(workouts);
-        const categories = new Set();
-        workouts.forEach((workout) => {
-          (workout.category || []).forEach((category) => categories.add(category));
-        });
-        setAvailableCategories([...categories]);
         setPreviewLoading(false);
       });
     }, [
@@ -379,10 +356,7 @@ export function ModalAction(props) {
       rangeStart,
       rangeEnd,
       training?.user?._id,
-      categoriesInclude,
-      categoriesExclude,
       includeCompleted,
-      includeTemplates,
     ]);
   
     switch (actionType) {
@@ -435,17 +409,6 @@ export function ModalAction(props) {
                     onChange={handleRangeEndChange}
                     InputLabelProps={{ shrink: true }}
                   />
-                  <Grid container size={12} sx={{ justifyContent: "center" }}>
-                    <Button size="small" onClick={() => handleRangeShortcut("thisWeek")}>
-                      This week
-                    </Button>
-                    <Button size="small" onClick={() => handleRangeShortcut("next2Weeks")}>
-                      Next 2 weeks
-                    </Button>
-                    <Button size="small" onClick={() => handleRangeShortcut("month")}>
-                      Month
-                    </Button>
-                  </Grid>
                   <TextField
                     fullWidth
                     label="Move start to"
@@ -459,64 +422,12 @@ export function ModalAction(props) {
                     control={<Checkbox checked={targetQueue} onChange={handleTargetQueueChange} />}
                     label="Move to queue (no dates)"
                   />
-                  <TextField
-                    fullWidth
-                    select
-                    label="Conflict behavior"
-                    value={conflictPolicy}
-                    onChange={handleConflictPolicyChange}
-                  >
-                    <MenuItem value="abort">Abort if conflicts</MenuItem>
-                    <MenuItem value="skip">Skip conflicting dates</MenuItem>
-                    <MenuItem value="replace">Replace conflicts</MenuItem>
-                  </TextField>
                   <FormControlLabel
                     control={
                       <Checkbox checked={includeCompleted} onChange={handleIncludeCompletedChange} />
                     }
                     label="Include completed"
                   />
-                  <FormControlLabel
-                    control={
-                      <Checkbox checked={includeTemplates} onChange={handleIncludeTemplatesChange} />
-                    }
-                    label="Include templates"
-                  />
-                  <Autocomplete
-                    multiple
-                    options={availableCategories}
-                    value={categoriesInclude}
-                    onChange={handleCategoriesIncludeChange}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Include categories" />
-                    )}
-                  />
-                  <Autocomplete
-                    multiple
-                    options={availableCategories}
-                    value={categoriesExclude}
-                    onChange={handleCategoriesExcludeChange}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Exclude categories" />
-                    )}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Title prefix"
-                    value={titlePrefix}
-                    onChange={handleTitlePrefixChange}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Title suffix"
-                    value={titleSuffix}
-                    onChange={handleTitleSuffixChange}
-                  />
-                  <Grid container size={12} sx={{ justifyContent: "center" }}>
-                    <Button size="small" onClick={() => setTitleSuffix(" (moved)")}>
-                      Append "(moved)"
-                    </Button>
-                  </Grid>
                   <Grid container size={12} sx={{ justifyContent: "center" }}>
                     <Typography variant="caption" color="text.secondary">
                       {targetQueue
@@ -542,8 +453,11 @@ export function ModalAction(props) {
                         .slice(0, 8)
                         .map((workout) => (
                           <Typography variant="caption" key={workout._id} display="block">
-                            {dayjs.utc(workout.date).format("MMM D")} -{" "}
-                            {workout.title || "Untitled"}
+                            {dayjs.utc(workout.date).format("MMM D")} →{" "}
+                            {targetQueue
+                              ? "Queue"
+                              : dayjs.utc(workout.date).add(previewDeltaDays, "day").format("MMM D")}{" "}
+                            - {workout.title || "Untitled"}
                           </Typography>
                         ))}
                       {previewWorkouts.length > 8 && (
@@ -659,17 +573,6 @@ export function ModalAction(props) {
                   onChange={handleRangeEndChange}
                   InputLabelProps={{ shrink: true }}
                 />
-                <Grid container size={12} sx={{ justifyContent: "center" }}>
-                  <Button size="small" onClick={() => handleRangeShortcut("thisWeek")}>
-                    This week
-                  </Button>
-                  <Button size="small" onClick={() => handleRangeShortcut("next2Weeks")}>
-                    Next 2 weeks
-                  </Button>
-                  <Button size="small" onClick={() => handleRangeShortcut("month")}>
-                    Month
-                  </Button>
-                </Grid>
                 <TextField
                   fullWidth
                   label="Copy start to"
@@ -683,67 +586,12 @@ export function ModalAction(props) {
                   control={<Checkbox checked={targetQueue} onChange={handleTargetQueueChange} />}
                   label="Copy to queue (no dates)"
                 />
-                <TextField
-                  fullWidth
-                  select
-                  label="Conflict behavior"
-                  value={conflictPolicy}
-                  onChange={handleConflictPolicyChange}
-                >
-                  <MenuItem value="abort">Abort if conflicts</MenuItem>
-                  <MenuItem value="skip">Skip conflicting dates</MenuItem>
-                  <MenuItem value="replace">Replace conflicts</MenuItem>
-                </TextField>
                 <FormControlLabel
                   control={
                     <Checkbox checked={includeCompleted} onChange={handleIncludeCompletedChange} />
                   }
                   label="Include completed"
                 />
-                <FormControlLabel
-                  control={
-                    <Checkbox checked={includeTemplates} onChange={handleIncludeTemplatesChange} />
-                  }
-                  label="Include templates"
-                />
-                <Autocomplete
-                  multiple
-                  options={availableCategories}
-                  value={categoriesInclude}
-                  onChange={handleCategoriesIncludeChange}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Include categories" />
-                  )}
-                />
-                <Autocomplete
-                  multiple
-                  options={availableCategories}
-                  value={categoriesExclude}
-                  onChange={handleCategoriesExcludeChange}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Exclude categories" />
-                  )}
-                />
-                <TextField
-                  fullWidth
-                  label="Title prefix"
-                  value={titlePrefix}
-                  onChange={handleTitlePrefixChange}
-                />
-                <TextField
-                  fullWidth
-                  label="Title suffix"
-                  value={titleSuffix}
-                  onChange={handleTitleSuffixChange}
-                />
-                <Grid container size={12} sx={{ justifyContent: "center" }}>
-                  <Button size="small" onClick={() => setTitlePrefix("Copy of ")}>
-                    Prefix "Copy of"
-                  </Button>
-                  <Button size="small" onClick={() => setTitleSuffix(" (moved)")}>
-                    Append "(moved)"
-                  </Button>
-                </Grid>
                 <Grid container size={12} sx={{ justifyContent: "center" }}>
                     <Typography variant="caption" color="text.secondary">
                     {targetQueue
@@ -769,8 +617,11 @@ export function ModalAction(props) {
                       .slice(0, 8)
                       .map((workout) => (
                         <Typography variant="caption" key={workout._id} display="block">
-                          {dayjs.utc(workout.date).format("MMM D")} -{" "}
-                          {workout.title || "Untitled"}
+                          {dayjs.utc(workout.date).format("MMM D")} →{" "}
+                          {targetQueue
+                            ? "Queue"
+                            : dayjs.utc(workout.date).add(previewDeltaDays, "day").format("MMM D")}{" "}
+                          - {workout.title || "Untitled"}
                         </Typography>
                       ))}
                     {previewWorkouts.length > 8 && (
