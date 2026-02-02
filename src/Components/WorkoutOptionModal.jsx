@@ -68,6 +68,7 @@ export function ModalAction(props) {
       training,
       setSelectedDate,
       setLocalTraining,
+      modalOpen,
     } = props;
 
     if (!training?._id) {
@@ -312,10 +313,10 @@ export function ModalAction(props) {
     useEffect(() => {
       setMoveMode("single");
       setTargetQueue(false);
-      setIncludeCompleted(false);
+      setIncludeCompleted(actionType === "copy");
       setPreviewWorkouts([]);
       setPreviewLoading(false);
-    }, [actionType]);
+    }, [actionType, modalOpen]);
 
     useEffect(() => {
       if (moveMode !== "range" || !rangeStart || rangeEndManual) return;
@@ -838,6 +839,7 @@ export function ModalAction(props) {
             training={training}
             setSelectedDate={setSelectedDate}
             setLocalTraining={setLocalTraining}
+            modalOpen={modalOpen}
           />
         </Box>
       </Modal>
