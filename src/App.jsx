@@ -28,6 +28,7 @@ import Exercises from "./Pages/AppPages/Exercises";
 import Clients from "./Pages/AppPages/Clients";
 import Groups from "./Pages/AppPages/Groups";
 import GroupDetail from "./Pages/AppPages/GroupDetail";
+import GroupInviteAccept from "./Pages/AppPages/GroupInviteAccept";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
@@ -127,9 +128,10 @@ function App({ }) {
               {" "}
               {/* App */}
               <Route element={<ActivityTrackerContainer />}>
-                <Route exact path="/login" element={<Login />} />
-                <Route exact path="/signup" element={<SignUp />} />
-                <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
+              <Route exact path="/login" element={<Login />} />
+              <Route exact path="/signup" element={<SignUp />} />
+              <Route exact path="/groups/invite" element={<GroupInviteAccept />} />
+              <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
                 <Route exact path="/public/schedule/:trainerId" element={<PublicScheduleRedirect />} />
 
                 {/* Must be logged in and have JWT token to authenticate */}

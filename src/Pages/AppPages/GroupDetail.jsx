@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Card,
@@ -21,6 +22,7 @@ import {
   Select,
   Tab,
   Tabs,
+  Divider,
   Snackbar,
   Stack,
   TextField,
@@ -28,6 +30,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import { requestClients, serverURL } from "../../Redux/actions";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const roleLabels = {
   ADMIN: "Admin",
@@ -69,6 +72,14 @@ export default function GroupDetail() {
   const [settingsTimezone, setSettingsTimezone] = useState("UTC");
   const [settingsArchived, setSettingsArchived] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [pictureUploading, setPictureUploading] = useState(false);
+  const [pictureError, setPictureError] = useState("");
+
+  const [invites, setInvites] = useState([]);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("ATHLETE");
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteError, setInviteError] = useState("");
 
   const [openMemberDialog, setOpenMemberDialog] = useState(false);
   const [memberUserId, setMemberUserId] = useState("");
@@ -88,6 +99,17 @@ export default function GroupDetail() {
   const [autoAddNewMembers, setAutoAddNewMembers] = useState(false);
   const [assignStatus, setAssignStatus] = useState("");
 
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState("");
+  const [analyticsStartDate, setAnalyticsStartDate] = useState("");
+  const [analyticsEndDate, setAnalyticsEndDate] = useState("");
+
+  const [billingStatus, setBillingStatus] = useState("INACTIVE");
+  const [billingPlanId, setBillingPlanId] = useState("");
+  const [billingTrialEndsAt, setBillingTrialEndsAt] = useState("");
+  const [billingSaving, setBillingSaving] = useState(false);
+
   const weekDayOptions = useMemo(
     () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     []
@@ -105,6 +127,26 @@ export default function GroupDetail() {
 
   const canAdmin = role === "ADMIN";
   const canAssign = assignRoles.has(role);
+  const groupPictureUrl = group?.picture
+    ? `${serverURL}/groups/picture/${group.picture}`
+    : null;
+
+  const analyticsSummary = analytics?.summary || {
+    totalAssigned: 0,
+    completed: 0,
+    completionRate: 0,
+  };
+
+  const analyticsMemberData = useMemo(
+    () =>
+      (analytics?.byMember || []).map((entry) => ({
+        name: `${entry.firstName || ""} ${entry.lastName || ""}`.trim() || "Member",
+        completionRate: Math.round((entry.completionRate || 0) * 100),
+        completed: entry.completed || 0,
+        totalAssigned: entry.totalAssigned || 0,
+      })),
+    [analytics]
+  );
 
   const authHeaders = useMemo(() => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -195,6 +237,13 @@ export default function GroupDetail() {
     setSettingsSeason(group.season || "");
     setSettingsTimezone(group.timezone || "UTC");
     setSettingsArchived(Boolean(group.archivedAt));
+    setBillingStatus(group.billing?.status || "INACTIVE");
+    setBillingPlanId(group.billing?.planId || "");
+    setBillingTrialEndsAt(
+      group.billing?.trialEndsAt
+        ? new Date(group.billing.trialEndsAt).toISOString().slice(0, 10)
+        : ""
+    );
   }, [group]);
 
   useEffect(() => {
@@ -208,6 +257,16 @@ export default function GroupDetail() {
     if (programs.length > 0) return;
     loadPrograms();
   }, [openAssignDialog]);
+
+  useEffect(() => {
+    if (!groupId || !canAdmin) return;
+    loadInvites();
+  }, [groupId, canAdmin]);
+
+  useEffect(() => {
+    if (activeTab !== 2 || !groupId) return;
+    loadAnalytics();
+  }, [activeTab, analyticsStartDate, analyticsEndDate, groupId]);
 
   useEffect(() => {
     if (!selectedProgram) return;
@@ -234,6 +293,9 @@ export default function GroupDetail() {
     setMemberSearchQuery("");
     setMemberSearchResults([]);
     setMemberSearchError("");
+    setInviteEmail("");
+    setInviteRole("ATHLETE");
+    setInviteError("");
     setOpenMemberDialog(true);
   };
 
@@ -289,6 +351,176 @@ export default function GroupDetail() {
       setError(err.message || "Unable to update group settings.");
     } finally {
       setSettingsSaving(false);
+    }
+  };
+
+  const loadInvites = async () => {
+    if (!canAdmin) return;
+    setInviteError("");
+    try {
+      const response = await fetch(`${serverURL}/groups/${groupId}/invitations`, {
+        headers: authHeaders,
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setInvites(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setInviteError(err.message || "Unable to load invites.");
+    }
+  };
+
+  const handleSendInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setInviteSending(true);
+    setInviteError("");
+    try {
+      const response = await fetch(`${serverURL}/groups/${groupId}/invitations`, {
+        method: "post",
+        headers: authHeaders,
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          role: inviteRole,
+        }),
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setInviteEmail("");
+      setSuccessMessage("Invite sent.");
+      await loadInvites();
+    } catch (err) {
+      setInviteError(err.message || "Unable to send invite.");
+    } finally {
+      setInviteSending(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId) => {
+    if (!inviteId) return;
+    if (!window.confirm("Revoke this invite?")) return;
+    try {
+      const response = await fetch(
+        `${serverURL}/groups/${groupId}/invitations/${inviteId}`,
+        {
+          method: "delete",
+          headers: authHeaders,
+        }
+      );
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      await loadInvites();
+      setSuccessMessage("Invite revoked.");
+    } catch (err) {
+      setInviteError(err.message || "Unable to revoke invite.");
+    }
+  };
+
+  const handleUploadPicture = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPictureUploading(true);
+    setPictureError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const response = await fetch(`${serverURL}/groups/${groupId}/picture`, {
+        method: "post",
+        headers: {
+          Authorization: bearer,
+        },
+        body: formData,
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setGroup(data);
+      setSuccessMessage("Group picture updated.");
+    } catch (err) {
+      setPictureError(err.message || "Unable to upload picture.");
+    } finally {
+      setPictureUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleRemovePicture = async () => {
+    if (!group?.picture) return;
+    if (!window.confirm("Remove group picture?")) return;
+    setPictureUploading(true);
+    setPictureError("");
+    try {
+      const response = await fetch(`${serverURL}/groups/${groupId}/picture`, {
+        method: "delete",
+        headers: authHeaders,
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setGroup(data);
+      setSuccessMessage("Group picture removed.");
+    } catch (err) {
+      setPictureError(err.message || "Unable to remove picture.");
+    } finally {
+      setPictureUploading(false);
+    }
+  };
+
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError("");
+    try {
+      const params = new URLSearchParams();
+      if (analyticsStartDate) params.append("startDate", analyticsStartDate);
+      if (analyticsEndDate) params.append("endDate", analyticsEndDate);
+      const url = params.toString()
+        ? `${serverURL}/groups/${groupId}/analytics?${params.toString()}`
+        : `${serverURL}/groups/${groupId}/analytics`;
+      const response = await fetch(url, { headers: authHeaders });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setAnalytics(data);
+    } catch (err) {
+      setAnalyticsError(err.message || "Unable to load analytics.");
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const handleSaveBilling = async () => {
+    if (!canAdmin) return;
+    setBillingSaving(true);
+    setError("");
+    try {
+      const payload = {
+        status: billingStatus,
+        planId: billingPlanId || null,
+        trialEndsAt: billingTrialEndsAt || null,
+      };
+      const response = await fetch(`${serverURL}/groups/${groupId}/billing`, {
+        method: "put",
+        headers: authHeaders,
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setGroup(data);
+      setSuccessMessage("Billing updated.");
+    } catch (err) {
+      setError(err.message || "Unable to update billing.");
+    } finally {
+      setBillingSaving(false);
     }
   };
 
@@ -518,6 +750,41 @@ export default function GroupDetail() {
                         </Box>
                       ))}
                     </Stack>
+                    {canAdmin && invites.length > 0 && (
+                      <Stack spacing={1} sx={{ mt: 1 }}>
+                        <Typography variant="subtitle2">Pending Invites</Typography>
+                        {invites.map((invite) => (
+                          <Box
+                            key={invite._id}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              border: "1px solid rgba(148, 163, 184, 0.2)",
+                              borderRadius: 1,
+                              px: 1.5,
+                              py: 1,
+                              gap: 2,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="subtitle2">{invite.email}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Role: {roleLabels[invite.role] || invite.role}
+                              </Typography>
+                            </Box>
+                            <Button
+                              color="error"
+                              size="small"
+                              onClick={() => handleRevokeInvite(invite._id)}
+                            >
+                              Revoke
+                            </Button>
+                          </Box>
+                        ))}
+                      </Stack>
+                    )}
                   </Stack>
                 </CardContent>
                 {canAdmin && (
@@ -587,6 +854,45 @@ export default function GroupDetail() {
               <CardContent>
                 <Stack spacing={2}>
                   <Typography variant="h6">Group Settings</Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+                    <Avatar
+                      src={groupPictureUrl || undefined}
+                      alt={group.name}
+                      sx={{ width: 96, height: 96 }}
+                    >
+                      {group.name?.[0]}
+                    </Avatar>
+                    <Stack spacing={1}>
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        disabled={!canAdmin || pictureUploading}
+                      >
+                        {pictureUploading ? "Uploading..." : "Upload Picture"}
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={handleUploadPicture}
+                        />
+                      </Button>
+                      {group.picture && (
+                        <Button
+                          variant="text"
+                          color="error"
+                          onClick={handleRemovePicture}
+                          disabled={!canAdmin || pictureUploading}
+                        >
+                          Remove Picture
+                        </Button>
+                      )}
+                      {pictureError && (
+                        <Typography variant="caption" color="error">
+                          {pictureError}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Stack>
                   <TextField
                     label="Group name"
                     value={settingsName}
@@ -662,12 +968,80 @@ export default function GroupDetail() {
               <CardContent>
                 <Stack spacing={2}>
                   <Typography variant="h6">Analytics</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Completion and adherence analytics are coming soon.
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    We will surface workout completion %, missed sessions, and streaks once backend reporting is ready.
-                  </Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      label="Start date"
+                      type="date"
+                      value={analyticsStartDate}
+                      onChange={(event) => setAnalyticsStartDate(event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                    <TextField
+                      label="End date"
+                      type="date"
+                      value={analyticsEndDate}
+                      onChange={(event) => setAnalyticsEndDate(event.target.value)}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={loadAnalytics}
+                      disabled={analyticsLoading}
+                      sx={{ minWidth: 140 }}
+                    >
+                      {analyticsLoading ? "Loading..." : "Refresh"}
+                    </Button>
+                  </Stack>
+                  {analyticsError && (
+                    <Typography variant="caption" color="error">
+                      {analyticsError}
+                    </Typography>
+                  )}
+                  {analyticsLoading && (
+                    <Typography variant="body2" color="text.secondary">
+                      Loading analytics...
+                    </Typography>
+                  )}
+                  <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                    <Card variant="outlined" sx={{ flex: 1 }}>
+                      <CardContent>
+                        <Typography variant="subtitle2">Total Assigned</Typography>
+                        <Typography variant="h5">{analyticsSummary.totalAssigned}</Typography>
+                      </CardContent>
+                    </Card>
+                    <Card variant="outlined" sx={{ flex: 1 }}>
+                      <CardContent>
+                        <Typography variant="subtitle2">Completed</Typography>
+                        <Typography variant="h5">{analyticsSummary.completed}</Typography>
+                      </CardContent>
+                    </Card>
+                    <Card variant="outlined" sx={{ flex: 1 }}>
+                      <CardContent>
+                        <Typography variant="subtitle2">Completion Rate</Typography>
+                        <Typography variant="h5">
+                          {Math.round(analyticsSummary.completionRate * 100)}%
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Stack>
+                  <Box sx={{ height: 280 }}>
+                    {analyticsMemberData.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">
+                        No analytics data yet.
+                      </Typography>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={analyticsMemberData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                          <Tooltip formatter={(value) => `${value}%`} />
+                          <Bar dataKey="completionRate" fill="#38bdf8" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </Box>
                 </Stack>
               </CardContent>
             </Card>
@@ -678,27 +1052,49 @@ export default function GroupDetail() {
               <CardContent>
                 <Stack spacing={2}>
                   <Typography variant="h6">Billing</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Status: {group.billing?.status || "INACTIVE"}
-                  </Typography>
-                  {group.billing?.trialEndsAt && (
-                    <Typography variant="body2" color="text.secondary">
-                      Trial ends: {new Date(group.billing.trialEndsAt).toLocaleDateString()}
-                    </Typography>
-                  )}
-                  {group.billing?.planId && (
-                    <Typography variant="body2" color="text.secondary">
-                      Plan: {group.billing.planId}
-                    </Typography>
-                  )}
+                  <FormControl fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      label="Status"
+                      value={billingStatus}
+                      onChange={(event) => setBillingStatus(event.target.value)}
+                      disabled={!canAdmin}
+                    >
+                      <MenuItem value="INACTIVE">Inactive</MenuItem>
+                      <MenuItem value="TRIALING">Trialing</MenuItem>
+                      <MenuItem value="ACTIVE">Active</MenuItem>
+                      <MenuItem value="PAST_DUE">Past Due</MenuItem>
+                      <MenuItem value="CANCELLED">Cancelled</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Plan ID"
+                    value={billingPlanId}
+                    onChange={(event) => setBillingPlanId(event.target.value)}
+                    fullWidth
+                    disabled={!canAdmin}
+                  />
+                  <TextField
+                    label="Trial ends"
+                    type="date"
+                    value={billingTrialEndsAt}
+                    onChange={(event) => setBillingTrialEndsAt(event.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    disabled={!canAdmin}
+                  />
                   <Typography variant="caption" color="text.secondary">
-                    Billing management will be added once invoices and subscriptions are wired up.
+                    This is manual billing metadata until subscriptions/invoices are live.
                   </Typography>
                 </Stack>
               </CardContent>
               <CardActions sx={{ px: 2, pb: 2 }}>
-                <Button variant="outlined" disabled>
-                  Manage Billing (Coming Soon)
+                <Button
+                  variant="contained"
+                  onClick={handleSaveBilling}
+                  disabled={!canAdmin || billingSaving}
+                >
+                  {billingSaving ? "Saving..." : "Save Billing"}
                 </Button>
               </CardActions>
             </Card>
@@ -721,8 +1117,46 @@ export default function GroupDetail() {
               Search by name, email, or phone, or select a client.
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Invite emails for brand new users will be added next.
+              Invites are emailed and must be accepted from the invited address.
             </Typography>
+            <Stack spacing={1}>
+              <Typography variant="subtitle2">Invite by email</Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                <TextField
+                  label="Email"
+                  value={inviteEmail}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  fullWidth
+                />
+                <FormControl sx={{ minWidth: 140 }}>
+                  <InputLabel>Role</InputLabel>
+                  <Select
+                    label="Role"
+                    value={inviteRole}
+                    onChange={(event) => setInviteRole(event.target.value)}
+                  >
+                    {Object.keys(roleLabels).map((roleOption) => (
+                      <MenuItem key={roleOption} value={roleOption}>
+                        {roleLabels[roleOption]}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                  variant="outlined"
+                  onClick={handleSendInvite}
+                  disabled={!inviteEmail.trim() || inviteSending}
+                >
+                  {inviteSending ? "Sending..." : "Send Invite"}
+                </Button>
+              </Stack>
+              {inviteError && (
+                <Typography variant="caption" color="error">
+                  {inviteError}
+                </Typography>
+              )}
+            </Stack>
+            <Divider />
             {acceptedClients.length > 0 && (
               <FormControl fullWidth>
                 <InputLabel>Client</InputLabel>
@@ -803,6 +1237,15 @@ export default function GroupDetail() {
                 </Select>
               </FormControl>
             )}
+            <TextField
+              label="User ID (optional)"
+              value={memberUserId}
+              onChange={(event) => {
+                setMemberUserId(event.target.value);
+                if (selectedClientId) setSelectedClientId("");
+              }}
+              fullWidth
+            />
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
               <Select

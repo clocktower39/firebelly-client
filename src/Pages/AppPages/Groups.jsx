@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Card,
@@ -136,13 +137,20 @@ export default function Groups() {
               const roleColor = roleColors[entry.role] || "default";
               return (
                 <Grid key={group._id} size={{ xs: 12, md: 6 }}>
-                  <Card variant="outlined" sx={{ height: "100%" }}>
-                    <CardContent>
-                      <Stack spacing={1}>
-                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                          <Typography variant="h6">{group.name}</Typography>
-                          <Chip label={roleLabel} color={roleColor} size="small" />
-                          {group.archivedAt && (
+                    <Card variant="outlined" sx={{ height: "100%" }}>
+                      <CardContent>
+                        <Stack spacing={1}>
+                          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                            <Avatar
+                              src={group.picture ? `${serverURL}/groups/picture/${group.picture}` : null}
+                              alt={group.name}
+                              sx={{ width: 36, height: 36 }}
+                            >
+                              {group.name?.[0]}
+                            </Avatar>
+                            <Typography variant="h6">{group.name}</Typography>
+                            <Chip label={roleLabel} color={roleColor} size="small" />
+                            {group.archivedAt && (
                             <Chip label="Archived" size="small" variant="outlined" />
                           )}
                         </Stack>
