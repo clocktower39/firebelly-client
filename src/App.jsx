@@ -26,6 +26,9 @@ import WorkoutTemplates from "./Pages/AppPages/WorkoutTemplates";
 import WorkoutHistory from "./Pages/AppPages/WorkoutHistory";
 import Exercises from "./Pages/AppPages/Exercises";
 import Clients from "./Pages/AppPages/Clients";
+import Groups from "./Pages/AppPages/Groups";
+import GroupDetail from "./Pages/AppPages/GroupDetail";
+import GroupInviteAccept from "./Pages/AppPages/GroupInviteAccept";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
@@ -125,9 +128,10 @@ function App({ }) {
               {" "}
               {/* App */}
               <Route element={<ActivityTrackerContainer />}>
-                <Route exact path="/login" element={<Login />} />
-                <Route exact path="/signup" element={<SignUp />} />
-                <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
+              <Route exact path="/login" element={<Login />} />
+              <Route exact path="/signup" element={<SignUp />} />
+              <Route exact path="/groups/invite" element={<GroupInviteAccept />} />
+              <Route exact path="/public/sessions/:trainerId" element={<PublicSchedule />} />
                 <Route exact path="/public/schedule/:trainerId" element={<PublicScheduleRedirect />} />
 
                 {/* Must be logged in and have JWT token to authenticate */}
@@ -147,6 +151,8 @@ function App({ }) {
                   <Route exact path="/programs/marketplace-preview" element={<ProgramsMarketplacePreview />} />
                   <Route exact path="/programs/builder" element={<ProgramBuilder />} />
                   <Route exact path="/programs/:programId/edit" element={<ProgramBuilder />} />
+                  <Route exact path="/groups" element={<Groups />} />
+                  <Route exact path="/groups/:groupId" element={<GroupDetail />} />
 
                   <Route exact path="/account/*" element={<Account />}>
                     <Route index={true} exact path="" element={<MyAccount />} />

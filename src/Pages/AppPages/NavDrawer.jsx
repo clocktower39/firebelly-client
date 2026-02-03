@@ -35,6 +35,7 @@ import {
   Assignment as GoalsIcon,
   Settings as AccountIcon,
   Groups as ClientsIcon,
+  Groups as GroupsIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
   QrCodeScanner as QrCodeScannerIcon,
@@ -79,6 +80,11 @@ export default function NavDrawer() {
       title: "Progress",
       to: "/progress",
       icon: <ProgressIcon />,
+    },
+    {
+      title: "Groups",
+      to: "/groups",
+      icon: <GroupsIcon />,
     },
     {
       title: "Account Settings",
