@@ -296,7 +296,8 @@ export const BarChartHistory = (props) => {
       .filter((e, i) => i >= range[0] && i <= range[1])
       .map((e, i) => {
         const exerciseFields = exerciseTypeFields(e.exerciseType);
-        const data = { date: e.date.substr(0, 10) };
+        if (!e?.date) return null;
+        const data = { date: String(e.date).substr(0, 10) };
 
         exerciseFields.repeating.forEach((field) => {
           const fieldRange = `${field.goalAttribute}Range`;
@@ -316,7 +317,8 @@ export const BarChartHistory = (props) => {
         }
 
         return data;
-      });
+      })
+      .filter(Boolean);
 
     // Determine which field to use for sorting
     const firstRepeatingField = exerciseTypeFields(
