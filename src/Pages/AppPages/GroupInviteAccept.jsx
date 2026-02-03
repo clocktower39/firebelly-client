@@ -12,6 +12,13 @@ import {
 } from "@mui/material";
 import { serverURL } from "../../Redux/actions";
 
+const roleLabels = {
+  TRAINER: "Trainer",
+  COACH: "Coach",
+  ATHLETE: "Athlete",
+  ADMIN: "Trainer",
+};
+
 const useQueryParam = (key) => {
   const { search } = useLocation();
   return new URLSearchParams(search).get(key);
@@ -97,7 +104,7 @@ export default function GroupInviteAccept() {
                   You have been invited to join <strong>{group?.name || "a group"}</strong>.
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Role: {invite.role}
+                  Role: {roleLabels[invite.role] || invite.role}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Invite email: {invite.email}

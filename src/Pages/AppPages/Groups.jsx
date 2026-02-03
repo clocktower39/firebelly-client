@@ -22,17 +22,17 @@ import {
 import { serverURL } from "../../Redux/actions";
 
 const roleLabels = {
-  ADMIN: "Admin",
   TRAINER: "Trainer",
   COACH: "Coach",
   ATHLETE: "Athlete",
+  ADMIN: "Trainer",
 };
 
 const roleColors = {
-  ADMIN: "primary",
   TRAINER: "info",
   COACH: "warning",
   ATHLETE: "default",
+  ADMIN: "info",
 };
 
 export default function Groups() {

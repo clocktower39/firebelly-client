@@ -33,20 +33,29 @@ import { requestClients, serverURL } from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const roleLabels = {
-  ADMIN: "Admin",
   TRAINER: "Trainer",
   COACH: "Coach",
   ATHLETE: "Athlete",
+  ADMIN: "Trainer",
 };
 
+const roleDescriptions = {
+  TRAINER: "Full control, including billing, settings, and programs.",
+  COACH: "Can assign programs and view analytics.",
+  ATHLETE: "Can view and complete their own workouts.",
+  ADMIN: "Full control, including billing, settings, and programs.",
+};
+
+const roleOptions = ["TRAINER", "COACH", "ATHLETE"];
+
 const roleColors = {
-  ADMIN: "primary",
   TRAINER: "info",
   COACH: "warning",
   ATHLETE: "default",
+  ADMIN: "info",
 };
 
-const assignRoles = new Set(["ADMIN", "TRAINER", "COACH"]);
+const assignRoles = new Set(["TRAINER", "COACH"]);
 
 export default function GroupDetail() {
   const { groupId } = useParams();
@@ -125,8 +134,9 @@ export default function GroupDetail() {
     [programs, assignProgramId]
   );
 
-  const canAdmin = role === "ADMIN";
-  const canAssign = assignRoles.has(role);
+  const normalizedRole = role === "ADMIN" ? "TRAINER" : role;
+  const canAdmin = normalizedRole === "TRAINER";
+  const canAssign = assignRoles.has(normalizedRole);
   const groupPictureUrl = group?.picture
     ? `${serverURL}/groups/picture/${group.picture}`
     : null;
@@ -694,14 +704,13 @@ export default function GroupDetail() {
                           key={member._id}
                           sx={{
                             display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
+                            flexDirection: { xs: "column", sm: "row" },
+                            alignItems: { xs: "flex-start", sm: "center" },
                             border: "1px solid rgba(148, 163, 184, 0.2)",
                             borderRadius: 1,
                             px: 1.5,
                             py: 1,
-                            gap: 2,
-                            flexWrap: "wrap",
+                            gap: 1.5,
                           }}
                         >
                           <Box>
@@ -712,24 +721,45 @@ export default function GroupDetail() {
                               {member.userId?.email || member.userId?._id}
                             </Typography>
                           </Box>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              flexWrap: "wrap",
+                              justifyContent: { xs: "flex-start", sm: "flex-end" },
+                              width: { xs: "100%", sm: "auto" },
+                              marginLeft: { sm: "auto" },
+                            }}
+                          >
                             {canAdmin ? (
-                              <FormControl size="small" sx={{ minWidth: 120 }}>
+                              <FormControl
+                                size="small"
+                                sx={{ minWidth: 160, maxWidth: 220, width: { xs: "100%", sm: "auto" } }}
+                              >
                                 <InputLabel>Role</InputLabel>
-                                <Select
-                                  label="Role"
-                                  value={member.role}
-                                  onChange={(event) =>
-                                    handleUpdateMemberRole(member._id, event.target.value)
-                                  }
-                                >
-                                  {Object.keys(roleLabels).map((roleOption) => (
-                                    <MenuItem key={roleOption} value={roleOption}>
-                                      {roleLabels[roleOption]}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
+                              <Select
+                                label="Role"
+                                value={member.role}
+                                renderValue={(value) => roleLabels[value] || value}
+                                onChange={(event) =>
+                                  handleUpdateMemberRole(member._id, event.target.value)
+                                }
+                              >
+                                {roleOptions.map((roleOption) => (
+                                  <MenuItem key={roleOption} value={roleOption}>
+                                    <Stack spacing={0.5}>
+                                      <Typography variant="body2">
+                                        {roleLabels[roleOption]}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary">
+                                        {roleDescriptions[roleOption]}
+                                      </Typography>
+                                    </Stack>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
                             ) : (
                               <Chip
                                 label={roleLabels[member.role] || member.role}
@@ -754,26 +784,33 @@ export default function GroupDetail() {
                       <Stack spacing={1} sx={{ mt: 1 }}>
                         <Typography variant="subtitle2">Pending Invites</Typography>
                         {invites.map((invite) => (
+                        <Box
+                          key={invite._id}
+                          sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            alignItems: { xs: "flex-start", sm: "center" },
+                            border: "1px solid rgba(148, 163, 184, 0.2)",
+                            borderRadius: 1,
+                            px: 1.5,
+                            py: 1,
+                            gap: 1.5,
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="subtitle2">{invite.email}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Role: {roleLabels[invite.role] || invite.role}
+                            </Typography>
+                          </Box>
                           <Box
-                            key={invite._id}
                             sx={{
                               display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              border: "1px solid rgba(148, 163, 184, 0.2)",
-                              borderRadius: 1,
-                              px: 1.5,
-                              py: 1,
-                              gap: 2,
-                              flexWrap: "wrap",
+                              justifyContent: { xs: "flex-start", sm: "flex-end" },
+                              width: { xs: "100%", sm: "auto" },
+                              marginLeft: { sm: "auto" },
                             }}
                           >
-                            <Box>
-                              <Typography variant="subtitle2">{invite.email}</Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                Role: {roleLabels[invite.role] || invite.role}
-                              </Typography>
-                            </Box>
                             <Button
                               color="error"
                               size="small"
@@ -782,6 +819,7 @@ export default function GroupDetail() {
                               Revoke
                             </Button>
                           </Box>
+                        </Box>
                         ))}
                       </Stack>
                     )}
@@ -944,7 +982,7 @@ export default function GroupDetail() {
                   />
                   {!canAdmin && (
                     <Typography variant="caption" color="text.secondary">
-                      Only admins can edit settings.
+                      Only trainers can edit settings.
                     </Typography>
                   )}
                 </Stack>
@@ -1133,15 +1171,23 @@ export default function GroupDetail() {
                   <Select
                     label="Role"
                     value={inviteRole}
+                    renderValue={(value) => roleLabels[value] || value}
                     onChange={(event) => setInviteRole(event.target.value)}
                   >
-                    {Object.keys(roleLabels).map((roleOption) => (
-                      <MenuItem key={roleOption} value={roleOption}>
+                {roleOptions.map((roleOption) => (
+                  <MenuItem key={roleOption} value={roleOption}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="body2">
                         {roleLabels[roleOption]}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {roleDescriptions[roleOption]}
+                      </Typography>
+                    </Stack>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
                 <Button
                   variant="outlined"
                   onClick={handleSendInvite}
@@ -1251,11 +1297,19 @@ export default function GroupDetail() {
               <Select
                 label="Role"
                 value={memberRole}
+                renderValue={(value) => roleLabels[value] || value}
                 onChange={(event) => setMemberRole(event.target.value)}
               >
-                {Object.keys(roleLabels).map((roleOption) => (
+                {roleOptions.map((roleOption) => (
                   <MenuItem key={roleOption} value={roleOption}>
-                    {roleLabels[roleOption]}
+                    <Stack spacing={0.5}>
+                      <Typography variant="body2">
+                        {roleLabels[roleOption]}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {roleDescriptions[roleOption]}
+                      </Typography>
+                    </Stack>
                   </MenuItem>
                 ))}
               </Select>
