@@ -17,6 +17,7 @@ import {
   FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -31,6 +32,7 @@ import {
 } from "@mui/material";
 import { requestClients, serverURL } from "../../Redux/actions";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Delete } from "@mui/icons-material";
 
 const roleLabels = {
   TRAINER: "Trainer",
@@ -118,6 +120,11 @@ export default function GroupDetail() {
   const [billingPlanId, setBillingPlanId] = useState("");
   const [billingTrialEndsAt, setBillingTrialEndsAt] = useState("");
   const [billingSaving, setBillingSaving] = useState(false);
+
+  const [chat, setChat] = useState(null);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const [chatMessage, setChatMessage] = useState("");
 
   const weekDayOptions = useMemo(
     () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
@@ -274,9 +281,14 @@ export default function GroupDetail() {
   }, [groupId, canAdmin]);
 
   useEffect(() => {
-    if (activeTab !== 2 || !groupId) return;
+    if (activeTab !== 3 || !groupId) return;
     loadAnalytics();
   }, [activeTab, analyticsStartDate, analyticsEndDate, groupId]);
+
+  useEffect(() => {
+    if (activeTab !== 1 || !groupId) return;
+    loadChat();
+  }, [activeTab, groupId]);
 
   useEffect(() => {
     if (!selectedProgram) return;
@@ -534,6 +546,64 @@ export default function GroupDetail() {
     }
   };
 
+  const loadChat = async () => {
+    setChatLoading(true);
+    setChatError("");
+    try {
+      const response = await fetch(`${serverURL}/groups/${groupId}/chat`, {
+        headers: authHeaders,
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setChat(data);
+    } catch (err) {
+      setChatError(err.message || "Unable to load chat.");
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatMessage.trim()) return;
+    try {
+      const response = await fetch(`${serverURL}/groups/${groupId}/chat/messages`, {
+        method: "post",
+        headers: authHeaders,
+        body: JSON.stringify({ message: chatMessage.trim() }),
+      });
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setChat(data);
+      setChatMessage("");
+    } catch (err) {
+      setChatError(err.message || "Unable to send message.");
+    }
+  };
+
+  const handleDeleteChatMessage = async (messageId) => {
+    if (!messageId) return;
+    try {
+      const response = await fetch(
+        `${serverURL}/groups/${groupId}/chat/messages/${messageId}`,
+        {
+          method: "delete",
+          headers: authHeaders,
+        }
+      );
+      const data = await response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      setChat(data);
+    } catch (err) {
+      setChatError(err.message || "Unable to delete message.");
+    }
+  };
+
   const handleAddMember = async () => {
     if (!memberUserId) return;
     try {
@@ -681,6 +751,7 @@ export default function GroupDetail() {
 
           <Tabs value={activeTab} onChange={(_, value) => setActiveTab(value)}>
             <Tab label="Overview" />
+            <Tab label="Chat" />
             <Tab label="Settings" />
             <Tab label="Analytics" />
             <Tab label="Billing" />
@@ -891,6 +962,139 @@ export default function GroupDetail() {
             <Card variant="outlined">
               <CardContent>
                 <Stack spacing={2}>
+                  <Typography variant="h6">Group Chat</Typography>
+                  {chatError && (
+                    <Typography variant="caption" color="error">
+                      {chatError}
+                    </Typography>
+                  )}
+                  <Box
+                    sx={{
+                      border: "1px solid rgba(148, 163, 184, 0.2)",
+                      borderRadius: 1,
+                      p: 2,
+                      minHeight: 240,
+                      maxHeight: 420,
+                      overflowY: "auto",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.5,
+                    }}
+                  >
+                    {chatLoading && (
+                      <Typography variant="body2" color="text.secondary">
+                        Loading chat...
+                      </Typography>
+                    )}
+                    {!chatLoading && (!chat?.messages || chat.messages.length === 0) && (
+                      <Typography variant="body2" color="text.secondary">
+                        No messages yet. Start the conversation.
+                      </Typography>
+                    )}
+                    {!chatLoading &&
+                      chat?.messages?.map((message) => {
+                        const isMine = String(message.user?._id) === String(user?._id);
+                        const senderName = message.user
+                          ? `${message.user.firstName || ""} ${message.user.lastName || ""}`.trim()
+                          : "Member";
+                        return (
+                          <Box
+                            key={message._id || message.timestamp}
+                            sx={{
+                              display: "flex",
+                              justifyContent: isMine ? "flex-end" : "flex-start",
+                              gap: 1,
+                            }}
+                          >
+                            {!isMine && (
+                              <Avatar
+                                src={
+                                  message.user?.profilePicture
+                                    ? `${serverURL}/user/profilePicture/${message.user.profilePicture}`
+                                    : undefined
+                                }
+                                sx={{ width: 32, height: 32 }}
+                              >
+                                {senderName?.[0]}
+                              </Avatar>
+                            )}
+                            <Box
+                              sx={{
+                                bgcolor: isMine ? "primary.main" : "background.paper",
+                                color: isMine ? "primary.contrastText" : "text.primary",
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                maxWidth: "75%",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                                position: "relative",
+                              }}
+                            >
+                              {!isMine && (
+                                <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                                  {senderName}
+                                </Typography>
+                              )}
+                              <Typography variant="body2">{message.message}</Typography>
+                              <Typography variant="caption" sx={{ opacity: 0.6 }}>
+                                {message.timestamp
+                                  ? new Date(message.timestamp).toLocaleString()
+                                  : ""}
+                              </Typography>
+                              {isMine && (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeleteChatMessage(message._id)}
+                                  sx={{
+                                    position: "absolute",
+                                    top: 4,
+                                    right: 4,
+                                    color: "inherit",
+                                    opacity: 0.7,
+                                  }}
+                                >
+                                  <Delete fontSize="inherit" />
+                                </IconButton>
+                              )}
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                  </Box>
+                  <TextField
+                    label="Message"
+                    value={chatMessage}
+                    onChange={(event) => setChatMessage(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        handleSendChatMessage();
+                      }
+                    }}
+                    multiline
+                    minRows={2}
+                    fullWidth
+                    InputProps={{
+                      endAdornment: (
+                        <Button
+                          variant="contained"
+                          onClick={handleSendChatMessage}
+                          disabled={!chatMessage.trim()}
+                        >
+                          Send
+                        </Button>
+                      ),
+                    }}
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 2 && (
+            <Card variant="outlined">
+              <CardContent>
+                <Stack spacing={2}>
                   <Typography variant="h6">Group Settings</Typography>
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
                     <Avatar
@@ -1001,7 +1205,7 @@ export default function GroupDetail() {
             </Card>
           )}
 
-          {activeTab === 2 && (
+          {activeTab === 3 && (
             <Card variant="outlined">
               <CardContent>
                 <Stack spacing={2}>
@@ -1085,7 +1289,7 @@ export default function GroupDetail() {
             </Card>
           )}
 
-          {activeTab === 3 && (
+          {activeTab === 4 && (
             <Card variant="outlined">
               <CardContent>
                 <Stack spacing={2}>
