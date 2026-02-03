@@ -66,14 +66,38 @@ const modalStyle = () => ({
 const CIRCUMFERENCE_FIELDS = [
   { key: "neck", label: "Neck" },
   { key: "shoulders", label: "Shoulders" },
-  { key: "arms", label: "Arms" },
-  { key: "forearms", label: "Forearms" },
+  { key: "armsLeft", label: "Arms (L)" },
+  { key: "armsRight", label: "Arms (R)" },
+  { key: "forearmsLeft", label: "Forearms (L)" },
+  { key: "forearmsRight", label: "Forearms (R)" },
   { key: "chest", label: "Chest" },
   { key: "waist", label: "Waist" },
   { key: "glutes", label: "Glutes" },
-  { key: "thighs", label: "Thighs" },
-  { key: "calves", label: "Calves" },
+  { key: "thighsLeft", label: "Thighs (L)" },
+  { key: "thighsRight", label: "Thighs (R)" },
+  { key: "calvesLeft", label: "Calves (L)" },
+  { key: "calvesRight", label: "Calves (R)" },
 ];
+
+const LEGACY_CIRCUMFERENCE_MAP = {
+  armsLeft: "arms",
+  armsRight: "arms",
+  forearmsLeft: "forearms",
+  forearmsRight: "forearms",
+  thighsLeft: "thighs",
+  thighsRight: "thighs",
+  calvesLeft: "calves",
+  calvesRight: "calves",
+};
+
+const getCircumferenceValue = (circumference, key) => {
+  if (!circumference) return undefined;
+  const value = circumference[key];
+  if (value !== undefined && value !== null) return value;
+  const legacyKey = LEGACY_CIRCUMFERENCE_MAP[key];
+  if (!legacyKey) return undefined;
+  return circumference[legacyKey];
+};
 
 const parseHeightToInches = (heightValue) => {
   if (!heightValue) return null;
@@ -472,6 +496,20 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     () => Object.prototype.hasOwnProperty.call(metricsState.entriesByUser, userId),
     [metricsState.entriesByUser, userId]
   );
+  const hasLoadedLatest = useMemo(
+    () => Object.prototype.hasOwnProperty.call(metricsState.latestByUser, userId),
+    [metricsState.latestByUser, userId]
+  );
+  const hasLoadedPending = useMemo(
+    () =>
+      isTrainerView ||
+      Object.prototype.hasOwnProperty.call(metricsState.pendingByUser, userId),
+    [isTrainerView, metricsState.pendingByUser, userId]
+  );
+  const hasHistory = useMemo(
+    () => entries.length > 0 || pending.length > 0 || Boolean(latest),
+    [entries.length, pending.length, latest]
+  );
 
   const [recordedAt, setRecordedAt] = useState(() => toLocalDateTimeInput(new Date()));
   const [weight, setWeight] = useState("");
@@ -514,14 +552,15 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   }, [dispatch, userId, isTrainerView]);
 
   useEffect(() => {
-    if (entries.length > 0) {
+    if (isTrainerView) {
       setOnboardingOpen(false);
       return;
     }
-    if (!isTrainerView && hasLoadedEntries && entries.length === 0) {
-      setOnboardingOpen(true);
-    }
-  }, [entries.length, hasLoadedEntries, isTrainerView]);
+
+    if (!hasLoadedEntries || !hasLoadedLatest || !hasLoadedPending) return;
+
+    setOnboardingOpen(!hasHistory);
+  }, [hasHistory, hasLoadedEntries, hasLoadedLatest, hasLoadedPending, isTrainerView]);
 
   const handleCircumferenceChange = (key, value) => {
     setCircumference((prev) => ({ ...prev, [key]: value }));
@@ -600,7 +639,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   const formatCircumference = (entry) => {
     if (!entry?.circumference) return "";
     const parts = CIRCUMFERENCE_FIELDS.map((field) => {
-      const value = entry.circumference?.[field.key];
+      const value = getCircumferenceValue(entry.circumference, field.key);
       const formatted = fromInches(value, circumferenceUnit);
       return formatted !== "" ? `${field.label}: ${Number(formatted).toFixed(1)}` : null;
     }).filter(Boolean);
@@ -768,7 +807,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     setEditRestingHeartRate(entry.restingHeartRate ?? "");
     const displayCircumference = {};
     CIRCUMFERENCE_FIELDS.forEach((field) => {
-      const value = entry.circumference?.[field.key];
+      const value = getCircumferenceValue(entry.circumference, field.key);
       const converted = fromInches(value, circumferenceUnit);
       if (converted !== "") {
         displayCircumference[field.key] = Number(converted).toFixed(1);
