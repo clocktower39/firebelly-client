@@ -565,6 +565,7 @@ export default function ProgramBuilder() {
                   type="number"
                   inputProps={{ min: 1, max: 52 }}
                   value={weeksCount}
+                  onFocus={(event) => event.target.select()}
                   onChange={(event) => {
                     const next = Math.max(1, Math.min(52, Number(event.target.value)));
                     setProgram((prev) => ({
@@ -584,6 +585,7 @@ export default function ProgramBuilder() {
                   type="number"
                   inputProps={{ min: 1, max: 7 }}
                   value={daysPerWeek}
+                  onFocus={(event) => event.target.select()}
                   onChange={(event) => {
                     const next = Math.max(1, Math.min(7, Number(event.target.value)));
                     setProgram((prev) => ({
