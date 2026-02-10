@@ -79,7 +79,7 @@ export const Login = () => {
       type: "text",
     },
     pin: {
-      label: "PIN",
+      label: "Password",
       value: "",
       error: null,
       helperText: null,
@@ -232,7 +232,7 @@ export const Login = () => {
             variant={loginMode === "adult" ? "contained" : "outlined"}
             onClick={() => setLoginMode("adult")}
           >
-            Adult/Guardian
+            Adult
           </Button>
           <Button
             variant={loginMode === "child" ? "contained" : "outlined"}

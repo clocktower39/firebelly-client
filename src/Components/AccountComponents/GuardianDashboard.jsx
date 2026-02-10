@@ -11,11 +11,12 @@ import {
   CardActions,
   Divider,
 } from "@mui/material";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginJWT, serverURL } from "../../Redux/actions";
 
 const GuardianDashboard = () => {
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [children, setChildren] = useState([]);
@@ -38,6 +39,9 @@ const GuardianDashboard = () => {
     Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
   };
 
+  const canManageFamily =
+    !user?.viewOnly && ["adult", "guardian"].includes(user?.accountType);
+
   const loadChildren = async () => {
     setStatus("");
     try {
@@ -52,8 +56,23 @@ const GuardianDashboard = () => {
   };
 
   useEffect(() => {
-    loadChildren();
-  }, []);
+    if (canManageFamily) {
+      loadChildren();
+    }
+  }, [canManageFamily]);
+
+  if (!canManageFamily) {
+    return (
+      <Box sx={{ width: "100%" }}>
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          Family & Guardian Access
+        </Typography>
+        <Typography color="text.secondary">
+          Family access is only available to adult or guardian accounts.
+        </Typography>
+      </Box>
+    );
+  }
 
   const handleCreateChild = async () => {
     setStatus("");
@@ -196,7 +215,7 @@ const GuardianDashboard = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="PIN"
+                label="Password"
                 type="password"
                 value={childForm.pin}
                 onChange={(e) => setChildForm({ ...childForm, pin: e.target.value })}
