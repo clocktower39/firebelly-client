@@ -51,10 +51,10 @@ export default function NavDrawer() {
   const navigate = useNavigate();
   const roleLabel = user.viewOnly
     ? "Guardian (view)"
-    : user.accountType === "guardian"
-    ? "Guardian"
     : user.isTrainer
     ? "Trainer"
+    : user.accountType === "guardian"
+    ? "Guardian"
     : "Athlete";
 
   // Count unseen achieved goals
