@@ -27,8 +27,9 @@ export const AuthRoute = (props) => {
   useEffect(() => {
     const accessToken = localStorage.getItem("JWT_AUTH_TOKEN");
     const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
+    const viewOnly = localStorage.getItem("JWT_VIEW_ONLY") === "true";
 
-    if (accessToken && refreshToken) {
+    if (accessToken) {
       if (checkTokenExpiry(accessToken)) {
         if (!user._id) {
           dispatch(loginJWT(accessToken)).then(() => setLoading(false));
@@ -36,10 +37,13 @@ export const AuthRoute = (props) => {
           setLoading(false);
         }
       } else {
-        // Try to refresh the access token
-        dispatch(loginJWT(refreshToken))
-          .then(() => setLoading(false))
-          .catch(() => setLoading(false));
+        if (refreshToken && !viewOnly) {
+          dispatch(loginJWT())
+            .then(() => setLoading(false))
+            .catch(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
       }
     } else {
       setLoading(false);
@@ -48,7 +52,7 @@ export const AuthRoute = (props) => {
 
   return loading ? (
       <Loading />
-  ) : user.email ? (
+  ) : user._id ? (
     <Outlet context={context} />
   ) : (
     <Navigate to={{ pathname: "/login" }} />

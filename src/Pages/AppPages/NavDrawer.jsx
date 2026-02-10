@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -41,13 +41,21 @@ import {
   QrCodeScanner as QrCodeScannerIcon,
 } from "@mui/icons-material";
 import logo48 from "../../img/logo48.png";
-import { serverURL } from "../../Redux/actions";
+import { serverURL, loginJWT, logoutUser } from "../../Redux/actions";
 import Barcode from "react-barcode";
 
 export default function NavDrawer() {
   const user = useSelector((state) => state.user);
   const goals = useSelector((state) => state.goals);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const roleLabel = user.viewOnly
+    ? "Guardian (view)"
+    : user.isTrainer
+    ? "Trainer"
+    : user.accountType === "guardian"
+    ? "Guardian"
+    : "Athlete";
 
   // Count unseen achieved goals
   const unseenAchievements = goals?.filter(
@@ -137,6 +145,28 @@ export default function NavDrawer() {
   const [open, setOpen] = useState(false);
   const toggleDrawer = () => setOpen((prev) => !prev);
 
+  const handleReturnToGuardian = () => {
+    const guardianAccess = localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN");
+    const guardianRefresh = localStorage.getItem("JWT_GUARDIAN_REFRESH_TOKEN");
+    if (guardianAccess) {
+      localStorage.setItem("JWT_AUTH_TOKEN", guardianAccess);
+    }
+    if (guardianRefresh) {
+      localStorage.setItem("JWT_REFRESH_TOKEN", guardianRefresh);
+    }
+    localStorage.removeItem("JWT_VIEW_ONLY");
+    localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
+    localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
+
+    if (guardianAccess) {
+      dispatch(loginJWT(guardianAccess));
+      navigate("/");
+    } else {
+      dispatch(logoutUser());
+      navigate("/login");
+    }
+  };
+
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (event) => {
@@ -190,6 +220,16 @@ export default function NavDrawer() {
       </Box>
       {user._id ? (
         <>
+          {user.viewOnly && (
+            <Box sx={{ px: 2, py: 1, backgroundColor: "rgba(234, 179, 8, 0.15)" }}>
+              <Typography variant="caption" color="text.primary">
+                Viewing child activity (read-only)
+              </Typography>
+              <Button size="small" onClick={handleReturnToGuardian} sx={{ mt: 1 }}>
+                Return to Guardian
+              </Button>
+            </Box>
+          )}
           <List>
             {pages.map((page, index) => (
               <ListItem key={page.title} disablePadding>
@@ -334,7 +374,7 @@ export default function NavDrawer() {
                     {user.firstName} {user.lastName}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {user.isTrainer ? "Trainer" : "Athlete"}
+                    {roleLabel}
                   </Typography>
                 </Box>
               )}

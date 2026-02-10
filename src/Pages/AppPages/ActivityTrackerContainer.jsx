@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { Box, Container, Paper } from "@mui/material";
 import { Outlet, useLocation } from "react-router-dom";
 import NavDrawer from "./NavDrawer";
@@ -6,6 +7,7 @@ import Footer from "../../Components/Footer";
 
 export default function ActivityTrackerContainer(props) {
   const location = useLocation(); // Get the current location
+  const user = useSelector((state) => state.user);
 
   const [size, setSize] = useState(null);
   const containerRef = useRef(null);
@@ -13,6 +15,7 @@ export default function ActivityTrackerContainer(props) {
     if (containerRef.current) setSize(containerRef.current.offsetWidth);
   };
   const [borderHighlight, setBorderHighlight] = useState(false);
+  const shouldHighlight = borderHighlight || Boolean(user?.viewOnly);
 
   useEffect(() => {
     // Reset borderHighlight to false on link change
@@ -48,7 +51,7 @@ export default function ActivityTrackerContainer(props) {
             display: "flex",
             flexDirection: "column",
             backgroundColor: "background.ATCPaperBackground",
-            border: borderHighlight
+            border: shouldHighlight
               ? "1px solid #f97316"
               : "1px solid rgba(148, 163, 184, 0.25)",
             boxShadow:

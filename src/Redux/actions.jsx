@@ -97,8 +97,47 @@ export function loginUser(user) {
   };
 }
 
-export const loginJWT = () => {
+export function loginChild({ username, pin }) {
   return async (dispatch) => {
+    const response = await fetch(`${serverURL}/login-child`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ username, pin }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+    const accessToken = data.accessToken;
+    const refreshToken = data.refreshToken;
+    const decodedAccessToken = jwt(accessToken);
+
+    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+    localStorage.setItem("JWT_REFRESH_TOKEN", refreshToken);
+    return dispatch({
+      type: LOGIN_USER,
+      user: decodedAccessToken,
+    });
+  };
+}
+
+export const loginJWT = (accessTokenOverride) => {
+  return async (dispatch) => {
+    if (accessTokenOverride) {
+      const decodedAccessToken = jwt(accessTokenOverride);
+      localStorage.setItem("JWT_AUTH_TOKEN", accessTokenOverride);
+      return dispatch({
+        type: LOGIN_USER,
+        user: decodedAccessToken,
+      });
+    }
+
     const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
 
     const response = await fetch(`${serverURL}/refresh-tokens`, {
@@ -129,6 +168,9 @@ export function logoutUser() {
   return async (dispatch) => {
     localStorage.removeItem("JWT_AUTH_TOKEN");
     localStorage.removeItem("JWT_REFRESH_TOKEN");
+    localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
+    localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
+    localStorage.removeItem("JWT_VIEW_ONLY");
     return dispatch({
       type: LOGOUT_USER,
     });

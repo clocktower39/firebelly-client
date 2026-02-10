@@ -15,6 +15,8 @@ import {
 export default function Account() {
   const user = useSelector((state) => state.user);
   const [openOutletList, setOpenOutletList] = useState(true);
+  const canManageFamily =
+    !user?.viewOnly && ["adult", "guardian"].includes(user?.accountType);
 
   const handleOutletLists = () => setOpenOutletList((prev) => !prev);
 
@@ -36,6 +38,11 @@ export default function Account() {
         <ListItem button component={Link} to="/account/trainer-connections">
           <ListItemText primary="Trainer Connections" sx={{ color: "primary.contrastText" }} />
         </ListItem>
+        {canManageFamily && (
+          <ListItem button component={Link} to="/account/family">
+            <ListItemText primary="Family Access" sx={{ color: "primary.contrastText" }} />
+          </ListItem>
+        )}
         <ListItem button component={Link} to="/account/password">
           <ListItemText primary="Change Password" sx={{ color: "primary.contrastText" }} />
         </ListItem>
