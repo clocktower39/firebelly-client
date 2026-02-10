@@ -28,6 +28,7 @@ const SignupInput = ({
         error={error === true ? true : false}
         helperText={error === true ? helperText : false}
         type={type}
+        InputLabelProps={type === "date" ? { shrink: true } : undefined}
         onKeyDown={(e) => handleKeyDown(e)}
         onChange={(e) =>
           setFormData((prev) => ({
@@ -70,6 +71,13 @@ export const SignUp = (props) => {
       helperText: "Invalid email",
       type: "email",
     },
+    dateOfBirth: {
+      label: "Date of Birth",
+      value: "",
+      error: null,
+      helperText: "Please enter your date of birth",
+      type: "date",
+    },
     password: {
       label: "Password",
       value: "",
@@ -111,10 +119,30 @@ export const SignUp = (props) => {
         : setError(fieldProperty, false, null);
     });
 
+    const dobValue = formData.dateOfBirth.value;
+    if (dobValue) {
+      const dob = new Date(dobValue);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age -= 1;
+      }
+      if (age < 13) {
+        setError(
+          "dateOfBirth",
+          true,
+          "Users under 13 need a parent or guardian to create their account."
+        );
+        return;
+      }
+    }
+
     if (
       !formData.firstName.error &&
       !formData.lastName.error &&
       !formData.email.error &&
+      !formData.dateOfBirth.error &&
       !formData.password.error &&
       !formData.confirmPassword.error
     ) {
@@ -124,6 +152,7 @@ export const SignUp = (props) => {
           firstName: formData.firstName.value,
           lastName: formData.lastName.value,
           email: formData.email.value,
+          dateOfBirth: formData.dateOfBirth.value,
           password: formData.password.value,
         })
       ).then((res) => {
@@ -133,12 +162,13 @@ export const SignUp = (props) => {
           error.firstName && setError("firstName", true, res.error.firstName);
           error.lastName && setError("lastName", true, res.error.lastName);
           error.email && setError("email", true, res.error.email);
+          error.dateOfBirth && setError("dateOfBirth", true, res.error.dateOfBirth);
           error.password && setError("password", true, res.error.password);
           error.confirmPassword && setError("confirmPassword", true, res.error.confirmPassword);
         }
         setDisableButtonDuringSignUp(false);
       })
-      localStorage.setItem("email", formData.email);
+      localStorage.setItem("email", formData.email.value);
     }
   };
 

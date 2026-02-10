@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { Button, Grid, TextField, Typography } from "@mui/material";
-import { loginUser } from "../Redux/actions";
+import { loginUser, loginChild } from "../Redux/actions";
 import { serverURL } from "../Redux/actions";
 
 const classes = {
@@ -51,8 +51,9 @@ export const Login = () => {
   const dispatch = useDispatch();
   const [disableButtonDuringLogin, setDisableButtonDuringLogin] = useState(false);
   const user = useSelector((state) => state.user);
+  const [loginMode, setLoginMode] = useState("adult");
 
-  const [formData, setFormData] = useState({
+  const [adultFormData, setAdultFormData] = useState({
     email: {
       label: "Email",
       value: localStorage.getItem("email") || "",
@@ -69,6 +70,25 @@ export const Login = () => {
     },
   });
 
+  const [childFormData, setChildFormData] = useState({
+    username: {
+      label: "Username",
+      value: localStorage.getItem("child_username") || "",
+      error: null,
+      helperText: null,
+      type: "text",
+    },
+    pin: {
+      label: "PIN",
+      value: "",
+      error: null,
+      helperText: null,
+      type: "password",
+    },
+  });
+
+  const formData = loginMode === "child" ? childFormData : adultFormData;
+  const setFormData = loginMode === "child" ? setChildFormData : setAdultFormData;
   const fieldProperties = Object.keys(formData);
 
   const setError = (fieldProperty, hasError, helperText) => {
@@ -91,7 +111,7 @@ export const Login = () => {
   const handleResendVerificationEmail = (e) => {
     e.preventDefault();
 
-    const email = formData.email.value;
+    const email = adultFormData.email.value;
 
     if (!email) {
       setError("email", true, "Please enter your email address.");
@@ -130,7 +150,7 @@ export const Login = () => {
       }
     });
 
-    if (!formData.email.error && !formData.password.error) {
+    if (loginMode === "adult" && !formData.email.error && !formData.password.error) {
       setDisableButtonDuringLogin(true);
       dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then(
         (res) => {
@@ -164,6 +184,28 @@ export const Login = () => {
       );
       localStorage.setItem("email", formData.email.value);
     }
+
+    if (loginMode === "child" && !formData.username.error && !formData.pin.error) {
+      setDisableButtonDuringLogin(true);
+      dispatch(loginChild({ username: formData.username.value, pin: formData.pin.value })).then(
+        (res) => {
+          if (res?.error) {
+            const { error } = res;
+            if (error.username) {
+              setError("username", true, error.username);
+            }
+            if (error.pin) {
+              setError("pin", true, error.pin);
+            }
+            if (error.consent) {
+              setError("username", true, error.consent);
+            }
+          }
+          setDisableButtonDuringLogin(false);
+        }
+      );
+      localStorage.setItem("child_username", formData.username.value);
+    }
   };
 
   return user._id ? (
@@ -184,6 +226,20 @@ export const Login = () => {
           <Typography variant="h4" gutterBottom>
             Log in
           </Typography>
+        </Grid>
+        <Grid container size={12} sx={{ justifyContent: "center", gap: 2, mt: 1 }}>
+          <Button
+            variant={loginMode === "adult" ? "contained" : "outlined"}
+            onClick={() => setLoginMode("adult")}
+          >
+            Adult/Guardian
+          </Button>
+          <Button
+            variant={loginMode === "child" ? "contained" : "outlined"}
+            onClick={() => setLoginMode("child")}
+          >
+            Child
+          </Button>
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
@@ -212,6 +268,13 @@ export const Login = () => {
             Login
           </Button>
         </Grid>
+        {loginMode === "adult" && (
+          <Grid container size={12} sx={{ justifyContent: "center" }}>
+            <Typography variant="body2" color="text.secondary">
+              Kids under 13 need a parent or guardian to create their account.
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </Grid>
   );
