@@ -51,15 +51,14 @@ export const Login = () => {
   const dispatch = useDispatch();
   const [disableButtonDuringLogin, setDisableButtonDuringLogin] = useState(false);
   const user = useSelector((state) => state.user);
-  const [loginMode, setLoginMode] = useState("adult");
 
-  const [adultFormData, setAdultFormData] = useState({
-    email: {
-      label: "Email",
-      value: localStorage.getItem("email") || "",
+  const [formData, setFormData] = useState({
+    identifier: {
+      label: "Email/Username",
+      value: localStorage.getItem("login_identifier") || "",
       error: null,
       helperText: null,
-      type: "email",
+      type: "text",
     },
     password: {
       label: "Password",
@@ -70,25 +69,6 @@ export const Login = () => {
     },
   });
 
-  const [childFormData, setChildFormData] = useState({
-    username: {
-      label: "Username",
-      value: localStorage.getItem("child_username") || "",
-      error: null,
-      helperText: null,
-      type: "text",
-    },
-    pin: {
-      label: "Password",
-      value: "",
-      error: null,
-      helperText: null,
-      type: "password",
-    },
-  });
-
-  const formData = loginMode === "child" ? childFormData : adultFormData;
-  const setFormData = loginMode === "child" ? setChildFormData : setAdultFormData;
   const fieldProperties = Object.keys(formData);
 
   const setError = (fieldProperty, hasError, helperText) => {
@@ -111,10 +91,10 @@ export const Login = () => {
   const handleResendVerificationEmail = (e) => {
     e.preventDefault();
 
-    const email = adultFormData.email.value;
+    const email = String(formData.identifier.value || "").trim();
 
-    if (!email) {
-      setError("email", true, "Please enter your email address.");
+    if (!email || !email.includes("@")) {
+      setError("identifier", true, "Please enter a valid email address.");
       return;
     }
 
@@ -128,83 +108,94 @@ export const Login = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
-          setError("email", true, "Verification email has been resent. Please check your inbox.");
+          setError(
+            "identifier",
+            true,
+            "Verification email has been resent. Please check your inbox."
+          );
         } else {
-          setError("email", true, data.error || "Error resending verification email.");
+          setError("identifier", true, data.error || "Error resending verification email.");
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        setError("email", true, "Error resending verification email. Please try again later.");
+        setError(
+          "identifier",
+          true,
+          "Error resending verification email. Please try again later."
+        );
       });
   };
 
   const handleLoginAttempt = (e) => {
     e.preventDefault();
 
+    let hasError = false;
     fieldProperties.forEach((fieldProperty) => {
       if (formData[fieldProperty].value === "") {
         setError(fieldProperty, true, `${formData[fieldProperty].label} is required.`);
+        hasError = true;
       } else {
         setError(fieldProperty, false, null);
       }
     });
 
-    if (loginMode === "adult" && !formData.email.error && !formData.password.error) {
-      setDisableButtonDuringLogin(true);
-      dispatch(loginUser({ email: formData.email.value, password: formData.password.value })).then(
-        (res) => {
-          if (res.error) {
-            const { error } = res;
+    if (hasError) return;
 
-            if (error.email) {
-              if (error.email === "Please verify your email before logging in.") {
-                setError(
-                  "email",
-                  true,
-                  <>
-                    <div>Please verify your email before logging in.&nbsp;</div>
-                    <div>
-                      <a href="#" onClick={handleResendVerificationEmail}>
-                        Click here to resend verification email.
-                      </a>
-                    </div>
-                  </>
-                );
-              } else {
-                setError("email", true, res.error.email);
-              }
-            }
-            if (error.password) {
-              setError("password", true, res.error.password);
+    const identifier = String(formData.identifier.value || "").trim();
+    const isEmail = identifier.includes("@");
+
+    if (isEmail && !formData.identifier.error && !formData.password.error) {
+      setDisableButtonDuringLogin(true);
+      dispatch(loginUser({ email: identifier, password: formData.password.value })).then((res) => {
+        if (res?.error) {
+          const { error } = res;
+
+          if (error.email) {
+            if (error.email === "Please verify your email before logging in.") {
+              setError(
+                "identifier",
+                true,
+                <>
+                  <div>Please verify your email before logging in.&nbsp;</div>
+                  <div>
+                    <a href="#" onClick={handleResendVerificationEmail}>
+                      Click here to resend verification email.
+                    </a>
+                  </div>
+                </>
+              );
+            } else {
+              setError("identifier", true, res.error.email);
             }
           }
-          setDisableButtonDuringLogin(false);
+          if (error.password) {
+            setError("password", true, res.error.password);
+          }
         }
-      );
-      localStorage.setItem("email", formData.email.value);
+        setDisableButtonDuringLogin(false);
+      });
+      localStorage.setItem("login_identifier", identifier);
     }
 
-    if (loginMode === "child" && !formData.username.error && !formData.pin.error) {
+    if (!isEmail && !formData.identifier.error && !formData.password.error) {
       setDisableButtonDuringLogin(true);
-      dispatch(loginChild({ username: formData.username.value, pin: formData.pin.value })).then(
-        (res) => {
-          if (res?.error) {
-            const { error } = res;
-            if (error.username) {
-              setError("username", true, error.username);
-            }
-            if (error.pin) {
-              setError("pin", true, error.pin);
-            }
-            if (error.consent) {
-              setError("username", true, error.consent);
-            }
+      dispatch(loginChild({ username: identifier, pin: formData.password.value })).then((res) => {
+        if (res?.error) {
+          const { error } = res;
+          if (error.username) {
+            setError("identifier", true, error.username);
           }
-          setDisableButtonDuringLogin(false);
+          if (error.pin) {
+            setError("password", true, error.pin);
+          }
+          if (error.consent) {
+            setError("identifier", true, error.consent);
+          }
         }
-      );
-      localStorage.setItem("child_username", formData.username.value);
+        setDisableButtonDuringLogin(false);
+      });
+      localStorage.setItem("login_identifier", identifier);
     }
   };
 
@@ -226,20 +217,6 @@ export const Login = () => {
           <Typography variant="h4" gutterBottom>
             Log in
           </Typography>
-        </Grid>
-        <Grid container size={12} sx={{ justifyContent: "center", gap: 2, mt: 1 }}>
-          <Button
-            variant={loginMode === "adult" ? "contained" : "outlined"}
-            onClick={() => setLoginMode("adult")}
-          >
-            Adult
-          </Button>
-          <Button
-            variant={loginMode === "child" ? "contained" : "outlined"}
-            onClick={() => setLoginMode("child")}
-          >
-            Child
-          </Button>
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={{ flexGrow: 1, alignContent: "flex-start" }}>
@@ -268,13 +245,11 @@ export const Login = () => {
             Login
           </Button>
         </Grid>
-        {loginMode === "adult" && (
-          <Grid container size={12} sx={{ justifyContent: "center" }}>
-            <Typography variant="body2" color="text.secondary">
-              Kids under 13 need a parent or guardian to create their account.
-            </Typography>
-          </Grid>
-        )}
+        <Grid container size={12} sx={{ justifyContent: "center" }}>
+          <Typography variant="body2" color="text.secondary">
+            Kids under 13 need a parent or guardian to create their account.
+          </Typography>
+        </Grid>
       </Grid>
     </Grid>
   );
