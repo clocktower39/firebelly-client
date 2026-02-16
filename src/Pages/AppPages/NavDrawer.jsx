@@ -52,12 +52,11 @@ export default function NavDrawer() {
   const navigate = useNavigate();
   const viewAsTrainer = Boolean(localStorage.getItem("JWT_TRAINER_AUTH_TOKEN"));
   const viewAsGuardian = Boolean(localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN"));
-  const roleLabel = user.viewOnly
+  const isImpersonating = viewAsTrainer || viewAsGuardian;
+  const roleLabel = isImpersonating
     ? viewAsTrainer
-      ? "Trainer (view)"
-      : viewAsGuardian
-      ? "Guardian (view)"
-      : "View only"
+      ? "Trainer (client)"
+      : "Guardian (child)"
     : user.isTrainer
     ? "Trainer"
     : user.accountType === "guardian"
@@ -235,12 +234,10 @@ export default function NavDrawer() {
       </Box>
       {user._id ? (
         <>
-          {user.viewOnly && (
+          {isImpersonating && (
             <Box sx={{ px: 2, py: 1, backgroundColor: "rgba(234, 179, 8, 0.15)" }}>
               <Typography variant="caption" color="text.primary">
-                {viewAsTrainer
-                  ? "Viewing client activity (read-only)"
-                  : "Viewing child activity (read-only)"}
+                {viewAsTrainer ? "Viewing client account" : "Viewing child account"}
               </Typography>
               <Button size="small" onClick={handleReturnFromView} sx={{ mt: 1 }}>
                 {viewAsTrainer ? "Return to My Account" : "Return to Guardian"}
