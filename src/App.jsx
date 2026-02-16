@@ -39,7 +39,6 @@ import Trainers from "./Components/AccountComponents/Trainers";
 import ChangePassword from "./Components/AccountComponents/ChangePassword";
 import LogoutConfirmation from "./Components/AccountComponents/LogoutConfirmation";
 import WorkoutPreferences from "./Components/AccountComponents/WorkoutPreferences";
-import TrainerConnections from "./Components/AccountComponents/TrainerConnections";
 import GuardianDashboard from "./Components/AccountComponents/GuardianDashboard";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
 import NotFoundPage from "./Pages/NotFoundPage";
@@ -159,7 +158,12 @@ function App({ }) {
                     <Route index={true} exact path="" element={<MyAccount />} />
                     <Route index={true} exact path="theme" element={<ThemeSettings />} />
                     <Route index={true} exact path="workout-preferences" element={<WorkoutPreferences />} />
-                    <Route index={true} exact path="trainer-connections" element={<TrainerConnections />} />
+                    <Route
+                      index={true}
+                      exact
+                      path="trainer-connections"
+                      element={<Navigate to="/account/trainers" replace />}
+                    />
                     <Route index={true} exact path="family" element={<GuardianDashboard />} />
                     <Route
                       index={true}

@@ -95,7 +95,7 @@ const exerciseTypeFields = (exerciseType) => {
 };
 
 export default function Calendar(props) {
-  const { view = "client", client } = props;
+  const { view = "client", client, embedded = false } = props;
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const targetAccount = view === "client" ? user : client;
@@ -323,8 +323,14 @@ export default function Calendar(props) {
           </Typography>
         </Grid>
       )}
-      <Box sx={{ minHeight: "650px", display: "flex", flexDirection: "column" }} data-calendar-scroll>
-        <Box sx={{ px: 2, py: 1 }}>
+      <Box
+        sx={{
+          minHeight: embedded ? 0 : "650px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Box sx={{ px: 2, py: 1, flexShrink: 0 }}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems="center">
             <Typography variant="h6">Calendar</Typography>
             <Stack direction="row" spacing={1} alignItems="center">
@@ -364,7 +370,7 @@ export default function Calendar(props) {
           </Stack>
         </Box>
 
-        <Collapse in={showFilters} timeout="auto" unmountOnExit>
+        <Collapse in={showFilters} timeout="auto" unmountOnExit sx={{ flexShrink: 0 }}>
           <Box sx={{ px: 2, py: 1 }}>
             <Grid container spacing={2} alignItems="center">
               <Grid size={{ xs: 12, }}>
@@ -481,7 +487,7 @@ export default function Calendar(props) {
           </Box>
         </Collapse>
 
-        <Collapse in={showCalendar} timeout="auto" unmountOnExit>
+        <Collapse in={showCalendar} timeout="auto" unmountOnExit sx={{ flexShrink: 0 }}>
           <Box>
             {calendarViewMode === "year" ? (
               <Box sx={{ px: 2, pb: 2 }}>
@@ -567,7 +573,7 @@ export default function Calendar(props) {
           </Box>
         </Collapse>
 
-        <Box sx={{ flex: "1" }}>
+        <Box sx={{ flex: "1 1 auto" }} data-calendar-scroll>
           <Workouts
             history={filteredWorkouts}
             scrollToDate={scrollToDate}

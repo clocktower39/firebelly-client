@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   requestClients,
   changeRelationshipStatus,
   removeRelationship,
   serverURL,
+  loginJWT,
 } from "../../Redux/actions";
 import {
   Avatar,
@@ -62,6 +63,7 @@ export default function Clients({ socket }) {
   const user = useSelector((state) => state.user);
   const clients = useSelector((state) => state.clients);
   const [clientStatuses, setClientStatuses] = useState({});
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredClients, setFilteredClients] = useState([]);
@@ -69,6 +71,12 @@ export default function Clients({ socket }) {
   const [openGoals, setOpenGoals] = useState(false);
   const [selectedClient, setSelectedClient] = useState("");
   const [showOnlyOnline, setShowOnlyOnline] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const authHeaders = {
+    "Content-type": "application/json; charset=UTF-8",
+    Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+  };
 
   const handleOpenCalendar = (client) => {
     setSelectedClient(client);
@@ -92,6 +100,34 @@ export default function Clients({ socket }) {
 
   const handleRelationshipStatus = (clientId, accepted) => {
     dispatch(changeRelationshipStatus(clientId, accepted));
+  };
+
+  const handleViewAsClient = async (client) => {
+    setStatus("");
+    try {
+      const response = await fetch(`${serverURL}/relationships/client/token`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ clientId: client._id }),
+      });
+      const data = await response.json();
+      if (!data.accessToken) {
+        setStatus(data.error || "Unable to enter client view.");
+        return;
+      }
+
+      const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
+      const currentRefresh = localStorage.getItem("JWT_REFRESH_TOKEN");
+      if (currentAccess) localStorage.setItem("JWT_TRAINER_AUTH_TOKEN", currentAccess);
+      if (currentRefresh) localStorage.setItem("JWT_TRAINER_REFRESH_TOKEN", currentRefresh);
+
+      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
+      localStorage.setItem("JWT_VIEW_ONLY", "true");
+      dispatch(loginJWT(data.accessToken));
+      navigate("/");
+    } catch (err) {
+      setStatus("Unable to enter client view.");
+    }
   };
 
   const handleSearchChange = (event) => {
@@ -161,7 +197,9 @@ export default function Clients({ socket }) {
           />
           {clientRelationship.accepted && (
             <>
-              <Button component={Link} to={`/?client=${clientRelationship.client._id}`} >Client Home</Button>
+              <Button onClick={() => handleViewAsClient(clientRelationship.client)}>
+                View Account
+              </Button>
               <Button onClick={() => handleOpenCalendar(clientRelationship.client)}>
                 Calendar
               </Button>
@@ -286,6 +324,11 @@ export default function Clients({ socket }) {
         <Typography variant="h4" sx={{ padding: "25px 0" }}>
           Training Clients
         </Typography>
+        {status && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {status}
+          </Typography>
+        )}
         <TextField
           label="Search Clients"
           variant="outlined"
@@ -335,9 +378,11 @@ export default function Clients({ socket }) {
       <Dialog
         open={openCalendar}
         onClose={handleCloseCalendar}
-        sx={{ "& .MuiDialog-paper": { padding: "5px", width: "100%", minHeight: "80%" } }}
+        PaperProps={{ sx: { minHeight: "80%", height: "80vh", overflow: "hidden" } }}
       >
-        <Calendar view="trainer" client={selectedClient} />{" "}
+        <DialogContent sx={{ p: 1, height: "100%", overflowY: "auto" }}>
+          <Calendar view="trainer" client={selectedClient} embedded />
+        </DialogContent>
       </Dialog>
       <Dialog
         open={openGoals}

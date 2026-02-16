@@ -36,6 +36,7 @@ import {
   Settings as AccountIcon,
   Groups as ClientsIcon,
   Groups as GroupsIcon,
+  PeopleAlt as TrainersIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
   QrCodeScanner as QrCodeScannerIcon,
@@ -49,8 +50,14 @@ export default function NavDrawer() {
   const goals = useSelector((state) => state.goals);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const viewAsTrainer = Boolean(localStorage.getItem("JWT_TRAINER_AUTH_TOKEN"));
+  const viewAsGuardian = Boolean(localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN"));
   const roleLabel = user.viewOnly
-    ? "Guardian (view)"
+    ? viewAsTrainer
+      ? "Trainer (view)"
+      : viewAsGuardian
+      ? "Guardian (view)"
+      : "View only"
     : user.isTrainer
     ? "Trainer"
     : user.accountType === "guardian"
@@ -88,6 +95,11 @@ export default function NavDrawer() {
       title: "Progress",
       to: "/progress",
       icon: <ProgressIcon />,
+    },
+    {
+      title: "Trainers",
+      to: "/account/trainers",
+      icon: <TrainersIcon />,
     },
     {
       title: "Groups",
@@ -145,21 +157,24 @@ export default function NavDrawer() {
   const [open, setOpen] = useState(false);
   const toggleDrawer = () => setOpen((prev) => !prev);
 
-  const handleReturnToGuardian = () => {
+  const handleReturnFromView = () => {
+    const trainerAccess = localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
+    const trainerRefresh = localStorage.getItem("JWT_TRAINER_REFRESH_TOKEN");
     const guardianAccess = localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN");
     const guardianRefresh = localStorage.getItem("JWT_GUARDIAN_REFRESH_TOKEN");
-    if (guardianAccess) {
-      localStorage.setItem("JWT_AUTH_TOKEN", guardianAccess);
-    }
-    if (guardianRefresh) {
-      localStorage.setItem("JWT_REFRESH_TOKEN", guardianRefresh);
-    }
+    const returnAccess = trainerAccess || guardianAccess;
+    const returnRefresh = trainerRefresh || guardianRefresh;
+
+    if (returnAccess) localStorage.setItem("JWT_AUTH_TOKEN", returnAccess);
+    if (returnRefresh) localStorage.setItem("JWT_REFRESH_TOKEN", returnRefresh);
     localStorage.removeItem("JWT_VIEW_ONLY");
     localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
     localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
+    localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
+    localStorage.removeItem("JWT_TRAINER_REFRESH_TOKEN");
 
-    if (guardianAccess) {
-      dispatch(loginJWT(guardianAccess));
+    if (returnAccess) {
+      dispatch(loginJWT(returnAccess));
       navigate("/");
     } else {
       dispatch(logoutUser());
@@ -223,10 +238,12 @@ export default function NavDrawer() {
           {user.viewOnly && (
             <Box sx={{ px: 2, py: 1, backgroundColor: "rgba(234, 179, 8, 0.15)" }}>
               <Typography variant="caption" color="text.primary">
-                Viewing child activity (read-only)
+                {viewAsTrainer
+                  ? "Viewing client activity (read-only)"
+                  : "Viewing child activity (read-only)"}
               </Typography>
-              <Button size="small" onClick={handleReturnToGuardian} sx={{ mt: 1 }}>
-                Return to Guardian
+              <Button size="small" onClick={handleReturnFromView} sx={{ mt: 1 }}>
+                {viewAsTrainer ? "Return to My Account" : "Return to Guardian"}
               </Button>
             </Box>
           )}
