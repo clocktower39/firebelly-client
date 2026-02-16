@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
   IconButton,
   LinearProgress,
@@ -23,6 +24,7 @@ import { AddCircle, Delete, Done, Message as MessageIcon, PendingActions } from 
 import { requestMyTrainers, removeRelationship, updateMetricsApproval, serverURL } from "../../Redux/actions";
 import SearchTrainerDialog from "./SearchTrainerDialog";
 import Messages from "../Messages";
+import TrainerConnections from "./TrainerConnections";
 
 
 export default function Trainers({ socket }) {
@@ -36,6 +38,17 @@ export default function Trainers({ socket }) {
 
   const handleOpenSearch = () => setOpenSearch(true);
   const handleCloseSearch = () => setOpenSearch(false);
+
+  const formatDate = (value) => {
+    if (!value) return "Not available";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Not available";
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   useEffect(() => {
     dispatch(requestMyTrainers()).then(setLoading(false));
@@ -52,6 +65,11 @@ export default function Trainers({ socket }) {
 
     const handleDeleteConfirmationOpen = () => setDeleteConfirmationOpen(true);
     const handleDeleteConfirmationClose = () => setDeleteConfirmationOpen(false);
+
+    const lastActivityLabel = formatDate(trainer.lastActivityAt);
+    const permissionLabel = trainer.metricsApprovalRequired
+      ? "Metrics approval required"
+      : "Metrics auto-approve enabled";
 
     return (
       <Grid container size={12}>
@@ -80,7 +98,16 @@ export default function Trainers({ socket }) {
               </>
             }
             title={`${trainer.firstName} ${trainer.lastName}`}
-            subheader={trainer.accepted ? "Accepted" : "Pending"}
+            subheader={
+              <Stack spacing={0.5}>
+                <Typography variant="body2" color="text.secondary">
+                  {trainer.accepted ? "Accepted" : "Pending"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Last activity: {lastActivityLabel}
+                </Typography>
+              </Stack>
+            }
           />
           {trainer.accepted && (
             <Box sx={{ px: 2, pb: 2 }}>
@@ -104,6 +131,9 @@ export default function Trainers({ socket }) {
                   }
                 />
               </Stack>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                Permissions: {permissionLabel}
+              </Typography>
             </Box>
           )}
         </Card>
@@ -151,6 +181,11 @@ export default function Trainers({ socket }) {
       </Grid>
       <Paper>
         <Grid container spacing={2} sx={{ padding: "15px" }}>
+          <Grid container size={12}>
+            <Typography variant="h6" color="primary.contrastText">
+              My Trainers
+            </Typography>
+          </Grid>
           <Grid container size={12} sx={{ justifyContent: "center", paddingBottom: "15px" }}>
             {loading ? (
               <Box sx={{ width: "100%" }}>
@@ -169,6 +204,10 @@ export default function Trainers({ socket }) {
           </Grid>
         </Grid>
       </Paper>
+
+      <Divider sx={{ my: 3 }} />
+
+      <TrainerConnections embedded socket={socket} />
       <SearchTrainerDialog
         open={openSearch}
         handleClose={handleCloseSearch}

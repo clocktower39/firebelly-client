@@ -36,6 +36,7 @@ import {
   Settings as AccountIcon,
   Groups as ClientsIcon,
   Groups as GroupsIcon,
+  PeopleAlt as TrainersIcon,
   PersonAddAlt1 as SignUpIcon,
   Login as LoginIcon,
   QrCodeScanner as QrCodeScannerIcon,
@@ -88,6 +89,11 @@ export default function NavDrawer() {
       title: "Progress",
       to: "/progress",
       icon: <ProgressIcon />,
+    },
+    {
+      title: "Trainers",
+      to: "/account/trainers",
+      icon: <TrainersIcon />,
     },
     {
       title: "Groups",
