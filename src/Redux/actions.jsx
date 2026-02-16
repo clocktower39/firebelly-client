@@ -170,6 +170,8 @@ export function logoutUser() {
     localStorage.removeItem("JWT_REFRESH_TOKEN");
     localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
     localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
+    localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
+    localStorage.removeItem("JWT_TRAINER_REFRESH_TOKEN");
     localStorage.removeItem("JWT_VIEW_ONLY");
     return dispatch({
       type: LOGOUT_USER,
