@@ -378,9 +378,11 @@ export default function Clients({ socket }) {
       <Dialog
         open={openCalendar}
         onClose={handleCloseCalendar}
-        sx={{ "& .MuiDialog-paper": { padding: "5px", width: "100%", minHeight: "80%" } }}
+        PaperProps={{ sx: { minHeight: "80%", height: "80vh", overflow: "hidden" } }}
       >
-        <Calendar view="trainer" client={selectedClient} />{" "}
+        <DialogContent sx={{ p: 1, height: "100%", overflowY: "auto" }}>
+          <Calendar view="trainer" client={selectedClient} embedded />
+        </DialogContent>
       </Dialog>
       <Dialog
         open={openGoals}
