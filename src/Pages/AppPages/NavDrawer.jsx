@@ -129,8 +129,8 @@ export default function NavDrawer() {
       icon: <CalendarIcon />,
     },
     {
-      title: "Session Counter",
-      to: "/session-counter",
+      title: "Invoices",
+      to: "/invoices",
       icon: <SessionIcon />,
     },
     {

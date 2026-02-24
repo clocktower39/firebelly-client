@@ -32,7 +32,7 @@ import GroupInviteAccept from "./Pages/AppPages/GroupInviteAccept";
 import Progress from "./Pages/AppPages/Progress";
 import Goals from "./Pages/AppPages/Goals";
 import Account from "./Pages/AppPages/Account";
-import SessionCounter from "./Pages/AppPages/SessionCounter";
+import Invoices from "./Pages/AppPages/Invoices";
 import MyAccount from "./Components/AccountComponents/MyAccount";
 import ThemeSettings from "./Components/AccountComponents/ThemeSettings";
 import Trainers from "./Components/AccountComponents/Trainers";
@@ -146,7 +146,8 @@ function App({ }) {
                   <Route exact path="/progress" element={<Progress />} />
                   <Route exact path="/goals" element={<Goals />} />
                   <Route exact path="/exercises" element={<Exercises />} />
-                  <Route exact path="/session-counter" element={<SessionCounter />} />
+                  <Route exact path="/invoices" element={<Invoices />} />
+                  <Route exact path="/session-counter" element={<Navigate to="/invoices" replace />} />
                   <Route exact path="/programs" element={<Programs />} />
                   <Route exact path="/programs/marketplace-preview" element={<ProgramsMarketplacePreview />} />
                   <Route exact path="/programs/builder" element={<ProgramBuilder />} />
