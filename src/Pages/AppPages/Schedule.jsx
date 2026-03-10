@@ -123,6 +123,8 @@ export default function Schedule() {
   const [bookingAsClient, setBookingAsClient] = useState(false);
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [hasClientSelection, setHasClientSelection] = useState(false);
+  const [billingSummary, setBillingSummary] = useState(null);
+  const [billingLoading, setBillingLoading] = useState(false);
   const [openAvailabilityDialog, setOpenAvailabilityDialog] = useState(false);
   const [openRequestDialog, setOpenRequestDialog] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
@@ -236,10 +238,14 @@ export default function Schedule() {
   const [sessionTypeForm, setSessionTypeForm] = useState({
     name: "",
     description: "",
+    durationMinutes: "",
+    creditsRequired: "",
     defaultPrice: "",
     currency: "USD",
     defaultPayout: "",
     payoutCurrency: "USD",
+    active: true,
+    isDefault: false,
   });
   const [editingSessionTypeId, setEditingSessionTypeId] = useState("");
   const [trainerBookSessionTypeId, setTrainerBookSessionTypeId] = useState("");
@@ -300,10 +306,14 @@ export default function Schedule() {
     setSessionTypeForm({
       name: "",
       description: "",
+      durationMinutes: "",
+      creditsRequired: "",
       defaultPrice: "",
       currency: "USD",
       defaultPayout: "",
       payoutCurrency: "USD",
+      active: true,
+      isDefault: false,
     });
     setEditingSessionTypeId("");
     setOpenSessionTypeFormDialog(false);
@@ -346,6 +356,76 @@ export default function Schedule() {
     (clientRel) => clientRel.client?._id === selectedClientIds[0]
   );
 
+  const billingTrainerId = isTrainerView ? user._id : selectedTrainerId;
+  const billingClientId = isTrainerView
+    ? selectedClientIds.length === 1
+      ? selectedClientIds[0]
+      : null
+    : user._id;
+
+  const billingByType = useMemo(() => {
+    const map = new Map();
+    (billingSummary?.bySessionType || []).forEach((entry) => {
+      map.set(entry.sessionTypeId, entry);
+    });
+    return map;
+  }, [billingSummary]);
+
+  const activeSessionTypeId =
+    (openEditDialog && editSessionTypeId) ||
+    (openSelectionDialog && quickBookSessionTypeId) ||
+    (openTrainerBookDialog && trainerBookSessionTypeId) ||
+    "";
+
+  const selectedTypeEntry = activeSessionTypeId
+    ? billingByType.get(activeSessionTypeId) || {
+        remainingSessions: 0,
+        credits: 0,
+        debits: 0,
+        dueForPayment: true,
+      }
+    : null;
+  const selectedTypeName = activeSessionTypeId
+    ? sessionTypeLookup.get(activeSessionTypeId)?.name || "Session type"
+    : "";
+
+  const refreshBillingSummary = useCallback(async () => {
+    if (!billingTrainerId || !billingClientId) {
+      setBillingSummary(null);
+      return;
+    }
+    setBillingLoading(true);
+    try {
+      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const response = await fetch(`${serverURL}/billing/summary`, {
+        method: "post",
+        dataType: "json",
+        body: JSON.stringify({
+          trainerId: billingTrainerId,
+          clientId: billingClientId,
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+      const data = await response.json();
+      if (data.error) {
+        setBillingSummary(null);
+        return;
+      }
+      setBillingSummary(data);
+    } catch (err) {
+      setBillingSummary(null);
+    } finally {
+      setBillingLoading(false);
+    }
+  }, [billingClientId, billingTrainerId]);
+
+  useEffect(() => {
+    refreshBillingSummary();
+  }, [refreshBillingSummary]);
+
   const handleClearClientFilter = () => {
     setSelectedClientIds([]);
     setHasClientSelection(true);
@@ -381,6 +461,7 @@ export default function Schedule() {
         includeAvailability: true,
       })
     );
+    refreshBillingSummary();
   };
 
   useEffect(() => {
@@ -621,11 +702,16 @@ export default function Schedule() {
     const payload = {
       name: sessionTypeForm.name.trim(),
       description: sessionTypeForm.description.trim(),
+      durationMinutes:
+        sessionTypeForm.durationMinutes === "" ? 60 : Number(sessionTypeForm.durationMinutes),
+      creditsRequired:
+        sessionTypeForm.creditsRequired === "" ? 1 : Number(sessionTypeForm.creditsRequired),
       defaultPrice: sessionTypeForm.defaultPrice === "" ? 0 : Number(sessionTypeForm.defaultPrice),
       currency: sessionTypeForm.currency || "USD",
       defaultPayout:
         sessionTypeForm.defaultPayout === "" ? 0 : Number(sessionTypeForm.defaultPayout),
       payoutCurrency: sessionTypeForm.payoutCurrency || "USD",
+      active: sessionTypeForm.active,
     };
     try {
       if (editingSessionTypeId) {
@@ -667,6 +753,14 @@ export default function Schedule() {
     setSessionTypeForm({
       name: type.name || "",
       description: type.description || "",
+      durationMinutes:
+        type.durationMinutes === 0 || type.durationMinutes
+          ? String(type.durationMinutes)
+          : "",
+      creditsRequired:
+        type.creditsRequired === 0 || type.creditsRequired
+          ? String(type.creditsRequired)
+          : "",
       defaultPrice:
         type.defaultPrice === 0 || type.defaultPrice
           ? String(type.defaultPrice)
@@ -677,6 +771,8 @@ export default function Schedule() {
           ? String(type.defaultPayout)
           : "",
       payoutCurrency: type.payoutCurrency || "USD",
+      active: type.active !== false,
+      isDefault: type.isDefault === true,
     });
     setOpenSessionTypeFormDialog(true);
   };
@@ -2181,6 +2277,30 @@ export default function Schedule() {
                   ? `${selectedClientLabel.client.firstName} ${selectedClientLabel.client.lastName}`
                   : "Client sessions"}
               </Typography>
+            </Stack>
+          )}
+          {billingLoading && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+              Loading billing summary...
+            </Typography>
+          )}
+          {billingSummary && (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+              <Chip
+                size="small"
+                label={`Remaining: ${billingSummary.remainingSessions}`}
+                color={billingSummary.remainingSessions <= 0 ? "warning" : "success"}
+              />
+              {billingSummary.dueForPayment && (
+                <Chip size="small" label="Payment Due" color="warning" />
+              )}
+              {selectedTypeEntry && (
+                <Chip
+                  size="small"
+                  label={`${selectedTypeName} Remaining: ${selectedTypeEntry.remainingSessions}`}
+                  color={selectedTypeEntry.remainingSessions <= 0 ? "warning" : "success"}
+                />
+              )}
             </Stack>
           )}
         </Grid>
@@ -4096,12 +4216,20 @@ export default function Schedule() {
             ) : (
               <Stack spacing={1}>
                 {sessionTypes.map((type) => (
-                  <Card key={type._id} variant="outlined">
+                    <Card key={type._id} variant="outlined">
                     <CardContent>
                       <Stack spacing={0.5}>
-                        <Typography variant="subtitle1">{type.name}</Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Typography variant="subtitle1">{type.name}</Typography>
+                          {type.active === false && <Chip size="small" label="Inactive" />}
+                        </Stack>
                         <Typography variant="body2" color="text.secondary">
-                          {formatPrice(type.defaultPrice || 0, type.currency || "USD")}
+                          {type.defaultPrice === null || type.defaultPrice === undefined
+                            ? "Price not set"
+                            : formatPrice(type.defaultPrice || 0, type.currency || "USD")}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Duration: {type.durationMinutes || 60} min • Credits: {type.creditsRequired || 1}
                         </Typography>
                         {type.defaultPayout != null && (
                           <Typography variant="caption" color="text.secondary">
@@ -4132,6 +4260,7 @@ export default function Schedule() {
                         color="error"
                         variant="text"
                         onClick={() => handleDeleteSessionType(type._id)}
+                        disabled={type.isDefault}
                       >
                         Delete
                       </Button>
@@ -4168,14 +4297,15 @@ export default function Schedule() {
         </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Name"
-              value={sessionTypeForm.name}
-              onChange={(event) =>
-                setSessionTypeForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              fullWidth
-            />
+              <TextField
+                label="Name"
+                value={sessionTypeForm.name}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+                disabled={sessionTypeForm.isDefault}
+                fullWidth
+              />
             <TextField
               label="Description"
               value={sessionTypeForm.description}
@@ -4186,6 +4316,36 @@ export default function Schedule() {
               minRows={3}
               fullWidth
             />
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              <TextField
+                label="Duration (minutes)"
+                type="number"
+                value={sessionTypeForm.durationMinutes}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({
+                    ...prev,
+                    durationMinutes: event.target.value,
+                  }))
+                }
+                inputProps={{ min: 1, step: "1" }}
+                disabled={sessionTypeForm.isDefault}
+                fullWidth
+              />
+              <TextField
+                label="Credits Required"
+                type="number"
+                value={sessionTypeForm.creditsRequired}
+                onChange={(event) =>
+                  setSessionTypeForm((prev) => ({
+                    ...prev,
+                    creditsRequired: event.target.value,
+                  }))
+                }
+                inputProps={{ min: 0, step: "0.5" }}
+                disabled={sessionTypeForm.isDefault}
+                fullWidth
+              />
+            </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <TextField
                 label="Default price"
@@ -4238,6 +4398,17 @@ export default function Schedule() {
                 </Select>
               </FormControl>
             </Stack>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={sessionTypeForm.active}
+                  onChange={(event) =>
+                    setSessionTypeForm((prev) => ({ ...prev, active: event.target.checked }))
+                  }
+                />
+              }
+              label={sessionTypeForm.active ? "Active" : "Inactive"}
+            />
             {sessionTypesStatus && (
               <Typography variant="caption" color="error">
                 {sessionTypesStatus}

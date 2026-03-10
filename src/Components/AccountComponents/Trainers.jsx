@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Avatar,
@@ -6,6 +7,7 @@ import {
   Button,
   Card,
   CardHeader,
+  Chip,
   Container,
   Dialog,
   DialogContent,
@@ -33,6 +35,9 @@ export default function Trainers({ socket }) {
   const user = useSelector(state => state.user);
   const myTrainers = useSelector((state) => state.myTrainers);
   const [openSearch, setOpenSearch] = useState(false);
+  const [creditByTrainer, setCreditByTrainer] = useState({});
+  const [creditsLoading, setCreditsLoading] = useState(false);
+  const [creditsError, setCreditsError] = useState("");
 
   const currentRelationshipIds = myTrainers.map((trainer) => trainer.trainer);
 
@@ -55,6 +60,63 @@ export default function Trainers({ socket }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!user?._id || !myTrainers?.length) {
+      setCreditByTrainer({});
+      return;
+    }
+    let isActive = true;
+    const loadCredits = async () => {
+      setCreditsLoading(true);
+      setCreditsError("");
+      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const acceptedTrainers = myTrainers.filter((trainer) => trainer.accepted);
+      const results = await Promise.all(
+        acceptedTrainers.map(async (trainer) => {
+          try {
+            const response = await fetch(`${serverURL}/billing/summary`, {
+              method: "post",
+              dataType: "json",
+              headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                Authorization: bearer,
+              },
+              body: JSON.stringify({
+                trainerId: trainer.trainer,
+                clientId: user._id,
+              }),
+            });
+            const data = await response.json();
+            if (data?.error) {
+              throw new Error(data.error);
+            }
+            return { trainerId: trainer.trainer, summary: data };
+          } catch (err) {
+            return {
+              trainerId: trainer.trainer,
+              error: err.message || "Unable to load credits.",
+            };
+          }
+        })
+      );
+      if (!isActive) return;
+      const next = {};
+      const errors = [];
+      results.forEach(({ trainerId, summary, error }) => {
+        if (summary) next[trainerId] = summary;
+        if (error) errors.push(error);
+      });
+      setCreditByTrainer(next);
+      setCreditsError(errors[0] || "");
+      setCreditsLoading(false);
+    };
+
+    loadCredits();
+    return () => {
+      isActive = false;
+    };
+  }, [myTrainers, user?._id]);
+
   const RelationshipTrainerCard = (props) => {
     const { trainer } = props;
     const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
@@ -70,6 +132,7 @@ export default function Trainers({ socket }) {
     const permissionLabel = trainer.metricsApprovalRequired
       ? "Metrics approval required"
       : "Metrics auto-approve enabled";
+    const creditSummary = creditByTrainer?.[trainer.trainer];
 
     return (
       <Grid container size={12}>
@@ -134,6 +197,45 @@ export default function Trainers({ socket }) {
               <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
                 Permissions: {permissionLabel}
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }} alignItems="center">
+                <Chip
+                  size="small"
+                  label={
+                    creditsLoading
+                      ? "Credits: loading…"
+                      : `Credits: ${creditSummary?.remainingSessions ?? 0}`
+                  }
+                  color={
+                    creditSummary?.remainingSessions <= 0 && !creditsLoading
+                      ? "warning"
+                      : "success"
+                  }
+                  variant="outlined"
+                />
+                {creditsError && (
+                  <Typography variant="caption" color="text.secondary">
+                    {creditsError}
+                  </Typography>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  component={Link}
+                  to={`/trainer-store?trainer=${trainer.trainer}`}
+                >
+                  Purchase Sessions
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  component={Link}
+                  to={`/sessions?trainer=${trainer.trainer}`}
+                >
+                  Book Session
+                </Button>
+              </Stack>
             </Box>
           )}
         </Card>
