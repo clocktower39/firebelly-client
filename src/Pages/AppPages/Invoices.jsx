@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Button,
@@ -15,6 +16,7 @@ import {
   InputLabel,
   FormControl,
   Table,
+  TableContainer,
   TableHead,
   TableRow,
   TableCell,
@@ -33,6 +35,8 @@ const buildAuthHeaders = () => ({
 });
 
 const defaultLineItem = () => ({
+  itemType: "SESSION",
+  sessionTypeId: "",
   description: "",
   quantity: 1,
   unitPrice: "",
@@ -43,6 +47,7 @@ export default function Invoices() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const clients = useSelector((state) => state.clients);
+  const [searchParams] = useSearchParams();
 
   const [billToType, setBillToType] = useState("CLIENT");
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -64,18 +69,60 @@ export default function Invoices() {
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [lineItems, setLineItems] = useState([defaultLineItem()]);
+  const [sessionTypes, setSessionTypes] = useState([]);
+  const [sessionTypesStatus, setSessionTypesStatus] = useState("");
 
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailInvoice, setEmailInvoice] = useState(null);
   const [emailRecipient, setEmailRecipient] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [voidDialogOpen, setVoidDialogOpen] = useState(false);
+  const [voidInvoice, setVoidInvoice] = useState(null);
 
   useEffect(() => {
     if (user.isTrainer) {
       dispatch(requestClients());
     }
   }, [dispatch, user.isTrainer]);
+
+  useEffect(() => {
+    if (!user.isTrainer) return;
+    const fetchSessionTypes = async () => {
+      try {
+        const response = await fetch(`${serverURL}/session-types`, {
+          headers: buildAuthHeaders(),
+        });
+        const data = await response.json();
+        if (data.error) {
+          setSessionTypesStatus(data.error);
+          return;
+        }
+        setSessionTypes(data.sessionTypes || []);
+        setSessionTypesStatus("");
+      } catch (err) {
+        setSessionTypesStatus(err.message || "Unable to load session types.");
+      }
+    };
+    fetchSessionTypes();
+  }, [user.isTrainer]);
+
+  useEffect(() => {
+    if (!user.isTrainer) return;
+    const clientParam = searchParams.get("client");
+    const groupParam = searchParams.get("group");
+    if (clientParam) {
+      setBillToType("CLIENT");
+      setSelectedGroupId("");
+      setSelectedClientId(clientParam);
+      return;
+    }
+    if (groupParam) {
+      setBillToType("GROUP");
+      setSelectedClientId("");
+      setSelectedGroupId(groupParam);
+    }
+  }, [searchParams, user.isTrainer]);
 
   useEffect(() => {
     if (!user.isTrainer) return;
@@ -178,7 +225,8 @@ export default function Invoices() {
     const items = lineItems.map((item) => {
       const quantity = Math.max(1, Number(item.quantity) || 1);
       const unitPrice = Number(item.unitPrice) || 0;
-      const sessionCredits = Number(item.sessionCredits) || 0;
+      const sessionCredits =
+        item.itemType === "SESSION" ? Number(item.sessionCredits) || 0 : 0;
       return {
         lineTotal: unitPrice * quantity,
         sessionCreditsTotal: sessionCredits * quantity,
@@ -197,28 +245,30 @@ export default function Invoices() {
     };
   }, [lineItems, tax, discount]);
 
-  const remainingByInvoice = useMemo(() => {
-    const remainingMap = {};
-    if (!billingSummary) return remainingMap;
-    let remainingDebits = Number(billingSummary.debits || 0);
-    const creditInvoices = [...invoiceList]
-      .filter((invoice) => invoice.status === "PAID")
-      .sort(
-        (a, b) =>
-          new Date(a.issuedAt || a.createdAt || 0) - new Date(b.issuedAt || b.createdAt || 0)
-      );
-    creditInvoices.forEach((invoice) => {
-      const credits = Number(invoice.sessionCreditsTotal || 0);
-      const used = Math.min(credits, remainingDebits);
-      remainingDebits -= used;
-      remainingMap[invoice._id] = Math.max(credits - used, 0);
-    });
-    return remainingMap;
-  }, [invoiceList, billingSummary]);
+  const sessionTypeLookup = useMemo(() => {
+    const map = new Map();
+    sessionTypes.forEach((type) => map.set(type._id, type));
+    return map;
+  }, [sessionTypes]);
+
 
   const handleLineItemChange = (index, field, value) => {
     setLineItems((prev) =>
-      prev.map((item, idx) => (idx === index ? { ...item, [field]: value } : item))
+      prev.map((item, idx) => {
+        if (idx !== index) return item;
+        const next = { ...item, [field]: value };
+        if (field === "itemType" && value !== "SESSION") {
+          next.sessionCredits = "";
+          next.sessionTypeId = "";
+        }
+        if (field === "sessionTypeId") {
+          const sessionType = sessionTypeLookup.get(value);
+          if (sessionType) {
+            next.sessionCredits = String(sessionType.creditsRequired || 1);
+          }
+        }
+        return next;
+      })
     );
   };
 
@@ -250,12 +300,22 @@ export default function Invoices() {
         description: String(item.description || "").trim(),
         quantity: Math.max(1, Number(item.quantity) || 1),
         unitPrice: Number(item.unitPrice) || 0,
-        sessionCredits: Number(item.sessionCredits) || 0,
+        sessionCredits: item.itemType === "SESSION" ? Number(item.sessionCredits) || 0 : 0,
+        itemType: item.itemType || "CUSTOM",
+        sessionTypeId: item.itemType === "SESSION" ? item.sessionTypeId || null : null,
       }))
       .filter((item) => item.description);
 
     if (normalizedLineItems.length === 0) {
       setError("Add at least one line item with a description.");
+      return;
+    }
+
+    const missingSessionType = normalizedLineItems.find(
+      (item) => item.itemType === "SESSION" && !item.sessionTypeId
+    );
+    if (missingSessionType) {
+      setError("Select a session type for all session line items.");
       return;
     }
 
@@ -343,6 +403,18 @@ export default function Invoices() {
     setEmailRecipient(invoice.billToEmail || "");
     setEmailMessage("");
     setEmailDialogOpen(true);
+  };
+
+  const openVoidDialog = (invoice) => {
+    setVoidInvoice(invoice);
+    setVoidDialogOpen(true);
+  };
+
+  const handleConfirmVoid = async () => {
+    if (!voidInvoice) return;
+    await handleStatusUpdate(voidInvoice._id, "VOID");
+    setVoidDialogOpen(false);
+    setVoidInvoice(null);
   };
 
   const handleSendEmail = async () => {
@@ -546,6 +618,41 @@ export default function Invoices() {
                   {lineItems.map((item, idx) => (
                     <Stack key={idx} spacing={1}>
                       <Stack direction={{ xs: "column", md: "row" }} spacing={1}>
+                        <FormControl fullWidth>
+                          <InputLabel>Type</InputLabel>
+                          <Select
+                            label="Type"
+                            value={item.itemType}
+                            onChange={(event) =>
+                              handleLineItemChange(idx, "itemType", event.target.value)
+                            }
+                          >
+                            <MenuItem value="SESSION">Training Session</MenuItem>
+                            <MenuItem value="PROGRAM">Program</MenuItem>
+                            <MenuItem value="NUTRITION">Nutrition Plan</MenuItem>
+                            <MenuItem value="MERCH">Merchandise</MenuItem>
+                            <MenuItem value="CUSTOM">Other</MenuItem>
+                          </Select>
+                        </FormControl>
+                        {item.itemType === "SESSION" && (
+                          <FormControl fullWidth>
+                            <InputLabel>Session Type</InputLabel>
+                            <Select
+                              label="Session Type"
+                              value={item.sessionTypeId}
+                              onChange={(event) =>
+                                handleLineItemChange(idx, "sessionTypeId", event.target.value)
+                              }
+                            >
+                              <MenuItem value="">Select session type</MenuItem>
+                              {sessionTypes.map((type) => (
+                                <MenuItem key={type._id} value={type._id}>
+                                  {type.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        )}
                         <TextField
                           label="Description"
                           value={item.description}
@@ -581,7 +688,8 @@ export default function Invoices() {
                           onChange={(event) =>
                             handleLineItemChange(idx, "sessionCredits", event.target.value)
                           }
-                          inputProps={{ min: 0, step: "1" }}
+                          inputProps={{ min: 0, step: "0.5" }}
+                          disabled={item.itemType !== "SESSION"}
                           fullWidth
                         />
                       </Stack>
@@ -672,7 +780,7 @@ export default function Invoices() {
       {targetId && (
         <Grid container size={12}>
           <Card sx={{ width: "100%" }}>
-            <CardContent>
+            <CardContent sx={{ overflowX: "auto" }}>
               <Typography variant="h6">Invoice History</Typography>
               <Divider sx={{ my: 1 }} />
               {loadingInvoices ? (
@@ -680,55 +788,50 @@ export default function Invoices() {
               ) : invoiceList.length === 0 ? (
                 <Typography color="text.secondary">No invoices yet.</Typography>
               ) : (
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Invoice #</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Issued</TableCell>
+                <TableContainer sx={{ overflowX: "auto" }}>
+                  <Table size="small" sx={{ minWidth: 920 }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Invoice #</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Issued</TableCell>
                       <TableCell align="right">Total</TableCell>
                       <TableCell align="right">Balance</TableCell>
                       <TableCell align="right">Credits</TableCell>
-                      <TableCell align="right">Remaining</TableCell>
                       <TableCell align="right">Actions</TableCell>
                     </TableRow>
                   </TableHead>
-                  <TableBody>
-                    {invoiceList.map((invoice) => (
-                      <TableRow key={invoice._id}>
-                        <TableCell>{invoice.invoiceNumber}</TableCell>
-                        <TableCell>{invoice.status}</TableCell>
-                        <TableCell>
-                          {invoice.issuedAt ? dayjs(invoice.issuedAt).format("MMM D, YYYY") : "—"}
-                        </TableCell>
-                        <TableCell align="right">{Number(invoice.total || 0).toFixed(2)}</TableCell>
-                        <TableCell align="right">
-                          {Number(invoice.balanceDue || 0).toFixed(2)}
-                        </TableCell>
+                    <TableBody>
+                      {invoiceList.map((invoice) => (
+                        <TableRow key={invoice._id}>
+                          <TableCell>{invoice.invoiceNumber}</TableCell>
+                          <TableCell>{invoice.status}</TableCell>
+                          <TableCell>
+                            {invoice.issuedAt ? dayjs(invoice.issuedAt).format("MMM D, YYYY") : "—"}
+                          </TableCell>
+                          <TableCell align="right">
+                            {Number(invoice.total || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {Number(invoice.balanceDue || 0).toFixed(2)}
+                          </TableCell>
                         <TableCell align="right">{invoice.sessionCreditsTotal || 0}</TableCell>
                         <TableCell align="right">
-                          {invoice.status === "PAID"
-                            ? remainingByInvoice[invoice._id] !== undefined
-                              ? remainingByInvoice[invoice._id]
-                              : invoice.sessionCreditsTotal || 0
-                            : "—"}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => handleDownloadPdf(invoice)}
-                            >
-                              PDF
-                            </Button>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => openEmailDialog(invoice)}
-                            >
-                              Email
-                            </Button>
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => handleDownloadPdf(invoice)}
+                              >
+                                PDF
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => openEmailDialog(invoice)}
+                              >
+                                Email
+                              </Button>
                             {invoice.status !== "PAID" && invoice.status !== "VOID" && (
                               <Button
                                 size="small"
@@ -738,22 +841,37 @@ export default function Invoices() {
                                 Mark Paid
                               </Button>
                             )}
+                            {invoice.status === "VOID" && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() =>
+                                  handleStatusUpdate(
+                                    invoice._id,
+                                    Number(invoice.balanceDue || 0) <= 0 ? "PAID" : "SENT"
+                                  )
+                                }
+                              >
+                                Unvoid
+                              </Button>
+                            )}
                             {invoice.status !== "VOID" && (
                               <Button
                                 size="small"
                                 variant="outlined"
                                 color="error"
-                                onClick={() => handleStatusUpdate(invoice._id, "VOID")}
+                                onClick={() => openVoidDialog(invoice)}
                               >
                                 Void
                               </Button>
                             )}
-                          </Stack>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
             </CardContent>
           </Card>
@@ -790,6 +908,29 @@ export default function Invoices() {
           <Button onClick={() => setEmailDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSendEmail} disabled={sendingEmail}>
             {sendingEmail ? "Sending..." : "Send Email"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={voidDialogOpen}
+        onClose={() => setVoidDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Void Invoice</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              This will void invoice {voidInvoice?.invoiceNumber || ""} and remove its session
+              credits from the ledger.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setVoidDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleConfirmVoid}>
+            Confirm Void
           </Button>
         </DialogActions>
       </Dialog>

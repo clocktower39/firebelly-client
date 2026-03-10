@@ -207,7 +207,9 @@ export default function Clients({ socket }) {
               <Button component={Link} to={`/sessions?client=${clientRelationship.client._id}`}>
                 Training Sessions
               </Button>
-              <Button onClick={() => null} disabled >Invoices</Button>
+              <Button component={Link} to={`/invoices?client=${clientRelationship.client._id}`}>
+                Invoices
+              </Button>
               <Button component={Link} to={`/progress?client=${clientRelationship.client._id}`}>
                 Progress
               </Button>

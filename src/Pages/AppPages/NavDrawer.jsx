@@ -134,6 +134,11 @@ export default function NavDrawer() {
       icon: <SessionIcon />,
     },
     {
+      title: "Products",
+      to: "/products",
+      icon: <GoalsIcon />,
+    },
+    {
       title: "Exercises",
       to: "/exercises",
       icon: <GoalsIcon />,
