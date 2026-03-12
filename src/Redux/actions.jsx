@@ -737,6 +737,8 @@ export function createTraining({ training, user }) {
       body: JSON.stringify({
         userId: user?._id,
         date: training.date,
+        workoutType: training?.workoutType || "Strength",
+        cardio: training?.cardio || {},
         category: training?.category || [],
         training: training?.training || [
           [
@@ -795,6 +797,8 @@ export function createTrainingForAccount({ training, accountId }) {
       body: JSON.stringify({
         userId: accountId,
         date: training.date,
+        workoutType: training?.workoutType || "Strength",
+        cardio: training?.cardio || {},
         category: training?.category || [],
         training: training?.training || [[]],
       }),

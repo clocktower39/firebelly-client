@@ -16,20 +16,24 @@ import {
   FormControl,
   Grid,
   IconButton,
+  InputAdornment,
   InputLabel,
   List,
   ListItem,
   ListItemText,
   MenuItem,
+  Paper,
   Select,
   Stack,
   Slide,
   TextField,
   Toolbar,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { ArrowBack, Close as CloseIcon, Settings } from "@mui/icons-material";
+import { Add, ArrowBack, Close as CloseIcon, Delete, Settings } from "@mui/icons-material";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
@@ -55,6 +59,194 @@ const classes = {
   TrainingCategoryInputContainer: {
     marginBottom: "20px",
   },
+};
+
+const CARDIO_STYLE_OPTIONS = [
+  "Easy",
+  "Long Run",
+  "Tempo",
+  "Intervals",
+  "Hill",
+  "Fartlek",
+  "Race",
+  "Recovery",
+];
+
+const CARDIO_ROUTE_OPTIONS = ["Road", "Trail", "Track", "Treadmill", "Mixed"];
+const CARDIO_SURFACE_OPTIONS = ["Asphalt", "Concrete", "Dirt", "Grass", "Track", "Treadmill"];
+const CARDIO_WEATHER_OPTIONS = ["Sunny", "Cloudy", "Rain", "Windy", "Snow", "Indoor"];
+const CARDIO_HR_ZONE_OPTIONS = [
+  "Z1 Recovery",
+  "Z2 Endurance",
+  "Z3 Tempo",
+  "Z4 Threshold",
+  "Z5 VO2",
+];
+
+const DEFAULT_CARDIO_SEGMENT = {
+  label: "",
+  distance: "",
+  duration: "",
+  pace: "",
+  rpe: "",
+};
+
+const DEFAULT_CARDIO_FIELDS = {
+  style: "",
+  distance: "",
+  distanceUnit: "mi",
+  duration: "",
+  avgPace: "",
+  avgSpeed: "",
+  rpe: "",
+  avgHeartRate: "",
+  elevationGain: "",
+  routeType: "",
+  surface: "",
+  shoes: "",
+  cadence: "",
+  strideLength: "",
+  strideUnit: "in",
+  routeLink: "",
+  weather: "",
+  temperature: "",
+  temperatureUnit: "F",
+  hrZone: "",
+  notes: "",
+  segments: [],
+};
+
+const buildCardioAuto = (cardio) => ({
+  plan: {
+    pace: !cardio?.plan?.avgPace,
+    speed: !cardio?.plan?.avgSpeed,
+  },
+  actual: {
+    pace: !cardio?.actual?.avgPace,
+    speed: !cardio?.actual?.avgSpeed,
+  },
+});
+
+const parseDurationToSeconds = (value) => {
+  if (!value || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parts = trimmed.split(":").map((part) => part.trim());
+  if (!parts.length || parts.some((part) => part === "")) return null;
+  const numbers = parts.map((part) => Number(part));
+  if (numbers.some((num) => Number.isNaN(num))) return null;
+
+  if (numbers.length === 3) {
+    const [hours, minutes, seconds] = numbers;
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  if (numbers.length === 2) {
+    const [minutes, seconds] = numbers;
+    return minutes * 60 + seconds;
+  }
+
+  if (numbers.length === 1) {
+    const [minutes] = numbers;
+    return minutes * 60;
+  }
+
+  return null;
+};
+
+const formatPace = (secondsPerUnit) => {
+  if (!Number.isFinite(secondsPerUnit) || secondsPerUnit <= 0) return "";
+  const totalSeconds = Math.round(secondsPerUnit);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const computeDerivedCardio = (cardio) => {
+  const distance = Number(cardio?.distance);
+  const durationSeconds = parseDurationToSeconds(cardio?.duration || "");
+
+  if (!distance || !durationSeconds) {
+    return { pace: "", speed: "" };
+  }
+
+  const paceSeconds = durationSeconds / distance;
+  const pace = formatPace(paceSeconds);
+  const speed = durationSeconds > 0 ? (distance / (durationSeconds / 3600)).toFixed(2) : "";
+
+  return { pace, speed };
+};
+
+const computeSplitSummary = (segments = []) => {
+  if (!Array.isArray(segments) || segments.length === 0) {
+    return { totalDistance: "", totalDuration: "", avgPace: "" };
+  }
+
+  const totalDistance = segments.reduce((sum, segment) => sum + Number(segment?.distance || 0), 0);
+  const totalDurationSeconds = segments.reduce(
+    (sum, segment) => sum + (parseDurationToSeconds(segment?.duration || "") || 0),
+    0
+  );
+
+  const avgPace =
+    totalDistance > 0 && totalDurationSeconds > 0
+      ? formatPace(totalDurationSeconds / totalDistance)
+      : "";
+
+  const hours = Math.floor(totalDurationSeconds / 3600);
+  const minutes = Math.floor((totalDurationSeconds % 3600) / 60);
+  const seconds = totalDurationSeconds % 60;
+  const totalDuration =
+    totalDurationSeconds > 0
+      ? hours > 0
+        ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+        : `${minutes}:${String(seconds).padStart(2, "0")}`
+      : "";
+
+  return {
+    totalDistance: totalDistance > 0 ? totalDistance.toFixed(2) : "",
+    totalDuration,
+    avgPace,
+  };
+};
+
+const normalizeShoeName = (value) => (value || "").trim().toLowerCase();
+
+const renderAutoAdornment = (isAuto) =>
+  isAuto ? (
+    <InputAdornment position="end">
+      <Tooltip title="Auto-calculated from distance and duration. Edit to override.">
+        <Chip size="small" label="Auto" variant="outlined" />
+      </Tooltip>
+    </InputAdornment>
+  ) : null;
+
+const normalizeCardioFields = (cardioFields) => {
+  const source = cardioFields && typeof cardioFields === "object" ? cardioFields : {};
+  return {
+    ...DEFAULT_CARDIO_FIELDS,
+    ...source,
+    segments: Array.isArray(source.segments)
+      ? source.segments.map((segment) => ({
+          ...DEFAULT_CARDIO_SEGMENT,
+          ...(segment || {}),
+        }))
+      : [],
+  };
+};
+
+const normalizeCardio = (cardio) => {
+  const source = cardio && typeof cardio === "object" ? cardio : {};
+  if (source.plan || source.actual) {
+    return {
+      plan: normalizeCardioFields(source.plan),
+      actual: normalizeCardioFields(source.actual),
+    };
+  }
+  return {
+    plan: normalizeCardioFields(source),
+    actual: normalizeCardioFields({}),
+  };
 };
 
 export const Transition = React.forwardRef(function Transition(props, ref) {
@@ -91,6 +283,64 @@ export default function Workout({ socket }) {
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [scheduleEvent, setScheduleEvent] = useState(null);
+  const [workoutType, setWorkoutType] = useState(training?.workoutType || "Strength");
+  const [cardioDetails, setCardioDetails] = useState(() => normalizeCardio(training?.cardio));
+  const [cardioAuto, setCardioAuto] = useState(() =>
+    buildCardioAuto(normalizeCardio(training?.cardio))
+  );
+  const [cardioViewMode, setCardioViewMode] = useState("plan");
+
+  const activeWorkoutType = workoutType || training?.workoutType || "Strength";
+  const isCardio = activeWorkoutType === "Cardio";
+  const activeCardio = cardioDetails?.[cardioViewMode] || normalizeCardioFields({});
+  const paceUnitLabel = activeCardio.distanceUnit === "km" ? "min/km" : "min/mi";
+  const speedUnitLabel = activeCardio.distanceUnit === "km" ? "km/h" : "mph";
+  const splitSummary = useMemo(
+    () => computeSplitSummary(activeCardio.segments || []),
+    [activeCardio.segments]
+  );
+  const workoutsForMileage = useSelector((state) => {
+    const accountId = training?.user?._id || user._id;
+    return state.workouts?.[accountId]?.workouts || [];
+  });
+  const shoeMileage = useMemo(() => {
+    const shoeName = normalizeShoeName(activeCardio.shoes);
+    if (!shoeName) return null;
+    let totalMiles = 0;
+    let matchingWorkouts = 0;
+
+    workoutsForMileage.forEach((workout) => {
+      const cardio = normalizeCardio(workout?.cardio);
+      const workoutTypeValue = workout?.workoutType || (cardio?.plan || cardio?.actual ? "Cardio" : "");
+      if (workoutTypeValue !== "Cardio") return;
+      const mode = cardio?.actual?.distance ? "actual" : "plan";
+      const entry = cardio?.[mode] || {};
+      if (normalizeShoeName(entry.shoes) !== shoeName) return;
+      const distance = Number(entry.distance);
+      if (!distance) return;
+      const unit = entry.distanceUnit || "mi";
+      const miles = unit === "km" ? distance * 0.621371 : distance;
+      totalMiles += miles;
+      matchingWorkouts += 1;
+    });
+
+    const displayValue =
+      activeCardio.distanceUnit === "km"
+        ? (totalMiles * 1.60934).toFixed(2)
+        : totalMiles.toFixed(2);
+
+    return {
+      value: displayValue,
+      unit: activeCardio.distanceUnit,
+      workouts: matchingWorkouts,
+    };
+  }, [activeCardio.distanceUnit, activeCardio.shoes, workoutsForMileage]);
+  const shoeMileageHelper = useMemo(() => {
+    if (!activeCardio.shoes) return "";
+    if (!shoeMileage) return "Mileage updates as workouts load.";
+    const workoutLabel = shoeMileage.workouts === 1 ? "workout" : "workouts";
+    return `Loaded mileage: ${shoeMileage.value} ${shoeMileage.unit} (${shoeMileage.workouts} ${workoutLabel} loaded)`;
+  }, [activeCardio.shoes, shoeMileage]);
 
   // ---------------------- Dirty check infra (baseline + normalize + composite) ----------------------
   const baselineRef = useRef(null);
@@ -135,6 +385,8 @@ export default function Workout({ socket }) {
     clone.category = clone.category ?? [];
     clone.workoutFeedback = clone.workoutFeedback ?? { difficulty: 1, comments: [] };
     clone.training = clone.training ?? [];
+    clone.workoutType = clone.workoutType ?? "Strength";
+    clone.cardio = normalizeCardio(clone.cardio);
 
     return clone;
   }, []);
@@ -145,7 +397,9 @@ export default function Workout({ socket }) {
     complete: workoutCompleteStatus,
     workoutFeedback,
     training: localTraining,
-  }), [trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining]);
+    workoutType,
+    cardio: cardioDetails,
+  }), [trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining, workoutType, cardioDetails]);
 
   // Hydrate locals when Redux training changes and set the baseline snapshot
   useEffect(() => {
@@ -157,6 +411,11 @@ export default function Workout({ socket }) {
     setTrainingTitle(training.title ?? "");
     setWorkoutCompleteStatus(!!training.complete);
     setWorkoutFeedback(training.workoutFeedback ?? { difficulty: 1, comments: [] });
+    setWorkoutType(training.workoutType || "Strength");
+    const normalizedCardio = normalizeCardio(training.cardio);
+    setCardioDetails(normalizedCardio);
+    setCardioAuto(buildCardioAuto(normalizedCardio));
+    setCardioViewMode("plan");
 
     baselineRef.current = normalize({
       title: training.title ?? "",
@@ -164,6 +423,8 @@ export default function Workout({ socket }) {
       complete: !!training.complete,
       workoutFeedback: training.workoutFeedback ?? { difficulty: 1, comments: [] },
       training: training.training ?? [],
+      workoutType: training.workoutType ?? "Strength",
+      cardio: training.cardio ?? {},
     });
 
     setLoading(false);
@@ -207,7 +468,7 @@ export default function Workout({ socket }) {
     if (!baselineRef.current) return false;
     const localComposite = buildLocalComposite();
     return !deepEqual(baselineRef.current, normalize(localComposite));
-  }, [buildLocalComposite, normalize, trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining]);
+  }, [buildLocalComposite, normalize, trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining, workoutType, cardioDetails]);
 
   // Save handler — replace with your thunk/API call
   const handleSave = async () => {
@@ -228,6 +489,47 @@ export default function Workout({ socket }) {
   };
 
   // -----------------------------------------------------------------------------------------------
+  useEffect(() => {
+    if (!isCardio) return;
+
+    const derived = computeDerivedCardio(activeCardio);
+
+    setCardioDetails((prev) => {
+      const mode = cardioViewMode;
+      const modeData = prev[mode] || normalizeCardioFields({});
+      let nextData = { ...modeData };
+      let changed = false;
+      const autoFlags = cardioAuto?.[mode] || {};
+
+      if (autoFlags.pace) {
+        const nextPace = derived.pace || "";
+        if (nextData.avgPace !== nextPace) {
+          nextData.avgPace = nextPace;
+          changed = true;
+        }
+      }
+
+      if (autoFlags.speed) {
+        const nextSpeed = derived.speed || "";
+        if (nextData.avgSpeed !== nextSpeed) {
+          nextData.avgSpeed = nextSpeed;
+          changed = true;
+        }
+      }
+
+      if (!changed) return prev;
+      return { ...prev, [mode]: nextData };
+    });
+  }, [
+    isCardio,
+    cardioViewMode,
+    cardioAuto,
+    activeCardio.distance,
+    activeCardio.duration,
+    activeCardio.distanceUnit,
+  ]);
+
+  // -----------------------------------------------------------------------------------------------
 
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
@@ -235,6 +537,87 @@ export default function Workout({ socket }) {
 
   const handleTrainingCategory = (getTagProps) => {
     setTrainingCategory(getTagProps);
+  };
+
+  const handleCardioChange = (field) => (event) => {
+    const value = event.target.value;
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleCardioDerivedChange = (field) => (event) => {
+    const value = event.target.value;
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        [field]: value,
+      },
+    }));
+    setCardioAuto((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        [field === "avgPace" ? "pace" : "speed"]: value === "",
+      },
+    }));
+  };
+
+  const handleAddCardioSegment = () => {
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        segments: [...(prev[cardioViewMode]?.segments || []), { ...DEFAULT_CARDIO_SEGMENT }],
+      },
+    }));
+  };
+
+  const handleRemoveCardioSegment = (index) => {
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        segments: (prev[cardioViewMode]?.segments || []).filter((_, idx) => idx !== index),
+      },
+    }));
+  };
+
+  const handleCardioSegmentChange = (index, field) => (event) => {
+    const value = event.target.value;
+    setCardioDetails((prev) => {
+      const segments = [...(prev[cardioViewMode]?.segments || [])];
+      segments[index] = { ...segments[index], [field]: value };
+      return {
+        ...prev,
+        [cardioViewMode]: {
+          ...prev[cardioViewMode],
+          segments,
+        },
+      };
+    });
+  };
+
+  const handleCopyPlanToActual = () => {
+    setCardioDetails((prev) => {
+      const nextActual = normalizeCardioFields(prev.plan);
+      return {
+        ...prev,
+        actual: nextActual,
+      };
+    });
+    setCardioAuto((prev) => ({
+      ...prev,
+      actual: {
+        pace: false,
+        speed: false,
+      },
+    }));
   };
 
   const handleTitleChange = (e) => {
@@ -380,6 +763,8 @@ export default function Workout({ socket }) {
         training: localTraining,
         complete: workoutCompleteStatus,
         workoutFeedback: workoutFeedback,
+        workoutType: activeWorkoutType,
+        cardio: cardioDetails,
       })
     ).then(() => {
       socket.emit("liveTrainingUpdate", {
@@ -408,6 +793,11 @@ export default function Workout({ socket }) {
     setTrainingTitle(training.title || "");
     setWorkoutCompleteStatus(training?.complete || false);
     setWorkoutFeedback(training?.workoutFeedback || { difficulty: 1, comments: [] });
+    setWorkoutType(training.workoutType || "Strength");
+    const normalizedCardio = normalizeCardio(training.cardio);
+    setCardioDetails(normalizedCardio);
+    setCardioAuto(buildCardioAuto(normalizedCardio));
+    setCardioViewMode("plan");
     if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
@@ -602,6 +992,9 @@ export default function Workout({ socket }) {
                         ? "Template Workout"
                         : "Workout Builder"}
                     </Typography>
+                    {activeWorkoutType && (
+                      <Chip label={`${activeWorkoutType} Workout`} size="small" variant="outlined" />
+                    )}
                     {training.isTemplate && (
                       <Chip label="Template Workout" size="small" variant="outlined" />
                     )}
@@ -650,44 +1043,438 @@ export default function Workout({ socket }) {
                       fullWidth
                     />
                   </Grid>
-                  <Grid size={12} container sx={classes.TrainingCategoryInputContainer}>
-                    <Grid size={12} container alignContent="center">
-                      <Autocomplete
-                        disableCloseOnSelect
-                        value={trainingCategory}
-                        fullWidth
-                        multiple
-                        id="tags-filled"
-                        defaultValue={trainingCategory.map((category) => category)}
-                        options={categories.map((option) => option)}
-                        freeSolo
-                        onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
-                        renderTags={(value, getTagProps) =>
-                          value.map((option, index) => {
-                            const { key, ...tagProps } = getTagProps({ index });
-                            return (
-                              <Chip key={`${option}-${index}`} variant="outlined" label={option} {...tagProps} />
-                            )
-                          })
-                        }
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Muscle Groups"
-                            InputProps={{
-                              ...params.InputProps,
-                              endAdornment: <>{params.InputProps.endAdornment}</>,
-                            }}
-                          />
-                        )}
-                      />
+                  {isCardio ? (
+                    <>
+                      <Grid size={12}>
+                        <Paper variant="outlined" sx={{ padding: "16px" }}>
+                          <Stack spacing={2}>
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              spacing={1}
+                              sx={{ flexWrap: "wrap", gap: "8px" }}
+                            >
+                              <Typography variant="h6">Run Details</Typography>
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                <ToggleButtonGroup
+                                  value={cardioViewMode}
+                                  exclusive
+                                  size="small"
+                                  onChange={(event, nextValue) => {
+                                    if (nextValue) setCardioViewMode(nextValue);
+                                  }}
+                                >
+                                  <ToggleButton value="plan">Plan</ToggleButton>
+                                  <ToggleButton value="actual">Results</ToggleButton>
+                                </ToggleButtonGroup>
+                                {cardioViewMode === "actual" && (
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={handleCopyPlanToActual}
+                                  >
+                                    Copy plan
+                                  </Button>
+                                )}
+                              </Stack>
+                            </Stack>
+                            <Grid container spacing={2}>
+                              <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                  select
+                                  label="Run type"
+                                  value={activeCardio.style}
+                                  onChange={handleCardioChange("style")}
+                                  fullWidth
+                                >
+                                  {CARDIO_STYLE_OPTIONS.map((style) => (
+                                    <MenuItem key={style} value={style}>
+                                      {style}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 8, sm: 4 }}>
+                                <TextField
+                                  label="Distance"
+                                  type="number"
+                                  value={activeCardio.distance}
+                                  onChange={handleCardioChange("distance")}
+                                  fullWidth
+                                  inputProps={{ min: 0, step: "0.01" }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 4, sm: 2 }}>
+                                <TextField
+                                  select
+                                  label="Unit"
+                                  value={activeCardio.distanceUnit}
+                                  onChange={handleCardioChange("distanceUnit")}
+                                  fullWidth
+                                >
+                                  <MenuItem value="mi">mi</MenuItem>
+                                  <MenuItem value="km">km</MenuItem>
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  label="Duration"
+                                  placeholder="hh:mm:ss"
+                                  value={activeCardio.duration}
+                                  onChange={handleCardioChange("duration")}
+                                  fullWidth
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  label={`Avg pace (${paceUnitLabel})`}
+                                  placeholder={`mm:ss ${paceUnitLabel}`}
+                                  value={activeCardio.avgPace}
+                                  onChange={handleCardioDerivedChange("avgPace")}
+                                  fullWidth
+                                  InputProps={{
+                                    endAdornment: renderAutoAdornment(
+                                      cardioAuto?.[cardioViewMode]?.pace
+                                    ),
+                                  }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  label={`Avg speed (${speedUnitLabel})`}
+                                  type="number"
+                                  value={activeCardio.avgSpeed}
+                                  onChange={handleCardioDerivedChange("avgSpeed")}
+                                  fullWidth
+                                  inputProps={{ min: 0, step: "0.1" }}
+                                  InputProps={{
+                                    endAdornment: renderAutoAdornment(
+                                      cardioAuto?.[cardioViewMode]?.speed
+                                    ),
+                                  }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  label="Cadence (spm)"
+                                  type="number"
+                                  value={activeCardio.cadence}
+                                  onChange={handleCardioChange("cadence")}
+                                  fullWidth
+                                  inputProps={{ min: 0, step: "1" }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  label="Stride length"
+                                  type="number"
+                                  value={activeCardio.strideLength}
+                                  onChange={handleCardioChange("strideLength")}
+                                  fullWidth
+                                  inputProps={{ min: 0, step: "0.1" }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 4, sm: 2 }}>
+                                <TextField
+                                  select
+                                  label="Stride unit"
+                                  value={activeCardio.strideUnit}
+                                  onChange={handleCardioChange("strideUnit")}
+                                  fullWidth
+                                >
+                                  <MenuItem value="in">in</MenuItem>
+                                  <MenuItem value="cm">cm</MenuItem>
+                                  <MenuItem value="m">m</MenuItem>
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  select
+                                  label="Route type"
+                                  value={activeCardio.routeType}
+                                  onChange={handleCardioChange("routeType")}
+                                  fullWidth
+                                >
+                                  {CARDIO_ROUTE_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 4 }}>
+                                <TextField
+                                  select
+                                  label="Surface"
+                                  value={activeCardio.surface}
+                                  onChange={handleCardioChange("surface")}
+                                  fullWidth
+                                >
+                                  {CARDIO_SURFACE_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 12, sm: 4 }}>
+                                <TextField
+                                  label="Shoes"
+                                  placeholder="e.g., Nike Pegasus 41"
+                                  value={activeCardio.shoes}
+                                  onChange={handleCardioChange("shoes")}
+                                  fullWidth
+                                  helperText={shoeMileageHelper}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 4, sm: 3 }}>
+                                <TextField
+                                  label="RPE"
+                                  type="number"
+                                  value={activeCardio.rpe}
+                                  onChange={handleCardioChange("rpe")}
+                                  fullWidth
+                                  inputProps={{ min: 1, max: 10 }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 8, sm: 3 }}>
+                                <TextField
+                                  select
+                                  label="HR zone"
+                                  value={activeCardio.hrZone}
+                                  onChange={handleCardioChange("hrZone")}
+                                  fullWidth
+                                >
+                                  {CARDIO_HR_ZONE_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 8, sm: 3 }}>
+                                <TextField
+                                  label="Avg heart rate"
+                                  type="number"
+                                  value={activeCardio.avgHeartRate}
+                                  onChange={handleCardioChange("avgHeartRate")}
+                                  fullWidth
+                                  inputProps={{ min: 0 }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 12, sm: 3 }}>
+                                <TextField
+                                  label="Elevation gain"
+                                  type="number"
+                                  value={activeCardio.elevationGain}
+                                  onChange={handleCardioChange("elevationGain")}
+                                  fullWidth
+                                  inputProps={{ min: 0 }}
+                                />
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 3 }}>
+                                <TextField
+                                  select
+                                  label="Weather"
+                                  value={activeCardio.weather}
+                                  onChange={handleCardioChange("weather")}
+                                  fullWidth
+                                >
+                                  {CARDIO_WEATHER_OPTIONS.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Grid>
+                              <Grid size={{ xs: 6, sm: 3 }}>
+                                <TextField
+                                  label="Temperature"
+                                  type="number"
+                                  value={activeCardio.temperature}
+                                  onChange={handleCardioChange("temperature")}
+                                  fullWidth
+                                  inputProps={{ step: "0.1" }}
+                                  InputProps={{
+                                    endAdornment: (
+                                      <InputAdornment position="end">
+                                        <Select
+                                          size="small"
+                                          variant="standard"
+                                          value={activeCardio.temperatureUnit}
+                                          onChange={handleCardioChange("temperatureUnit")}
+                                        >
+                                          <MenuItem value="F">F</MenuItem>
+                                          <MenuItem value="C">C</MenuItem>
+                                        </Select>
+                                      </InputAdornment>
+                                    ),
+                                  }}
+                                />
+                              </Grid>
+                              <Grid size={12}>
+                                <TextField
+                                  label="Route link"
+                                  placeholder="Paste a Garmin/Strava/MapMyRun link"
+                                  value={activeCardio.routeLink}
+                                  onChange={handleCardioChange("routeLink")}
+                                  fullWidth
+                                />
+                              </Grid>
+                            </Grid>
+                          </Stack>
+                        </Paper>
+                      </Grid>
+                      <Grid size={12}>
+                        <Paper variant="outlined" sx={{ padding: "16px" }}>
+                          <Stack spacing={2}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between">
+                              <Typography variant="h6">Splits & Intervals</Typography>
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                onClick={handleAddCardioSegment}
+                                startIcon={<Add />}
+                              >
+                                Add split
+                              </Button>
+                            </Stack>
+                            {(activeCardio.segments || []).length === 0 ? (
+                              <Typography variant="body2" color="text.secondary">
+                                Add splits to track warmups, repeats, or cooldowns.
+                              </Typography>
+                            ) : (
+                              (activeCardio.segments || []).map((segment, index) => (
+                                <Paper key={`cardio-segment-${index}`} variant="outlined" sx={{ padding: "12px" }}>
+                                  <Grid container spacing={2} alignItems="center">
+                                    <Grid size={{ xs: 12, sm: 3 }}>
+                                      <TextField
+                                        label="Label"
+                                        value={segment.label}
+                                        onChange={handleCardioSegmentChange(index, "label")}
+                                        fullWidth
+                                      />
+                                    </Grid>
+                                    <Grid size={{ xs: 6, sm: 2 }}>
+                                      <TextField
+                                        label={`Distance (${activeCardio.distanceUnit})`}
+                                        type="number"
+                                        value={segment.distance}
+                                        onChange={handleCardioSegmentChange(index, "distance")}
+                                        fullWidth
+                                        inputProps={{ min: 0, step: "0.01" }}
+                                      />
+                                    </Grid>
+                                    <Grid size={{ xs: 6, sm: 2 }}>
+                                      <TextField
+                                        label="Duration"
+                                        placeholder="mm:ss"
+                                        value={segment.duration}
+                                        onChange={handleCardioSegmentChange(index, "duration")}
+                                        fullWidth
+                                      />
+                                    </Grid>
+                                    <Grid size={{ xs: 6, sm: 2 }}>
+                                      <TextField
+                                        label={`Pace (${paceUnitLabel})`}
+                                        placeholder="mm:ss"
+                                        value={segment.pace}
+                                        onChange={handleCardioSegmentChange(index, "pace")}
+                                        fullWidth
+                                      />
+                                    </Grid>
+                                    <Grid size={{ xs: 4, sm: 2 }}>
+                                      <TextField
+                                        label="RPE"
+                                        type="number"
+                                        value={segment.rpe}
+                                        onChange={handleCardioSegmentChange(index, "rpe")}
+                                        fullWidth
+                                        inputProps={{ min: 1, max: 10 }}
+                                      />
+                                    </Grid>
+                                    <Grid size={{ xs: 2, sm: 1 }} container justifyContent="flex-end">
+                                      <Tooltip title="Remove split">
+                                        <IconButton onClick={() => handleRemoveCardioSegment(index)}>
+                                          <Delete />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Grid>
+                                  </Grid>
+                                </Paper>
+                              ))
+                            )}
+                            {(activeCardio.segments || []).length > 0 && (
+                              <Stack direction="row" spacing={2} flexWrap="wrap">
+                                <Typography variant="body2" color="text.secondary">
+                                  Total distance: {splitSummary.totalDistance || "—"} {activeCardio.distanceUnit}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Total time: {splitSummary.totalDuration || "—"}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  Avg split pace: {splitSummary.avgPace || "—"} {paceUnitLabel}
+                                </Typography>
+                              </Stack>
+                            )}
+                          </Stack>
+                        </Paper>
+                      </Grid>
+                      <Grid size={12}>
+                        <TextField
+                          label="Notes"
+                          placeholder="How did it feel? Surface, weather, goal pacing..."
+                          value={activeCardio.notes}
+                          onChange={handleCardioChange("notes")}
+                          multiline
+                          minRows={3}
+                          fullWidth
+                        />
+                      </Grid>
+                    </>
+                  ) : (
+                    <Grid size={12} container sx={classes.TrainingCategoryInputContainer}>
+                      <Grid size={12} container alignContent="center">
+                        <Autocomplete
+                          disableCloseOnSelect
+                          value={trainingCategory}
+                          fullWidth
+                          multiple
+                          id="tags-filled"
+                          defaultValue={trainingCategory.map((category) => category)}
+                          options={categories.map((option) => option)}
+                          freeSolo
+                          onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
+                          renderTags={(value, getTagProps) =>
+                            value.map((option, index) => {
+                              const { key, ...tagProps } = getTagProps({ index });
+                              return (
+                                <Chip key={`${option}-${index}`} variant="outlined" label={option} {...tagProps} />
+                              )
+                            })
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Muscle Groups"
+                              InputProps={{
+                                ...params.InputProps,
+                                endAdornment: <>{params.InputProps.endAdornment}</>,
+                              }}
+                            />
+                          )}
+                        />
+                      </Grid>
                     </Grid>
+                  )}
+                </Grid>
+                {!isCardio && (
+                  <Grid size={12}>
+                    <Divider sx={{ margin: "25px 0px" }} />
                   </Grid>
-                </Grid>
-                <Grid size={12}>
-                  <Divider sx={{ margin: "25px 0px" }} />
-                </Grid>
-                {training.training.length > 0 && (
+                )}
+                {!isCardio && training.training.length > 0 && (
                   <SwipeableSet
                     workoutUser={training.user}
                     newExercise={newExercise}

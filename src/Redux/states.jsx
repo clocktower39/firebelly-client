@@ -15,6 +15,8 @@ export let workouts = {
 export let training = {
     category: "",
     training: [],
+    workoutType: "Strength",
+    cardio: {},
 };
 
 export let progress = {
