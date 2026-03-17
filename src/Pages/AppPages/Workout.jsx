@@ -73,7 +73,7 @@ const CARDIO_STYLE_OPTIONS = [
 ];
 
 const CARDIO_ROUTE_OPTIONS = ["Road", "Trail", "Track", "Treadmill", "Mixed"];
-const CARDIO_SURFACE_OPTIONS = ["Asphalt", "Concrete", "Dirt", "Grass", "Track", "Treadmill"];
+const CARDIO_SURFACE_OPTIONS = ["Asphalt", "Concrete", "Dirt", "Grass", "Sand", "Track", "Treadmill"];
 const CARDIO_WEATHER_OPTIONS = ["Sunny", "Cloudy", "Rain", "Windy", "Snow", "Indoor"];
 const CARDIO_HR_ZONE_OPTIONS = [
   "Z1 Recovery",
