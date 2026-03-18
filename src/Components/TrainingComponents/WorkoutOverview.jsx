@@ -11,7 +11,9 @@ import {
   DialogActions,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
+  TextField,
   Tooltip,
   Typography,
   ToggleButton,
@@ -42,6 +44,14 @@ import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifier
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../WorkoutOptionModal";
+
+const WORKOUT_TYPES = [
+  { label: "Strength", value: "Strength", enabled: true },
+  { label: "Cardio", value: "Cardio", enabled: true },
+  { label: "Yoga", value: "Yoga", enabled: false, hint: "Coming soon" },
+  { label: "Pilates", value: "Pilates", enabled: false, hint: "Coming soon" },
+  { label: "Sports", value: "Sports", enabled: false, hint: "Coming soon" },
+];
 
 // Helper to find an exercise's current location in localWorkouts
 const findExerciseLocationByExerciseId = (workouts, exerciseId) => {
@@ -132,6 +142,7 @@ export default function WorkoutOverview({
     }, {})
   );
   const [activeId, setActiveId] = useState(null);
+  const [newWorkoutType, setNewWorkoutType] = useState("Strength");
 
   const handleViewToggleChange = (workoutId, newViewMode) => {
     if (newViewMode !== null) {
@@ -161,10 +172,17 @@ export default function WorkoutOverview({
       createTraining({
         training: {
           date: selectedDate,
+          workoutType: newWorkoutType,
         },
         user,
       })
     );
+
+  useEffect(() => {
+    if (openCreateWorkoutDialog) {
+      setNewWorkoutType("Strength");
+    }
+  }, [openCreateWorkoutDialog]);
 
   useEffect(() => {
     setViewModes(
@@ -499,13 +517,33 @@ export default function WorkoutOverview({
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle>{"Create a workout"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
-            {/* Options */}
-            {/* import from queue, custom set & reps per set (default: 4 X (4 X 10)) */}- Default
-            (more options coming soon)
-          </DialogContentText>
-        </DialogContent>
+      <DialogContent>
+        <DialogContentText id="alert-dialog-slide-description">
+          Select a workout type to create. More options coming soon.
+        </DialogContentText>
+        <Box sx={{ marginTop: "12px" }}>
+          <TextField
+            select
+            fullWidth
+            label="Workout type"
+            value={newWorkoutType}
+            onChange={(event) => setNewWorkoutType(event.target.value)}
+          >
+            {WORKOUT_TYPES.map((type) => (
+              <MenuItem key={type.value} value={type.value} disabled={!type.enabled}>
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Typography variant="body1">{type.label}</Typography>
+                  {!type.enabled && (
+                    <Typography variant="caption" color="text.secondary">
+                      {type.hint || "Coming soon"}
+                    </Typography>
+                  )}
+                </Box>
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
+      </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreateWorkoutDialog}>Cancel</Button>
           <Button onClick={() => handleAddWorkout().then(() => handleCloseCreateWorkoutDialog())}>

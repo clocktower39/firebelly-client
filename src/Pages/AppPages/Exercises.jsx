@@ -175,6 +175,7 @@ const exercisePropertyOptions = [
       "Pull-up Bar",
       "Rings",
       "Safety Squat Bar",
+      "Sled",
       "Slam Ball",
       "Smith Machine",
       "Stability Ball",

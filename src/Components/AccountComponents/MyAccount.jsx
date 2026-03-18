@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Avatar, Button, CardMedia, Container, Dialog, Input, MenuItem, Paper, TextField, Typography, Grid } from "@mui/material";
+import { Avatar, Button, CardMedia, Chip, Container, Dialog, Divider, Input, MenuItem, Paper, Stack, TextField, Tooltip, Typography, Grid } from "@mui/material";
 // InputMask relies on findDOMNode, which was deprecated in React 18. Need to find alternative
 import InputMask from "react-input-mask";
 import { editUser, uploadProfilePicture, serverURL, } from "../../Redux/actions";
@@ -21,6 +21,34 @@ export default function MyAccount() {
   
   const [profilePictureDialog, setProfilePictureDialog] = useState(false);
   const handleProfilePictureDialog = () => setProfilePictureDialog((prev) => !prev);
+  const [selectedIntegrationId, setSelectedIntegrationId] = useState("");
+
+  const integrations = [
+    {
+      id: "garmin",
+      name: "Garmin Connect",
+      description: "Sync runs, heart rate, GPS routes, and activity summaries.",
+      statusLabel: "Not connected",
+      enabled: false,
+      helper: "OAuth setup required.",
+    },
+    {
+      id: "samsung",
+      name: "Samsung Health",
+      description: "Sync steps, runs, heart rate, and workouts.",
+      statusLabel: "Not connected",
+      enabled: false,
+      helper: "OAuth setup required.",
+    },
+    {
+      id: "apple",
+      name: "Apple Fitness / Health",
+      description: "Sync workouts and health metrics (requires iOS device integration).",
+      statusLabel: "Not connected",
+      enabled: false,
+      helper: "Requires iOS integration + OAuth setup.",
+    },
+  ];
 
 
   const handleChange = (value, setter) => setter(value);
@@ -163,6 +191,81 @@ export default function MyAccount() {
             </Grid>
           </Grid>
         </Grid>
+      </Paper>
+      <Paper sx={{ marginTop: "20px", padding: "15px" }}>
+        <Stack spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography variant="h6">Integrations</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Connect your fitness apps to auto-import cardio workouts and metrics.
+            </Typography>
+          </Stack>
+          <Divider />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                label="Choose an integration"
+                value={selectedIntegrationId}
+                onChange={(event) => setSelectedIntegrationId(event.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">None</MenuItem>
+                {integrations.map((integration) => (
+                  <MenuItem key={integration.id} value={integration.id}>
+                    {integration.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={12}>
+              {!selectedIntegrationId ? (
+                <Typography variant="body2" color="text.secondary">
+                  Select an integration to manage.
+                </Typography>
+              ) : (
+                (() => {
+                  const integration = integrations.find((item) => item.id === selectedIntegrationId);
+                  if (!integration) return null;
+                  return (
+                    <Paper variant="outlined" sx={{ padding: "12px" }}>
+                      <Stack spacing={1.5}>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between">
+                          <Stack spacing={0.25}>
+                            <Typography variant="subtitle1">{integration.name}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {integration.description}
+                            </Typography>
+                          </Stack>
+                          <Chip label={integration.statusLabel} size="small" variant="outlined" />
+                        </Stack>
+                        <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
+                          <Typography variant="caption" color="text.secondary">
+                            {integration.helper}
+                          </Typography>
+                          <Tooltip title={integration.enabled ? "Connect" : "Keys required to enable"}>
+                            <span>
+                              <Button variant="contained" disabled={!integration.enabled}>
+                                Connect
+                              </Button>
+                            </span>
+                          </Tooltip>
+                          <Tooltip title={integration.enabled ? "Sync now" : "Connect first"}>
+                            <span>
+                              <Button variant="outlined" disabled>
+                                Sync now
+                              </Button>
+                            </span>
+                          </Tooltip>
+                        </Stack>
+                      </Stack>
+                    </Paper>
+                  );
+                })()
+              )}
+            </Grid>
+          </Grid>
+        </Stack>
       </Paper>
       <Dialog open={profilePictureDialog} onClose={handleProfilePictureDialog}>
         <ProfilePictureUpload />
