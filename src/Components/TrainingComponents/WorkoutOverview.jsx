@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -13,6 +14,7 @@ import {
   IconButton,
   MenuItem,
   Paper,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -52,6 +54,165 @@ const WORKOUT_TYPES = [
   { label: "Pilates", value: "Pilates", enabled: false, hint: "Coming soon" },
   { label: "Sports", value: "Sports", enabled: false, hint: "Coming soon" },
 ];
+
+const CARDIO_PREVIEW_DEFAULTS = {
+  activity: "Run",
+  style: "",
+  distance: "",
+  distanceUnit: "mi",
+  duration: "",
+  avgPace: "",
+  avgSpeed: "",
+  routeType: "",
+  surface: "",
+  elevationGain: "",
+  weather: "",
+  temperature: "",
+  temperatureUnit: "F",
+  rpe: "",
+  hrZone: "",
+  notes: "",
+  segments: [],
+};
+
+const hasCardioPreviewValue = (value) =>
+  !(value === "" || value === null || value === undefined || (Array.isArray(value) && value.length === 0));
+
+const normalizeCardioPreviewFields = (cardioFields) => {
+  const source = cardioFields && typeof cardioFields === "object" ? cardioFields : {};
+  return {
+    ...CARDIO_PREVIEW_DEFAULTS,
+    ...source,
+    segments: Array.isArray(source.segments) ? source.segments : [],
+  };
+};
+
+const normalizeCardioPreview = (cardio) => {
+  const source = cardio && typeof cardio === "object" ? cardio : {};
+  if (source.plan || source.actual) {
+    return {
+      plan: normalizeCardioPreviewFields(source.plan),
+      actual: normalizeCardioPreviewFields(source.actual),
+    };
+  }
+
+  return {
+    plan: normalizeCardioPreviewFields(source),
+    actual: normalizeCardioPreviewFields({}),
+  };
+};
+
+const isCardioPreviewEmpty = (cardioFields) =>
+  ![
+    cardioFields?.style,
+    cardioFields?.distance,
+    cardioFields?.duration,
+    cardioFields?.avgPace,
+    cardioFields?.avgSpeed,
+    cardioFields?.routeType,
+    cardioFields?.surface,
+    cardioFields?.weather,
+    cardioFields?.temperature,
+    cardioFields?.rpe,
+    cardioFields?.hrZone,
+    cardioFields?.notes,
+    cardioFields?.segments?.length,
+  ].some((value) => hasCardioPreviewValue(value));
+
+const parseCardioPreviewDurationToSeconds = (value) => {
+  if (!hasCardioPreviewValue(value)) return null;
+  const text = String(value).trim();
+  if (!text) return null;
+  const parts = text.split(":").map((part) => Number(part.trim()));
+  if (parts.some((part) => Number.isNaN(part))) return null;
+
+  if (parts.length === 3) {
+    const [hours, minutes, seconds] = parts;
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  if (parts.length === 2) {
+    const [minutes, seconds] = parts;
+    return minutes * 60 + seconds;
+  }
+
+  if (parts.length === 1) {
+    return parts[0] * 60;
+  }
+
+  return null;
+};
+
+const formatCardioPreviewPace = (secondsPerUnit) => {
+  if (!Number.isFinite(secondsPerUnit) || secondsPerUnit <= 0) return "";
+  const totalSeconds = Math.round(secondsPerUnit);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const getCardioPreviewPaceUnit = (activity, distanceUnit) => {
+  if (activity === "Swim") {
+    return distanceUnit === "yd" ? "min/100yd" : "min/100m";
+  }
+  return distanceUnit === "km" ? "min/km" : "min/mi";
+};
+
+const getCardioPreviewSpeedUnit = (distanceUnit) => {
+  if (distanceUnit === "km") return "km/h";
+  if (distanceUnit === "mi") return "mph";
+  return "";
+};
+
+const getCardioPreviewMetric = (cardioFields) => {
+  const paceUnit = getCardioPreviewPaceUnit(cardioFields.activity, cardioFields.distanceUnit);
+  const speedUnit = getCardioPreviewSpeedUnit(cardioFields.distanceUnit);
+  const prefersSpeed = ["Bike", "Kayak"].includes(cardioFields.activity);
+  const distance = Number(cardioFields.distance);
+  const durationSeconds = parseCardioPreviewDurationToSeconds(cardioFields.duration);
+
+  if (prefersSpeed && hasCardioPreviewValue(cardioFields.avgSpeed)) {
+    return { label: "Avg speed", value: `${cardioFields.avgSpeed} ${speedUnit}`.trim() };
+  }
+
+  if (hasCardioPreviewValue(cardioFields.avgPace)) {
+    return { label: cardioFields.activity === "Swim" ? "Pace /100" : "Avg pace", value: `${cardioFields.avgPace} ${paceUnit}` };
+  }
+
+  if (hasCardioPreviewValue(cardioFields.avgSpeed)) {
+    return { label: "Avg speed", value: `${cardioFields.avgSpeed} ${speedUnit}`.trim() };
+  }
+
+  if (!Number.isFinite(distance) || distance <= 0 || !durationSeconds) {
+    return { label: prefersSpeed ? "Avg speed" : cardioFields.activity === "Swim" ? "Pace /100" : "Avg pace", value: "—" };
+  }
+
+  if (prefersSpeed && speedUnit) {
+    return {
+      label: "Avg speed",
+      value: `${(distance / (durationSeconds / 3600)).toFixed(2)} ${speedUnit}`,
+    };
+  }
+
+  const secondsPerUnit = cardioFields.activity === "Swim" ? durationSeconds / (distance / 100) : durationSeconds / distance;
+  const paceValue = formatCardioPreviewPace(secondsPerUnit);
+  return {
+    label: cardioFields.activity === "Swim" ? "Pace /100" : "Avg pace",
+    value: paceValue ? `${paceValue} ${paceUnit}` : "—",
+  };
+};
+
+const formatCardioPreviewTemperature = (temperature, unit) => {
+  if (!hasCardioPreviewValue(temperature)) return "";
+  return unit ? `${temperature} ${unit}` : `${temperature}`;
+};
+
+const truncateCardioPreviewText = (value, maxLength = 150) => {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
+};
 
 // Helper to find an exercise's current location in localWorkouts
 const findExerciseLocationByExerciseId = (workouts, exerciseId) => {
@@ -424,10 +585,19 @@ export default function WorkoutOverview({
           };
 
           const currentViewMode = viewModes[workout._id] || "goals"; // Default to 'goals' if not set
+          const isCardioWorkout = workout.workoutType === "Cardio";
 
           return (
             <React.Fragment key={`workout-${index}`}>
-              <Paper elevation={5} sx={{ margin: "5px", padding: "5px" }}>
+              <Paper
+                elevation={5}
+                sx={{
+                  margin: "5px",
+                  padding: "8px",
+                  borderTop: isCardioWorkout ? "4px solid" : undefined,
+                  borderColor: isCardioWorkout ? "info.main" : undefined,
+                }}
+              >
                 <Grid container sx={{ justifyContent: "center", alignItems: "center" }}>
                   <Grid size={11} container>
                     <Typography variant="h6">{workout.title}</Typography>
@@ -452,42 +622,46 @@ export default function WorkoutOverview({
                   size="small"
                 >
                   <ToggleButton value="goals" aria-label="goals">
-                    Goals
+                    {isCardioWorkout ? "Plan" : "Goals"}
                   </ToggleButton>
                   <ToggleButton value="achieved" aria-label="achieved">
-                    Achieved
+                    {isCardioWorkout ? "Results" : "Achieved"}
                   </ToggleButton>
                 </ToggleButtonGroup>
                 <div style={{ padding: "10px 0px" }}>
-                  <SortableContext items={flattenedCircuits} strategy={verticalListSortingStrategy}>
-                    {
-                      // iterates through each workout set (supersets)
-                      workout.training.map((circuit, circuitIndex) => {
-                        return (
-                          <Grid container key={`circuit-${workout._id}-${circuitIndex}`}>
-                            <Grid size={12}>
-                              <SortableCircuit
-                                id={`circuit-${workout._id}-${circuitIndex}`}
-                                index={circuitIndex}
-                              >
-                                {(listeners, attributes) => (
-                                  <WorkoutSet
-                                    workout={workout}
-                                    circuit={circuit}
-                                    circuitIndex={circuitIndex}
-                                    viewMode={currentViewMode}
-                                    activeId={activeId}
-                                    listeners={listeners}
-                                    attributes={attributes}
-                                  />
-                                )}
-                              </SortableCircuit>
+                  {isCardioWorkout ? (
+                    <CardioWorkoutPreview workout={workout} viewMode={currentViewMode} />
+                  ) : (
+                    <SortableContext items={flattenedCircuits} strategy={verticalListSortingStrategy}>
+                      {
+                        // iterates through each workout set (supersets)
+                        workout.training.map((circuit, circuitIndex) => {
+                          return (
+                            <Grid container key={`circuit-${workout._id}-${circuitIndex}`}>
+                              <Grid size={12}>
+                                <SortableCircuit
+                                  id={`circuit-${workout._id}-${circuitIndex}`}
+                                  index={circuitIndex}
+                                >
+                                  {(listeners, attributes) => (
+                                    <WorkoutSet
+                                      workout={workout}
+                                      circuit={circuit}
+                                      circuitIndex={circuitIndex}
+                                      viewMode={currentViewMode}
+                                      activeId={activeId}
+                                      listeners={listeners}
+                                      attributes={attributes}
+                                    />
+                                  )}
+                                </SortableCircuit>
+                              </Grid>
                             </Grid>
-                          </Grid>
-                        );
-                      })
-                    }
-                  </SortableContext>
+                          );
+                        })
+                      }
+                    </SortableContext>
+                  )}
                 </div>
                 <Grid container size={12} sx={{ justifyContent: "center", padding: "5px" }}>
                   <Link to={`/workout/${workout._id}`}>
@@ -616,6 +790,141 @@ export default function WorkoutOverview({
     </DndContext>
   );
 }
+
+const CardioWorkoutPreview = ({ workout, viewMode }) => {
+  const cardio = useMemo(() => normalizeCardioPreview(workout.cardio), [workout.cardio]);
+  const isResultsMode = viewMode === "achieved";
+  const requestedEntry = isResultsMode ? cardio.actual : cardio.plan;
+  const showingPlanFallback = isResultsMode && isCardioPreviewEmpty(requestedEntry) && !isCardioPreviewEmpty(cardio.plan);
+  const cardioFields = showingPlanFallback ? cardio.plan : requestedEntry;
+  const metric = getCardioPreviewMetric(cardioFields);
+  const activityLabel = cardioFields.activity || "Cardio";
+  const detailChips = [
+    cardioFields.routeType,
+    cardioFields.surface,
+    cardioFields.weather,
+    formatCardioPreviewTemperature(cardioFields.temperature, cardioFields.temperatureUnit),
+    hasCardioPreviewValue(cardioFields.elevationGain) ? `Gain ${cardioFields.elevationGain}` : "",
+    hasCardioPreviewValue(cardioFields.rpe) ? `RPE ${cardioFields.rpe}` : "",
+    cardioFields.hrZone,
+    cardioFields.segments?.length ? `${cardioFields.segments.length} split${cardioFields.segments.length === 1 ? "" : "s"}` : "",
+  ].filter(Boolean);
+
+  if (isCardioPreviewEmpty(cardioFields)) {
+    return (
+      <Box
+        sx={{
+          borderRadius: 3,
+          padding: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.info.light}20 0%, ${theme.palette.success.light}18 100%)`,
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          {isResultsMode ? "No cardio results logged yet." : "Add cardio details to preview this workout."}
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{
+        borderRadius: 3,
+        padding: 2,
+        border: "1px solid",
+        borderColor: "divider",
+        background: (theme) =>
+          `linear-gradient(135deg, ${theme.palette.info.light}22 0%, ${theme.palette.success.light}15 100%)`,
+      }}
+    >
+      <Stack spacing={1.5}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" } }}
+        >
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+            <Chip size="small" color="info" label={activityLabel} />
+            {hasCardioPreviewValue(cardioFields.style) && (
+              <Chip size="small" variant="outlined" label={cardioFields.style} />
+            )}
+            {showingPlanFallback && (
+              <Chip size="small" variant="outlined" label="Showing plan until results are logged" />
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            {isResultsMode && !showingPlanFallback ? "Logged results" : "Workout preview"}
+          </Typography>
+        </Stack>
+
+        <Grid container spacing={1.5}>
+          {[
+            {
+              label: "Distance",
+              value: hasCardioPreviewValue(cardioFields.distance)
+                ? `${cardioFields.distance} ${cardioFields.distanceUnit}`
+                : "—",
+              background: (theme) => `${theme.palette.warning.light}12`,
+            },
+            {
+              label: "Duration",
+              value: hasCardioPreviewValue(cardioFields.duration) ? cardioFields.duration : "—",
+              background: (theme) => `${theme.palette.warning.light}12`,
+            },
+            {
+              label: metric.label,
+              value: metric.value || "—",
+              background: (theme) => `${theme.palette.warning.light}12`,
+            },
+          ].map((item) => (
+            <Grid key={`${workout._id}-${item.label}`} size={{ xs: 12, sm: 4 }}>
+              <Paper
+                variant="outlined"
+                sx={{
+                  height: "100%",
+                  padding: 1.25,
+                  background: item.background,
+                  borderColor: "rgba(255,255,255,0.45)",
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {item.label}
+                </Typography>
+                <Typography variant="h6">{item.value}</Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+
+        {detailChips.length > 0 && (
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+            {detailChips.slice(0, 6).map((detail) => (
+              <Chip key={`${workout._id}-${detail}`} label={detail} size="small" variant="outlined" />
+            ))}
+          </Stack>
+        )}
+
+        {hasCardioPreviewValue(cardioFields.notes) && (
+          <Paper
+            variant="outlined"
+            sx={{
+              padding: 1.25,
+              backgroundColor: "rgba(255,255,255,0.65)",
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              Notes
+            </Typography>
+            <Typography variant="body2">{truncateCardioPreviewText(cardioFields.notes, 140)}</Typography>
+          </Paper>
+        )}
+      </Stack>
+    </Box>
+  );
+};
 
 const WorkoutSet = (props) => {
   const {

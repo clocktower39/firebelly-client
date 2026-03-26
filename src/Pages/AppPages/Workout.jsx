@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import deepEqual from "fast-deep-equal/react";
 import { debounce } from "lodash";
 import {
+  Alert,
   AppBar,
   Autocomplete,
   Avatar,
@@ -26,6 +27,7 @@ import {
   Paper,
   Select,
   Stack,
+  Snackbar,
   Slide,
   TextField,
   Toolbar,
@@ -236,6 +238,7 @@ const DEFAULT_CARDIO_FIELDS = {
   temperatureUnit: "F",
   hrZone: "",
   notes: "",
+  clientPrompts: [],
   segments: [],
 };
 
@@ -243,8 +246,30 @@ const DEFAULT_CARDIO_SECTION_STATE = {
   metrics: false,
   route: false,
   conditions: false,
+  notes: false,
   segments: false,
 };
+
+const CARDIO_OPTIONAL_SECTIONS = [
+  { key: "segments", label: "Splits", summaryLabel: "Splits" },
+  { key: "metrics", label: "Metrics", summaryLabel: "Metrics" },
+  { key: "route", label: "Route & Gear", summaryLabel: "Route" },
+  { key: "conditions", label: "Conditions", summaryLabel: "Weather" },
+  { key: "notes", label: "Notes", summaryLabel: "Notes" },
+];
+
+const CARDIO_CLIENT_PROMPT_OPTIONS = [
+  { key: "rpe", label: "RPE", section: "metrics" },
+  { key: "avgHeartRate", label: "Heart rate", section: "metrics" },
+  { key: "weather", label: "Weather", section: "conditions" },
+  { key: "notes", label: "Notes", section: "notes" },
+  { key: "segments", label: "Splits", section: "segments" },
+];
+
+const CARDIO_CLIENT_PROMPT_LOOKUP = CARDIO_CLIENT_PROMPT_OPTIONS.reduce((acc, option) => {
+  acc[option.key] = option;
+  return acc;
+}, {});
 
 const getCardioActivityConfig = (activity) =>
   CARDIO_ACTIVITY_CONFIG[activity] || CARDIO_ACTIVITY_CONFIG.Run;
@@ -260,6 +285,8 @@ const getCardioRouteOptions = (activity) =>
 
 const getCardioSurfaceOptions = (activity) =>
   getCardioActivityConfig(activity).surfaceOptions || [];
+
+const getCardioStylePresets = (activity) => getCardioStyleOptions(activity).slice(0, 4);
 
 const getPaceUnitLabel = (activity, distanceUnit) => {
   if (activity === "Swim") {
@@ -288,6 +315,152 @@ const getSecondaryCardioMetric = (activity) => {
   return null;
 };
 
+const getDurationHelperText = () => "Examples: 45, 45:00, or 1:05:30.";
+
+const getDerivedMetricHelperText = (metric, paceUnitLabel, speedUnitLabel) => {
+  if (metric === "speed") {
+    return speedUnitLabel ? `Example: 14.5 ${speedUnitLabel}.` : "Example: 14.5.";
+  }
+
+  return `Use mm:ss format. Example: 8:15 ${paceUnitLabel}.`;
+};
+
+const getDerivedMetricErrorText = (metric) =>
+  metric === "speed" ? "Enter a positive number." : "Use mm:ss format.";
+
+const truncateText = (value, maxLength = 44) => {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1)}…`;
+};
+
+const joinSummaryParts = (parts, limit = 2) => parts.filter(Boolean).slice(0, limit).join(" • ");
+
+const formatTemperatureLabel = (temperature, unit) => {
+  if (temperature === "" || temperature === null || temperature === undefined) return "";
+  return unit ? `${temperature} ${unit}` : String(temperature);
+};
+
+const hasCardioValue = (value) =>
+  !(value === "" || value === null || value === undefined || (Array.isArray(value) && value.length === 0));
+
+const shortenHrZoneLabel = (value) => {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+
+  const match = normalized.match(/^(Z\d+)/i);
+  return match ? match[1].toUpperCase() : normalized;
+};
+
+const isPositiveNumericValue = (value) => {
+  if (!hasCardioValue(value)) return true;
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue > 0;
+};
+
+const isValidPaceValue = (value) => {
+  if (!hasCardioValue(value)) return true;
+  if (!String(value).includes(":")) return false;
+  return parseDurationToSeconds(String(value)) !== null;
+};
+
+const isValidDurationValue = (value) => {
+  if (!hasCardioValue(value)) return true;
+  return parseDurationToSeconds(String(value)) !== null;
+};
+
+const getCardioPromptMissing = (cardioFields, promptKeys = []) =>
+  promptKeys.filter((key) => {
+    if (key === "segments") return !Array.isArray(cardioFields?.segments) || cardioFields.segments.length === 0;
+    return !hasCardioValue(cardioFields?.[key]);
+  });
+
+const getCardioAutoOpenSections = ({ cardioFields, promptKeys = [], editorMode = "quick" }) => {
+  const nextState = { ...DEFAULT_CARDIO_SECTION_STATE };
+
+  if (editorMode === "full") {
+    if (cardioFields?.segments?.length) nextState.segments = true;
+    if (
+      hasCardioValue(cardioFields?.avgPace) ||
+      hasCardioValue(cardioFields?.avgSpeed) ||
+      hasCardioValue(cardioFields?.rpe) ||
+      hasCardioValue(cardioFields?.hrZone) ||
+      hasCardioValue(cardioFields?.avgHeartRate) ||
+      hasCardioValue(cardioFields?.cadence) ||
+      hasCardioValue(cardioFields?.strideLength)
+    ) {
+      nextState.metrics = true;
+    }
+    if (
+      hasCardioValue(cardioFields?.routeType) ||
+      hasCardioValue(cardioFields?.surface) ||
+      hasCardioValue(cardioFields?.shoes) ||
+      hasCardioValue(cardioFields?.elevationGain) ||
+      hasCardioValue(cardioFields?.routeLink)
+    ) {
+      nextState.route = true;
+    }
+    if (hasCardioValue(cardioFields?.weather) || hasCardioValue(cardioFields?.temperature)) {
+      nextState.conditions = true;
+    }
+    if (hasCardioValue(cardioFields?.notes)) {
+      nextState.notes = true;
+    }
+  }
+
+  promptKeys.forEach((key) => {
+    const section = CARDIO_CLIENT_PROMPT_LOOKUP[key]?.section;
+    if (section) nextState[section] = true;
+  });
+
+  return nextState;
+};
+
+const sanitizeCardioForActivity = (cardioFields, nextActivity) => {
+  const current = normalizeCardioFields(cardioFields);
+  const nextConfig = getCardioActivityConfig(nextActivity);
+  const nextPrimaryMetric = getPrimaryCardioMetric(nextActivity);
+  const currentPrimaryMetric = getPrimaryCardioMetric(current.activity);
+  const nextDistanceUnits = getCardioDistanceUnitOptions(nextActivity);
+  const nextDistanceUnit = nextDistanceUnits.includes(current.distanceUnit)
+    ? current.distanceUnit
+    : nextDistanceUnits[0];
+  const nextStyleOptions = getCardioStyleOptions(nextActivity);
+  const nextRouteOptions = getCardioRouteOptions(nextActivity);
+  const nextSurfaceOptions = getCardioSurfaceOptions(nextActivity);
+
+  return {
+    ...current,
+    activity: nextActivity,
+    distanceUnit: nextDistanceUnit,
+    distance: convertDistanceValue(current.distance, current.distanceUnit, nextDistanceUnit),
+    style: nextStyleOptions.includes(current.style) ? current.style : "",
+    avgPace: nextConfig.showPace ? current.avgPace : "",
+    avgSpeed: nextConfig.showSpeed ? current.avgSpeed : "",
+    routeType:
+      nextConfig.showRouteType && nextRouteOptions.includes(current.routeType) ? current.routeType : "",
+    surface:
+      nextConfig.showSurface && nextSurfaceOptions.includes(current.surface) ? current.surface : "",
+    shoes: nextConfig.showFootwear ? current.shoes : "",
+    cadence: nextConfig.showCadence ? current.cadence : "",
+    strideLength: nextConfig.showStride ? current.strideLength : "",
+    strideUnit: nextConfig.showStride ? current.strideUnit : DEFAULT_CARDIO_FIELDS.strideUnit,
+    elevationGain: nextConfig.showElevation ? current.elevationGain : "",
+    segments:
+      currentPrimaryMetric === nextPrimaryMetric
+        ? current.segments.map((segment) => ({
+            ...segment,
+            distance: convertDistanceValue(segment?.distance, current.distanceUnit, nextDistanceUnit),
+          }))
+        : current.segments.map((segment) => ({
+            ...segment,
+            distance: convertDistanceValue(segment?.distance, current.distanceUnit, nextDistanceUnit),
+            pace: "",
+          })),
+  };
+};
+
 const convertDistanceToMiles = (distance, unit) => {
   const value = Number(distance);
   if (!value) return 0;
@@ -302,6 +475,37 @@ const convertDistanceToMiles = (distance, unit) => {
     default:
       return value;
   }
+};
+
+const convertMilesToDistance = (miles, unit) => {
+  if (!Number.isFinite(miles) || miles === 0) return 0;
+
+  switch (unit) {
+    case "km":
+      return miles / 0.621371;
+    case "m":
+      return miles / 0.000621371;
+    case "yd":
+      return miles / 0.000568182;
+    default:
+      return miles;
+  }
+};
+
+const formatConvertedDistance = (value, unit) => {
+  if (!Number.isFinite(value)) return "";
+  const precision = ["m", "yd"].includes(unit) ? 1 : 2;
+  return Number(value.toFixed(precision)).toString();
+};
+
+const convertDistanceValue = (distance, fromUnit, toUnit) => {
+  if (!hasCardioValue(distance) || fromUnit === toUnit) return distance;
+  const numericDistance = Number(distance);
+  if (!Number.isFinite(numericDistance) || numericDistance <= 0) return distance;
+
+  const miles = convertDistanceToMiles(numericDistance, fromUnit);
+  const convertedDistance = convertMilesToDistance(miles, toUnit);
+  return formatConvertedDistance(convertedDistance, toUnit);
 };
 
 const buildCardioAuto = (cardio) => ({
@@ -424,6 +628,7 @@ const normalizeCardioFields = (cardioFields) => {
   return {
     ...DEFAULT_CARDIO_FIELDS,
     ...source,
+    clientPrompts: Array.isArray(source.clientPrompts) ? source.clientPrompts.filter(Boolean) : [],
     segments: Array.isArray(source.segments)
       ? source.segments.map((segment) => ({
           ...DEFAULT_CARDIO_SEGMENT,
@@ -433,17 +638,66 @@ const normalizeCardioFields = (cardioFields) => {
   };
 };
 
+const hasCardioResultDetails = (cardioFields) =>
+  [
+    cardioFields?.distance,
+    cardioFields?.duration,
+    cardioFields?.avgPace,
+    cardioFields?.avgSpeed,
+    cardioFields?.rpe,
+    cardioFields?.avgHeartRate,
+    cardioFields?.elevationGain,
+    cardioFields?.routeType,
+    cardioFields?.surface,
+    cardioFields?.shoes,
+    cardioFields?.cadence,
+    cardioFields?.strideLength,
+    cardioFields?.routeLink,
+    cardioFields?.weather,
+    cardioFields?.temperature,
+    cardioFields?.hrZone,
+    cardioFields?.notes,
+    cardioFields?.segments?.length,
+  ].some((value) => hasCardioValue(value));
+
+const seedActualCardioFromPlan = (planCardio, actualCardio) => {
+  const normalizedPlan = normalizeCardioFields(planCardio);
+  const normalizedActual = normalizeCardioFields(actualCardio);
+
+  if (hasCardioResultDetails(normalizedActual)) {
+    return {
+      ...normalizedActual,
+      style: normalizedActual.style || normalizedPlan.style,
+      routeType: normalizedActual.routeType || normalizedPlan.routeType,
+      surface: normalizedActual.surface || normalizedPlan.surface,
+      routeLink: normalizedActual.routeLink || normalizedPlan.routeLink,
+    };
+  }
+
+  return {
+    ...normalizedActual,
+    activity: normalizedPlan.activity,
+    style: normalizedPlan.style,
+    distanceUnit: normalizedPlan.distanceUnit,
+    routeType: normalizedPlan.routeType,
+    surface: normalizedPlan.surface,
+    routeLink: normalizedPlan.routeLink,
+  };
+};
+
 const normalizeCardio = (cardio) => {
   const source = cardio && typeof cardio === "object" ? cardio : {};
   if (source.plan || source.actual) {
+    const normalizedPlan = normalizeCardioFields(source.plan);
     return {
-      plan: normalizeCardioFields(source.plan),
-      actual: normalizeCardioFields(source.actual),
+      plan: normalizedPlan,
+      actual: seedActualCardioFromPlan(normalizedPlan, source.actual),
     };
   }
+  const normalizedPlan = normalizeCardioFields(source);
   return {
-    plan: normalizeCardioFields(source),
-    actual: normalizeCardioFields({}),
+    plan: normalizedPlan,
+    actual: seedActualCardioFromPlan(normalizedPlan, {}),
   };
 };
 
@@ -488,10 +742,20 @@ export default function Workout({ socket }) {
   );
   const [cardioViewMode, setCardioViewMode] = useState("plan");
   const [cardioSectionsOpen, setCardioSectionsOpen] = useState(DEFAULT_CARDIO_SECTION_STATE);
+  const [cardioEditorMode, setCardioEditorMode] = useState(user?.isTrainer ? "full" : "quick");
+  const [cardioNotice, setCardioNotice] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   const activeWorkoutType = workoutType || training?.workoutType || "Strength";
   const isCardio = activeWorkoutType === "Cardio";
   const activeCardio = cardioDetails?.[cardioViewMode] || normalizeCardioFields({});
+  const plannedCardio = cardioDetails?.plan || normalizeCardioFields({});
+  const actualCardio = cardioDetails?.actual || normalizeCardioFields({});
+  const isTrainerEditingClient =
+    !!user?.isTrainer && !!training?.user?._id && String(user._id) !== String(training.user._id);
   const activeCardioConfig = useMemo(
     () => getCardioActivityConfig(activeCardio.activity),
     [activeCardio.activity]
@@ -510,6 +774,10 @@ export default function Workout({ socket }) {
   );
   const cardioSurfaceOptions = useMemo(
     () => getCardioSurfaceOptions(activeCardio.activity),
+    [activeCardio.activity]
+  );
+  const cardioStylePresets = useMemo(
+    () => getCardioStylePresets(activeCardio.activity),
     [activeCardio.activity]
   );
   const paceUnitLabel = getPaceUnitLabel(activeCardio.activity, activeCardio.distanceUnit);
@@ -538,6 +806,14 @@ export default function Workout({ socket }) {
       : secondaryCardioMetric === "pace"
         ? `mm:ss ${paceUnitLabel}`
         : "";
+  const primaryCardioMetricHelperText = getDerivedMetricHelperText(
+    primaryCardioMetric,
+    paceUnitLabel,
+    speedUnitLabel
+  );
+  const secondaryCardioMetricHelperText = secondaryCardioMetric
+    ? getDerivedMetricHelperText(secondaryCardioMetric, paceUnitLabel, speedUnitLabel)
+    : "";
   const splitSummary = useMemo(
     () => computeSplitSummary(activeCardio.segments || [], activeCardio),
     [activeCardio]
@@ -545,6 +821,62 @@ export default function Workout({ socket }) {
   const splitMetricLabel = primaryCardioMetric === "speed" ? "Avg split speed" : "Avg split pace";
   const splitMetricValue = primaryCardioMetric === "speed" ? splitSummary.avgSpeed : splitSummary.avgPace;
   const splitMetricUnitLabel = primaryCardioMetric === "speed" ? speedUnitLabel : paceUnitLabel;
+  const durationHasError = hasCardioValue(activeCardio.duration) && !isValidDurationValue(activeCardio.duration);
+  const primaryMetricHasError =
+    hasCardioValue(activeCardio[primaryCardioMetricField]) &&
+    !(primaryCardioMetric === "speed"
+      ? isPositiveNumericValue(activeCardio[primaryCardioMetricField])
+      : isValidPaceValue(activeCardio[primaryCardioMetricField]));
+  const secondaryMetricHasError =
+    secondaryCardioMetric &&
+    hasCardioValue(activeCardio[secondaryCardioMetricField]) &&
+    !(secondaryCardioMetric === "speed"
+      ? isPositiveNumericValue(activeCardio[secondaryCardioMetricField])
+      : isValidPaceValue(activeCardio[secondaryCardioMetricField]));
+  const basicCardioMissingFields = [
+    !hasCardioValue(activeCardio.style) ? "session type" : "",
+    !hasCardioValue(activeCardio.distance) ? "distance" : "",
+    !hasCardioValue(activeCardio.duration) ? "duration" : "",
+  ].filter(Boolean);
+  const planClientPrompts = plannedCardio.clientPrompts || [];
+  const missingClientPromptKeys = useMemo(
+    () => (cardioViewMode === "actual" ? getCardioPromptMissing(actualCardio, planClientPrompts) : []),
+    [actualCardio, cardioViewMode, planClientPrompts]
+  );
+  const cardioStatus = useMemo(() => {
+    if (basicCardioMissingFields.length > 0) {
+      return {
+        severity: "info",
+        message: `Add ${basicCardioMissingFields.join(", ")} to finish the core workout details.`,
+      };
+    }
+
+    if (durationHasError || primaryMetricHasError || secondaryMetricHasError) {
+      return {
+        severity: "warning",
+        message: "Fix the highlighted cardio fields before you save.",
+      };
+    }
+
+    if (missingClientPromptKeys.length > 0) {
+      const labels = missingClientPromptKeys.map((key) => CARDIO_CLIENT_PROMPT_LOOKUP[key]?.label || key);
+      return {
+        severity: "info",
+        message: `Trainer requested: ${labels.join(", ")}.`,
+      };
+    }
+
+    return {
+      severity: "success",
+      message: "Cardio details look ready to save.",
+    };
+  }, [
+    basicCardioMissingFields,
+    durationHasError,
+    primaryMetricHasError,
+    secondaryMetricHasError,
+    missingClientPromptKeys,
+  ]);
   const workoutsForMileage = useSelector((state) => {
     const accountId = training?.user?._id || user._id;
     return state.workouts?.[accountId]?.workouts || [];
@@ -603,13 +935,222 @@ export default function Workout({ socket }) {
         activeCardio.elevationGain,
         activeCardio.routeLink,
       ].some((value) => value !== "" && value !== null && value !== undefined),
-      conditions: [activeCardio.weather, activeCardio.temperature, activeCardio.notes].some(
+      conditions: [activeCardio.weather, activeCardio.temperature].some(
+        (value) => value !== "" && value !== null && value !== undefined
+      ),
+      notes: [activeCardio.notes].some(
         (value) => value !== "" && value !== null && value !== undefined
       ),
       segments: (activeCardio.segments || []).length > 0,
     }),
     [activeCardio, secondaryCardioMetric]
   );
+  const cardioSectionSummaries = useMemo(() => {
+    const metricsSummary = joinSummaryParts(
+      [
+        activeCardio.rpe ? `RPE ${activeCardio.rpe}` : "",
+        activeCardio.hrZone ? shortenHrZoneLabel(activeCardio.hrZone) : "",
+        secondaryCardioMetric === "pace" && activeCardio.avgPace ? `Pace ${activeCardio.avgPace}` : "",
+        secondaryCardioMetric === "speed" && activeCardio.avgSpeed ? `Speed ${activeCardio.avgSpeed}` : "",
+        activeCardio.avgHeartRate ? `${activeCardio.avgHeartRate} bpm` : "",
+        activeCardioConfig.showCadence && activeCardio.cadence
+          ? `Cad ${activeCardio.cadence} ${activeCardio.activity === "Bike" ? "rpm" : "spm"}`
+          : "",
+      ],
+      2
+    );
+    const routeSummary = joinSummaryParts([
+      activeCardio.routeType,
+      activeCardio.surface,
+      activeCardio.shoes ? truncateText(activeCardio.shoes, 18) : "",
+      activeCardio.elevationGain ? `Gain ${activeCardio.elevationGain}` : "",
+      activeCardio.routeLink ? "Link" : "",
+    ], 2);
+    const conditionsSummary = joinSummaryParts([
+      activeCardio.weather,
+      formatTemperatureLabel(activeCardio.temperature, activeCardio.temperatureUnit),
+    ], 2);
+    const notePreview = truncateText(activeCardio.notes, 34);
+    const segmentCount = activeCardio.segments?.length || 0;
+    const segmentsSummary =
+      segmentCount > 0
+        ? joinSummaryParts(
+            [
+              `${segmentCount} ${segmentCount === 1 ? "split" : "splits"}`,
+              splitSummary.totalDistance ? `${splitSummary.totalDistance} ${activeCardio.distanceUnit}` : "",
+              !splitSummary.totalDistance && splitSummary.totalDuration ? splitSummary.totalDuration : "",
+              splitMetricValue ? `${splitMetricValue} ${splitMetricUnitLabel}` : "",
+            ],
+            2
+          )
+        : "";
+
+    return {
+      metrics: metricsSummary,
+      route: routeSummary,
+      conditions: conditionsSummary,
+      notes: notePreview,
+      segments: segmentsSummary,
+    };
+  }, [
+    activeCardio,
+    activeCardioConfig,
+    paceUnitLabel,
+    secondaryCardioMetric,
+    speedUnitLabel,
+    splitSummary,
+  ]);
+  const cardioComparisonItems = useMemo(() => {
+    const formatDistanceEntry = (entry) =>
+      hasCardioValue(entry?.distance) ? `${entry.distance} ${entry.distanceUnit || activeCardio.distanceUnit}` : "—";
+    const formatMetricEntry = (entry, metricKey, metricType) => {
+      if (!hasCardioValue(entry?.[metricKey])) return "—";
+      return metricType === "speed" ? `${entry[metricKey]} ${speedUnitLabel}` : `${entry[metricKey]} ${paceUnitLabel}`;
+    };
+
+    return [
+      {
+        key: "session",
+        label: "Type",
+        plan: plannedCardio.style || "—",
+        actual: actualCardio.style || "—",
+      },
+      {
+        key: "distance",
+        label: "Distance",
+        plan: formatDistanceEntry(plannedCardio),
+        actual: formatDistanceEntry(actualCardio),
+      },
+      {
+        key: "duration",
+        label: "Duration",
+        plan: plannedCardio.duration || "—",
+        actual: actualCardio.duration || "—",
+      },
+      {
+        key: "metric",
+        label: primaryCardioMetric === "speed" ? "Speed" : "Pace",
+        plan: formatMetricEntry(plannedCardio, primaryCardioMetricField, primaryCardioMetric),
+        actual: formatMetricEntry(actualCardio, primaryCardioMetricField, primaryCardioMetric),
+      },
+    ].filter((item) => item.plan !== "—" || item.actual !== "—");
+  }, [
+    activeCardio.distanceUnit,
+    actualCardio,
+    paceUnitLabel,
+    plannedCardio,
+    primaryCardioMetric,
+    primaryCardioMetricField,
+    speedUnitLabel,
+  ]);
+  const planCopyActions = useMemo(() => {
+    if (cardioViewMode !== "actual") return [];
+
+    const actions = [];
+    const pushAction = (action) => {
+      if (actions.find((item) => item.key === action.key)) return;
+      actions.push(action);
+    };
+
+    if (hasCardioValue(plannedCardio.style) && plannedCardio.style !== actualCardio.style) {
+      pushAction({
+        key: "style",
+        label: `Use ${plannedCardio.style}`,
+        patch: { style: plannedCardio.style },
+        notice: "Copied planned session type.",
+      });
+    }
+
+    if (
+      hasCardioValue(plannedCardio.distance) &&
+      (plannedCardio.distance !== actualCardio.distance || plannedCardio.distanceUnit !== actualCardio.distanceUnit)
+    ) {
+      pushAction({
+        key: "distance",
+        label: `Use ${plannedCardio.distance} ${plannedCardio.distanceUnit}`,
+        patch: {
+          distance: plannedCardio.distance,
+          distanceUnit: plannedCardio.distanceUnit,
+        },
+        notice: "Copied planned distance.",
+      });
+    }
+
+    if (hasCardioValue(plannedCardio.duration) && plannedCardio.duration !== actualCardio.duration) {
+      pushAction({
+        key: "duration",
+        label: `Use ${plannedCardio.duration}`,
+        patch: { duration: plannedCardio.duration },
+        notice: "Copied planned duration.",
+      });
+    }
+
+    if (
+      hasCardioValue(plannedCardio[primaryCardioMetricField]) &&
+      plannedCardio[primaryCardioMetricField] !== actualCardio[primaryCardioMetricField]
+    ) {
+      pushAction({
+        key: primaryCardioMetricField,
+        label: `Use ${plannedCardio[primaryCardioMetricField]}`,
+        patch: { [primaryCardioMetricField]: plannedCardio[primaryCardioMetricField] },
+        notice: `Copied planned ${primaryCardioMetric === "speed" ? "speed" : "pace"}.`,
+      });
+    }
+
+    if (hasCardioValue(plannedCardio.rpe) && plannedCardio.rpe !== actualCardio.rpe) {
+      pushAction({
+        key: "rpe",
+        label: `Use RPE ${plannedCardio.rpe}`,
+        patch: { rpe: plannedCardio.rpe },
+        notice: "Copied planned RPE.",
+      });
+    }
+
+    if (hasCardioValue(plannedCardio.weather) && plannedCardio.weather !== actualCardio.weather) {
+      pushAction({
+        key: "weather",
+        label: `Use ${plannedCardio.weather}`,
+        patch: {
+          weather: plannedCardio.weather,
+          temperature: plannedCardio.temperature,
+          temperatureUnit: plannedCardio.temperatureUnit,
+        },
+        notice: "Copied planned weather.",
+      });
+    }
+
+    if (hasCardioValue(plannedCardio.notes) && plannedCardio.notes !== actualCardio.notes) {
+      pushAction({
+        key: "notes",
+        label: "Use notes",
+        patch: { notes: plannedCardio.notes },
+        notice: "Copied planned notes.",
+      });
+    }
+
+    if (Array.isArray(plannedCardio.segments) && plannedCardio.segments.length > 0) {
+      const planSegments = JSON.stringify(plannedCardio.segments);
+      const actualSegments = JSON.stringify(actualCardio.segments || []);
+      if (planSegments !== actualSegments) {
+        pushAction({
+          key: "segments",
+          label: "Use splits",
+          patch: {
+            segments: plannedCardio.segments.map((segment) => ({ ...segment })),
+          },
+          notice: "Copied planned splits.",
+        });
+      }
+    }
+
+    return actions.slice(0, 6);
+  }, [
+    actualCardio,
+    cardioViewMode,
+    plannedCardio,
+    primaryCardioMetric,
+    primaryCardioMetricField,
+  ]);
 
   // ---------------------- Dirty check infra (baseline + normalize + composite) ----------------------
   const baselineRef = useRef(null);
@@ -685,7 +1226,15 @@ export default function Workout({ socket }) {
     setCardioDetails(normalizedCardio);
     setCardioAuto(buildCardioAuto(normalizedCardio));
     setCardioViewMode("plan");
-    setCardioSectionsOpen({ ...DEFAULT_CARDIO_SECTION_STATE });
+    const nextEditorMode = user?.isTrainer ? "full" : "quick";
+    setCardioEditorMode(nextEditorMode);
+    setCardioSectionsOpen(
+      getCardioAutoOpenSections({
+        cardioFields: normalizedCardio.plan,
+        promptKeys: normalizedCardio.plan?.clientPrompts || [],
+        editorMode: nextEditorMode,
+      })
+    );
 
     baselineRef.current = normalize({
       title: training.title ?? "",
@@ -698,7 +1247,7 @@ export default function Workout({ socket }) {
     });
 
     setLoading(false);
-  }, [training, normalize]);
+  }, [training, normalize, user?.isTrainer]);
 
   useEffect(() => {
     const eventId = new URLSearchParams(location.search).get("event");
@@ -801,12 +1350,53 @@ export default function Workout({ socket }) {
 
   // -----------------------------------------------------------------------------------------------
 
-
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
 
   const handleTrainingCategory = (getTagProps) => {
     setTrainingCategory(getTagProps);
+  };
+
+  const handleCardioNoticeClose = () => {
+    setCardioNotice((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleCardioEditorModeChange = (event, nextMode) => {
+    if (!nextMode) return;
+    setCardioEditorMode(nextMode);
+    const promptKeys = cardioViewMode === "actual" ? planClientPrompts : activeCardio.clientPrompts || [];
+    setCardioSectionsOpen(
+      getCardioAutoOpenSections({
+        cardioFields: activeCardio,
+        promptKeys,
+        editorMode: nextMode,
+      })
+    );
+  };
+
+  const handleCardioViewModeChange = (event, nextValue) => {
+    if (!nextValue) return;
+    const nextCardio =
+      nextValue === "actual"
+        ? seedActualCardioFromPlan(cardioDetails?.plan, cardioDetails?.actual)
+        : cardioDetails?.[nextValue] || normalizeCardioFields({});
+    const promptKeys = nextValue === "actual" ? planClientPrompts : nextCardio.clientPrompts || [];
+
+    if (nextValue === "actual") {
+      setCardioDetails((prev) => ({
+        ...prev,
+        actual: seedActualCardioFromPlan(prev?.plan, prev?.actual),
+      }));
+    }
+
+    setCardioViewMode(nextValue);
+    setCardioSectionsOpen(
+      getCardioAutoOpenSections({
+        cardioFields: nextCardio,
+        promptKeys,
+        editorMode: cardioEditorMode,
+      })
+    );
   };
 
   const handleCardioChange = (field) => (event) => {
@@ -820,23 +1410,80 @@ export default function Workout({ socket }) {
     }));
   };
 
+  const handleCardioDistanceUnitChange = (event) => {
+    const nextUnit = event.target.value;
+    const currentUnit = activeCardio.distanceUnit;
+
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        distanceUnit: nextUnit,
+        distance: convertDistanceValue(prev[cardioViewMode]?.distance, currentUnit, nextUnit),
+        segments: (prev[cardioViewMode]?.segments || []).map((segment) => ({
+          ...segment,
+          distance: convertDistanceValue(segment?.distance, currentUnit, nextUnit),
+        })),
+      },
+    }));
+  };
+
   const handleCardioActivityChange = (event) => {
     const nextActivity = event.target.value;
-    const nextDistanceUnits = getCardioDistanceUnitOptions(nextActivity);
+    const nextModeData = sanitizeCardioForActivity(activeCardio, nextActivity);
+    const clearedFields = [];
+
+    [
+      ["style", "session type"],
+      ["avgPace", "pace"],
+      ["avgSpeed", "speed"],
+      ["routeType", "route"],
+      ["surface", "surface"],
+      ["shoes", "shoes"],
+      ["cadence", "cadence"],
+      ["strideLength", "stride"],
+      ["elevationGain", "elevation gain"],
+    ].forEach(([field, label]) => {
+      if (hasCardioValue(activeCardio?.[field]) && !hasCardioValue(nextModeData?.[field])) {
+        clearedFields.push(label);
+      }
+    });
 
     setCardioDetails((prev) => {
-      const currentMode = prev[cardioViewMode] || normalizeCardioFields({});
       return {
         ...prev,
-        [cardioViewMode]: {
-          ...currentMode,
-          activity: nextActivity,
-          distanceUnit: nextDistanceUnits.includes(currentMode.distanceUnit)
-            ? currentMode.distanceUnit
-            : nextDistanceUnits[0],
-        },
+        [cardioViewMode]: nextModeData,
       };
     });
+    setCardioAuto((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        pace: !nextModeData.avgPace,
+        speed: !nextModeData.avgSpeed,
+      },
+    }));
+
+    if (clearedFields.length > 0) {
+      const preview =
+        clearedFields.length > 3
+          ? `${clearedFields.slice(0, 3).join(", ")}, and more`
+          : clearedFields.join(", ");
+      setCardioNotice({
+        open: true,
+        severity: "info",
+        message: `Switched to ${nextActivity}. Cleared ${preview}.`,
+      });
+    }
+  };
+
+  const handleStylePreset = (style) => {
+    setCardioDetails((prev) => ({
+      ...prev,
+      [cardioViewMode]: {
+        ...prev[cardioViewMode],
+        style,
+      },
+    }));
   };
 
   const handleCardioDerivedChange = (field) => (event) => {
@@ -855,6 +1502,30 @@ export default function Workout({ socket }) {
         [field === "avgPace" ? "pace" : "speed"]: value === "",
       },
     }));
+  };
+
+  const handleToggleClientPrompt = (promptKey) => {
+    const section = CARDIO_CLIENT_PROMPT_LOOKUP[promptKey]?.section;
+    setCardioDetails((prev) => {
+      const plan = prev.plan || normalizeCardioFields({});
+      const nextPrompts = plan.clientPrompts?.includes(promptKey)
+        ? plan.clientPrompts.filter((key) => key !== promptKey)
+        : [...(plan.clientPrompts || []), promptKey];
+
+      return {
+        ...prev,
+        plan: {
+          ...plan,
+          clientPrompts: nextPrompts,
+        },
+      };
+    });
+    if (section) {
+      setCardioSectionsOpen((prev) => ({
+        ...prev,
+        [section]: true,
+      }));
+    }
   };
 
   const toggleCardioSection = (section) => {
@@ -903,6 +1574,31 @@ export default function Workout({ socket }) {
     });
   };
 
+  const handleCopyPlanFieldToActual = (action) => {
+    setCardioDetails((prev) => ({
+      ...prev,
+      actual: {
+        ...prev.actual,
+        ...action.patch,
+      },
+    }));
+
+    setCardioAuto((prev) => ({
+      ...prev,
+      actual: {
+        ...prev.actual,
+        ...(Object.prototype.hasOwnProperty.call(action.patch, "avgPace") ? { pace: false } : {}),
+        ...(Object.prototype.hasOwnProperty.call(action.patch, "avgSpeed") ? { speed: false } : {}),
+      },
+    }));
+
+    setCardioNotice({
+      open: true,
+      severity: "success",
+      message: action.notice,
+    });
+  };
+
   const handleCopyPlanToActual = () => {
     setCardioDetails((prev) => {
       const nextActual = normalizeCardioFields(prev.plan);
@@ -918,6 +1614,11 @@ export default function Workout({ socket }) {
         speed: false,
       },
     }));
+    setCardioNotice({
+      open: true,
+      severity: "success",
+      message: "Copied the full plan into results.",
+    });
   };
 
   const handleTitleChange = (e) => {
@@ -1098,11 +1799,19 @@ export default function Workout({ socket }) {
     setCardioDetails(normalizedCardio);
     setCardioAuto(buildCardioAuto(normalizedCardio));
     setCardioViewMode("plan");
-    setCardioSectionsOpen({ ...DEFAULT_CARDIO_SECTION_STATE });
+    const nextEditorMode = user?.isTrainer ? "full" : "quick";
+    setCardioEditorMode(nextEditorMode);
+    setCardioSectionsOpen(
+      getCardioAutoOpenSections({
+        cardioFields: normalizedCardio.plan,
+        promptKeys: normalizedCardio.plan?.clientPrompts || [],
+        editorMode: nextEditorMode,
+      })
+    );
     if (training?.user?._id) {
       setBorderHighlight(!isPersonalWorkout());
     }
-  }, [isPersonalWorkout, setBorderHighlight, training]);
+  }, [isPersonalWorkout, setBorderHighlight, training, user?.isTrainer]);
 
   ///////////////////////////////
   // 1. Join Room & Request State
@@ -1219,6 +1928,16 @@ export default function Workout({ socket }) {
             training={training}
             setLocalTraining={setLocalTraining}
           />
+          <Snackbar
+            open={cardioNotice.open}
+            autoHideDuration={3000}
+            onClose={handleCardioNoticeClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert onClose={handleCardioNoticeClose} severity={cardioNotice.severity} variant="filled">
+              {cardioNotice.message}
+            </Alert>
+          </Snackbar>
           {training._id ? (
             <>
               <Grid
@@ -1367,12 +2086,19 @@ export default function Workout({ socket }) {
                                   value={cardioViewMode}
                                   exclusive
                                   size="small"
-                                  onChange={(event, nextValue) => {
-                                    if (nextValue) setCardioViewMode(nextValue);
-                                  }}
+                                  onChange={handleCardioViewModeChange}
                                 >
                                   <ToggleButton value="plan">Plan</ToggleButton>
                                   <ToggleButton value="actual">Results</ToggleButton>
+                                </ToggleButtonGroup>
+                                <ToggleButtonGroup
+                                  value={cardioEditorMode}
+                                  exclusive
+                                  size="small"
+                                  onChange={handleCardioEditorModeChange}
+                                >
+                                  <ToggleButton value="quick">Quick Log</ToggleButton>
+                                  <ToggleButton value="full">Full Details</ToggleButton>
                                 </ToggleButtonGroup>
                                 {cardioViewMode === "actual" && (
                                   <Button
@@ -1385,6 +2111,66 @@ export default function Workout({ socket }) {
                                 )}
                               </Stack>
                             </Stack>
+                            <Alert severity={cardioStatus.severity} variant="outlined">
+                              {cardioStatus.message}
+                            </Alert>
+                            {cardioComparisonItems.length > 0 && (
+                              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                {cardioComparisonItems.map((item) => (
+                                  <Chip
+                                    key={`compare-${item.key}`}
+                                    size="small"
+                                    variant="outlined"
+                                    label={`${item.label}: ${item.plan} -> ${item.actual}`}
+                                  />
+                                ))}
+                              </Stack>
+                            )}
+                            {cardioViewMode === "actual" && planClientPrompts.length > 0 && (
+                              <Stack spacing={1}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Trainer requested:
+                                </Typography>
+                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                  {planClientPrompts.map((key) => {
+                                    const option = CARDIO_CLIENT_PROMPT_LOOKUP[key];
+                                    if (!option) return null;
+                                    const isMissing = missingClientPromptKeys.includes(key);
+
+                                    return (
+                                      <Chip
+                                        key={`requested-${key}`}
+                                        size="small"
+                                        clickable
+                                        color={isMissing ? "warning" : "success"}
+                                        variant={isMissing ? "filled" : "outlined"}
+                                        label={option.label}
+                                        onClick={() => toggleCardioSection(option.section)}
+                                      />
+                                    );
+                                  })}
+                                </Stack>
+                              </Stack>
+                            )}
+                            {cardioViewMode === "actual" && planCopyActions.length > 0 && (
+                              <Stack spacing={1}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Use planned details:
+                                </Typography>
+                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                  {planCopyActions.map((action) => (
+                                    <Chip
+                                      key={`copy-${action.key}`}
+                                      size="small"
+                                      clickable
+                                      variant="outlined"
+                                      label={action.label}
+                                      onClick={() => handleCopyPlanFieldToActual(action)}
+                                    />
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            )}
                             <Grid container spacing={2}>
                               <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField
@@ -1392,6 +2178,7 @@ export default function Workout({ socket }) {
                                   label="Activity"
                                   value={activeCardio.activity}
                                   onChange={handleCardioActivityChange}
+                                  helperText="Changing activity clears details that do not apply."
                                   fullWidth
                                 >
                                   {CARDIO_ACTIVITY_OPTIONS.map((activity) => (
@@ -1407,6 +2194,7 @@ export default function Workout({ socket }) {
                                   label="Session type"
                                   value={activeCardio.style}
                                   onChange={handleCardioChange("style")}
+                                  helperText="Choose a preset or pick a custom type."
                                   fullWidth
                                 >
                                   {cardioStyleOptions.map((style) => (
@@ -1431,7 +2219,7 @@ export default function Workout({ socket }) {
                                   select
                                   label="Unit"
                                   value={activeCardio.distanceUnit}
-                                  onChange={handleCardioChange("distanceUnit")}
+                                  onChange={handleCardioDistanceUnitChange}
                                   fullWidth
                                 >
                                   {cardioDistanceUnitOptions.map((unit) => (
@@ -1447,6 +2235,8 @@ export default function Workout({ socket }) {
                                   placeholder="hh:mm:ss"
                                   value={activeCardio.duration}
                                   onChange={handleCardioChange("duration")}
+                                  error={durationHasError}
+                                  helperText={durationHasError ? "Use mm:ss or hh:mm:ss." : getDurationHelperText()}
                                   fullWidth
                                 />
                               </Grid>
@@ -1461,6 +2251,12 @@ export default function Workout({ socket }) {
                                   inputProps={
                                     primaryCardioMetric === "speed" ? { min: 0, step: "0.1" } : undefined
                                   }
+                                  error={primaryMetricHasError}
+                                  helperText={
+                                    primaryMetricHasError
+                                      ? getDerivedMetricErrorText(primaryCardioMetric)
+                                      : primaryCardioMetricHelperText
+                                  }
                                   InputProps={{
                                     endAdornment: renderAutoAdornment(
                                       cardioAuto?.[cardioViewMode]?.[primaryCardioMetricAutoKey]
@@ -1469,13 +2265,48 @@ export default function Workout({ socket }) {
                                 />
                               </Grid>
                             </Grid>
+                            {cardioStylePresets.length > 0 && (
+                              <Stack spacing={1}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Quick presets
+                                </Typography>
+                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                  {cardioStylePresets.map((style) => (
+                                    <Chip
+                                      key={`preset-${style}`}
+                                      label={style}
+                                      size="small"
+                                      clickable
+                                      color={activeCardio.style === style ? "primary" : "default"}
+                                      variant={activeCardio.style === style ? "filled" : "outlined"}
+                                      onClick={() => handleStylePreset(style)}
+                                    />
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            )}
+                            {isTrainerEditingClient && cardioViewMode === "plan" && (
+                              <Stack spacing={1}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Ask the client to complete
+                                </Typography>
+                                <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                  {CARDIO_CLIENT_PROMPT_OPTIONS.map((option) => (
+                                    <Chip
+                                      key={`prompt-${option.key}`}
+                                      label={option.label}
+                                      size="small"
+                                      clickable
+                                      color={planClientPrompts.includes(option.key) ? "primary" : "default"}
+                                      variant={planClientPrompts.includes(option.key) ? "filled" : "outlined"}
+                                      onClick={() => handleToggleClientPrompt(option.key)}
+                                    />
+                                  ))}
+                                </Stack>
+                              </Stack>
+                            )}
                             <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
-                              {[
-                                { key: "metrics", label: "Metrics" },
-                                { key: "route", label: "Route & Gear" },
-                                { key: "conditions", label: "Conditions" },
-                                { key: "segments", label: "Splits" },
-                              ].map((section) => (
+                              {CARDIO_OPTIONAL_SECTIONS.map((section) => (
                                 <Button
                                   key={section.key}
                                   variant={cardioSectionsOpen[section.key] ? "contained" : "outlined"}
@@ -1501,6 +2332,36 @@ export default function Workout({ socket }) {
                                 </Button>
                               ))}
                             </Stack>
+                            {CARDIO_OPTIONAL_SECTIONS.some(
+                              (section) => cardioSectionHasData[section.key] && !cardioSectionsOpen[section.key]
+                            ) && (
+                              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
+                                {CARDIO_OPTIONAL_SECTIONS.filter(
+                                  (section) =>
+                                    cardioSectionHasData[section.key] &&
+                                    !cardioSectionsOpen[section.key] &&
+                                    cardioSectionSummaries[section.key]
+                                ).map((section) => (
+                                  <Chip
+                                    key={`${section.key}-summary`}
+                                    label={`${section.summaryLabel}: ${cardioSectionSummaries[section.key]}`}
+                                    variant="outlined"
+                                    size="small"
+                                    clickable
+                                    onClick={() => toggleCardioSection(section.key)}
+                                    sx={{
+                                      maxWidth: "100%",
+                                      "& .MuiChip-label": {
+                                        display: "block",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      },
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                            )}
                           </Stack>
                         </Paper>
                       </Grid>
@@ -1523,6 +2384,12 @@ export default function Workout({ socket }) {
                                         secondaryCardioMetric === "speed"
                                           ? { min: 0, step: "0.1" }
                                           : undefined
+                                      }
+                                      error={secondaryMetricHasError}
+                                      helperText={
+                                        secondaryMetricHasError
+                                          ? getDerivedMetricErrorText(secondaryCardioMetric)
+                                          : secondaryCardioMetricHelperText
                                       }
                                       InputProps={{
                                         endAdornment: renderAutoAdornment(
@@ -1693,7 +2560,7 @@ export default function Workout({ socket }) {
                         <Collapse in={cardioSectionsOpen.conditions} unmountOnExit>
                           <Paper variant="outlined" sx={{ padding: "16px" }}>
                             <Stack spacing={2}>
-                              <Typography variant="subtitle1">Conditions & Notes</Typography>
+                              <Typography variant="subtitle1">Conditions</Typography>
                               <Grid container spacing={2}>
                                 <Grid size={{ xs: 6, sm: 3 }}>
                                   <TextField
@@ -1735,18 +2602,25 @@ export default function Workout({ socket }) {
                                     }}
                                   />
                                 </Grid>
-                                <Grid size={12}>
-                                  <TextField
-                                    label="Notes"
-                                    placeholder="How did it feel? Surface, weather, goal pacing..."
-                                    value={activeCardio.notes}
-                                    onChange={handleCardioChange("notes")}
-                                    multiline
-                                    minRows={3}
-                                    fullWidth
-                                  />
-                                </Grid>
                               </Grid>
+                            </Stack>
+                          </Paper>
+                        </Collapse>
+                      </Grid>
+                      <Grid size={12}>
+                        <Collapse in={cardioSectionsOpen.notes} unmountOnExit>
+                          <Paper variant="outlined" sx={{ padding: "16px" }}>
+                            <Stack spacing={2}>
+                              <Typography variant="subtitle1">Notes</Typography>
+                              <TextField
+                                label="Notes"
+                                placeholder="How did it feel? Surface, weather, goal pacing..."
+                                value={activeCardio.notes}
+                                onChange={handleCardioChange("notes")}
+                                multiline
+                                minRows={3}
+                                fullWidth
+                              />
                             </Stack>
                           </Paper>
                         </Collapse>
