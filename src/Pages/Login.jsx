@@ -16,6 +16,7 @@ const LoginInput = ({
   error,
   helperText,
   type,
+  autoComplete,
   handleKeyDown,
   setFormData,
 }) => {
@@ -29,6 +30,9 @@ const LoginInput = ({
         error={!!error}
         helperText={error ? helperText : null}
         type={type}
+        id={fieldProperty}
+        name={fieldProperty}
+        autoComplete={autoComplete}
         onKeyDown={handleKeyDown}
         onChange={(e) =>
           setFormData((prev) => ({
@@ -59,6 +63,7 @@ export const Login = () => {
       error: null,
       helperText: null,
       type: "text",
+      autoComplete: "username",
     },
     password: {
       label: "Password",
@@ -66,6 +71,7 @@ export const Login = () => {
       error: null,
       helperText: null,
       type: "password",
+      autoComplete: "current-password",
     },
   });
 
@@ -229,6 +235,7 @@ export const Login = () => {
             error={formData[fieldProperty].error}
             helperText={formData[fieldProperty].helperText}
             type={formData[fieldProperty].type || "text"}
+            autoComplete={formData[fieldProperty].autoComplete}
             setFormData={setFormData}
             handleKeyDown={handleKeyDown}
           />
