@@ -888,17 +888,23 @@ export function updateWorkoutDateById(training, newDate, newTitle) {
         error: data.error,
       });
     } else {
-      const accountId = training.user._id;
+      const accountId = training?.user?._id || training?.user;
+      const updatedTraining = data?.training || data;
+      const existingWorkouts = state.workouts?.[accountId]?.workouts || [];
+      const nextWorkouts = existingWorkouts.some((workout) => workout._id === updatedTraining._id)
+        ? existingWorkouts.map((workout) =>
+            workout._id === updatedTraining._id ? updatedTraining : workout
+          )
+        : [...existingWorkouts, updatedTraining];
+
       return dispatch({
         type: EDIT_TRAINING,
-        training: { ...training, date: newDate },
+        training: updatedTraining,
         workouts: {
           ...state.workouts,
           [accountId]: {
             ...state.workouts[accountId],
-            workouts: state.workouts[accountId].workouts.filter(
-              (workout) => workout._id !== training._id
-            ),
+            workouts: nextWorkouts,
           },
         },
       });
