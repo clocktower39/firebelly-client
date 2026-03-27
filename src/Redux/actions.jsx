@@ -36,12 +36,8 @@ export const SET_LAST_BULK_OPERATION = "SET_LAST_BULK_OPERATION";
 export const CLEAR_LAST_BULK_OPERATION = "CLEAR_LAST_BULK_OPERATION";
 export const REMOVE_WORKOUTS = "REMOVE_WORKOUTS";
 
-// dev server
-const currentIP = window.location.href.split(":")[1];
-export const serverURL = `http:${currentIP}:6969`;
-
-// live server
-// export const serverURL = "https://firebellyfitness.herokuapp.com";
+const defaultServerURL = import.meta.env.DEV ? "/api" : "https://firebellyfitness.herokuapp.com";
+export const serverURL = import.meta.env.VITE_API_URL || defaultServerURL;
 
 export function signupUser(user) {
   return async (dispatch) => {
