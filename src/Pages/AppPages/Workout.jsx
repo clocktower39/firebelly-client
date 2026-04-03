@@ -38,6 +38,7 @@ import {
 } from "@mui/material";
 import { Add, ArrowBack, Close as CloseIcon, Delete, Settings } from "@mui/icons-material";
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
+import WorkoutTrainerSessionDialog from "../../Components/TrainingComponents/WorkoutTrainerSessionDialog";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
@@ -735,6 +736,7 @@ export default function Workout({ socket }) {
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [scheduleEvent, setScheduleEvent] = useState(null);
+  const [openTrainerSessionDialog, setOpenTrainerSessionDialog] = useState(false);
   const [workoutType, setWorkoutType] = useState(training?.workoutType || "Strength");
   const [cardioDetails, setCardioDetails] = useState(() => normalizeCardio(training?.cardio));
   const [cardioAuto, setCardioAuto] = useState(() =>
@@ -756,6 +758,15 @@ export default function Workout({ socket }) {
   const actualCardio = cardioDetails?.actual || normalizeCardioFields({});
   const isTrainerEditingClient =
     !!user?.isTrainer && !!training?.user?._id && String(user._id) !== String(training.user._id);
+  const trainerAccessToken = user?.isTrainer
+    ? localStorage.getItem("JWT_AUTH_TOKEN")
+    : localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
+  const activeTrainerId = user?.isTrainer ? user._id : user?.trainerId || null;
+  const canManageTrainerSession =
+    !!trainerAccessToken &&
+    !!activeTrainerId &&
+    !!training?.user?._id &&
+    String(activeTrainerId) !== String(training.user._id);
   const activeCardioConfig = useMemo(
     () => getCardioActivityConfig(activeCardio.activity),
     [activeCardio.activity]
@@ -2052,6 +2063,17 @@ export default function Workout({ socket }) {
                     </Stack>
                   </Grid>
                 )}
+                {canManageTrainerSession && (
+                  <Grid container size={12} sx={{ justifyContent: "center", paddingTop: scheduleEvent ? "8px" : "5px" }}>
+                    <Button
+                      size="small"
+                      variant={scheduleEvent ? "outlined" : "contained"}
+                      onClick={() => setOpenTrainerSessionDialog(true)}
+                    >
+                      {scheduleEvent ? "Edit Trainer Session" : "Mark as Trainer Session"}
+                    </Button>
+                  </Grid>
+                )}
 
                 <Grid container size={12} spacing={2} sx={{ paddingTop: "15px" }}>
                   <Grid size={12} container alignContent="center">
@@ -2818,6 +2840,23 @@ export default function Workout({ socket }) {
                 handleAddExerciseClose={handleAddExerciseClose}
                 confirmedNewExercise={confirmedNewExercise}
                 activeStep={activeStep}
+              />
+              <WorkoutTrainerSessionDialog
+                open={openTrainerSessionDialog}
+                onClose={() => setOpenTrainerSessionDialog(false)}
+                workouts={
+                  training?._id
+                    ? [
+                        {
+                          ...training,
+                          title: trainingTitle || training.title,
+                          complete: workoutCompleteStatus,
+                        },
+                      ]
+                    : []
+                }
+                initialWorkoutId={training?._id || ""}
+                onSaved={(event) => setScheduleEvent(event)}
               />
             </>
           ) : (

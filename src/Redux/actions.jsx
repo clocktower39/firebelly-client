@@ -160,6 +160,56 @@ export const loginJWT = (accessTokenOverride) => {
   };
 };
 
+export function enterClientAccount(clientId) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    try {
+      const response = await fetch(`${serverURL}/relationships/client/token`, {
+        method: "POST",
+        dataType: "json",
+        body: JSON.stringify({ clientId }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+          Authorization: bearer,
+        },
+      });
+      const data = await response.json();
+
+      if (!data.accessToken) {
+        const error = data.error || "Unable to enter client view.";
+        dispatch({
+          type: ERROR,
+          error,
+        });
+        return { error };
+      }
+
+      const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
+      const currentRefresh = localStorage.getItem("JWT_REFRESH_TOKEN");
+
+      if (currentAccess && !localStorage.getItem("JWT_TRAINER_AUTH_TOKEN")) {
+        localStorage.setItem("JWT_TRAINER_AUTH_TOKEN", currentAccess);
+      }
+
+      if (currentRefresh && !localStorage.getItem("JWT_TRAINER_REFRESH_TOKEN")) {
+        localStorage.setItem("JWT_TRAINER_REFRESH_TOKEN", currentRefresh);
+      }
+
+      localStorage.setItem("JWT_VIEW_ONLY", "true");
+      await dispatch(loginJWT(data.accessToken));
+      return data;
+    } catch (err) {
+      const error = "Unable to enter client view.";
+      dispatch({
+        type: ERROR,
+        error,
+      });
+      return { error };
+    }
+  };
+}
+
 export function logoutUser() {
   return async (dispatch) => {
     localStorage.removeItem("JWT_AUTH_TOKEN");
@@ -221,9 +271,9 @@ export function requestScheduleRange({
   };
 }
 
-export function createScheduleEvent(payload) {
+export function createScheduleEvent(payload, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const response = await fetch(`${serverURL}/schedule/event/create`, {
       method: "post",
       dataType: "json",
@@ -239,9 +289,9 @@ export function createScheduleEvent(payload) {
   };
 }
 
-export function updateScheduleEvent(eventId, updates) {
+export function updateScheduleEvent(eventId, updates, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const response = await fetch(`${serverURL}/schedule/event/update`, {
       method: "post",
       dataType: "json",
@@ -275,9 +325,9 @@ export function cancelScheduleEvent(eventId) {
   };
 }
 
-export function deleteScheduleEvent(eventId) {
+export function deleteScheduleEvent(eventId, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
     const response = await fetch(`${serverURL}/schedule/event/delete`, {
       method: "post",
       dataType: "json",

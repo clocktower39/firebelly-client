@@ -6,7 +6,7 @@ import {
   changeRelationshipStatus,
   removeRelationship,
   serverURL,
-  loginJWT,
+  enterClientAccount,
 } from "../../Redux/actions";
 import {
   Avatar,
@@ -73,11 +73,6 @@ export default function Clients({ socket }) {
   const [showOnlyOnline, setShowOnlyOnline] = useState(false);
   const [status, setStatus] = useState("");
 
-  const authHeaders = {
-    "Content-type": "application/json; charset=UTF-8",
-    Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
-  };
-
   const handleOpenCalendar = (client) => {
     setSelectedClient(client);
     setOpenCalendar(true);
@@ -104,26 +99,12 @@ export default function Clients({ socket }) {
 
   const handleViewAsClient = async (client) => {
     setStatus("");
+    const data = await dispatch(enterClientAccount(client._id));
+    if (data?.error) {
+      setStatus(data.error);
+      return;
+    }
     try {
-      const response = await fetch(`${serverURL}/relationships/client/token`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({ clientId: client._id }),
-      });
-      const data = await response.json();
-      if (!data.accessToken) {
-        setStatus(data.error || "Unable to enter client view.");
-        return;
-      }
-
-      const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
-      const currentRefresh = localStorage.getItem("JWT_REFRESH_TOKEN");
-      if (currentAccess) localStorage.setItem("JWT_TRAINER_AUTH_TOKEN", currentAccess);
-      if (currentRefresh) localStorage.setItem("JWT_TRAINER_REFRESH_TOKEN", currentRefresh);
-
-      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
-      localStorage.setItem("JWT_VIEW_ONLY", "true");
-      dispatch(loginJWT(data.accessToken));
       navigate("/");
     } catch (err) {
       setStatus("Unable to enter client view.");
