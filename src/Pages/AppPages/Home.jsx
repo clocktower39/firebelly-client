@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link, useLocation, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -16,6 +16,7 @@ dayjs.extend(utc);
 
 function Home() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { date, client, } = queryString.parse(location.search);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
@@ -76,10 +77,8 @@ function Home() {
   useEffect(() => {
     const queryDate = isValidDate(date) ? formatDate(date) : today;
 
-    if (queryDate !== selectedDate) {
-      setSelectedDate(queryDate);
-    }
-  }, [date, selectedDate, today]);
+    setSelectedDate((prev) => (prev === queryDate ? prev : queryDate));
+  }, [date, today]);
 
   useEffect(() => {
     const matchedDateWorkouts = workouts.filter((workout) =>
@@ -98,29 +97,30 @@ function Home() {
   useEffect(() => {
     if (selectedDate) {
       const newDate = dayjs(selectedDate).utc().format("YYYYMMDD");
-
-      // Parse current query params (e.g., ?date=..., ?client=..., others)
       const currentQuery = queryString.parse(location.search);
-
-      // Overwrite only the date; keep everything else (like `client`) intact
       const nextQuery = { ...currentQuery, date: newDate };
-
-      // Build and replace the URL
       const nextSearch = queryString.stringify(nextQuery, {
         skipNull: true,
         skipEmptyString: true,
       });
-      const nextUrl = `/?${nextSearch}`;
-      window.history.replaceState(null, "", nextUrl);
+      const currentSearch = location.search.replace(/^\?/, "");
 
-      setLoading(true);
-      dispatch(requestWorkoutsByDate(selectedDate, client)).finally(() => {
-        setBorderHighlight(!isPersonalWorkout());
-        setLoading(false);
-      });
+      if (nextSearch !== currentSearch) {
+        navigate(`/?${nextSearch}`, { replace: true });
+      }
     }
+  }, [client, location.search, navigate, selectedDate]);
+
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    setLoading(true);
+    dispatch(requestWorkoutsByDate(selectedDate, client)).finally(() => {
+      setBorderHighlight(!isPersonalWorkout());
+      setLoading(false);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, isPersonalWorkout]);
+  }, [selectedDate, client, isPersonalWorkout]);
 
   useEffect(() => {
     dispatch(requestLatestMetric({ userId: isPersonalWorkout() ? undefined : client }));
