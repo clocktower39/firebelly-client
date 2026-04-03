@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import Loading from "../../Components/Loading";
 import SelectedDate from "../../Components/SelectedDate";
+import WeeklyClientWorkoutTracker from "../../Components/TrainingComponents/WeeklyClientWorkoutTracker";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
 import { requestWorkoutsByDate, requestLatestMetric, serverURL } from "../../Redux/actions";
@@ -33,6 +34,7 @@ function Home() {
     (state) => state.metrics.latestByUser[(client || user._id)] || null
   );
   const [loading, setLoading] = useState(true);
+  const activeWorkoutUser = !isPersonalWorkout() && workoutsUser?._id ? workoutsUser : user;
 
   const isValidDate = (date) => {
     return dayjs(date, "YYYYMMDD").isValid();
@@ -70,6 +72,14 @@ function Home() {
 
   const [modalActionType, setModalActionType] = useState("");
   const handleSetModalAction = (actionType) => setModalActionType(actionType);
+
+  useEffect(() => {
+    const queryDate = isValidDate(date) ? formatDate(date) : today;
+
+    if (queryDate !== selectedDate) {
+      setSelectedDate(queryDate);
+    }
+  }, [date, selectedDate, today]);
 
   useEffect(() => {
     const matchedDateWorkouts = workouts.filter((workout) =>
@@ -187,9 +197,10 @@ function Home() {
             handleCloseCreateWorkoutDialog,
             setSelectedDate,
           }}
-          user={user}
+          user={activeWorkoutUser}
         />
       )}
+      {user.isTrainer && !client && <WeeklyClientWorkoutTracker selectedDate={selectedDate} />}
     </>
   );
 }
