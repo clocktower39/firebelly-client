@@ -4,9 +4,11 @@ import { requestExerciseProgress } from "../../../Redux/actions";
 import {
   buildExercisePresetFromHistory,
   buildRecentHistoryOptions,
+  hasAchievedProgress,
 } from "../utils/exercisePresetUtils";
 
 export default function useExerciseGoalPreset({
+  currentWorkoutExercise,
   currentExercise,
   setCurrentExercise,
   exerciseType,
@@ -22,6 +24,7 @@ export default function useExerciseGoalPreset({
   const dispatch = useDispatch();
   const pendingPresetExerciseIdRef = useRef(null);
   const [selectedHistoryKey, setSelectedHistoryKey] = useState("");
+  const [pendingResetAction, setPendingResetAction] = useState(null);
 
   const historyTargetUser = workoutUser || user;
   const historyUserId = historyTargetUser?._id || user?._id;
@@ -67,8 +70,8 @@ export default function useExerciseGoalPreset({
     [exerciseIndex, exerciseType, setExerciseType, setIndex, setLocalTraining, sets]
   );
 
-  const handleExerciseSelectionChange = useCallback(
-    (event, newSelection) => {
+  const applySelectedExercise = useCallback(
+    (newSelection) => {
       if (!newSelection) return;
 
       setCurrentExercise(newSelection);
@@ -98,9 +101,8 @@ export default function useExerciseGoalPreset({
     ]
   );
 
-  const handleHistoryPresetChange = useCallback(
-    (event) => {
-      const nextHistoryKey = event.target.value;
+  const applySelectedHistoryPreset = useCallback(
+    (nextHistoryKey) => {
       setSelectedHistoryKey(nextHistoryKey);
 
       const selectedHistory =
@@ -109,6 +111,45 @@ export default function useExerciseGoalPreset({
       applyExerciseHistoryPreset(currentExercise, selectedHistory);
     },
     [applyExerciseHistoryPreset, currentExercise, recentHistoryOptions]
+  );
+
+  const handleExerciseSelectionChange = useCallback(
+    (event, newSelection) => {
+      if (!newSelection || newSelection._id === currentExercise?._id) return;
+
+      if (hasAchievedProgress(currentWorkoutExercise)) {
+        setPendingResetAction({
+          type: "exercise",
+          newSelection,
+        });
+        return;
+      }
+
+      applySelectedExercise(newSelection);
+    },
+    [
+      applySelectedExercise,
+      currentExercise?._id,
+      currentWorkoutExercise,
+    ]
+  );
+
+  const handleHistoryPresetChange = useCallback(
+    (event) => {
+      const nextHistoryKey = event.target.value;
+      if (!nextHistoryKey || nextHistoryKey === selectedHistoryKey) return;
+
+      if (hasAchievedProgress(currentWorkoutExercise)) {
+        setPendingResetAction({
+          type: "preset",
+          nextHistoryKey,
+        });
+        return;
+      }
+
+      applySelectedHistoryPreset(nextHistoryKey);
+    },
+    [applySelectedHistoryPreset, currentWorkoutExercise, selectedHistoryKey]
   );
 
   useEffect(() => {
@@ -139,10 +180,32 @@ export default function useExerciseGoalPreset({
     }
   }, [applyExerciseHistoryPreset, currentExercise, recentHistoryOptions]);
 
+  const handleResetConfirmationClose = useCallback(() => {
+    setPendingResetAction(null);
+  }, []);
+
+  const handleResetConfirmationSubmit = useCallback(() => {
+    if (!pendingResetAction) return;
+
+    if (pendingResetAction.type === "exercise") {
+      applySelectedExercise(pendingResetAction.newSelection);
+    }
+
+    if (pendingResetAction.type === "preset") {
+      applySelectedHistoryPreset(pendingResetAction.nextHistoryKey);
+    }
+
+    setPendingResetAction(null);
+  }, [applySelectedExercise, applySelectedHistoryPreset, pendingResetAction]);
+
   return {
     recentHistoryOptions,
     selectedHistoryKey,
     handleExerciseSelectionChange,
     handleHistoryPresetChange,
+    resetConfirmationOpen: Boolean(pendingResetAction),
+    resetConfirmationReason: pendingResetAction?.type || "",
+    handleResetConfirmationClose,
+    handleResetConfirmationSubmit,
   };
 }

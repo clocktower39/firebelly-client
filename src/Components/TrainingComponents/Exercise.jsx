@@ -76,7 +76,12 @@ export default function Exercise(props) {
     selectedHistoryKey,
     handleExerciseSelectionChange,
     handleHistoryPresetChange,
+    resetConfirmationOpen,
+    resetConfirmationReason,
+    handleResetConfirmationClose,
+    handleResetConfirmationSubmit,
   } = useExerciseGoalPreset({
+    currentWorkoutExercise: exercise,
     currentExercise: title,
     setCurrentExercise: setTitle,
     exerciseType,
@@ -485,6 +490,42 @@ export default function Exercise(props) {
                   </DialogContent>
                 </Dialog>
               )}
+              <Dialog open={resetConfirmationOpen} onClose={handleResetConfirmationClose}>
+                <DialogTitle>
+                  <Grid container>
+                    <Grid container size={12}>
+                      Discard Logged Progress?
+                    </Grid>
+                  </Grid>
+                </DialogTitle>
+                <DialogContent>
+                  <Grid container spacing={1} sx={{ padding: "10px 0px" }}>
+                    <Grid container size={12}>
+                      <Typography variant="body1">
+                        {resetConfirmationReason === "preset"
+                          ? "Changing the goal preset will clear the achieved values already entered for this exercise. Continue?"
+                          : "Changing this exercise will clear the achieved values already entered for it. Continue?"}
+                      </Typography>
+                    </Grid>
+                    <Grid container size={12} spacing={2} sx={{ justifyContent: "center" }}>
+                      <Grid>
+                        <Button
+                          color="secondaryButton"
+                          variant="contained"
+                          onClick={handleResetConfirmationClose}
+                        >
+                          Cancel
+                        </Button>
+                      </Grid>
+                      <Grid>
+                        <Button variant="contained" onClick={handleResetConfirmationSubmit}>
+                          Continue
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </DialogContent>
+              </Dialog>
             </>
           ) : (
             <>

@@ -35,6 +35,34 @@ export const buildRecentHistoryOptions = (history = []) =>
     historyItem,
   }));
 
+export const hasAchievedProgress = (exercise) => {
+  const achieved = exercise?.achieved || {};
+
+  if (Number(achieved.sets) > 0) {
+    return true;
+  }
+
+  return ["reps", "weight", "percent", "seconds"].some((field) =>
+    Array.isArray(achieved[field]) &&
+    achieved[field].some((value) => {
+      if (value === null || value === undefined) {
+        return false;
+      }
+
+      if (typeof value === "string") {
+        const trimmed = value.trim();
+        return trimmed !== "" && trimmed !== "0";
+      }
+
+      if (typeof value === "number") {
+        return value !== 0;
+      }
+
+      return Boolean(value);
+    })
+  );
+};
+
 export const buildExercisePresetFromHistory = (
   historyItem,
   setCount,
