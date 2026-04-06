@@ -21,6 +21,7 @@ import {
   ContentCopy,
   Delete,
   DoubleArrow,
+  DragIndicator,
   Download,
   Settings,
   Queue as QueueIcon,
@@ -35,6 +36,7 @@ import {
   undoBulkMoveCopy,
 } from "../Redux/actions";
 import SelectedDate from "./SelectedDate";
+import WorkoutReorderEditor from "./TrainingComponents/WorkoutReorderEditor";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
 
@@ -60,6 +62,11 @@ const classes = {
   },
 };
 
+const cloneTrainingDraft = (training) =>
+  Array.isArray(training)
+    ? training.map((circuit) => (Array.isArray(circuit) ? [...circuit] : circuit))
+    : [];
+
 export function ModalAction(props) {
     const {
       actionType,
@@ -68,6 +75,7 @@ export function ModalAction(props) {
       training,
       setSelectedDate,
       setLocalTraining,
+      localTraining,
       modalOpen,
     } = props;
 
@@ -107,6 +115,9 @@ export function ModalAction(props) {
     });
     const [actionError, setActionError] = useState(false);
     const [newTitle, setNewTitle] = useState(training?.title || "");
+    const [draftReorderTraining, setDraftReorderTraining] = useState(() =>
+      cloneTrainingDraft(localTraining)
+    );
   
     const isPersonalWorkout = useCallback(
       () => user._id.toString() === training?.user?._id?.toString(),
@@ -133,6 +144,14 @@ export function ModalAction(props) {
     const handleRangeTargetChange = (e) => setRangeTargetDate(e.target.value);
     const handleTargetQueueChange = (e) => setTargetQueue(e.target.checked);
     const handleIncludeCompletedChange = (e) => setIncludeCompleted(e.target.checked);
+    const handleReorderDone = () => {
+      setLocalTraining && setLocalTraining(draftReorderTraining);
+      handleModalToggle();
+    };
+    const handleReorderCancel = () => {
+      setDraftReorderTraining(cloneTrainingDraft(localTraining));
+      handleModalToggle();
+    };
   
     const handleMove = () => {
       dispatch(updateWorkoutDateById(training, newDate, newTitle)).then((res) => {
@@ -317,6 +336,11 @@ export function ModalAction(props) {
       setPreviewWorkouts([]);
       setPreviewLoading(false);
     }, [actionType, modalOpen]);
+
+    useEffect(() => {
+      if (!modalOpen || actionType !== "reorder") return;
+      setDraftReorderTraining(cloneTrainingDraft(localTraining));
+    }, [actionType, localTraining, modalOpen, training?._id]);
 
     useEffect(() => {
       if (moveMode !== "range" || !rangeStart || rangeEndManual) return;
@@ -777,6 +801,23 @@ export function ModalAction(props) {
             </Grid>
           </>
         );
+      case "reorder":
+        return (
+          <>
+            <WorkoutReorderEditor
+              localTraining={draftReorderTraining}
+              setLocalTraining={setDraftReorderTraining}
+            />
+            <Grid container size={12} spacing={1} sx={{ justifyContent: "center", marginTop: "12px" }}>
+              <Button variant="outlined" onClick={handleReorderCancel}>
+                Cancel
+              </Button>
+              <Button variant="contained" onClick={handleReorderDone}>
+                Done
+              </Button>
+            </Grid>
+          </>
+        );
       default:
         return <></>;
     }
@@ -791,10 +832,22 @@ export function ModalAction(props) {
       training,
       setSelectedDate,
       setLocalTraining,
+      localTraining,
+      allowTrainingReorder,
     } = props;
     return (
       <Modal open={modalOpen} onClose={handleModalToggle}>
-        <Box sx={classes.modalStyle}>
+        <Box
+          sx={[
+            classes.modalStyle,
+            allowTrainingReorder && modalActionType === "reorder"
+              ? {
+                  width: { xs: "92vw", sm: 760 },
+                  maxWidth: "92vw",
+                }
+              : null,
+          ]}
+        >
           <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom>
             Workout Settings
           </Typography>
@@ -803,6 +856,13 @@ export function ModalAction(props) {
               <Tooltip title="Autofill Workout">
                 <IconButton onClick={() => handleSetModalAction("autofill_workout")}>
                   <CheckCircle />
+                </IconButton>
+              </Tooltip>
+            )}
+            {allowTrainingReorder && setLocalTraining && (
+              <Tooltip title="Reorder Workout">
+                <IconButton onClick={() => handleSetModalAction("reorder")}>
+                  <DragIndicator />
                 </IconButton>
               </Tooltip>
             )}
@@ -839,6 +899,7 @@ export function ModalAction(props) {
             training={training}
             setSelectedDate={setSelectedDate}
             setLocalTraining={setLocalTraining}
+            localTraining={localTraining}
             modalOpen={modalOpen}
           />
         </Box>

@@ -1938,6 +1938,8 @@ export default function Workout({ socket }) {
             modalActionType={modalActionType}
             training={training}
             setLocalTraining={setLocalTraining}
+            localTraining={localTraining}
+            allowTrainingReorder
           />
           <Snackbar
             open={cardioNotice.open}
