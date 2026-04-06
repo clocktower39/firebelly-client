@@ -37,11 +37,6 @@ export default defineConfig(({ mode }) => {
               "@redux-devtools/extension",
             ],
             routing: ["react-router-dom", "react-router-hash-link",],
-            styles: [
-              "@emotion/react",
-              "@emotion/styled",
-              "normalize.css",
-            ],
             "dnd-kit": ["@dnd-kit/core", "@dnd-kit/modifiers", "@dnd-kit/sortable"],
             charts: ["recharts"],
             socket: ["socket.io-client"],
