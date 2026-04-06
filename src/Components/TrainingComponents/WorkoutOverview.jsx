@@ -25,13 +25,13 @@ import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
   TouchSensor,
   MouseSensor,
   useSensor,
   useSensors,
-  rectIntersection, // works better for circuits
-  closestCorners, // works better for exercises
+  closestCorners,
+  pointerWithin,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -42,7 +42,7 @@ import {
   defaultAnimateLayoutChanges,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../WorkoutOptionModal";
@@ -214,19 +214,143 @@ const truncateCardioPreviewText = (value, maxLength = 150) => {
   return `${normalized.slice(0, maxLength - 1)}…`;
 };
 
-// Helper to find an exercise's current location in localWorkouts
-const findExerciseLocationByExerciseId = (workouts, exerciseId) => {
+const CIRCUIT_DND_KEY = "__firebellyCircuitDndKey";
+const EXERCISE_DND_KEY = "__firebellyExerciseDndKey";
+let dndKeyCounter = 0;
+
+const createDndKey = (prefix) => {
+  dndKeyCounter += 1;
+  return `${prefix}-${dndKeyCounter}`;
+};
+
+const ensureHiddenDndKey = (target, keyName, prefix) => {
+  if (!target || typeof target !== "object") {
+    return `${prefix}-missing`;
+  }
+
+  if (!target[keyName]) {
+    Object.defineProperty(target, keyName, {
+      value: createDndKey(prefix),
+      configurable: true,
+      writable: true,
+    });
+  }
+
+  return target[keyName];
+};
+
+const copyHiddenArrayKey = (source, target, keyName) => {
+  if (!source?.[keyName]) return target;
+
+  Object.defineProperty(target, keyName, {
+    value: source[keyName],
+    configurable: true,
+    writable: true,
+  });
+
+  return target;
+};
+
+const getWorkoutKey = (workout, workoutIndex) => workout?._id ? `workout-${workout._id}` : `workout-index-${workoutIndex}`;
+const getCircuitKey = (circuit) => ensureHiddenDndKey(circuit, CIRCUIT_DND_KEY, "circuit");
+const getExerciseKey = (exercise) => ensureHiddenDndKey(exercise, EXERCISE_DND_KEY, "exercise");
+const getWorkoutContainerId = (workoutKey) => `workout-container:${workoutKey}`;
+const getCircuitSortableId = (circuitKey) => `circuit:${circuitKey}`;
+const getCircuitContainerId = (circuitKey) => `exercise-container:${circuitKey}`;
+const getExerciseSortableId = (exerciseKey) => `exercise:${exerciseKey}`;
+
+const cloneCircuitWithKey = (circuit, nextItems) =>
+  copyHiddenArrayKey(circuit, [...nextItems], CIRCUIT_DND_KEY);
+
+const ensureWorkoutDndKeys = (workouts = []) => {
+  workouts.forEach((workout) => {
+    const circuits = Array.isArray(workout?.training) ? workout.training : [];
+    circuits.forEach((circuit) => {
+      if (!Array.isArray(circuit)) return;
+      getCircuitKey(circuit);
+      circuit.forEach((exercise) => {
+        if (exercise && typeof exercise === "object") {
+          getExerciseKey(exercise);
+        }
+      });
+    });
+  });
+};
+
+const buildWorkoutDndModel = (workouts = []) => {
+  ensureWorkoutDndKeys(workouts);
+
+  return workouts.map((workout, workoutIndex) => {
+    const workoutKey = getWorkoutKey(workout, workoutIndex);
+    const circuits = (Array.isArray(workout?.training) ? workout.training : []).map(
+      (circuit, circuitIndex) => {
+        const circuitKey = getCircuitKey(circuit);
+        const exerciseItems = (Array.isArray(circuit) ? circuit : []).map((exercise, exerciseIndex) => {
+          const exerciseKey = getExerciseKey(exercise);
+          return {
+            exercise,
+            exerciseIndex,
+            exerciseKey,
+            exerciseId: getExerciseSortableId(exerciseKey),
+          };
+        });
+
+        return {
+          circuit,
+          circuitIndex,
+          circuitKey,
+          circuitId: getCircuitSortableId(circuitKey),
+          exerciseContainerId: getCircuitContainerId(circuitKey),
+          exerciseItems,
+          exerciseIds: exerciseItems.map((item) => item.exerciseId),
+        };
+      }
+    );
+
+    return {
+      workout,
+      workoutIndex,
+      workoutKey,
+      workoutContainerId: getWorkoutContainerId(workoutKey),
+      circuits,
+      circuitIds: circuits.map((circuit) => circuit.circuitId),
+    };
+  });
+};
+
+const findWorkoutIndexByKey = (workouts, workoutKey) =>
+  workouts.findIndex((workout, workoutIndex) => getWorkoutKey(workout, workoutIndex) === workoutKey);
+
+const findCircuitLocationByKey = (workouts, circuitKey) => {
+  ensureWorkoutDndKeys(workouts);
+
   for (let workoutIndex = 0; workoutIndex < workouts.length; workoutIndex += 1) {
     const workout = workouts[workoutIndex];
-    if (!workout?.training) continue;
+    const circuits = Array.isArray(workout?.training) ? workout.training : [];
 
-    for (let circuitIndex = 0; circuitIndex < workout.training.length; circuitIndex += 1) {
-      const circuit = workout.training[circuitIndex];
+    for (let circuitIndex = 0; circuitIndex < circuits.length; circuitIndex += 1) {
+      if (getCircuitKey(circuits[circuitIndex]) === circuitKey) {
+        return { workoutIndex, circuitIndex };
+      }
+    }
+  }
+
+  return null;
+};
+
+const findExerciseLocationByKey = (workouts, exerciseKey) => {
+  ensureWorkoutDndKeys(workouts);
+
+  for (let workoutIndex = 0; workoutIndex < workouts.length; workoutIndex += 1) {
+    const workout = workouts[workoutIndex];
+    const circuits = Array.isArray(workout?.training) ? workout.training : [];
+
+    for (let circuitIndex = 0; circuitIndex < circuits.length; circuitIndex += 1) {
+      const circuit = circuits[circuitIndex];
       if (!Array.isArray(circuit)) continue;
 
       for (let exerciseIndex = 0; exerciseIndex < circuit.length; exerciseIndex += 1) {
-        const exercise = circuit[exerciseIndex];
-        if (exercise && exercise._id === exerciseId) {
+        if (getExerciseKey(circuit[exerciseIndex]) === exerciseKey) {
           return { workoutIndex, circuitIndex, exerciseIndex };
         }
       }
@@ -236,17 +360,216 @@ const findExerciseLocationByExerciseId = (workouts, exerciseId) => {
   return null;
 };
 
-function SortableExercise({ id, index, children }) {
+const moveCircuitByKey = (workouts, circuitKey, targetWorkoutKey, targetCircuitIndex) => {
+  ensureWorkoutDndKeys(workouts);
+
+  const sourceLocation = findCircuitLocationByKey(workouts, circuitKey);
+  const targetWorkoutIndex = findWorkoutIndexByKey(workouts, targetWorkoutKey);
+
+  if (!sourceLocation || targetWorkoutIndex === -1) {
+    return workouts;
+  }
+
+  const { workoutIndex: sourceWorkoutIndex, circuitIndex: sourceCircuitIndex } = sourceLocation;
+  const safeTargetIndex = Math.max(
+    0,
+    Math.min(Number.isInteger(targetCircuitIndex) ? targetCircuitIndex : 0, (workouts[targetWorkoutIndex]?.training || []).length)
+  );
+
+  if (
+    sourceWorkoutIndex === targetWorkoutIndex &&
+    sourceCircuitIndex === safeTargetIndex
+  ) {
+    return workouts;
+  }
+
+  const nextWorkouts = workouts.map((workout, workoutIndex) => {
+    if (workoutIndex !== sourceWorkoutIndex && workoutIndex !== targetWorkoutIndex) {
+      return workout;
+    }
+
+    return {
+      ...workout,
+      training: Array.isArray(workout.training) ? [...workout.training] : [],
+    };
+  });
+
+  const [movedCircuit] = nextWorkouts[sourceWorkoutIndex].training.splice(sourceCircuitIndex, 1);
+  if (!movedCircuit) return workouts;
+
+  let insertIndex = safeTargetIndex;
+  if (sourceWorkoutIndex === targetWorkoutIndex && sourceCircuitIndex < insertIndex) {
+    insertIndex -= 1;
+  }
+
+  if (
+    sourceWorkoutIndex === targetWorkoutIndex &&
+    sourceCircuitIndex === insertIndex
+  ) {
+    return workouts;
+  }
+
+  nextWorkouts[targetWorkoutIndex].training.splice(insertIndex, 0, movedCircuit);
+  return nextWorkouts;
+};
+
+const moveExerciseByKey = (workouts, exerciseKey, targetCircuitKey, targetExerciseIndex) => {
+  ensureWorkoutDndKeys(workouts);
+
+  const sourceLocation = findExerciseLocationByKey(workouts, exerciseKey);
+  const targetLocation = findCircuitLocationByKey(workouts, targetCircuitKey);
+
+  if (!sourceLocation || !targetLocation) {
+    return workouts;
+  }
+
+  const {
+    workoutIndex: sourceWorkoutIndex,
+    circuitIndex: sourceCircuitIndex,
+    exerciseIndex: sourceExerciseIndex,
+  } = sourceLocation;
+  const {
+    workoutIndex: targetWorkoutIndex,
+    circuitIndex: targetCircuitIndex,
+  } = targetLocation;
+
+  const sourceCircuit = workouts[sourceWorkoutIndex]?.training?.[sourceCircuitIndex];
+  const targetCircuit = workouts[targetWorkoutIndex]?.training?.[targetCircuitIndex];
+
+  if (!Array.isArray(sourceCircuit) || !Array.isArray(targetCircuit)) {
+    return workouts;
+  }
+
+  const safeTargetIndex = Math.max(
+    0,
+    Math.min(Number.isInteger(targetExerciseIndex) ? targetExerciseIndex : targetCircuit.length, targetCircuit.length)
+  );
+
+  if (sourceWorkoutIndex === targetWorkoutIndex && sourceCircuitIndex === targetCircuitIndex) {
+    if (sourceExerciseIndex === safeTargetIndex) {
+      return workouts;
+    }
+
+    const reorderedCircuit = cloneCircuitWithKey(
+      sourceCircuit,
+      arrayMove(sourceCircuit, sourceExerciseIndex, safeTargetIndex)
+    );
+
+    return workouts.map((workout, workoutIndex) => {
+      if (workoutIndex !== sourceWorkoutIndex) return workout;
+
+      return {
+        ...workout,
+        training: workout.training.map((circuit, circuitIndex) =>
+          circuitIndex === sourceCircuitIndex ? reorderedCircuit : circuit
+        ),
+      };
+    });
+  }
+
+  const movedExercise = sourceCircuit[sourceExerciseIndex];
+  if (!movedExercise) return workouts;
+
+  return workouts.map((workout, workoutIndex) => {
+    if (workoutIndex !== sourceWorkoutIndex && workoutIndex !== targetWorkoutIndex) {
+      return workout;
+    }
+
+    return {
+      ...workout,
+      training: workout.training.map((circuit, circuitIndex) => {
+        if (workoutIndex === sourceWorkoutIndex && circuitIndex === sourceCircuitIndex) {
+          const nextSourceCircuit = sourceCircuit.filter((_, index) => index !== sourceExerciseIndex);
+          return cloneCircuitWithKey(sourceCircuit, nextSourceCircuit);
+        }
+
+        if (workoutIndex === targetWorkoutIndex && circuitIndex === targetCircuitIndex) {
+          const nextTargetCircuit = [...targetCircuit];
+          nextTargetCircuit.splice(safeTargetIndex, 0, movedExercise);
+          return cloneCircuitWithKey(targetCircuit, nextTargetCircuit);
+        }
+
+        return circuit;
+      }),
+    };
+  });
+};
+
+const getExerciseDropTarget = (overData) => {
+  if (!overData) return null;
+
+  if (overData.type === "exercise") {
+    return {
+      circuitKey: overData.circuitKey,
+      exerciseIndex: overData.exerciseIndex,
+    };
+  }
+
+  if (overData.type === "exercise-container") {
+    return {
+      circuitKey: overData.circuitKey,
+      exerciseIndex: overData.exerciseCount,
+    };
+  }
+
+  return null;
+};
+
+const getCircuitDropTarget = (overData) => {
+  if (!overData) return null;
+
+  if (overData.type === "circuit") {
+    return {
+      workoutKey: overData.workoutKey,
+      circuitIndex: overData.circuitIndex,
+    };
+  }
+
+  if (overData.type === "workout-container") {
+    return {
+      workoutKey: overData.workoutKey,
+      circuitIndex: overData.circuitCount,
+    };
+  }
+
+  return null;
+};
+
+const getTypedCollisions = (args, allowedTypes) => {
+  const filteredContainers = args.droppableContainers.filter((container) =>
+    allowedTypes.includes(container.data.current?.type)
+  );
+
+  if (filteredContainers.length === 0) {
+    return [];
+  }
+
+  const pointerCollisions = pointerWithin({
+    ...args,
+    droppableContainers: filteredContainers,
+  });
+
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+
+  return closestCorners({
+    ...args,
+    droppableContainers: filteredContainers,
+  });
+};
+
+function SortableExercise({ id, data, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
-    index,
+    data,
     animateLayoutChanges: (args) => (args.isSorting ? false : defaultAnimateLayoutChanges(args)),
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0 : 1,
+    opacity: isDragging ? 0.2 : 1,
   };
 
   return (
@@ -256,10 +579,10 @@ function SortableExercise({ id, index, children }) {
   );
 }
 
-function SortableCircuit({ id, index, children }) {
+function SortableCircuit({ id, data, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
-    index,
+    data,
     animateLayoutChanges: defaultAnimateLayoutChanges,
   });
 
@@ -274,6 +597,16 @@ function SortableCircuit({ id, index, children }) {
       {children(listeners, attributes, isDragging)}
     </div>
   );
+}
+
+function ExerciseDropZone({ id, data, children }) {
+  const { setNodeRef, isOver } = useDroppable({ id, data });
+  return children({ setNodeRef, isOver });
+}
+
+function WorkoutDropZone({ id, data, children }) {
+  const { setNodeRef, isOver } = useDroppable({ id, data });
+  return children({ setNodeRef, isOver });
 }
 
 export default function WorkoutOverview({
@@ -302,8 +635,11 @@ export default function WorkoutOverview({
       return acc;
     }, {})
   );
-  const [activeId, setActiveId] = useState(null);
   const [newWorkoutType, setNewWorkoutType] = useState("Strength");
+  const [activeExercise, setActiveExercise] = useState(null);
+  const [activeCircuit, setActiveCircuit] = useState(null);
+
+  const workoutDndModel = useMemo(() => buildWorkoutDndModel(localWorkouts), [localWorkouts]);
 
   const handleViewToggleChange = (workoutId, newViewMode) => {
     if (newViewMode !== null) {
@@ -314,7 +650,6 @@ export default function WorkoutOverview({
     }
   };
 
-  // Save and start workout
   const saveStart = (training) => {
     const localTraining = localWorkouts.filter((w) => w._id === training._id);
     dispatch(
@@ -327,7 +662,6 @@ export default function WorkoutOverview({
     );
   };
 
-  // Create new workout
   const handleAddWorkout = () =>
     dispatch(
       createTraining({
@@ -355,240 +689,126 @@ export default function WorkoutOverview({
   }, [localWorkouts]);
 
   const sensors = useSensors(
-    useSensor(TouchSensor),
-    useSensor(MouseSensor),
-    useSensor(PointerSensor),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 4,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const [draggedItem, setDraggedItem] = useState(null);
-  const [activeExercise, setActiveExercise] = useState(null);
-  const [activeCircuit, setActiveCircuit] = useState(null);
-
-  const flattenedCircuits = useMemo(
-    () =>
-      localWorkouts.reduce((acc, workout) => {
-        const workoutCircuits = workout.training.map((_, idx) => `circuit-${workout._id}-${idx}`);
-        return acc.concat(workoutCircuits);
-      }, []),
-    [localWorkouts]
-  );
+  const clearActiveDrag = () => {
+    setActiveExercise(null);
+    setActiveCircuit(null);
+  };
 
   const handleDragStart = ({ active }) => {
-    setDraggedItem(active.id);
+    const activeData = active?.data?.current;
+    if (!activeData) return;
 
-    // Find and store the active exercise data for DragOverlay
-    if (active.id.startsWith("exercise-")) {
-      const parts = active.id.split("-");
-      const workoutId = parts[1];
-      const circuitIndex = parseInt(parts[2]);
-
-      const workout = localWorkouts.find((w) => w._id === workoutId);
-      if (workout) {
-        const circuit = workout.training[circuitIndex];
-        const exerciseIndex = circuit.findIndex(
-          (ex, idx) => `exercise-${workoutId}-${circuitIndex}-${ex._id}-${idx}` === active.id
-        );
-        if (exerciseIndex !== -1) {
-          setActiveExercise(circuit[exerciseIndex]);
-        }
-      }
+    if (activeData.type === "exercise") {
+      setActiveExercise(activeData.exercise);
+      setActiveCircuit(null);
+      return;
     }
 
-    // Find and store the active circuit data for DragOverlay
-    if (active.id.startsWith("circuit-")) {
-      const parts = active.id.split("-");
-      const workoutId = parts[1];
-      const circuitIndex = parseInt(parts[2]);
-
-      const workout = localWorkouts.find((w) => w._id === workoutId);
-      if (workout && workout.training[circuitIndex]) {
-        setActiveCircuit({
-          circuitIndex,
-          exercises: workout.training[circuitIndex],
-        });
-      }
+    if (activeData.type === "circuit") {
+      setActiveExercise(null);
+      setActiveCircuit({
+        circuitIndex: activeData.circuitIndex,
+        exercises: Array.isArray(activeData.circuit) ? activeData.circuit : [],
+      });
     }
   };
 
   const handleDragOver = ({ active, over }) => {
-    if (!over || !active.id || typeof active.id !== "string") return;
+    const activeData = active?.data?.current;
+    const overData = over?.data?.current;
 
-    // Only handle exercises here; circuit reordering still happens in handleDragEnd
-    if (!active.id.startsWith("exercise-")) return;
+    if (!activeData || !overData) return;
 
-    const activeParts = active.id.split("-");
-    // exercise-<workoutId>-<circuitIndex>-<exerciseId>-<index>
-    if (activeParts.length < 4) return;
-    const activeExerciseId = activeParts[3];
+    if (activeData.type === "exercise") {
+      const target = getExerciseDropTarget(overData);
+      if (!target) return;
 
-    const overId = String(over.id);
+      setLocalWorkouts((prevWorkouts) =>
+        moveExerciseByKey(
+          prevWorkouts,
+          activeData.exerciseKey,
+          target.circuitKey,
+          target.exerciseIndex
+        )
+      );
+      return;
+    }
 
-    setLocalWorkouts((prevData) => {
-      if (!Array.isArray(prevData)) return prevData;
+    if (activeData.type === "circuit") {
+      const target = getCircuitDropTarget(overData);
+      if (!target) return;
 
-      const updatedData = JSON.parse(JSON.stringify(prevData));
-
-      const activeLocation = findExerciseLocationByExerciseId(updatedData, activeExerciseId);
-      if (!activeLocation) return prevData;
-
-      const {
-        workoutIndex: activeWorkoutIndex,
-        circuitIndex: activeCircuitIndex,
-        exerciseIndex: activeExerciseIndex,
-      } = activeLocation;
-
-      let targetWorkoutIndex = activeWorkoutIndex;
-      let targetCircuitIndex = activeCircuitIndex;
-      let targetExerciseIndex = activeExerciseIndex;
-
-      if (overId.startsWith("exercise-")) {
-        const overParts = overId.split("-");
-        if (overParts.length < 4) return prevData;
-        const overExerciseId = overParts[3];
-
-        const overLocation = findExerciseLocationByExerciseId(updatedData, overExerciseId);
-        if (!overLocation) return prevData;
-
-        targetWorkoutIndex = overLocation.workoutIndex;
-        targetCircuitIndex = overLocation.circuitIndex;
-        targetExerciseIndex = overLocation.exerciseIndex;
-      } else if (overId.startsWith("placeholder-") || overId.startsWith("circuit-")) {
-        const overParts = overId.split("-");
-        if (overParts.length < 3) return prevData;
-        const overWorkoutId = overParts[1];
-        targetCircuitIndex = parseInt(overParts[2], 10);
-
-        targetWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
-        if (targetWorkoutIndex === -1) return prevData;
-
-        const targetCircuit = updatedData[targetWorkoutIndex].training[targetCircuitIndex] || [];
-        targetExerciseIndex = targetCircuit.length;
-      } else {
-        return prevData;
-      }
-
-      const sameContainer =
-        activeWorkoutIndex === targetWorkoutIndex && activeCircuitIndex === targetCircuitIndex;
-
-      // Reorder within the same circuit
-      if (sameContainer) {
-        if (activeExerciseIndex === targetExerciseIndex) return prevData;
-
-        const circuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
-        updatedData[activeWorkoutIndex].training[activeCircuitIndex] = arrayMove(
-          circuit,
-          activeExerciseIndex,
-          targetExerciseIndex
-        );
-
-        return updatedData;
-      }
-
-      // Move across circuits
-      const sourceCircuit = updatedData[activeWorkoutIndex].training[activeCircuitIndex];
-      const targetCircuit = updatedData[targetWorkoutIndex].training[targetCircuitIndex];
-
-      if (!Array.isArray(sourceCircuit) || !Array.isArray(targetCircuit)) return prevData;
-
-      const [movedItem] = sourceCircuit.splice(activeExerciseIndex, 1);
-
-      const insertIndex =
-        typeof targetExerciseIndex === "number" ? targetExerciseIndex : targetCircuit.length;
-      targetCircuit.splice(insertIndex, 0, movedItem);
-
-      return updatedData;
-    });
+      setLocalWorkouts((prevWorkouts) =>
+        moveCircuitByKey(
+          prevWorkouts,
+          activeData.circuitKey,
+          target.workoutKey,
+          target.circuitIndex
+        )
+      );
+    }
   };
 
-  const handleDragEnd = ({ active, over }) => {
-    setDraggedItem(null);
-    setActiveExercise(null);
-    setActiveCircuit(null);
-    if (!over || active.id === over.id) return;
-
-    if (active.id.startsWith("circuit-") && over.id.startsWith("circuit-")) {
-      handleCircuitDragEnd(active, over);
-    }
+  const handleDragEnd = () => {
+    clearActiveDrag();
   };
 
   const handleDragCancel = () => {
-    setDraggedItem(null);
-    setActiveExercise(null);
-    setActiveCircuit(null);
+    clearActiveDrag();
   };
 
+  const collisionDetection = (args) => {
+    const activeType = args.active.data.current?.type;
 
-
-  const handleCircuitDragEnd = (active, over) => {
-    const [activeWorkoutId, activeCircuitIndex] = active.id.split("-").slice(1);
-    const [overWorkoutId, overCircuitIndex] = over.id.split("-").slice(1);
-
-    setLocalWorkouts((prevData) => {
-      const updatedData = [...prevData];
-      const activeWorkoutIndex = updatedData.findIndex((w) => w._id === activeWorkoutId);
-      const overWorkoutIndex = updatedData.findIndex((w) => w._id === overWorkoutId);
-
-      if (activeWorkoutIndex === -1 || overWorkoutIndex === -1) return updatedData;
-
-      if (activeWorkoutIndex === overWorkoutIndex) {
-        // Reorder circuits within the same workout
-        updatedData[activeWorkoutIndex].training = arrayMove(
-          updatedData[activeWorkoutIndex].training,
-          parseInt(activeCircuitIndex),
-          parseInt(overCircuitIndex)
-        );
-      } else {
-        // Moving circuits between workouts
-        const [movedCircuit] = updatedData[activeWorkoutIndex].training.splice(
-          parseInt(activeCircuitIndex),
-          1
-        );
-        updatedData[overWorkoutIndex].training.splice(parseInt(overCircuitIndex), 0, movedCircuit);
-      }
-
-      return updatedData;
-    });
-  };
-
-  const customCollisionDetection = (args) => {
-    const { active } = args;
-    if (active.id.startsWith("exercise-")) {
-      // Use closestCorners for exercises
-      return closestCorners(args);
-    } else if (active.id.startsWith("circuit-")) {
-      // Use rectIntersection for circuits
-      return rectIntersection(args);
+    if (activeType === "exercise") {
+      return getTypedCollisions(args, ["exercise", "exercise-container"]);
     }
-    // Fallback (if needed)
+
+    if (activeType === "circuit") {
+      return getTypedCollisions(args, ["circuit", "workout-container"]);
+    }
+
     return closestCorners(args);
   };
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={customCollisionDetection}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
       modifiers={[restrictToVerticalAxis]}
     >
-      {localWorkouts?.length > 0 &&
-        // Each day may have multiple workouts, this separates the workouts
-        localWorkouts.map((workout, index) => {
+      {workoutDndModel.length > 0 &&
+        workoutDndModel.map(({ workout, workoutKey, workoutContainerId, circuits, circuitIds }, index) => {
           const handleSelectWorkout = () => {
             setSelectedWorkout(workout);
             handleModalToggle();
           };
 
-          const currentViewMode = viewModes[workout._id] || "goals"; // Default to 'goals' if not set
+          const currentViewMode = viewModes[workout._id] || "goals";
           const isCardioWorkout = workout.workoutType === "Cardio";
 
           return (
-            <React.Fragment key={`workout-${index}`}>
+            <React.Fragment key={`workout-${workout._id || index}`}>
               <Paper
                 elevation={5}
                 sx={{
@@ -628,41 +848,98 @@ export default function WorkoutOverview({
                     {isCardioWorkout ? "Results" : "Achieved"}
                   </ToggleButton>
                 </ToggleButtonGroup>
-                <div style={{ padding: "10px 0px" }}>
-                  {isCardioWorkout ? (
-                    <CardioWorkoutPreview workout={workout} viewMode={currentViewMode} />
-                  ) : (
-                    <SortableContext items={flattenedCircuits} strategy={verticalListSortingStrategy}>
-                      {
-                        // iterates through each workout set (supersets)
-                        workout.training.map((circuit, circuitIndex) => {
-                          return (
-                            <Grid container key={`circuit-${workout._id}-${circuitIndex}`}>
-                              <Grid size={12}>
-                                <SortableCircuit
-                                  id={`circuit-${workout._id}-${circuitIndex}`}
-                                  index={circuitIndex}
-                                >
-                                  {(listeners, attributes) => (
-                                    <WorkoutSet
-                                      workout={workout}
-                                      circuit={circuit}
-                                      circuitIndex={circuitIndex}
-                                      viewMode={currentViewMode}
-                                      activeId={activeId}
-                                      listeners={listeners}
-                                      attributes={attributes}
-                                    />
-                                  )}
-                                </SortableCircuit>
-                              </Grid>
-                            </Grid>
-                          );
-                        })
-                      }
-                    </SortableContext>
+
+                <WorkoutDropZone
+                  id={workoutContainerId}
+                  data={{
+                    type: "workout-container",
+                    workoutKey,
+                    circuitCount: circuits.length,
+                  }}
+                >
+                  {({ setNodeRef, isOver }) => (
+                    <Box
+                      ref={setNodeRef}
+                      sx={{
+                        padding: "10px 0px",
+                        minHeight: isCardioWorkout ? undefined : 72,
+                        borderRadius: 2,
+                        backgroundColor: isOver && !isCardioWorkout ? "action.hover" : "transparent",
+                        border: !isCardioWorkout && (isOver || circuits.length === 0)
+                          ? "1px dashed"
+                          : "1px solid transparent",
+                        borderColor: !isCardioWorkout && (isOver || circuits.length === 0)
+                          ? isOver
+                            ? "primary.main"
+                            : "divider"
+                          : "transparent",
+                      }}
+                    >
+                      {isCardioWorkout ? (
+                        <CardioWorkoutPreview workout={workout} viewMode={currentViewMode} />
+                      ) : (
+                        <SortableContext items={circuitIds} strategy={verticalListSortingStrategy}>
+                          {circuits.length > 0 ? (
+                            circuits.map(
+                              ({
+                                circuit,
+                                circuitIndex,
+                                circuitKey,
+                                circuitId,
+                                exerciseContainerId,
+                                exerciseItems,
+                                exerciseIds,
+                              }) => (
+                                <Grid container key={circuitId}>
+                                  <Grid size={12}>
+                                    <SortableCircuit
+                                      id={circuitId}
+                                      data={{
+                                        type: "circuit",
+                                        workoutKey,
+                                        circuitKey,
+                                        circuitIndex,
+                                        circuit,
+                                      }}
+                                    >
+                                      {(listeners, attributes) => (
+                                        <WorkoutSet
+                                          workout={workout}
+                                          workoutKey={workoutKey}
+                                          circuit={circuit}
+                                          circuitIndex={circuitIndex}
+                                          circuitKey={circuitKey}
+                                          exerciseContainerId={exerciseContainerId}
+                                          exerciseItems={exerciseItems}
+                                          exerciseIds={exerciseIds}
+                                          viewMode={currentViewMode}
+                                          listeners={listeners}
+                                          attributes={attributes}
+                                        />
+                                      )}
+                                    </SortableCircuit>
+                                  </Grid>
+                                </Grid>
+                              )
+                            )
+                          ) : (
+                            <Paper
+                              variant="outlined"
+                              sx={{
+                                padding: "12px",
+                                color: "text.secondary",
+                                textAlign: "center",
+                              }}
+                            >
+                              Drag a circuit here
+                            </Paper>
+                          )}
+                        </SortableContext>
+                      )}
+                    </Box>
                   )}
-                </div>
+                </WorkoutDropZone>
+
                 <Grid container size={12} sx={{ justifyContent: "center", padding: "5px" }}>
                   <Link to={`/workout/${workout._id}`}>
                     <Button onClick={() => saveStart(workout)} variant="contained">
@@ -691,33 +968,33 @@ export default function WorkoutOverview({
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle>{"Create a workout"}</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-slide-description">
-          Select a workout type to create. More options coming soon.
-        </DialogContentText>
-        <Box sx={{ marginTop: "12px" }}>
-          <TextField
-            select
-            fullWidth
-            label="Workout type"
-            value={newWorkoutType}
-            onChange={(event) => setNewWorkoutType(event.target.value)}
-          >
-            {WORKOUT_TYPES.map((type) => (
-              <MenuItem key={type.value} value={type.value} disabled={!type.enabled}>
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <Typography variant="body1">{type.label}</Typography>
-                  {!type.enabled && (
-                    <Typography variant="caption" color="text.secondary">
-                      {type.hint || "Coming soon"}
-                    </Typography>
-                  )}
-                </Box>
-              </MenuItem>
-            ))}
-          </TextField>
-        </Box>
-      </DialogContent>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description">
+            Select a workout type to create. More options coming soon.
+          </DialogContentText>
+          <Box sx={{ marginTop: "12px" }}>
+            <TextField
+              select
+              fullWidth
+              label="Workout type"
+              value={newWorkoutType}
+              onChange={(event) => setNewWorkoutType(event.target.value)}
+            >
+              {WORKOUT_TYPES.map((type) => (
+                <MenuItem key={type.value} value={type.value} disabled={!type.enabled}>
+                  <Box sx={{ display: "flex", flexDirection: "column" }}>
+                    <Typography variant="body1">{type.label}</Typography>
+                    {!type.enabled && (
+                      <Typography variant="caption" color="text.secondary">
+                        {type.hint || "Coming soon"}
+                      </Typography>
+                    )}
+                  </Box>
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+        </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseCreateWorkoutDialog}>Cancel</Button>
           <Button onClick={() => handleAddWorkout().then(() => handleCloseCreateWorkoutDialog())}>
@@ -767,7 +1044,7 @@ export default function WorkoutOverview({
             <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
               {activeCircuit.exercises.length > 0 ? (
                 activeCircuit.exercises.map((exercise, index) => (
-                  <Grid container component={Paper} key={index}>
+                  <Grid container component={Paper} key={`${getExerciseKey(exercise)}-${index}`}>
                     <Grid container size={1} sx={{ justifyContent: "center", alignItems: "center" }}>
                       <DragHandleIcon />
                     </Grid>
@@ -929,24 +1206,17 @@ const CardioWorkoutPreview = ({ workout, viewMode }) => {
 const WorkoutSet = (props) => {
   const {
     workout,
+    workoutKey,
     circuit,
     circuitIndex,
+    circuitKey,
+    exerciseContainerId,
+    exerciseItems,
+    exerciseIds,
     viewMode,
-    activeId,
     listeners,
     attributes,
   } = props;
-
-  // Generate circuit-specific items for SortableContext
-  const circuitExerciseIds = useMemo(() => {
-    if (circuit.length > 0) {
-      return circuit.map(
-        (exercise, index) =>
-          `exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`
-      );
-    }
-    return [`placeholder-${workout._id}-${circuitIndex}`];
-  }, [circuit, workout._id, circuitIndex]);
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -1016,61 +1286,86 @@ const WorkoutSet = (props) => {
           </Typography>
         </Grid>
       </Grid>
-      <div style={{ padding: "5px 0px", margin: "5px 0px" }}>
-        <SortableContext items={circuitExerciseIds} strategy={verticalListSortingStrategy}>
-          {circuit.length > 0 ? (
-            circuit.map((exercise, index) => (
-              <SortableExercise
-                id={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`}
-                key={`exercise-${workout._id}-${circuitIndex}-${exercise._id}-${index}`}
-                index={index}
-              >
-                {(listeners, attributes) => (
-                  <Grid container component={Paper}>
-                    <Grid
-                      container
-                      size={1}
-                      sx={{ justifyContent: "center", alignItems: "center" }}
-                    >
-                      {/* Drag handle */}
-                      <div {...listeners} {...attributes} style={{ touchAction: "none" }}>
-                        <DragHandleIcon />
-                      </div>
-                    </Grid>
-                    <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
-                      {/* Rest of your item content */}
-                      <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
-                        <Typography variant="body1">
-                          {exercise?.exercise?.exerciseTitle || "Select an exercise"}
-                        </Typography>
+      <ExerciseDropZone
+        id={exerciseContainerId}
+        data={{
+          type: "exercise-container",
+          workoutKey,
+          circuitKey,
+          exerciseCount: exerciseItems.length,
+        }}
+      >
+        {({ setNodeRef, isOver }) => (
+          <Box
+            ref={setNodeRef}
+            sx={{
+              padding: "5px 0px",
+              margin: "5px 0px",
+              borderRadius: 2,
+              backgroundColor: isOver ? "action.hover" : "transparent",
+              border: isOver || exerciseItems.length === 0 ? "1px dashed" : "1px solid transparent",
+              borderColor: isOver ? "primary.main" : exerciseItems.length === 0 ? "divider" : "transparent",
+            }}
+          >
+            <SortableContext items={exerciseIds} strategy={verticalListSortingStrategy}>
+              {exerciseItems.length > 0 ? (
+                exerciseItems.map(({ exercise, exerciseIndex, exerciseKey, exerciseId }) => (
+                  <SortableExercise
+                    id={exerciseId}
+                    key={exerciseId}
+                    data={{
+                      type: "exercise",
+                      workoutKey,
+                      circuitKey,
+                      exerciseKey,
+                      exerciseIndex,
+                      exercise,
+                    }}
+                  >
+                    {(exerciseListeners, exerciseAttributes) => (
+                      <Grid container component={Paper}>
+                        <Grid
+                          container
+                          size={1}
+                          sx={{ justifyContent: "center", alignItems: "center" }}
+                        >
+                          <div
+                            {...exerciseListeners}
+                            {...exerciseAttributes}
+                            style={{ touchAction: "none" }}
+                          >
+                            <DragHandleIcon />
+                          </div>
+                        </Grid>
+                        <Grid container size={11} spacing={1} sx={{ padding: "5px" }}>
+                          <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
+                            <Typography variant="body1">
+                              {exercise?.exercise?.exerciseTitle || "Select an exercise"}
+                            </Typography>
+                          </Grid>
+                          <Grid container size={{ xs: 12, sm: 6 }}>
+                            {renderType(exercise)}
+                          </Grid>
+                        </Grid>
                       </Grid>
-                      <Grid container size={{ xs: 12, sm: 6 }}>
-                        {renderType(exercise)}
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                )}
-              </SortableExercise>
-            ))
-          ) : (
-            <SortableExercise
-              key={`placeholder-${workout._id}-${circuitIndex}`}
-              id={`placeholder-${workout._id}-${circuitIndex}`}
-              isPlaceholder
-            >
-              {(listeners, attributes) => (
-                <div
-                  style={{
-                    color: "#aaa",
+                    )}
+                  </SortableExercise>
+                ))
+              ) : (
+                <Box
+                  sx={{
+                    color: "text.secondary",
+                    textAlign: "center",
+                    padding: "12px",
                   }}
                 >
-                  Empty Circuit : Drag here to add exercise
-                </div>
+                  Empty circuit: drag an exercise here
+                </Box>
               )}
-            </SortableExercise>
-          )}
-        </SortableContext>
-      </div>
+            </SortableContext>
+          </Box>
+        )}
+      </ExerciseDropZone>
     </Paper>
   );
 };
