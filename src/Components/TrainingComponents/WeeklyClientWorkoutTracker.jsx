@@ -19,6 +19,10 @@ import {
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
 } from "@mui/icons-material";
 import { enterClientAccount, requestClients, requestWorkoutsByRange } from "../../Redux/actions";
+import {
+  getRelationshipEngagementStatus,
+  isRelationshipActivelyCoached,
+} from "../../utils/clientRelationships";
 import WorkoutTrainerSessionDialog from "./WorkoutTrainerSessionDialog";
 
 dayjs.extend(utc);
@@ -26,7 +30,13 @@ dayjs.extend(utc);
 const formatClientName = (client) =>
   `${client?.firstName || ""} ${client?.lastName || ""}`.trim() || "Unnamed client";
 
-export default function WeeklyClientWorkoutTracker({ selectedDate }) {
+export default function WeeklyClientWorkoutTracker({
+  selectedDate = dayjs().format("YYYY-MM-DD"),
+  mode = "week",
+  title = "",
+  description = "",
+  showViewFullButton = false,
+}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
@@ -39,17 +49,34 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
   const [sessionDialogWorkouts, setSessionDialogWorkouts] = useState([]);
   const [sessionDialogInitialWorkoutId, setSessionDialogInitialWorkoutId] = useState("");
+  const displayDate = useMemo(() => dayjs(selectedDate), [selectedDate]);
+  const clientRelationships = useMemo(() => (Array.isArray(clients) ? clients : []), [clients]);
 
-  const acceptedClients = useMemo(
+  const activeClientRelationships = useMemo(
     () =>
-      clients
-        .filter((relationship) => relationship?.accepted && relationship?.client?._id)
-        .map((relationship) => relationship.client)
-        .sort((a, b) => formatClientName(a).localeCompare(formatClientName(b))),
-    [clients]
+      clientRelationships
+        .filter(
+          (relationship) => isRelationshipActivelyCoached(relationship) && relationship?.client?._id
+        )
+        .sort((a, b) => formatClientName(a.client).localeCompare(formatClientName(b.client))),
+    [clientRelationships]
+  );
+  const acceptedClients = useMemo(
+    () => activeClientRelationships.map((relationship) => relationship.client),
+    [activeClientRelationships]
+  );
+  const deferredClientRelationships = useMemo(
+    () =>
+      clientRelationships.filter(
+        (relationship) =>
+          relationship?.accepted &&
+          relationship?.client?._id &&
+          getRelationshipEngagementStatus(relationship) !== "active"
+      ),
+    [clientRelationships]
   );
 
-  const weekStart = useMemo(() => dayjs(selectedDate).startOf("week"), [selectedDate]);
+  const weekStart = useMemo(() => displayDate.startOf("week"), [displayDate]);
   const weekDays = useMemo(
     () => Array.from({ length: 7 }, (_, index) => weekStart.add(index, "day")),
     [weekStart]
@@ -111,9 +138,12 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
         const entries = scheduledClients
           .map((client) => {
             const workouts =
-              workoutsByAccount?.[client._id]?.workouts?.filter((workout) =>
+              (Array.isArray(workoutsByAccount?.[client._id]?.workouts)
+                ? workoutsByAccount[client._id].workouts
+                : []
+              ).filter((workout) =>
                 dayjs.utc(workout.date).isSame(day, "day")
-              ) || [];
+              );
 
             return {
               client,
@@ -157,6 +187,24 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
     .slice(0, 4)
     .map((client) => formatClientName(client))
     .join(", ");
+  const deferredPreview = deferredClientRelationships
+    .slice(0, 4)
+    .map((relationship) => formatClientName(relationship.client))
+    .join(", ");
+  const focusedDayCard = useMemo(
+    () => dayCards.find((dayCard) => dayCard.key === displayDate.format("YYYY-MM-DD")) || null,
+    [dayCards, displayDate]
+  );
+  const focusedDayMissing = focusedDayCard
+    ? focusedDayCard.totalScheduled - focusedDayCard.coveredCount
+    : 0;
+  const resolvedTitle =
+    title || (mode === "day" ? "Today's Coverage" : "Weekly Client Coverage");
+  const resolvedDescription =
+    description ||
+    (mode === "day"
+      ? `Clients expected on ${displayDate.format("dddd, MMM D")}.`
+      : "Based on each active client's preferred workout days for the selected week.");
 
   const handleOpenClientAccount = async (clientId, day) => {
     const targetDate = day.format("YYYYMMDD");
@@ -192,6 +240,160 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
     setSessionDialogInitialWorkoutId("");
   };
 
+  const handleViewFullCoverage = () => {
+    navigate(`/coverage?date=${displayDate.format("YYYYMMDD")}`);
+  };
+
+  const renderEntry = (entry, day) => {
+    const entryKey = `${entry.client._id}-${day.format("YYYYMMDD")}`;
+    const isOpening = openingEntryKey === entryKey;
+
+    return (
+      <Box
+        key={`${day.format("YYYY-MM-DD")}-${entry.client._id}`}
+        role="button"
+        tabIndex={0}
+        onClick={() => handleOpenClientAccount(entry.client._id, day)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleOpenClientAccount(entry.client._id, day);
+          }
+        }}
+        sx={{
+          width: "100%",
+          textAlign: "left",
+          textDecoration: "none",
+          color: "inherit",
+          border: "1px solid",
+          borderColor: entry.hasWorkout ? "success.light" : "divider",
+          borderRadius: 2,
+          padding: "8px 10px",
+          backgroundColor: entry.hasWorkout
+            ? "rgba(76, 175, 80, 0.08)"
+            : "rgba(255, 255, 255, 0.02)",
+          cursor: openingEntryKey ? "progress" : "pointer",
+          transition: "background-color 0.2s ease, border-color 0.2s ease",
+          "&:hover": {
+            backgroundColor: entry.hasWorkout
+              ? "rgba(76, 175, 80, 0.12)"
+              : "rgba(255, 152, 0, 0.12)",
+            borderColor: entry.hasWorkout ? "success.main" : "warning.main",
+          },
+          "&:focus-visible": {
+            outline: "2px solid",
+            outlineColor: entry.hasWorkout ? "success.main" : "warning.main",
+            outlineOffset: 2,
+          },
+          opacity: openingEntryKey && !isOpening ? 0.65 : 1,
+          pointerEvents: openingEntryKey && !isOpening ? "none" : "auto",
+        }}
+      >
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: "center", justifyContent: "space-between" }}
+        >
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+            {entry.hasWorkout ? (
+              <CheckBoxIcon fontSize="small" color="success" />
+            ) : (
+              <CheckBoxOutlineBlankIcon fontSize="small" color="warning" />
+            )}
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: entry.hasWorkout ? 500 : 700,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatClientName(entry.client)}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexShrink: 0 }}>
+            {entry.hasWorkout && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={(event) => handleOpenSessionDialog(event, entry.workouts)}
+                disabled={Boolean(openingEntryKey)}
+              >
+                Session
+              </Button>
+            )}
+            {isOpening ? (
+              <CircularProgress size={16} />
+            ) : entry.workoutCount > 1 ? (
+              <Chip size="small" variant="outlined" label={entry.workoutCount} />
+            ) : null}
+          </Stack>
+        </Stack>
+      </Box>
+    );
+  };
+
+  const renderDayCard = (dayCard, compact = false) => {
+    if (!dayCard) return null;
+
+    const isComplete =
+      dayCard.totalScheduled > 0 && dayCard.coveredCount === dayCard.totalScheduled;
+
+    return (
+      <Paper
+        key={dayCard.key}
+        variant="outlined"
+        sx={{
+          padding: "14px",
+          minHeight: compact ? "auto" : 220,
+          borderColor:
+            dayCard.totalScheduled === 0
+              ? "divider"
+              : isComplete
+                ? "success.light"
+                : "warning.light",
+          backgroundColor:
+            dayCard.totalScheduled === 0
+              ? "background.paper"
+              : isComplete
+                ? "rgba(76, 175, 80, 0.05)"
+                : "rgba(255, 152, 0, 0.06)",
+        }}
+      >
+        <Stack spacing={1.25}>
+          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+            <Stack spacing={0.25}>
+              <Typography variant="subtitle1">{dayCard.day.format("dddd")}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {dayCard.day.format("MMM D")}
+              </Typography>
+            </Stack>
+            <Chip
+              size="small"
+              label={`${dayCard.coveredCount}/${dayCard.totalScheduled}`}
+              color={isComplete ? "success" : dayCard.totalScheduled > 0 ? "warning" : "default"}
+            />
+          </Stack>
+
+          {dayCard.totalScheduled === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No clients scheduled.
+            </Typography>
+          ) : dayCard.entries.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              Nothing missing.
+            </Typography>
+          ) : (
+            <Stack spacing={0.75}>
+              {dayCard.entries.map((entry) => renderEntry(entry, dayCard.day))}
+            </Stack>
+          )}
+        </Stack>
+      </Paper>
+    );
+  };
+
   if (!user?.isTrainer) return null;
 
   return (
@@ -203,35 +405,61 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
           sx={{ justifyContent: "space-between", alignItems: { xs: "flex-start", lg: "center" } }}
         >
           <Stack spacing={0.5}>
-            <Typography variant="h6">Weekly Client Coverage</Typography>
+            <Typography variant="h6">{resolvedTitle}</Typography>
             <Typography variant="body2" color="text.secondary">
-              Based on each client&apos;s preferred workout days for the selected week.
+              {resolvedDescription}
             </Typography>
           </Stack>
-          <ToggleButtonGroup
-            value={showMode}
-            exclusive
-            size="small"
-            onChange={(event, nextMode) => {
-              if (nextMode) setShowMode(nextMode);
-            }}
-          >
-            <ToggleButton value="all">All</ToggleButton>
-            <ToggleButton value="missing">Missing only</ToggleButton>
-          </ToggleButtonGroup>
+          {mode === "week" ? (
+            <ToggleButtonGroup
+              value={showMode}
+              exclusive
+              size="small"
+              onChange={(event, nextMode) => {
+                if (nextMode) setShowMode(nextMode);
+              }}
+            >
+              <ToggleButton value="all">All</ToggleButton>
+              <ToggleButton value="missing">Missing only</ToggleButton>
+            </ToggleButtonGroup>
+          ) : showViewFullButton ? (
+            <Button size="small" variant="outlined" onClick={handleViewFullCoverage}>
+              View Full Coverage
+            </Button>
+          ) : null}
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: "8px" }}>
           <Chip
             size="small"
-            color={totals.missing === 0 ? "success" : "warning"}
-            label={`${totals.totalCovered}/${totals.totalScheduled} entered`}
+            color={
+              mode === "day"
+                ? focusedDayMissing === 0
+                  ? "success"
+                  : "warning"
+                : totals.missing === 0
+                  ? "success"
+                  : "warning"
+            }
+            label={
+              mode === "day"
+                ? `${focusedDayCard?.coveredCount || 0}/${focusedDayCard?.totalScheduled || 0} entered`
+                : `${totals.totalCovered}/${totals.totalScheduled} entered`
+            }
           />
           <Chip
             size="small"
             variant="outlined"
-            color={totals.missing === 0 ? "success" : "warning"}
-            label={`${totals.missing} missing`}
+            color={
+              mode === "day"
+                ? focusedDayMissing === 0
+                  ? "success"
+                  : "warning"
+                : totals.missing === 0
+                  ? "success"
+                  : "warning"
+            }
+            label={mode === "day" ? `${focusedDayMissing} missing` : `${totals.missing} missing`}
           />
           {unscheduledClients.length > 0 && (
             <Chip
@@ -239,6 +467,13 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
               variant="outlined"
               color="info"
               label={`${unscheduledClients.length} need preferred days`}
+            />
+          )}
+          {deferredClientRelationships.length > 0 && (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`${deferredClientRelationships.length} paused/inactive`}
             />
           )}
           {loadingWeek && (
@@ -257,168 +492,37 @@ export default function WeeklyClientWorkoutTracker({ selectedDate }) {
             {unscheduledClients.length > 4 ? ` +${unscheduledClients.length - 4} more` : ""}
           </Typography>
         )}
+        {deferredClientRelationships.length > 0 && (
+          <Typography variant="caption" color="text.secondary">
+            Coverage excludes paused/inactive clients: {deferredPreview}
+            {deferredClientRelationships.length > 4
+              ? ` +${deferredClientRelationships.length - 4} more`
+              : ""}
+          </Typography>
+        )}
         {entryError && (
           <Typography variant="caption" color="error">
             {entryError}
           </Typography>
         )}
 
-        <Box
-          sx={{
-            display: "grid",
-            gap: 2,
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "repeat(2, minmax(0, 1fr))",
-              xl: "repeat(4, minmax(0, 1fr))",
-            },
-          }}
-        >
-          {dayCards.map((dayCard) => {
-            const isComplete = dayCard.totalScheduled > 0 && dayCard.coveredCount === dayCard.totalScheduled;
-
-            return (
-              <Paper
-                key={dayCard.key}
-                variant="outlined"
-                sx={{
-                  padding: "14px",
-                  minHeight: 220,
-                  borderColor:
-                    dayCard.totalScheduled === 0
-                      ? "divider"
-                      : isComplete
-                        ? "success.light"
-                        : "warning.light",
-                  backgroundColor:
-                    dayCard.totalScheduled === 0
-                      ? "background.paper"
-                      : isComplete
-                        ? "rgba(76, 175, 80, 0.05)"
-                        : "rgba(255, 152, 0, 0.06)",
-                }}
-              >
-                <Stack spacing={1.25}>
-                  <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                    <Stack spacing={0.25}>
-                      <Typography variant="subtitle1">{dayCard.day.format("dddd")}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {dayCard.day.format("MMM D")}
-                      </Typography>
-                    </Stack>
-                    <Chip
-                      size="small"
-                      label={`${dayCard.coveredCount}/${dayCard.totalScheduled}`}
-                      color={isComplete ? "success" : dayCard.totalScheduled > 0 ? "warning" : "default"}
-                    />
-                  </Stack>
-
-                  {dayCard.totalScheduled === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
-                      No clients scheduled.
-                    </Typography>
-                  ) : dayCard.entries.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary">
-                      Nothing missing.
-                    </Typography>
-                  ) : (
-                    <Stack spacing={0.75}>
-                      {dayCard.entries.map((entry) => {
-                        const entryKey = `${entry.client._id}-${dayCard.day.format("YYYYMMDD")}`;
-                        const isOpening = openingEntryKey === entryKey;
-
-                        return (
-                          <Box
-                            key={`${dayCard.key}-${entry.client._id}`}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => handleOpenClientAccount(entry.client._id, dayCard.day)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                handleOpenClientAccount(entry.client._id, dayCard.day);
-                              }
-                            }}
-                            sx={{
-                              width: "100%",
-                              textAlign: "left",
-                              textDecoration: "none",
-                              color: "inherit",
-                              border: "1px solid",
-                              borderColor: entry.hasWorkout ? "success.light" : "divider",
-                              borderRadius: 2,
-                              padding: "8px 10px",
-                              backgroundColor: entry.hasWorkout
-                                ? "rgba(76, 175, 80, 0.08)"
-                                : "rgba(255, 255, 255, 0.02)",
-                              cursor: openingEntryKey ? "progress" : "pointer",
-                              transition: "background-color 0.2s ease, border-color 0.2s ease",
-                              "&:hover": {
-                                backgroundColor: entry.hasWorkout
-                                  ? "rgba(76, 175, 80, 0.12)"
-                                  : "rgba(255, 152, 0, 0.12)",
-                                borderColor: entry.hasWorkout ? "success.main" : "warning.main",
-                              },
-                              "&:focus-visible": {
-                                outline: "2px solid",
-                                outlineColor: entry.hasWorkout ? "success.main" : "warning.main",
-                                outlineOffset: 2,
-                              },
-                              opacity: openingEntryKey && !isOpening ? 0.65 : 1,
-                              pointerEvents: openingEntryKey && !isOpening ? "none" : "auto",
-                            }}
-                          >
-                            <Stack
-                              direction="row"
-                              spacing={1}
-                              sx={{ alignItems: "center", justifyContent: "space-between" }}
-                            >
-                              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                                {entry.hasWorkout ? (
-                                  <CheckBoxIcon fontSize="small" color="success" />
-                                ) : (
-                                  <CheckBoxOutlineBlankIcon fontSize="small" color="warning" />
-                                )}
-                                <Typography
-                                  variant="body2"
-                                  sx={{
-                                    fontWeight: entry.hasWorkout ? 500 : 700,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  {formatClientName(entry.client)}
-                                </Typography>
-                              </Stack>
-                              <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexShrink: 0 }}>
-                                {entry.hasWorkout && (
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    onClick={(event) => handleOpenSessionDialog(event, entry.workouts)}
-                                    disabled={Boolean(openingEntryKey)}
-                                  >
-                                    Session
-                                  </Button>
-                                )}
-                                {isOpening ? (
-                                  <CircularProgress size={16} />
-                                ) : entry.workoutCount > 1 ? (
-                                  <Chip size="small" variant="outlined" label={entry.workoutCount} />
-                                ) : null}
-                              </Stack>
-                            </Stack>
-                          </Box>
-                        );
-                      })}
-                    </Stack>
-                  )}
-                </Stack>
-              </Paper>
-            );
-          })}
-        </Box>
+        {mode === "day" ? (
+          renderDayCard(focusedDayCard, true)
+        ) : (
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "repeat(2, minmax(0, 1fr))",
+                xl: "repeat(4, minmax(0, 1fr))",
+              },
+            }}
+          >
+            {dayCards.map((dayCard) => renderDayCard(dayCard))}
+          </Box>
+        )}
       </Stack>
       <WorkoutTrainerSessionDialog
         open={sessionDialogOpen}

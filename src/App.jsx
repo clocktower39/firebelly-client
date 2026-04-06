@@ -16,6 +16,7 @@ import Login from "./Pages/Login";
 import SignUp from "./Pages/SignUp";
 import VerifyEmail from "./Pages/VerifyEmail";
 import Home from "./Pages/AppPages/Home";
+import Coverage from "./Pages/AppPages/Coverage";
 import Workout from "./Pages/AppPages/Workout";
 import Calendar from "./Pages/AppPages/Calendar";
 import Schedule from "./Pages/AppPages/Schedule";
@@ -139,6 +140,7 @@ function App({ }) {
                 {/* Must be logged in and have JWT token to authenticate */}
                 <Route exact element={<AuthRoute />}>
                   <Route exact path="/" element={<Home />} />
+                  <Route exact path="/coverage" element={<Coverage />} />
                   <Route exact path="/workoutHistory" element={<WorkoutHistory />} />
                   <Route exact path="/calendar" element={<Calendar />} />
                   <Route exact path="/workout-templates" element={<WorkoutTemplates />} />

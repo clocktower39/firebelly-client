@@ -200,7 +200,15 @@ function Home() {
           user={activeWorkoutUser}
         />
       )}
-      {user.isTrainer && !client && <WeeklyClientWorkoutTracker selectedDate={selectedDate} />}
+      {user.isTrainer && !client && (
+        <WeeklyClientWorkoutTracker
+          selectedDate={today}
+          mode="day"
+          title="Today's Coverage"
+          description="Quick view of clients expected today and who still needs workouts entered."
+          showViewFullButton
+        />
+      )}
     </>
   );
 }

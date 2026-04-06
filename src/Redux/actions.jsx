@@ -1496,6 +1496,14 @@ export function requestClients() {
     });
     let clients = await response.json();
 
+    if (!Array.isArray(clients)) {
+      dispatch({
+        type: ERROR,
+        error: clients?.error || "Unable to load clients.",
+      });
+      clients = [];
+    }
+
     return dispatch({
       type: GET_CLIENTS,
       clients,
@@ -1516,6 +1524,40 @@ export function changeRelationshipStatus(client, accepted) {
         Authorization: bearer,
       },
     }).then(() => dispatch(requestClients()));
+  };
+}
+
+export function updateRelationshipProfile({ client, engagementStatus, serviceTags }) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/relationships/profile`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({
+        client,
+        engagementStatus,
+        serviceTags,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    const data = await response.json();
+
+    if (data?.error || data?.message) {
+      const error = data?.error || data?.message || "Unable to update client settings.";
+      dispatch({
+        type: ERROR,
+        error,
+      });
+      return { error };
+    }
+
+    await dispatch(requestClients());
+    return data;
   };
 }
 

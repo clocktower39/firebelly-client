@@ -33,6 +33,7 @@ import {
   ReceiptLong as SessionIcon,
   CalendarMonth as CalendarIcon,
   Assignment as GoalsIcon,
+  FactCheck as CoverageIcon,
   Settings as AccountIcon,
   Groups as ClientsIcon,
   Groups as GroupsIcon,
@@ -117,6 +118,11 @@ export default function NavDrawer() {
       title: "Clients",
       to: "/clients",
       icon: <ClientsIcon />,
+    },
+    {
+      title: "Coverage",
+      to: "/coverage",
+      icon: <CoverageIcon />,
     },
     {
       title: "Programs",
