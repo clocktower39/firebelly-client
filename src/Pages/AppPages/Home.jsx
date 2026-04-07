@@ -202,10 +202,12 @@ function Home() {
       )}
       {user.isTrainer && !client && (
         <WeeklyClientWorkoutTracker
-          selectedDate={today}
+          selectedDate={selectedDate}
           mode="day"
-          title="Today's Coverage"
-          description="Quick view of clients expected today and who still needs workouts entered."
+          title="Daily Coverage"
+          description={`Quick view of clients expected on ${dayjs(selectedDate).format(
+            "dddd, MMM D"
+          )} and who still needs workouts entered.`}
           showViewFullButton
         />
       )}
