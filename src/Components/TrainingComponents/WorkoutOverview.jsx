@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import {
@@ -397,10 +397,7 @@ const moveCircuitByKey = (workouts, circuitKey, targetWorkoutKey, targetCircuitI
   const [movedCircuit] = nextWorkouts[sourceWorkoutIndex].training.splice(sourceCircuitIndex, 1);
   if (!movedCircuit) return workouts;
 
-  let insertIndex = safeTargetIndex;
-  if (sourceWorkoutIndex === targetWorkoutIndex && sourceCircuitIndex < insertIndex) {
-    insertIndex -= 1;
-  }
+  const insertIndex = safeTargetIndex;
 
   if (
     sourceWorkoutIndex === targetWorkoutIndex &&
@@ -512,6 +509,13 @@ const getExerciseDropTarget = (overData) => {
     };
   }
 
+  if (overData.type === "circuit") {
+    return {
+      circuitKey: overData.circuitKey,
+      exerciseIndex: overData.exerciseCount ?? (Array.isArray(overData.circuit) ? overData.circuit.length : 0),
+    };
+  }
+
   return null;
 };
 
@@ -535,28 +539,69 @@ const getCircuitDropTarget = (overData) => {
   return null;
 };
 
-const getTypedCollisions = (args, allowedTypes) => {
-  const filteredContainers = args.droppableContainers.filter((container) =>
+const getContainersByType = (args, allowedTypes) =>
+  args.droppableContainers.filter((container) =>
     allowedTypes.includes(container.data.current?.type)
   );
+
+const getPointerCollisionsByType = (args, allowedTypes) => {
+  const filteredContainers = getContainersByType(args, allowedTypes);
 
   if (filteredContainers.length === 0) {
     return [];
   }
 
-  const pointerCollisions = pointerWithin({
+  return pointerWithin({
     ...args,
     droppableContainers: filteredContainers,
   });
+};
 
-  if (pointerCollisions.length > 0) {
-    return pointerCollisions;
+const getClosestCollisionsByType = (args, allowedTypes) => {
+  const filteredContainers = getContainersByType(args, allowedTypes);
+
+  if (filteredContainers.length === 0) {
+    return [];
   }
 
   return closestCorners({
     ...args,
     droppableContainers: filteredContainers,
   });
+};
+
+const getTypedCollisions = (args, allowedTypes) => {
+  const pointerCollisions = getPointerCollisionsByType(args, allowedTypes);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+
+  return getClosestCollisionsByType(args, allowedTypes);
+};
+
+const getExerciseCollisions = (args) => {
+  const directPointerCollisions = getPointerCollisionsByType(args, [
+    "exercise",
+    "exercise-container",
+  ]);
+  if (directPointerCollisions.length > 0) {
+    return directPointerCollisions;
+  }
+
+  const circuitPointerCollisions = getPointerCollisionsByType(args, ["circuit"]);
+  if (circuitPointerCollisions.length > 0) {
+    return circuitPointerCollisions;
+  }
+
+  const directClosestCollisions = getClosestCollisionsByType(args, [
+    "exercise",
+    "exercise-container",
+  ]);
+  if (directClosestCollisions.length > 0) {
+    return directClosestCollisions;
+  }
+
+  return getClosestCollisionsByType(args, ["circuit"]);
 };
 
 function SortableExercise({ id, data, children }) {
@@ -638,6 +683,7 @@ export default function WorkoutOverview({
   const [newWorkoutType, setNewWorkoutType] = useState("Strength");
   const [activeExercise, setActiveExercise] = useState(null);
   const [activeCircuit, setActiveCircuit] = useState(null);
+  const lastDragMoveRef = useRef("");
 
   const workoutDndModel = useMemo(() => buildWorkoutDndModel(localWorkouts), [localWorkouts]);
 
@@ -708,11 +754,14 @@ export default function WorkoutOverview({
   const clearActiveDrag = () => {
     setActiveExercise(null);
     setActiveCircuit(null);
+    lastDragMoveRef.current = "";
   };
 
   const handleDragStart = ({ active }) => {
     const activeData = active?.data?.current;
     if (!activeData) return;
+
+    lastDragMoveRef.current = "";
 
     if (activeData.type === "exercise") {
       setActiveExercise(activeData.exercise);
@@ -739,6 +788,10 @@ export default function WorkoutOverview({
       const target = getExerciseDropTarget(overData);
       if (!target) return;
 
+      const moveKey = `${active.id}->exercise:${target.circuitKey}:${target.exerciseIndex}`;
+      if (lastDragMoveRef.current === moveKey) return;
+      lastDragMoveRef.current = moveKey;
+
       setLocalWorkouts((prevWorkouts) =>
         moveExerciseByKey(
           prevWorkouts,
@@ -750,22 +803,28 @@ export default function WorkoutOverview({
       return;
     }
 
-    if (activeData.type === "circuit") {
-      const target = getCircuitDropTarget(overData);
-      if (!target) return;
-
-      setLocalWorkouts((prevWorkouts) =>
-        moveCircuitByKey(
-          prevWorkouts,
-          activeData.circuitKey,
-          target.workoutKey,
-          target.circuitIndex
-        )
-      );
-    }
+    if (activeData.type === "circuit") return;
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = ({ active, over }) => {
+    const activeData = active?.data?.current;
+    const overData = over?.data?.current;
+
+    if (activeData?.type === "circuit" && overData) {
+      const target = getCircuitDropTarget(overData);
+
+      if (target) {
+        setLocalWorkouts((prevWorkouts) =>
+          moveCircuitByKey(
+            prevWorkouts,
+            activeData.circuitKey,
+            target.workoutKey,
+            target.circuitIndex
+          )
+        );
+      }
+    }
+
     clearActiveDrag();
   };
 
@@ -777,7 +836,7 @@ export default function WorkoutOverview({
     const activeType = args.active.data.current?.type;
 
     if (activeType === "exercise") {
-      return getTypedCollisions(args, ["exercise", "exercise-container"]);
+      return getExerciseCollisions(args);
     }
 
     if (activeType === "circuit") {
@@ -899,6 +958,7 @@ export default function WorkoutOverview({
                                         workoutKey,
                                         circuitKey,
                                         circuitIndex,
+                                        exerciseCount: exerciseItems.length,
                                         circuit,
                                       }}
                                     >
@@ -1301,6 +1361,7 @@ const WorkoutSet = (props) => {
             sx={{
               padding: "5px 0px",
               margin: "5px 0px",
+              minHeight: exerciseItems.length === 0 ? 64 : undefined,
               borderRadius: 2,
               backgroundColor: isOver ? "action.hover" : "transparent",
               border: isOver || exerciseItems.length === 0 ? "1px dashed" : "1px solid transparent",
