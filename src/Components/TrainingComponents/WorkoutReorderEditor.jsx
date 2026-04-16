@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import { DragHandle as DragHandleIcon } from "@mui/icons-material";
@@ -242,6 +242,14 @@ const getExerciseDropTarget = (overData) => {
     };
   }
 
+  if (overData.type === "circuit") {
+    return {
+      circuitKey: overData.circuitKey,
+      exerciseIndex:
+        overData.exerciseCount ?? (Array.isArray(overData.circuit) ? overData.circuit.length : 0),
+    };
+  }
+
   return null;
 };
 
@@ -263,28 +271,69 @@ const getCircuitDropTarget = (overData) => {
   return null;
 };
 
-const getTypedCollisions = (args, allowedTypes) => {
-  const filteredContainers = args.droppableContainers.filter((container) =>
+const getContainersByType = (args, allowedTypes) =>
+  args.droppableContainers.filter((container) =>
     allowedTypes.includes(container.data.current?.type)
   );
+
+const getPointerCollisionsByType = (args, allowedTypes) => {
+  const filteredContainers = getContainersByType(args, allowedTypes);
 
   if (filteredContainers.length === 0) {
     return [];
   }
 
-  const pointerCollisions = pointerWithin({
+  return pointerWithin({
     ...args,
     droppableContainers: filteredContainers,
   });
+};
 
-  if (pointerCollisions.length > 0) {
-    return pointerCollisions;
+const getClosestCollisionsByType = (args, allowedTypes) => {
+  const filteredContainers = getContainersByType(args, allowedTypes);
+
+  if (filteredContainers.length === 0) {
+    return [];
   }
 
   return closestCorners({
     ...args,
     droppableContainers: filteredContainers,
   });
+};
+
+const getTypedCollisions = (args, allowedTypes) => {
+  const pointerCollisions = getPointerCollisionsByType(args, allowedTypes);
+  if (pointerCollisions.length > 0) {
+    return pointerCollisions;
+  }
+
+  return getClosestCollisionsByType(args, allowedTypes);
+};
+
+const getExerciseCollisions = (args) => {
+  const directPointerCollisions = getPointerCollisionsByType(args, [
+    "exercise",
+    "exercise-container",
+  ]);
+  if (directPointerCollisions.length > 0) {
+    return directPointerCollisions;
+  }
+
+  const circuitPointerCollisions = getPointerCollisionsByType(args, ["circuit"]);
+  if (circuitPointerCollisions.length > 0) {
+    return circuitPointerCollisions;
+  }
+
+  const directClosestCollisions = getClosestCollisionsByType(args, [
+    "exercise",
+    "exercise-container",
+  ]);
+  if (directClosestCollisions.length > 0) {
+    return directClosestCollisions;
+  }
+
+  return getClosestCollisionsByType(args, ["circuit"]);
 };
 
 const renderExerciseSummary = (exercise) => {
@@ -421,6 +470,7 @@ const ReorderCircuitCard = ({
             ref={setNodeRef}
             sx={{
               padding: "6px 0",
+              minHeight: exerciseItems.length === 0 ? 64 : undefined,
               borderRadius: 2,
               backgroundColor: isOver ? "action.hover" : "transparent",
               border: isOver || exerciseItems.length === 0 ? "1px dashed" : "1px solid transparent",
@@ -494,6 +544,7 @@ const ReorderCircuitCard = ({
 export default function WorkoutReorderEditor({ localTraining = [], setLocalTraining }) {
   const [activeExercise, setActiveExercise] = useState(null);
   const [activeCircuit, setActiveCircuit] = useState(null);
+  const lastDragMoveRef = useRef("");
   const trainingDndModel = useMemo(() => buildTrainingDndModel(localTraining), [localTraining]);
   const overlayRoot = typeof document !== "undefined" ? document.body : null;
 
@@ -517,11 +568,14 @@ export default function WorkoutReorderEditor({ localTraining = [], setLocalTrain
   const clearActiveDrag = () => {
     setActiveExercise(null);
     setActiveCircuit(null);
+    lastDragMoveRef.current = "";
   };
 
   const handleDragStart = ({ active }) => {
     const activeData = active?.data?.current;
     if (!activeData) return;
+
+    lastDragMoveRef.current = "";
 
     if (activeData.type === "exercise") {
       setActiveExercise(activeData.exercise);
@@ -548,6 +602,10 @@ export default function WorkoutReorderEditor({ localTraining = [], setLocalTrain
       const target = getExerciseDropTarget(overData);
       if (!target) return;
 
+      const moveKey = `${active.id}->exercise:${target.circuitKey}:${target.exerciseIndex}`;
+      if (lastDragMoveRef.current === moveKey) return;
+      lastDragMoveRef.current = moveKey;
+
       setLocalTraining((prevTraining) =>
         moveExerciseByKey(
           prevTraining,
@@ -559,21 +617,31 @@ export default function WorkoutReorderEditor({ localTraining = [], setLocalTrain
       return;
     }
 
-    if (activeData.type === "circuit") {
-      const target = getCircuitDropTarget(overData);
-      if (!target) return;
+    if (activeData.type === "circuit") return;
+  };
 
-      setLocalTraining((prevTraining) =>
-        moveCircuitByKey(prevTraining, activeData.circuitKey, target.circuitIndex)
-      );
+  const handleDragEnd = ({ active, over }) => {
+    const activeData = active?.data?.current;
+    const overData = over?.data?.current;
+
+    if (activeData?.type === "circuit" && overData) {
+      const target = getCircuitDropTarget(overData);
+
+      if (target) {
+        setLocalTraining((prevTraining) =>
+          moveCircuitByKey(prevTraining, activeData.circuitKey, target.circuitIndex)
+        );
+      }
     }
+
+    clearActiveDrag();
   };
 
   const collisionDetection = (args) => {
     const activeType = args.active.data.current?.type;
 
     if (activeType === "exercise") {
-      return getTypedCollisions(args, ["exercise", "exercise-container"]);
+      return getExerciseCollisions(args);
     }
 
     if (activeType === "circuit") {
@@ -610,7 +678,7 @@ const overlayTextSx = {
         collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
-        onDragEnd={clearActiveDrag}
+        onDragEnd={handleDragEnd}
         onDragCancel={clearActiveDrag}
         modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}
       >
@@ -664,6 +732,7 @@ const overlayTextSx = {
                           type: "circuit",
                           circuitKey,
                           circuitIndex,
+                          exerciseCount: exerciseItems.length,
                           circuit,
                         }}
                       >
