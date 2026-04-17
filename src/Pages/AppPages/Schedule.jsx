@@ -108,6 +108,87 @@ const WEEK_END_HOUR = 20;
 const SLOT_MINUTES = 30;
 const SLOT_HEIGHT = 28;
 const HEADER_HEIGHT = 56;
+const BOOKING_INTERVAL_MINUTES = 15;
+const DEFAULT_BOOKING_MINUTES = 60;
+
+const alignUpToInterval = (value, intervalMinutes = BOOKING_INTERVAL_MINUTES) => {
+  const time = dayjs(value);
+  if (!time.isValid()) return time;
+  let aligned = time.second(0).millisecond(0);
+  if (time.second() > 0 || time.millisecond() > 0) {
+    aligned = aligned.add(1, "minute");
+  }
+  const remainder = aligned.minute() % intervalMinutes;
+  return remainder === 0 ? aligned : aligned.add(intervalMinutes - remainder, "minute");
+};
+
+const alignDownToInterval = (value, intervalMinutes = BOOKING_INTERVAL_MINUTES) => {
+  const time = dayjs(value);
+  if (!time.isValid()) return time;
+  let aligned = time.second(0).millisecond(0);
+  const remainder = aligned.minute() % intervalMinutes;
+  if (remainder !== 0) {
+    aligned = aligned.subtract(remainder, "minute");
+  }
+  return aligned;
+};
+
+const formatBookingOptionLabel = (time, rangeStart) =>
+  time.isSame(rangeStart, "day") ? time.format("h:mm A") : time.format("MMM D h:mm A");
+
+const buildBookingStartOptions = (event) => {
+  if (!event || event.eventType !== "AVAILABILITY") return [];
+  const rangeStart = dayjs(event.startDateTime);
+  const rangeEnd = alignDownToInterval(event.endDateTime);
+  if (!rangeStart.isValid() || !rangeEnd.isValid()) return [];
+
+  const options = [];
+  let cursor = alignUpToInterval(rangeStart);
+  while (cursor.add(BOOKING_INTERVAL_MINUTES, "minute").valueOf() <= rangeEnd.valueOf()) {
+    options.push({
+      value: cursor.toISOString(),
+      time: cursor,
+      label: formatBookingOptionLabel(cursor, rangeStart),
+    });
+    cursor = cursor.add(BOOKING_INTERVAL_MINUTES, "minute");
+  }
+  return options;
+};
+
+const buildBookingEndOptions = (event, startValue) => {
+  if (!event || event.eventType !== "AVAILABILITY" || !startValue) return [];
+  const rangeStart = dayjs(event.startDateTime);
+  const rangeEnd = alignDownToInterval(event.endDateTime);
+  const selectedStart = dayjs(startValue);
+  if (!rangeStart.isValid() || !rangeEnd.isValid() || !selectedStart.isValid()) return [];
+  if (
+    selectedStart.valueOf() < alignUpToInterval(rangeStart).valueOf() ||
+    selectedStart.add(BOOKING_INTERVAL_MINUTES, "minute").valueOf() > rangeEnd.valueOf()
+  ) {
+    return [];
+  }
+
+  const options = [];
+  let cursor = selectedStart.add(BOOKING_INTERVAL_MINUTES, "minute");
+  while (cursor.valueOf() <= rangeEnd.valueOf()) {
+    options.push({
+      value: cursor.toISOString(),
+      time: cursor,
+      label: formatBookingOptionLabel(cursor, rangeStart),
+    });
+    cursor = cursor.add(BOOKING_INTERVAL_MINUTES, "minute");
+  }
+  return options;
+};
+
+const pickDefaultBookingEnd = (startValue, endOptions) => {
+  if (!startValue || endOptions.length === 0) return "";
+  const selectedStart = dayjs(startValue);
+  const preferred = endOptions.find(
+    (option) => option.time.diff(selectedStart, "minute") >= DEFAULT_BOOKING_MINUTES
+  );
+  return (preferred || endOptions[endOptions.length - 1]).value;
+};
 
 export default function Schedule() {
   const dispatch = useDispatch();
@@ -133,6 +214,7 @@ export default function Schedule() {
   const [eventActionTarget, setEventActionTarget] = useState(null);
   const [openTrainerBookDialog, setOpenTrainerBookDialog] = useState(false);
   const [trainerBookSlot, setTrainerBookSlot] = useState("");
+  const [trainerBookEndSlot, setTrainerBookEndSlot] = useState("");
   const [trainerBookClientId, setTrainerBookClientId] = useState("");
   const [trainerBookCustomName, setTrainerBookCustomName] = useState("");
   const [trainerBookCustomEmail, setTrainerBookCustomEmail] = useState("");
@@ -154,6 +236,7 @@ export default function Schedule() {
 
   const [bookingType, setBookingType] = useState("one-time");
   const [selectedBookingSlot, setSelectedBookingSlot] = useState("");
+  const [selectedBookingEndSlot, setSelectedBookingEndSlot] = useState("");
   const [editDate, setEditDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [editStartTime, setEditStartTime] = useState("09:00");
   const [editEndTime, setEditEndTime] = useState("10:00");
@@ -177,6 +260,7 @@ export default function Schedule() {
   const [quickBookSessionTypeId, setQuickBookSessionTypeId] = useState("");
   const [openSelectionDialog, setOpenSelectionDialog] = useState(false);
   const [selectedQueueSlot, setSelectedQueueSlot] = useState("");
+  const [selectedQueueEndSlot, setSelectedQueueEndSlot] = useState("");
   const [selectionStartTime, setSelectionStartTime] = useState("");
   const [selectionEndTime, setSelectionEndTime] = useState("");
   const [openCopyDialog, setOpenCopyDialog] = useState(false);
@@ -660,9 +744,10 @@ export default function Schedule() {
   const handleRequestBooking = async () => {
     if (!activeRequestEvent) return;
     const isRecurring = bookingType === "recurring";
-    const slot = availableBookingSlots.find((item) => item.value === selectedBookingSlot);
-    const bookingStart = slot ? slot.start.toISOString() : activeRequestEvent.startDateTime;
-    const bookingEnd = slot ? slot.end.toISOString() : activeRequestEvent.endDateTime;
+    const start = bookingStartOptions.find((item) => item.value === selectedBookingSlot);
+    const end = bookingEndOptions.find((item) => item.value === selectedBookingEndSlot);
+    const bookingStart = start ? start.time.toISOString() : activeRequestEvent.startDateTime;
+    const bookingEnd = end ? end.time.toISOString() : activeRequestEvent.endDateTime;
     await dispatch(
       requestBooking({
         availabilityEventId: activeRequestEvent._id,
@@ -821,40 +906,43 @@ export default function Schedule() {
     setActiveRequestEvent(event);
     setBookingType("one-time");
     setSelectedBookingSlot("");
+    setSelectedBookingEndSlot("");
     setOpenRequestDialog(true);
   };
 
-  const availableBookingSlots = useMemo(() => {
-    if (!activeRequestEvent || activeRequestEvent.eventType !== "AVAILABILITY") return [];
-    const start = dayjs(activeRequestEvent.startDateTime);
-    const end = dayjs(activeRequestEvent.endDateTime);
-    let cursor = start;
-    const remainder = cursor.minute() % 30;
-    if (remainder !== 0) {
-      cursor = cursor.add(30 - remainder, "minute");
-    }
+  const bookingStartOptions = useMemo(
+    () => buildBookingStartOptions(activeRequestEvent),
+    [activeRequestEvent]
+  );
 
-    const slots = [];
-    while (cursor.add(60, "minute").valueOf() <= end.valueOf()) {
-      const slotStart = cursor;
-      const slotEnd = cursor.add(60, "minute");
-      slots.push({
-        value: slotStart.toISOString(),
-        start: slotStart,
-        end: slotEnd,
-      });
-      cursor = cursor.add(30, "minute");
-    }
-    return slots;
-  }, [activeRequestEvent]);
+  const bookingEndOptions = useMemo(
+    () => buildBookingEndOptions(activeRequestEvent, selectedBookingSlot),
+    [activeRequestEvent, selectedBookingSlot]
+  );
 
   useEffect(() => {
-    if (availableBookingSlots.length > 0) {
-      setSelectedBookingSlot(availableBookingSlots[0].value);
+    if (bookingStartOptions.length > 0) {
+      setSelectedBookingSlot((prev) =>
+        bookingStartOptions.some((option) => option.value === prev)
+          ? prev
+          : bookingStartOptions[0].value
+      );
     } else {
       setSelectedBookingSlot("");
     }
-  }, [availableBookingSlots]);
+  }, [bookingStartOptions]);
+
+  useEffect(() => {
+    if (bookingEndOptions.length > 0) {
+      setSelectedBookingEndSlot((prev) =>
+        bookingEndOptions.some((option) => option.value === prev)
+          ? prev
+          : pickDefaultBookingEnd(selectedBookingSlot, bookingEndOptions)
+      );
+    } else {
+      setSelectedBookingEndSlot("");
+    }
+  }, [selectedBookingSlot, bookingEndOptions]);
 
   const openAttachForEvent = (event) => {
     setAttachEvent(event);
@@ -928,6 +1016,7 @@ export default function Schedule() {
   const openTrainerBookForEvent = (event) => {
     setEventActionTarget(event);
     setTrainerBookSlot("");
+    setTrainerBookEndSlot("");
     setTrainerBookClientId("");
     setTrainerBookCustomName("");
     setTrainerBookCustomEmail("");
@@ -1483,70 +1572,75 @@ export default function Schedule() {
     [attachableEvents, queueTargetEventId]
   );
 
-  const queueBookingSlots = useMemo(() => {
-    if (!queueTargetEvent || queueTargetEvent.eventType !== "AVAILABILITY") return [];
-    const start = dayjs(queueTargetEvent.startDateTime);
-    const end = dayjs(queueTargetEvent.endDateTime);
-    let cursor = start;
-    const remainder = cursor.minute() % 30;
-    if (remainder !== 0) {
-      cursor = cursor.add(30 - remainder, "minute");
-    }
+  const queueBookingStartOptions = useMemo(
+    () => buildBookingStartOptions(queueTargetEvent),
+    [queueTargetEvent]
+  );
 
-    const slots = [];
-    while (cursor.add(60, "minute").valueOf() <= end.valueOf()) {
-      const slotStart = cursor;
-      const slotEnd = cursor.add(60, "minute");
-      slots.push({
-        value: slotStart.toISOString(),
-        start: slotStart,
-        end: slotEnd,
-      });
-      cursor = cursor.add(30, "minute");
-    }
-    return slots;
-  }, [queueTargetEvent]);
+  const queueBookingEndOptions = useMemo(
+    () => buildBookingEndOptions(queueTargetEvent, selectedQueueSlot),
+    [queueTargetEvent, selectedQueueSlot]
+  );
 
-  const trainerBookingSlots = useMemo(() => {
-    if (!eventActionTarget || eventActionTarget.eventType !== "AVAILABILITY") return [];
-    const start = dayjs(eventActionTarget.startDateTime);
-    const end = dayjs(eventActionTarget.endDateTime);
-    let cursor = start;
-    const remainder = cursor.minute() % 30;
-    if (remainder !== 0) {
-      cursor = cursor.add(30 - remainder, "minute");
-    }
+  const trainerBookingStartOptions = useMemo(
+    () => buildBookingStartOptions(eventActionTarget),
+    [eventActionTarget]
+  );
 
-    const slots = [];
-    while (cursor.add(60, "minute").valueOf() <= end.valueOf()) {
-      const slotStart = cursor;
-      const slotEnd = cursor.add(60, "minute");
-      slots.push({
-        value: slotStart.toISOString(),
-        start: slotStart,
-        end: slotEnd,
-      });
-      cursor = cursor.add(30, "minute");
-    }
-    return slots;
-  }, [eventActionTarget]);
+  const trainerBookingEndOptions = useMemo(
+    () => buildBookingEndOptions(eventActionTarget, trainerBookSlot),
+    [eventActionTarget, trainerBookSlot]
+  );
 
   useEffect(() => {
     if (!openTrainerBookDialog) return;
-    if (trainerBookingSlots.length > 0) {
-      setTrainerBookSlot(trainerBookingSlots[0].value);
+    if (trainerBookingStartOptions.length > 0) {
+      setTrainerBookSlot((prev) =>
+        trainerBookingStartOptions.some((option) => option.value === prev)
+          ? prev
+          : trainerBookingStartOptions[0].value
+      );
     } else {
       setTrainerBookSlot("");
     }
-  }, [openTrainerBookDialog, trainerBookingSlots]);
+  }, [openTrainerBookDialog, trainerBookingStartOptions]);
 
   useEffect(() => {
-    if (queueBookingSlots.length > 0) {
-      setSelectedQueueSlot(queueBookingSlots[0].value);
+    if (!openTrainerBookDialog) return;
+    if (trainerBookingEndOptions.length > 0) {
+      setTrainerBookEndSlot((prev) =>
+        trainerBookingEndOptions.some((option) => option.value === prev)
+          ? prev
+          : pickDefaultBookingEnd(trainerBookSlot, trainerBookingEndOptions)
+      );
+    } else {
+      setTrainerBookEndSlot("");
+    }
+  }, [openTrainerBookDialog, trainerBookSlot, trainerBookingEndOptions]);
+
+  useEffect(() => {
+    if (queueBookingStartOptions.length > 0) {
+      setSelectedQueueSlot((prev) =>
+        queueBookingStartOptions.some((option) => option.value === prev)
+          ? prev
+          : queueBookingStartOptions[0].value
+      );
     } else {
       setSelectedQueueSlot("");
     }
-  }, [queueBookingSlots]);
+  }, [queueBookingStartOptions]);
+
+  useEffect(() => {
+    if (queueBookingEndOptions.length > 0) {
+      setSelectedQueueEndSlot((prev) =>
+        queueBookingEndOptions.some((option) => option.value === prev)
+          ? prev
+          : pickDefaultBookingEnd(selectedQueueSlot, queueBookingEndOptions)
+      );
+    } else {
+      setSelectedQueueEndSlot("");
+    }
+  }, [selectedQueueSlot, queueBookingEndOptions]);
 
   const handleAttachQueuedWorkout = async (workoutId) => {
     const targetEvent = attachableEvents.find((event) => event._id === queueTargetEventId);
@@ -1555,14 +1649,15 @@ export default function Schedule() {
     const workoutUserId =
       typeof workoutMatch?.user === "object" ? workoutMatch?.user?._id : workoutMatch?.user;
     if (targetEvent.eventType === "AVAILABILITY") {
-      const slot = queueBookingSlots.find((item) => item.value === selectedQueueSlot);
-      if (!slot) return;
+      const start = queueBookingStartOptions.find((item) => item.value === selectedQueueSlot);
+      const end = queueBookingEndOptions.find((item) => item.value === selectedQueueEndSlot);
+      if (!start || !end) return;
       await dispatch(
         trainerBookAvailability({
           availabilityEventId: targetEvent._id,
           clientId: workoutUserId,
-          startDateTime: slot.start.toISOString(),
-          endDateTime: slot.end.toISOString(),
+          startDateTime: start.time.toISOString(),
+          endDateTime: end.time.toISOString(),
           workoutId,
         })
       );
@@ -1581,8 +1676,9 @@ export default function Schedule() {
 
   const handleTrainerBookSlot = async () => {
     if (!eventActionTarget || eventActionTarget.eventType !== "AVAILABILITY") return;
-    const slot = trainerBookingSlots.find((item) => item.value === trainerBookSlot);
-    if (!slot) return;
+    const start = trainerBookingStartOptions.find((item) => item.value === trainerBookSlot);
+    const end = trainerBookingEndOptions.find((item) => item.value === trainerBookEndSlot);
+    if (!start || !end) return;
     const hasCustomName = Boolean(trainerBookCustomName.trim());
     if (!trainerBookClientId && !hasCustomName) return;
 
@@ -1590,8 +1686,8 @@ export default function Schedule() {
       trainerBookAvailability({
         availabilityEventId: eventActionTarget._id,
         clientId: trainerBookClientId || null,
-        startDateTime: slot.start.toISOString(),
-        endDateTime: slot.end.toISOString(),
+        startDateTime: start.time.toISOString(),
+        endDateTime: end.time.toISOString(),
         customClientName: hasCustomName ? trainerBookCustomName.trim() : "",
         customClientEmail: trainerBookCustomEmail.trim(),
         customClientPhone: trainerBookCustomPhone.trim(),
@@ -3216,24 +3312,40 @@ export default function Schedule() {
                     </FormControl>
                     {queueTargetEvent?.eventType === "AVAILABILITY" && (
                       <>
-                        {queueBookingSlots.length > 0 ? (
-                          <FormControl fullWidth>
-                            <InputLabel>Choose 1-hour slot</InputLabel>
-                            <Select
-                              label="Choose 1-hour slot"
-                              value={selectedQueueSlot}
-                              onChange={(event) => setSelectedQueueSlot(event.target.value)}
-                            >
-                              {queueBookingSlots.map((slot) => (
-                                <MenuItem key={slot.value} value={slot.value}>
-                                  {`${slot.start.format("h:mm A")} - ${slot.end.format("h:mm A")}`}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
+                        {queueBookingStartOptions.length > 0 ? (
+                          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                            <FormControl fullWidth>
+                              <InputLabel>Start time</InputLabel>
+                              <Select
+                                label="Start time"
+                                value={selectedQueueSlot}
+                                onChange={(event) => setSelectedQueueSlot(event.target.value)}
+                              >
+                                {queueBookingStartOptions.map((slot) => (
+                                  <MenuItem key={slot.value} value={slot.value}>
+                                    {slot.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl fullWidth>
+                              <InputLabel>End time</InputLabel>
+                              <Select
+                                label="End time"
+                                value={selectedQueueEndSlot}
+                                onChange={(event) => setSelectedQueueEndSlot(event.target.value)}
+                              >
+                                {queueBookingEndOptions.map((slot) => (
+                                  <MenuItem key={slot.value} value={slot.value}>
+                                    {slot.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Stack>
                         ) : (
                           <Typography variant="caption" color="text.secondary">
-                            This availability range does not include any 1-hour slots.
+                            This availability range does not include any bookable times.
                           </Typography>
                         )}
                       </>
@@ -3259,7 +3371,8 @@ export default function Schedule() {
                             String(queueTargetEvent.clientId) === String(workoutUserId);
                           const disableAttach =
                             !queueTargetEventId ||
-                            (queueTargetEvent?.eventType === "AVAILABILITY" && !selectedQueueSlot);
+                            (queueTargetEvent?.eventType === "AVAILABILITY" &&
+                              (!selectedQueueSlot || !selectedQueueEndSlot));
                           const workoutClientName =
                             clientLookup.get(workoutUserId) ||
                             (typeof workout.user === "object"
@@ -3582,24 +3695,40 @@ export default function Schedule() {
               )}
               {activeRequestEvent.eventType === "AVAILABILITY" && (
                 <>
-                  {availableBookingSlots.length > 0 ? (
-                    <FormControl fullWidth>
-                      <InputLabel>Choose 1-hour slot</InputLabel>
-                      <Select
-                        label="Choose 1-hour slot"
-                        value={selectedBookingSlot}
-                        onChange={(event) => setSelectedBookingSlot(event.target.value)}
-                      >
-                        {availableBookingSlots.map((slot) => (
-                          <MenuItem key={slot.value} value={slot.value}>
-                            {`${slot.start.format("h:mm A")} - ${slot.end.format("h:mm A")}`}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                  {bookingStartOptions.length > 0 ? (
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <FormControl fullWidth>
+                        <InputLabel>Start time</InputLabel>
+                        <Select
+                          label="Start time"
+                          value={selectedBookingSlot}
+                          onChange={(event) => setSelectedBookingSlot(event.target.value)}
+                        >
+                          {bookingStartOptions.map((slot) => (
+                            <MenuItem key={slot.value} value={slot.value}>
+                              {slot.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <FormControl fullWidth>
+                        <InputLabel>End time</InputLabel>
+                        <Select
+                          label="End time"
+                          value={selectedBookingEndSlot}
+                          onChange={(event) => setSelectedBookingEndSlot(event.target.value)}
+                        >
+                          {bookingEndOptions.map((slot) => (
+                            <MenuItem key={slot.value} value={slot.value}>
+                              {slot.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Stack>
                   ) : (
                     <Typography variant="caption" color="text.secondary">
-                      This availability range does not include any 1-hour slots.
+                      This availability range does not include any bookable times.
                     </Typography>
                   )}
                 </>
@@ -3614,7 +3743,7 @@ export default function Schedule() {
             onClick={handleRequestBooking}
             disabled={
               activeRequestEvent?.eventType === "AVAILABILITY" &&
-              availableBookingSlots.length === 0
+              (bookingStartOptions.length === 0 || !selectedBookingSlot || !selectedBookingEndSlot)
             }
           >
             Send request
@@ -4038,7 +4167,7 @@ export default function Schedule() {
                 {eventActionTarget.eventType === "AVAILABILITY" &&
                   eventActionTarget.status === "OPEN" && (
                     <Button variant="contained" onClick={() => openTrainerBookForEvent(eventActionTarget)}>
-                      Book 1-hour slot
+                      Book
                     </Button>
                   )}
                 <Button variant="outlined" onClick={() => {
@@ -4091,7 +4220,7 @@ export default function Schedule() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Book 1-hour Slot</DialogTitle>
+        <DialogTitle>Book Session</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {eventActionTarget && (
@@ -4099,24 +4228,40 @@ export default function Schedule() {
                 {formatRange(eventActionTarget)}
               </Typography>
             )}
-            {trainerBookingSlots.length > 0 ? (
-              <FormControl fullWidth>
-                <InputLabel>Choose 1-hour slot</InputLabel>
-                <Select
-                  label="Choose 1-hour slot"
-                  value={trainerBookSlot}
-                  onChange={(event) => setTrainerBookSlot(event.target.value)}
-                >
-                  {trainerBookingSlots.map((slot) => (
-                    <MenuItem key={slot.value} value={slot.value}>
-                      {`${slot.start.format("h:mm A")} - ${slot.end.format("h:mm A")}`}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            {trainerBookingStartOptions.length > 0 ? (
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                <FormControl fullWidth>
+                  <InputLabel>Start time</InputLabel>
+                  <Select
+                    label="Start time"
+                    value={trainerBookSlot}
+                    onChange={(event) => setTrainerBookSlot(event.target.value)}
+                  >
+                    {trainerBookingStartOptions.map((slot) => (
+                      <MenuItem key={slot.value} value={slot.value}>
+                        {slot.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>End time</InputLabel>
+                  <Select
+                    label="End time"
+                    value={trainerBookEndSlot}
+                    onChange={(event) => setTrainerBookEndSlot(event.target.value)}
+                  >
+                    {trainerBookingEndOptions.map((slot) => (
+                      <MenuItem key={slot.value} value={slot.value}>
+                        {slot.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
             ) : (
               <Typography variant="caption" color="text.secondary">
-                This availability range does not include any 1-hour slots.
+                This availability range does not include any bookable times.
               </Typography>
             )}
             <FormControl fullWidth>
@@ -4185,12 +4330,13 @@ export default function Schedule() {
             variant="contained"
             onClick={handleTrainerBookSlot}
             disabled={
-              trainerBookingSlots.length === 0 ||
+              trainerBookingStartOptions.length === 0 ||
               !trainerBookSlot ||
+              !trainerBookEndSlot ||
               (!trainerBookClientId && !trainerBookCustomName.trim())
             }
           >
-            Book slot
+            Book
           </Button>
         </DialogActions>
       </Dialog>
