@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { ThemeProvider, GlobalStyles } from "@mui/material";
 import { theme } from "./theme";
-import { serverURL } from "./Redux/actions";
+import { removeWorkouts, requestClients, serverURL, upsertWorkout } from "./Redux/actions";
 import socketIOClient from "socket.io-client";
 import AuthRoute from "./Components/AuthRoute";
 import WebsiteNavbar from "./Pages/WebsitePages/WebsiteNavbar";
@@ -48,10 +48,27 @@ import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
 function App({ }) {
+  const dispatch = useDispatch();
   const themeMode = useSelector((state) => state.user.themeMode);
   const [themeSelection, setThemeSelection] = useState(theme());
 
   const userId = useSelector((state) => state.user._id);
+  const isTrainer = useSelector((state) => state.user.isTrainer);
+  const workoutAccountIds = useSelector((state) => {
+    const ids = new Set();
+    if (state.user?._id) ids.add(String(state.user._id));
+
+    Object.keys(state.workouts || {}).forEach((accountId) => {
+      if (accountId) ids.add(String(accountId));
+    });
+
+    (state.clients || []).forEach((clientRel) => {
+      const clientId = clientRel?.client?._id || clientRel?.client;
+      if (clientRel?.accepted && clientId) ids.add(String(clientId));
+    });
+
+    return Array.from(ids).sort();
+  }, shallowEqual);
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
@@ -66,6 +83,47 @@ function App({ }) {
       return () => newSocket.disconnect(); // Cleanup on unmount
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (isTrainer) {
+      dispatch(requestClients());
+    }
+  }, [dispatch, isTrainer]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleWorkoutUpdated = (payload) => {
+      const workout = payload?.workout || payload?.updatedWorkout;
+      if (!workout?._id) return;
+      dispatch(upsertWorkout(workout, payload.accountId));
+    };
+    const handleWorkoutDeleted = (payload) => {
+      if (!payload?.accountId || !payload?.workoutId) return;
+      dispatch(removeWorkouts(payload.accountId, [payload.workoutId]));
+    };
+
+    socket.on("workoutUpdated", handleWorkoutUpdated);
+    socket.on("workoutDeleted", handleWorkoutDeleted);
+    return () => {
+      socket.off("workoutUpdated", handleWorkoutUpdated);
+      socket.off("workoutDeleted", handleWorkoutDeleted);
+    };
+  }, [dispatch, socket]);
+
+  useEffect(() => {
+    if (!socket || workoutAccountIds.length === 0) return;
+
+    workoutAccountIds.forEach((accountId) => {
+      socket.emit("joinWorkoutAccount", { accountId });
+    });
+
+    return () => {
+      workoutAccountIds.forEach((accountId) => {
+        socket.emit("leaveWorkoutAccount", { accountId });
+      });
+    };
+  }, [socket, workoutAccountIds]);
 
   const checkSubDomain = () => {
     let host = window.location.host;

@@ -40,7 +40,7 @@ import { Add, ArrowBack, Close as CloseIcon, Delete, Settings } from "@mui/icons
 import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import WorkoutTrainerSessionDialog from "../../Components/TrainingComponents/WorkoutTrainerSessionDialog";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
-import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL } from "../../Redux/actions";
+import { requestTraining, updateTraining, getExerciseList, requestExerciseProgress, serverURL, upsertWorkout } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
@@ -719,7 +719,14 @@ export default function Workout({ socket }) {
   const hasSynced = useRef(false);
 
   const user = useSelector((state) => state.user);
-  const training = useSelector((state) => state.training);
+  const training = useSelector((state) => {
+    const workoutBuckets = Object.values(state.workouts || {});
+    for (const bucket of workoutBuckets) {
+      const match = (bucket?.workouts || []).find((workout) => workout._id === params._id);
+      if (match) return match;
+    }
+    return null;
+  });
   const [size = 900, setBorderHighlight] = useOutletContext();
 
   const isPersonalWorkout = useCallback(
@@ -1222,10 +1229,52 @@ export default function Workout({ socket }) {
     cardio: cardioDetails,
   }), [trainingTitle, trainingCategory, workoutCompleteStatus, workoutFeedback, localTraining, workoutType, cardioDetails]);
 
+  const buildSocketWorkout = useCallback(() => {
+    if (!training?._id) return null;
+    return {
+      ...training,
+      ...buildLocalComposite(),
+      user: training.user,
+    };
+  }, [buildLocalComposite, training]);
+
+  const getWorkoutAccountId = useCallback(
+    (workout = training) => {
+      const owner = workout?.user;
+      if (!owner) return user._id;
+      return typeof owner === "object" ? owner._id : owner;
+    },
+    [training, user._id]
+  );
+
+  const applyRemoteWorkoutPayload = useCallback(
+    (payload) => {
+      const source = payload?.currentState || payload;
+      const incomingWorkout = source?.workout || source?.updatedWorkout || (source?._id ? source : null);
+      const incomingTraining = Array.isArray(source)
+        ? source
+        : Array.isArray(source?.updatedTraining)
+        ? source.updatedTraining
+        : Array.isArray(incomingWorkout?.training)
+        ? incomingWorkout.training
+        : null;
+
+      if (incomingWorkout?._id) {
+        dispatch(upsertWorkout(incomingWorkout, source.accountId || getWorkoutAccountId(incomingWorkout)));
+      }
+
+      if (incomingTraining) {
+        setLocalTraining(incomingTraining);
+      }
+    },
+    [dispatch, getWorkoutAccountId]
+  );
+
   // Hydrate locals when Redux training changes and set the baseline snapshot
   useEffect(() => {
-    if (!training) return;
+    if (!training?._id) return;
 
+    isLocalUpdate.current = false;
     // Optional: hydrate local UI from Redux when workout is loaded/switched
     setLocalTraining(training.training ?? []);
     setTrainingCategory(training.category ?? []);
@@ -1257,8 +1306,12 @@ export default function Workout({ socket }) {
       cardio: training.cardio ?? {},
     });
 
+    if (training.user?._id) {
+      setBorderHighlight(!isPersonalWorkout());
+    }
+
     setLoading(false);
-  }, [training, normalize, user?.isTrainer]);
+  }, [isPersonalWorkout, normalize, setBorderHighlight, training, user?.isTrainer]);
 
   useEffect(() => {
     const eventId = new URLSearchParams(location.search).get("event");
@@ -1767,22 +1820,31 @@ export default function Workout({ socket }) {
 
   // Save all changes to training
   const save = async () => {
-    dispatch(
+    const payload = {
+      ...training,
+      title: trainingTitle,
+      category: [...trainingCategory],
+      training: localTraining,
+      complete: workoutCompleteStatus,
+      workoutFeedback: workoutFeedback,
+      workoutType: activeWorkoutType,
+      cardio: cardioDetails,
+    };
+
+    return dispatch(
       updateTraining(training._id, {
-        ...training,
-        title: trainingTitle,
-        category: [...trainingCategory],
-        training: localTraining,
-        complete: workoutCompleteStatus,
-        workoutFeedback: workoutFeedback,
-        workoutType: activeWorkoutType,
-        cardio: cardioDetails,
+        ...payload,
       })
-    ).then(() => {
-      socket.emit("liveTrainingUpdate", {
+    ).then((savedWorkout) => {
+      if (!savedWorkout) return null;
+      const workout = savedWorkout?._id ? savedWorkout : payload;
+      socket?.emit("liveTrainingUpdate", {
         workoutId: params._id,
-        updatedTraining: localTraining,
+        accountId: getWorkoutAccountId(workout),
+        updatedTraining: workout.training || localTraining,
+        workout,
       });
+      return workout;
     });
   };
 
@@ -1797,38 +1859,14 @@ export default function Workout({ socket }) {
     dispatch(requestTraining(params._id)).then(() => {
       setLoading(false);
     });
-  }, [params, dispatch, user._id]);
-
-  useEffect(() => {
-    setLocalTraining(training.training || []);
-    setTrainingCategory(training.category && training.category.length > 0 ? training.category : []);
-    setTrainingTitle(training.title || "");
-    setWorkoutCompleteStatus(training?.complete || false);
-    setWorkoutFeedback(training?.workoutFeedback || { difficulty: 1, comments: [] });
-    setWorkoutType(training.workoutType || "Strength");
-    const normalizedCardio = normalizeCardio(training.cardio);
-    setCardioDetails(normalizedCardio);
-    setCardioAuto(buildCardioAuto(normalizedCardio));
-    setCardioViewMode("plan");
-    const nextEditorMode = user?.isTrainer ? "full" : "quick";
-    setCardioEditorMode(nextEditorMode);
-    setCardioSectionsOpen(
-      getCardioAutoOpenSections({
-        cardioFields: normalizedCardio.plan,
-        promptKeys: normalizedCardio.plan?.clientPrompts || [],
-        editorMode: nextEditorMode,
-      })
-    );
-    if (training?.user?._id) {
-      setBorderHighlight(!isPersonalWorkout());
-    }
-  }, [isPersonalWorkout, setBorderHighlight, training, user?.isTrainer]);
+  }, [dispatch, params._id]);
 
   ///////////////////////////////
   // 1. Join Room & Request State
   ///////////////////////////////
   useEffect(() => {
     if (socket && params._id) {
+      hasSynced.current = false;
       // Join the workout room.
       socket.emit("joinWorkout", { workoutId: params._id });
       // Immediately ask any existing clients for their current state.
@@ -1847,13 +1885,13 @@ export default function Workout({ socket }) {
   useEffect(() => {
     if (!socket) return;
 
-    const handleCurrentState = (currentState) => {
+    const handleCurrentState = (payload) => {
+      if (payload?.workoutId && payload.workoutId !== params._id) return;
       // Only update if we haven’t already synced.
       if (!hasSynced.current) {
-        setLocalTraining(currentState);
+        isLocalUpdate.current = false;
+        applyRemoteWorkoutPayload(payload?.currentState || payload);
         hasSynced.current = true;
-        // You can also log here if needed.
-        console.log("Synced from handshake:", currentState);
       }
     };
 
@@ -1861,7 +1899,27 @@ export default function Workout({ socket }) {
     return () => {
       socket.off("currentState", handleCurrentState);
     };
-  }, [socket]);
+  }, [applyRemoteWorkoutPayload, params._id, socket]);
+
+  ///////////////////////////////
+  // 3. Respond to Current State Requests
+  ///////////////////////////////
+  useEffect(() => {
+    if (!socket || !params._id) return;
+    const handleCurrentStateRequest = ({ workoutId, requester }) => {
+      if (workoutId !== params._id || !requester) return;
+      socket.emit("currentState", {
+        workoutId: params._id,
+        requester,
+        currentState: buildSocketWorkout() || localTraining,
+      });
+    };
+
+    socket.on("requestCurrentState", handleCurrentStateRequest);
+    return () => {
+      socket.off("requestCurrentState", handleCurrentStateRequest);
+    };
+  }, [buildSocketWorkout, localTraining, params._id, socket]);
 
   ///////////////////////////////
   // 3. Timeout: Mark as Synced If No Handshake Arrives
@@ -1872,7 +1930,6 @@ export default function Workout({ socket }) {
     const timer = setTimeout(() => {
       if (!hasSynced.current) {
         hasSynced.current = true;
-        console.log("No handshake received, marking as synced.");
       }
     }, 2000);
     return () => clearTimeout(timer);
@@ -1884,17 +1941,18 @@ export default function Workout({ socket }) {
   useEffect(() => {
     if (!socket) return;
 
-    const handleLiveUpdate = (updatedTraining) => {
+    const handleLiveUpdate = (payload) => {
+      if (payload?.workoutId && payload.workoutId !== params._id) return;
       // This update is coming from another client.
       isLocalUpdate.current = false;
-      setLocalTraining(updatedTraining);
+      applyRemoteWorkoutPayload(payload);
     };
 
     socket.on("liveTrainingUpdate", handleLiveUpdate);
     return () => {
       socket.off("liveTrainingUpdate", handleLiveUpdate);
     };
-  }, [socket]);
+  }, [applyRemoteWorkoutPayload, params._id, socket]);
 
   ///////////////////////////////
   // 5. Debounced Emission for Local Updates
@@ -1911,11 +1969,13 @@ export default function Workout({ socket }) {
     if (!hasSynced.current) return;
 
     const debouncedEmit = debounce(() => {
+      const workout = buildSocketWorkout();
       socket.emit("liveTrainingUpdate", {
         workoutId: params._id,
+        accountId: getWorkoutAccountId(workout),
         updatedTraining: localTraining,
+        workout,
       });
-      console.log("Emitted live update", localTraining);
     }, 1000); // 1-second debounce
 
     debouncedEmit();
@@ -1923,13 +1983,13 @@ export default function Workout({ socket }) {
     return () => {
       debouncedEmit.cancel();
     };
-  }, [localTraining, socket, params._id]);
+  }, [buildSocketWorkout, getWorkoutAccountId, localTraining, socket, params._id]);
 
   return (
     <>
       {loading ? (
         <Loading />
-      ) : training._id ? (
+      ) : training?._id ? (
         <>
           <WorkoutOptionModalView
             modalOpen={modalOpen}
@@ -1951,7 +2011,7 @@ export default function Workout({ socket }) {
               {cardioNotice.message}
             </Alert>
           </Snackbar>
-          {training._id ? (
+          {training?._id ? (
             <>
               <Grid
                 container

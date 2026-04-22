@@ -87,7 +87,7 @@ function Home() {
 
     const isDifferent =
       matchedDateWorkouts.length !== localWorkouts.length ||
-      matchedDateWorkouts.some((w, i) => w._id !== localWorkouts[i]?._id);
+      matchedDateWorkouts.some((w, i) => w !== localWorkouts[i]);
 
     if (isDifferent) {
       setLocalWorkouts(matchedDateWorkouts);

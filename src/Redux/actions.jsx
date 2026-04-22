@@ -9,6 +9,7 @@ export const EDIT_MYACCOUNT = "EDIT_MYACCOUNT";
 export const EDIT_HOME_WORKOUTS = "EDIT_HOME_WORKOUTS";
 export const EDIT_WORKOUTS = "EDIT_WORKOUTS";
 export const ADD_WORKOUT = "ADD_WORKOUT";
+export const UPSERT_WORKOUT = "UPSERT_WORKOUT";
 export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
@@ -227,6 +228,18 @@ export function logoutUser() {
 
 const buildScheduleScopeKey = (trainerId, clientId) =>
   `${trainerId || "me"}:${clientId || "all"}`;
+
+export const upsertWorkout = (workout, accountId = null) => ({
+  type: UPSERT_WORKOUT,
+  workout,
+  accountId,
+});
+
+export const removeWorkouts = (accountId, workoutIds = []) => ({
+  type: REMOVE_WORKOUTS,
+  accountId,
+  workoutIds,
+});
 
 export function requestScheduleRange({
   startDate,
@@ -571,12 +584,19 @@ export function requestTraining(trainingId) {
     });
     let data = await response.json();
 
+    if (data.error) {
+      return dispatch({
+        type: ERROR,
+        error: data.error,
+      });
+    }
+
     if (!data || data.length < 1) {
       return dispatch({
         type: EDIT_TRAINING,
         training: { training: [] },
       });
-    } else {
+    } else if (Array.isArray(data.training)) {
       data.training.map((set) => {
         set.map((exercise) => {
           if (!exercise.achieved.weight) {
@@ -586,10 +606,8 @@ export function requestTraining(trainingId) {
         });
         return set;
       });
-      return dispatch({
-        type: EDIT_TRAINING,
-        training: { ...data },
-      });
+      dispatch(upsertWorkout(data));
+      return data;
     }
   };
 }
@@ -895,15 +913,15 @@ export function updateTraining(trainingId, updatedTraining) {
     }).then((res) => res.json());
 
     if (data.error) {
-      return dispatch({
+      dispatch({
         type: ERROR,
         error: data.error,
       });
+      return null;
     } else {
-      return dispatch({
-        type: EDIT_TRAINING,
-        training: updatedTraining,
-      });
+      const savedTraining = data.training || updatedTraining;
+      dispatch(upsertWorkout(savedTraining));
+      return savedTraining;
     }
   };
 }
@@ -1153,9 +1171,8 @@ export function undoBulkMoveCopy(operation) {
 
 // Delete a training record
 export function deleteWorkoutById(trainingId, accountId) {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
-    const state = getState();
 
     const data = await fetch(`${serverURL}/deleteWorkoutById`, {
       method: "post",
@@ -1175,19 +1192,11 @@ export function deleteWorkoutById(trainingId, accountId) {
         error: data.error,
       });
     } else {
-      return dispatch({
-        type: EDIT_TRAINING,
-        training: { training: [] },
-        workouts: {
-          ...state.workouts,
-          [accountId]: {
-            ...state.workouts[accountId],
-            workouts: state.workouts[accountId].workouts.filter(
-              (workout) => workout._id !== trainingId
-            ),
-          },
-        },
-      });
+      const resolvedAccountId = data.accountId || accountId;
+      if (resolvedAccountId) {
+        dispatch(removeWorkouts(resolvedAccountId, [data.deletedId || trainingId]));
+      }
+      return data;
     }
   };
 }

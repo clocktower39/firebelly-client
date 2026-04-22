@@ -5,6 +5,7 @@ import {
   EDIT_MYACCOUNT,
   EDIT_WORKOUTS,
   ADD_WORKOUT,
+  UPSERT_WORKOUT,
   EDIT_TRAINING,
   EDIT_EXERCISE_LIBRARY,
   EDIT_PROGRESS_EXERCISE_LIST,
@@ -49,6 +50,48 @@ import {
   workoutQueue,
   lastBulkOperation,
 } from "./states";
+
+const getId = (value) => {
+  if (!value) return "";
+  if (typeof value === "object") return value._id || value.id || "";
+  return value;
+};
+
+const getWorkoutAccountId = (workout, accountId, fallbackUserId) =>
+  getId(accountId) || getId(workout?.user) || getId(fallbackUserId);
+
+const getWorkoutUser = (workout, existingUser, fallbackUser) => {
+  if (workout?.user && typeof workout.user === "object") return workout.user;
+  return existingUser || fallbackUser || {};
+};
+
+const upsertWorkoutByAccount = (state, workout, accountId) => {
+  if (!workout?._id) return state;
+
+  const resolvedAccountId = getWorkoutAccountId(workout, accountId, state.user?._id);
+  if (!resolvedAccountId) return state;
+
+  const existingBucket = state.workouts[resolvedAccountId] || {};
+  const existingWorkouts = existingBucket.workouts || [];
+  const hasWorkout = existingWorkouts.some((item) => item._id === workout._id);
+  const nextWorkouts = hasWorkout
+    ? existingWorkouts.map((item) => (item._id === workout._id ? workout : item))
+    : [...existingWorkouts, workout];
+
+  return {
+    ...state,
+    training: state.training?._id === workout._id ? { ...workout } : state.training,
+    workouts: {
+      ...state.workouts,
+      [resolvedAccountId]: {
+        ...existingBucket,
+        workouts: nextWorkouts,
+        user: getWorkoutUser(workout, existingBucket.user, state.user),
+      },
+    },
+  };
+};
+
 export let reducer = (
   state = {
     user,
@@ -86,7 +129,9 @@ export let reducer = (
         },
       };
     case EDIT_WORKOUTS: {
-      const existing = state.workouts[action.accountId]?.workouts || [];
+      const workoutUser = action.user ?? state.user;
+      const accountId = getId(action.accountId) || getId(workoutUser?._id);
+      const existing = state.workouts[accountId]?.workouts || [];
 
       // Convert existing workouts to a map for faster lookup
       const existingMap = new Map(existing.map((w) => [w._id, w]));
@@ -108,14 +153,12 @@ export let reducer = (
         // If same, do nothing (skip update)
       });
 
-      const workoutUser = action.user ?? state.user;
-
       return {
         ...state,
         workouts: {
           ...state.workouts,
-          [workoutUser._id]: {
-            ...(state.workouts[workoutUser._id] || {}),
+          [accountId]: {
+            ...(state.workouts[accountId] || {}),
             workouts: updatedWorkouts,
             user: { ...workoutUser, },
           },
@@ -137,18 +180,18 @@ export let reducer = (
       };
     }
     case ADD_WORKOUT:
-      return {
-        ...state,
-        workouts: {
-          ...state.workouts,
-          [action.accountId]: {
-            workouts: [...(state?.workouts?.[action.accountId]?.workouts || []), action.workout],
-          },
-        },
-      };
-    case EDIT_TRAINING:
+      return upsertWorkoutByAccount(state, action.workout, action.accountId);
+    case UPSERT_WORKOUT:
+      return upsertWorkoutByAccount(state, action.workout, action.accountId);
+    case EDIT_TRAINING: {
       const updatedTraining = action.training;
-      const userId = state.user._id;
+      if (!updatedTraining?._id) {
+        return {
+          ...state,
+          training: { ...updatedTraining },
+        };
+      }
+      const userId = getWorkoutAccountId(updatedTraining, action.accountId, state.user?._id);
 
       // Get existing workouts for the user
       const userWorkouts = state.workouts[userId]?.workouts || [];
@@ -176,9 +219,11 @@ export let reducer = (
               [userId]: {
                 ...state.workouts[userId],
                 workouts: updatedUserWorkouts,
+                user: getWorkoutUser(updatedTraining, state.workouts[userId]?.user, state.user),
               },
             },
           };
+    }
     case EDIT_MYACCOUNT:
       return {
         ...state,
