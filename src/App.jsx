@@ -47,6 +47,13 @@ import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer"
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
+const getSocketURL = () => {
+  if (serverURL === "/api") {
+    return typeof window !== "undefined" ? window.location.origin : undefined;
+  }
+  return serverURL;
+};
+
 function App({ }) {
   const dispatch = useDispatch();
   const themeMode = useSelector((state) => state.user.themeMode);
@@ -73,7 +80,8 @@ function App({ }) {
 
   useEffect(() => {
     if (userId) {
-      const newSocket = socketIOClient(serverURL, {
+      const newSocket = socketIOClient(getSocketURL(), {
+        path: "/socket.io",
         query: { userId },
         transports: ["websocket"],
         upgrade: false,

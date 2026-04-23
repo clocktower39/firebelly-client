@@ -14,6 +14,9 @@ import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
 
 dayjs.extend(utc);
 
+const EMPTY_WORKOUTS = [];
+const EMPTY_WORKOUT_USER = {};
+
 function Home() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,11 +28,12 @@ function Home() {
     () => client ? user._id.toString() === client : true,
     [user._id, client]
   );
+  const workoutAccountId = isPersonalWorkout() ? user._id : client;
   const workouts = useSelector((state) => {
-    return state.workouts?.[isPersonalWorkout() ? user._id : client]?.workouts ?? [];
+    return state.workouts?.[workoutAccountId]?.workouts ?? EMPTY_WORKOUTS;
   });
   const workoutsUser = useSelector((state) => {
-    return state.workouts?.[isPersonalWorkout() ? user._id : client]?.user ?? {};
+    return state.workouts?.[workoutAccountId]?.user ?? EMPTY_WORKOUT_USER;
   });
   const latestMetric = useSelector(
     (state) => state.metrics.latestByUser[(client || user._id)] || null
