@@ -190,6 +190,12 @@ const pickDefaultBookingEnd = (startValue, endOptions) => {
   return (preferred || endOptions[endOptions.length - 1]).value;
 };
 
+const EMPTY_EVENTS = [];
+const EMPTY_SCHEDULE_DATA = { events: EMPTY_EVENTS };
+const EMPTY_WORKOUTS_BY_ACCOUNT = {};
+const EMPTY_WORKOUT_QUEUE_BY_ACCOUNT = {};
+const EMPTY_WORKOUTS = [];
+
 export default function Schedule() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
@@ -557,11 +563,12 @@ export default function Schedule() {
     isTrainerView ? (selectedClientIds.length === 1 ? selectedClientIds[0] : null) : user._id
   );
 
-  const scheduleData = useSelector((state) => state.scheduleEvents?.[scopeKey]) || {
-    events: [],
-  };
-  const workoutsByAccount = useSelector((state) => state.workouts) || {};
-  const workoutQueue = useSelector((state) => state.workoutQueue) || {};
+  const scheduleData =
+    useSelector((state) => state.scheduleEvents?.[scopeKey]) || EMPTY_SCHEDULE_DATA;
+  const workoutsByAccount =
+    useSelector((state) => state.workouts) || EMPTY_WORKOUTS_BY_ACCOUNT;
+  const workoutQueue =
+    useSelector((state) => state.workoutQueue) || EMPTY_WORKOUT_QUEUE_BY_ACCOUNT;
 
   const clientLookup = useMemo(
     () =>
@@ -644,21 +651,17 @@ export default function Schedule() {
     attachEvent?.clientId ||
     (isTrainerView && selectedClientIds.length === 1 ? selectedClientIds[0] : null) ||
     user._id;
-  const availableWorkouts =
-    useSelector((state) => state.workouts?.[attachAccountId]?.workouts) || [];
+  const availableWorkouts = workoutsByAccount?.[attachAccountId]?.workouts || EMPTY_WORKOUTS;
   const queueAccountIds = useMemo(
     () => (isTrainerView ? activeClientIds : [user._id]),
     [activeClientIds, isTrainerView, user._id]
   );
-  const queuedWorkouts =
-    useSelector((state) => {
-      if (!isTrainerView) {
-        return state.workoutQueue?.[user._id] || [];
-      }
-      return queueAccountIds.flatMap(
-        (clientId) => state.workoutQueue?.[clientId] || []
-      );
-    }) || [];
+  const queuedWorkouts = useMemo(() => {
+    if (!isTrainerView) {
+      return workoutQueue?.[user._id] || EMPTY_WORKOUTS;
+    }
+    return queueAccountIds.flatMap((clientId) => workoutQueue?.[clientId] || EMPTY_WORKOUTS);
+  }, [isTrainerView, queueAccountIds, user._id, workoutQueue]);
   const visibleQueuedWorkouts = useMemo(() => {
     const start = selectedDate.startOf("week").startOf("day");
     const end = start.add(7, "day").startOf("day");
@@ -679,15 +682,32 @@ export default function Schedule() {
   const attachWorkouts = useMemo(() => {
     if (!isTrainerView) return availableWorkouts;
     if (attachEvent?.clientId || selectedClientIds.length === 1) return availableWorkouts;
-    return activeClientIds.flatMap((clientId) => workoutsByAccount?.[clientId]?.workouts || []);
-  }, [activeClientIds, attachEvent?.clientId, availableWorkouts, selectedClientIds, isTrainerView, workoutsByAccount]);
-  const attachQueuedWorkouts = useSelector((state) => {
-    if (!isTrainerView) return state.workoutQueue?.[user._id] || [];
+    return activeClientIds.flatMap(
+      (clientId) => workoutsByAccount?.[clientId]?.workouts || EMPTY_WORKOUTS
+    );
+  }, [
+    activeClientIds,
+    attachEvent?.clientId,
+    availableWorkouts,
+    selectedClientIds.length,
+    isTrainerView,
+    workoutsByAccount,
+  ]);
+  const attachQueuedWorkouts = useMemo(() => {
+    if (!isTrainerView) return workoutQueue?.[user._id] || EMPTY_WORKOUTS;
     if (attachEvent?.clientId || selectedClientIds.length === 1) {
-      return state.workoutQueue?.[attachAccountId || "me"] || [];
+      return workoutQueue?.[attachAccountId || "me"] || EMPTY_WORKOUTS;
     }
-    return activeClientIds.flatMap((clientId) => state.workoutQueue?.[clientId] || []);
-  });
+    return activeClientIds.flatMap((clientId) => workoutQueue?.[clientId] || EMPTY_WORKOUTS);
+  }, [
+    activeClientIds,
+    attachAccountId,
+    attachEvent?.clientId,
+    isTrainerView,
+    selectedClientIds.length,
+    user._id,
+    workoutQueue,
+  ]);
 
   const dayEvents = useMemo(() => {
     const dayStart = selectedDate.startOf("day");
@@ -1442,11 +1462,12 @@ export default function Schedule() {
   }, [quickBookClientId]);
 
   const quickBookWorkouts = useMemo(
-    () => (workoutsByAccount?.[quickBookClientId]?.workouts || []),
+    () => workoutsByAccount?.[quickBookClientId]?.workouts || EMPTY_WORKOUTS,
     [quickBookClientId, workoutsByAccount]
   );
-  const quickBookQueuedWorkouts = useSelector(
-    (state) => state.workoutQueue?.[quickBookClientId] || []
+  const quickBookQueuedWorkouts = useMemo(
+    () => workoutQueue?.[quickBookClientId] || EMPTY_WORKOUTS,
+    [quickBookClientId, workoutQueue]
   );
 
   const handleQuickBookClient = async () => {
