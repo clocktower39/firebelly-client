@@ -197,7 +197,8 @@ export function enterClientAccount(clientId) {
         localStorage.setItem("JWT_TRAINER_REFRESH_TOKEN", currentRefresh);
       }
 
-      localStorage.setItem("JWT_VIEW_ONLY", "true");
+      localStorage.setItem("JWT_DELEGATED_SESSION", "trainer_client");
+      localStorage.removeItem("JWT_VIEW_ONLY");
       await dispatch(loginJWT(data.accessToken));
       return data;
     } catch (err) {
@@ -220,6 +221,7 @@ export function logoutUser() {
     localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
     localStorage.removeItem("JWT_TRAINER_REFRESH_TOKEN");
     localStorage.removeItem("JWT_VIEW_ONLY");
+    localStorage.removeItem("JWT_DELEGATED_SESSION");
     return dispatch({
       type: LOGOUT_USER,
     });

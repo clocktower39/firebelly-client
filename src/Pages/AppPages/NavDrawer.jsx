@@ -56,7 +56,7 @@ export default function NavDrawer() {
   const isImpersonating = viewAsTrainer || viewAsGuardian;
   const roleLabel = isImpersonating
     ? viewAsTrainer
-      ? "Trainer (client)"
+      ? "Trainer managing client"
       : "Guardian (child)"
     : user.isTrainer
     ? "Trainer"
@@ -178,6 +178,7 @@ export default function NavDrawer() {
     if (returnAccess) localStorage.setItem("JWT_AUTH_TOKEN", returnAccess);
     if (returnRefresh) localStorage.setItem("JWT_REFRESH_TOKEN", returnRefresh);
     localStorage.removeItem("JWT_VIEW_ONLY");
+    localStorage.removeItem("JWT_DELEGATED_SESSION");
     localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
     localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
     localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
@@ -248,7 +249,7 @@ export default function NavDrawer() {
           {isImpersonating && (
             <Box sx={{ px: 2, py: 1, backgroundColor: "rgba(234, 179, 8, 0.15)" }}>
               <Typography variant="caption" color="text.primary">
-                {viewAsTrainer ? "Viewing client account" : "Viewing child account"}
+                {viewAsTrainer ? "Managing client account" : "Viewing child account"}
               </Typography>
               <Button size="small" onClick={handleReturnFromView} sx={{ mt: 1 }}>
                 {viewAsTrainer ? "Return to My Account" : "Return to Guardian"}

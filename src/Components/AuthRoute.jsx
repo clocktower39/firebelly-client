@@ -28,6 +28,7 @@ export const AuthRoute = (props) => {
     const accessToken = localStorage.getItem("JWT_AUTH_TOKEN");
     const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
     const viewOnly = localStorage.getItem("JWT_VIEW_ONLY") === "true";
+    const delegatedSession = Boolean(localStorage.getItem("JWT_DELEGATED_SESSION"));
 
     if (accessToken) {
       if (checkTokenExpiry(accessToken)) {
@@ -37,7 +38,7 @@ export const AuthRoute = (props) => {
           setLoading(false);
         }
       } else {
-        if (refreshToken && !viewOnly) {
+        if (refreshToken && !viewOnly && !delegatedSession) {
           dispatch(loginJWT())
             .then(() => setLoading(false))
             .catch(() => setLoading(false));
