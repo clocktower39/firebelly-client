@@ -44,6 +44,7 @@ import LogoutConfirmation from "./Components/AccountComponents/LogoutConfirmatio
 import WorkoutPreferences from "./Components/AccountComponents/WorkoutPreferences";
 import GuardianDashboard from "./Components/AccountComponents/GuardianDashboard";
 import ActivityTrackerContainer from "./Pages/AppPages/ActivityTrackerContainer";
+import PagePresenceAvatars from "./Components/PagePresenceAvatars";
 import NotFoundPage from "./Pages/NotFoundPage";
 import "./App.css";
 
@@ -179,6 +180,7 @@ function App({ }) {
         })}
       />
       <Router>
+        <PagePresenceAvatars socket={socket} />
         <Routes>
           {/* Default website pages, anyone can access */}
           {checkSubDomain() ? (
