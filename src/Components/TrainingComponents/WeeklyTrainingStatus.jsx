@@ -1,34 +1,42 @@
-import React, { Fragment, useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import React from "react";
 import {
   Badge,
   Box,
   Button,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Divider,
   Grid,
   IconButton,
+  Stack,
   Typography,
 } from "@mui/material";
 import {
-  Cancel as CloseIcon,
-  Today as MoveToDateIcon,
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
+  LockOpen,
+  Today as MoveToDateIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
-import { requestTrainingWeek, serverURL } from "../../Redux/actions";
 
-export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate, workouts, workoutsUser }) {
-  const dispatch = useDispatch();
-  const date = dayjs(selectedDate);
+export default function WeeklyTrainingStatus({
+  selectedDate,
+  setSelectedDate,
+  visibleDate,
+  setVisibleDate,
+  visibleDateLocked,
+  setVisibleDateLocked,
+  workouts,
+}) {
+  const date = dayjs(visibleDate || selectedDate);
+  const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
   const weekDates = Array.from({ length: 7 }, (_, i) =>
     date.subtract(6 - i, "day").format("YYYY-MM-DD")
   );
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[weekDates.length - 1];
+  const selectedDateVisible = weekDates.includes(selectedDateKey);
 
   const weekData = weekDates.map((dateStr) => {
     const dayWorkouts = workouts.filter(
@@ -38,88 +46,59 @@ export default function WeeklyTrainingStatus({ selectedDate, setSelectedDate, wo
     return { date: dateStr, workouts: dayWorkouts, complete };
   });
 
-  useEffect(() => {
-    dispatch(requestTrainingWeek(date.format("YYYY-MM-DD"), workoutsUser._id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  const moveVisibleWeek = (amount) => {
+    if (!setVisibleDate) return;
+    setVisibleDate(date.add(amount, "week").format("YYYY-MM-DD"));
+  };
+
   return (
-    <>
+    <Stack spacing={1} sx={{ alignItems: "center" }}>
+      <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+        <IconButton size="small" onClick={() => moveVisibleWeek(-1)}>
+          <ChevronLeft />
+        </IconButton>
+        <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" sx={{ minWidth: 160 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
+            {dayjs(weekStart).format("MMM D")} - {dayjs(weekEnd).format("MMM D")}
+          </Typography>
+          {setVisibleDate && !selectedDateVisible && (
+            <IconButton
+              size="small"
+              onClick={() => setVisibleDate(selectedDateKey)}
+              sx={{ color: "success.main", p: 0.25 }}
+              aria-label="Return to selected date"
+            >
+              <MoveToDateIcon fontSize="small" />
+            </IconButton>
+          )}
+          {setVisibleDateLocked && (
+            <IconButton
+              size="small"
+              onClick={() => setVisibleDateLocked((prev) => !prev)}
+              sx={{ color: visibleDateLocked ? "success.main" : "text.secondary", p: 0.25 }}
+              aria-label={visibleDateLocked ? "Unlock weekly date" : "Lock weekly date"}
+            >
+              {visibleDateLocked ? <Lock fontSize="small" /> : <LockOpen fontSize="small" />}
+            </IconButton>
+          )}
+        </Stack>
+        <IconButton size="small" onClick={() => moveVisibleWeek(1)}>
+          <ChevronRight />
+        </IconButton>
+      </Stack>
+
       <Grid container sx={{ justifyContent: "center" }}>
         {weekData.map((day) => (
-          <DayStatusView day={day} key={day.date} setSelectedDate={setSelectedDate} />
+          <DayStatusView
+            day={day}
+            key={day.date}
+            setSelectedDate={setSelectedDate}
+          />
         ))}
       </Grid>
-    </>
+    </Stack>
   );
 }
-
-const exerciseTypeFields = (exerciseType) => {
-  switch (exerciseType) {
-    case "Rep Range":
-      return {
-        repeating: [
-          {
-            goalAttribute: "weight",
-            label: "Weight",
-          },
-          {
-            goalAttribute: "minReps",
-            label: "Min Reps",
-          },
-          {
-            goalAttribute: "maxReps",
-            label: "Max Reps",
-          },
-        ],
-        nonRepeating: [],
-      };
-    case "Reps":
-      return {
-        repeating: [
-          {
-            goalAttribute: "weight",
-            label: "Weight",
-          },
-          {
-            goalAttribute: "reps",
-            label: "Reps",
-          },
-        ],
-        nonRepeating: [],
-      };
-    case "Reps with %":
-      return {
-        repeating: [
-          {
-            goalAttribute: "percent",
-            label: "Percent",
-          },
-          {
-            goalAttribute: "reps",
-            label: "Reps",
-          },
-        ],
-        nonRepeating: [
-          {
-            goalAttribute: "maxWeight",
-            label: "One Rep Max",
-          },
-        ],
-      };
-    case "Time":
-      return {
-        repeating: [
-          {
-            goalAttribute: "seconds",
-            label: "Seconds",
-          },
-        ],
-        nonRepeating: [],
-      };
-    default:
-      return <Typography color="text.primary">Type Error</Typography>;
-  }
-};
 
 const DayStatusView = ({ day, setSelectedDate }) => {
   const handleMoveToDate = () => {

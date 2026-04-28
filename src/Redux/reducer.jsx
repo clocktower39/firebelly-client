@@ -66,6 +66,14 @@ const getWorkoutUser = (workout, existingUser, fallbackUser) => {
   return existingUser || fallbackUser || {};
 };
 
+const getWorkoutDateKey = (workout) => {
+  if (!workout?.date) return "";
+  const dateMatch = String(workout.date).match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (dateMatch) return dateMatch;
+  const date = new Date(workout.date);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+};
+
 const upsertWorkoutByAccount = (state, workout, accountId) => {
   if (!workout?._id) return state;
 
@@ -133,6 +141,7 @@ export let reducer = (
       const workoutUser = action.user ?? state.user;
       const accountId = getId(action.accountId) || getId(workoutUser?._id);
       const existing = state.workouts[accountId]?.workouts || [];
+      const existingLoadedDates = state.workouts[accountId]?.loadedDates || [];
 
       // Convert existing workouts to a map for faster lookup
       const existingMap = new Map(existing.map((w) => [w._id, w]));
@@ -154,6 +163,18 @@ export let reducer = (
         // If same, do nothing (skip update)
       });
 
+      const loadedDatesFromAction = action.loadedDates || [];
+      const inferredLoadedDates = action.loadedDates
+        ? []
+        : action.workouts.map(getWorkoutDateKey).filter(Boolean);
+      const nextLoadedDates = [
+        ...new Set([
+          ...existingLoadedDates,
+          ...loadedDatesFromAction,
+          ...inferredLoadedDates,
+        ]),
+      ].sort();
+
       return {
         ...state,
         workouts: {
@@ -162,6 +183,7 @@ export let reducer = (
             ...(state.workouts[accountId] || {}),
             workouts: updatedWorkouts,
             user: { ...workoutUser, },
+            loadedDates: nextLoadedDates,
           },
         },
       };

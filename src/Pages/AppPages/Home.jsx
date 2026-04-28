@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import queryString from "query-string";
@@ -9,13 +9,19 @@ import SelectedDate from "../../Components/SelectedDate";
 import WeeklyClientWorkoutTracker from "../../Components/TrainingComponents/WeeklyClientWorkoutTracker";
 import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview";
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
-import { requestWorkoutsByDate, requestLatestMetric, serverURL } from "../../Redux/actions";
+import { requestWorkoutsByDatesIfNeeded, requestLatestMetric, serverURL } from "../../Redux/actions";
 import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
 
 dayjs.extend(utc);
 
 const EMPTY_WORKOUTS = [];
 const EMPTY_WORKOUT_USER = {};
+const EMPTY_DATES = [];
+
+const getTrailingWeekDates = (date) =>
+  Array.from({ length: 7 }, (_, index) =>
+    dayjs(date).subtract(6 - index, "day").format("YYYY-MM-DD")
+  );
 
 function Home() {
   const location = useLocation();
@@ -35,6 +41,9 @@ function Home() {
   const workoutsUser = useSelector((state) => {
     return state.workouts?.[workoutAccountId]?.user ?? EMPTY_WORKOUT_USER;
   });
+  const loadedWorkoutDates = useSelector((state) => {
+    return state.workouts?.[workoutAccountId]?.loadedDates ?? EMPTY_DATES;
+  });
   const latestMetric = useSelector(
     (state) => state.metrics.latestByUser[(client || user._id)] || null
   );
@@ -53,6 +62,18 @@ function Home() {
   const initialDate = isValidDate(date) ? formatDate(date) : today;
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
+  const [weeklyStatusDate, setWeeklyStatusDate] = useState(initialDate);
+  const [weeklyStatusDateLocked, setWeeklyStatusDateLocked] = useState(false);
+  const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
+  const weeklyStatusDates = useMemo(() => getTrailingWeekDates(weeklyStatusDate), [weeklyStatusDate]);
+  const requiredWorkoutDates = useMemo(
+    () => [...new Set([...weeklyStatusDates, selectedDateKey])],
+    [selectedDateKey, weeklyStatusDates]
+  );
+  const missingWorkoutDates = useMemo(() => {
+    const loadedDateSet = new Set(loadedWorkoutDates);
+    return requiredWorkoutDates.filter((dateKey) => !loadedDateSet.has(dateKey));
+  }, [loadedWorkoutDates, requiredWorkoutDates]);
 
   const [localWorkouts, setLocalWorkouts] = useState(() => {
     return [];
@@ -83,6 +104,12 @@ function Home() {
 
     setSelectedDate((prev) => (prev === queryDate ? prev : queryDate));
   }, [date, today]);
+
+  useEffect(() => {
+    if (!selectedDateKey) return;
+    if (weeklyStatusDateLocked) return;
+    setWeeklyStatusDate((prev) => (prev === selectedDateKey ? prev : selectedDateKey));
+  }, [selectedDateKey, weeklyStatusDateLocked]);
 
   useEffect(() => {
     const matchedDateWorkouts = workouts.filter((workout) =>
@@ -116,15 +143,23 @@ function Home() {
   }, [client, location.search, navigate, selectedDate]);
 
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!requiredWorkoutDates.length) return;
+    if (!missingWorkoutDates.length) {
+      setBorderHighlight(!isPersonalWorkout());
+      setLoading(false);
+      return;
+    }
 
-    setLoading(true);
-    dispatch(requestWorkoutsByDate(selectedDate, client)).finally(() => {
+    if (missingWorkoutDates.includes(selectedDateKey)) {
+      setLoading(true);
+    }
+
+    dispatch(requestWorkoutsByDatesIfNeeded(requiredWorkoutDates, client)).finally(() => {
       setBorderHighlight(!isPersonalWorkout());
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, client, isPersonalWorkout]);
+  }, [requiredWorkoutDates, missingWorkoutDates, selectedDateKey, client, isPersonalWorkout]);
 
   useEffect(() => {
     dispatch(requestLatestMetric({ userId: isPersonalWorkout() ? undefined : client }));
@@ -151,7 +186,15 @@ function Home() {
         </Grid>
       )}
       <SelectedDate selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-      <WeeklyTrainingStatus selectedDate={selectedDate} setSelectedDate={setSelectedDate} workoutsUser={workoutsUser} workouts={workouts} />
+      <WeeklyTrainingStatus
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        visibleDate={weeklyStatusDate}
+        setVisibleDate={setWeeklyStatusDate}
+        visibleDateLocked={weeklyStatusDateLocked}
+        setVisibleDateLocked={setWeeklyStatusDateLocked}
+        workouts={workouts}
+      />
       {latestMetric && (
         <Grid container size={12} sx={{ marginTop: "10px" }}>
           <Paper elevation={5} sx={{ width: "100%", padding: "5px", margin: "5px" }}>

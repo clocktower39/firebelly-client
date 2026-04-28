@@ -41,6 +41,69 @@ export const REMOVE_WORKOUTS = "REMOVE_WORKOUTS";
 const defaultServerURL = import.meta.env.DEV ? "/api" : "https://firebellyfitness.herokuapp.com";
 export const serverURL = import.meta.env.VITE_API_URL || defaultServerURL;
 
+const getDateKey = (value) => {
+  if (!value) return "";
+  const dateMatch = String(value).match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (dateMatch) return dateMatch;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+};
+
+const addUtcDays = (dateKey, days) => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+};
+
+const getDateKeysInRange = (rangeStart, rangeEnd) => {
+  const startKey = getDateKey(rangeStart);
+  const endKey = getDateKey(rangeEnd);
+  if (!startKey || !endKey) return [];
+
+  const keys = [];
+  let cursor = startKey;
+  while (cursor <= endKey) {
+    keys.push(cursor);
+    cursor = addUtcDays(cursor, 1);
+  }
+  return keys;
+};
+
+const getContiguousDateRanges = (dateKeys) => {
+  const sortedKeys = [...new Set(dateKeys.map(getDateKey).filter(Boolean))].sort();
+  if (!sortedKeys.length) return [];
+
+  const ranges = [];
+  let rangeStart = sortedKeys[0];
+  let previous = sortedKeys[0];
+
+  sortedKeys.slice(1).forEach((dateKey) => {
+    if (dateKey === addUtcDays(previous, 1)) {
+      previous = dateKey;
+      return;
+    }
+
+    ranges.push({ rangeStart, rangeEnd: previous });
+    rangeStart = dateKey;
+    previous = dateKey;
+  });
+
+  ranges.push({ rangeStart, rangeEnd: previous });
+  return ranges;
+};
+
+const normalizeWorkoutWeights = (workouts = []) => {
+  workouts.forEach((workout) =>
+    workout.training?.forEach((set) => {
+      set.forEach((exercise) => {
+        if (!exercise.achieved.weight) {
+          exercise.achieved.weight = [0];
+        }
+      });
+    })
+  );
+};
+
 export function signupUser(user) {
   return async (dispatch) => {
     const response = await fetch(`${serverURL}/signup`, {
@@ -634,22 +697,13 @@ export function requestWorkoutsByDate(date, client = null,) {
     });
     let data = await response.json();
 
-    data.workouts.map((workout) =>
-      workout.training.map((set) => {
-        set.map((exercise) => {
-          if (!exercise.achieved.weight) {
-            exercise.achieved.weight = [0];
-          }
-          return exercise;
-        });
-        return set;
-      })
-    );
+    normalizeWorkoutWeights(data.workouts);
     dispatch({
       type: EDIT_WORKOUTS,
       workouts: [...data.workouts],
       user: data.user,
       accountId: client,
+      loadedDates: [getDateKey(date)],
     });
     return data;
   };
@@ -689,24 +743,44 @@ export function requestWorkoutsByRange(rangeStart, rangeEnd, client = null, filt
       });
     }
 
-    data.workouts.map((workout) =>
-      workout.training.map((set) => {
-        set.map((exercise) => {
-          if (!exercise.achieved.weight) {
-            exercise.achieved.weight = [0];
-          }
-          return exercise;
-        });
-        return set;
-      })
-    );
+    normalizeWorkoutWeights(data.workouts);
 
     return dispatch({
       type: EDIT_WORKOUTS,
       workouts: [...data.workouts],
       user: data.user,
       accountId: client,
+      loadedDates:
+        !filters || Object.keys(filters).length === 0
+          ? getDateKeysInRange(rangeStart, rangeEnd)
+          : [],
     });
+  };
+}
+
+export function requestWorkoutsByDatesIfNeeded(dateKeys, client = null) {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const accountId = client || state.user?._id;
+    if (!accountId) return { skipped: true };
+
+    const loadedDates = new Set(state.workouts?.[accountId]?.loadedDates || []);
+    const missingDateKeys = [...new Set((dateKeys || []).map(getDateKey).filter(Boolean))]
+      .filter((dateKey) => !loadedDates.has(dateKey));
+
+    if (!missingDateKeys.length) {
+      return { skipped: true };
+    }
+
+    const ranges = getContiguousDateRanges(missingDateKeys);
+    const results = [];
+
+    for (const range of ranges) {
+      const result = await dispatch(requestWorkoutsByRange(range.rangeStart, range.rangeEnd, client));
+      results.push(result);
+    }
+
+    return { skipped: false, ranges, results };
   };
 }
 
@@ -1222,13 +1296,13 @@ export function requestTrainingWeek(date, workoutUser) {
       },
     });
     let data = await response.json();
-    console.log(data)
 
     return dispatch({
       type: EDIT_WORKOUTS,
       workouts: [...data.workouts],
       user: data.user,
       accountId: workoutUser._id,
+      loadedDates: getDateKeysInRange(addUtcDays(getDateKey(date), -7), getDateKey(date)),
     });
   };
 }
