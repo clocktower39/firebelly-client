@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Badge,
   Box,
@@ -30,6 +30,8 @@ export default function WeeklyTrainingStatus({
   workouts,
 }) {
   const date = dayjs(visibleDate || selectedDate);
+  const visibleDateKey = date.format("YYYY-MM-DD");
+  const previousVisibleDateRef = useRef(visibleDateKey);
   const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
   const weekDates = Array.from({ length: 7 }, (_, i) =>
     date.subtract(6 - i, "day").format("YYYY-MM-DD")
@@ -45,11 +47,58 @@ export default function WeeklyTrainingStatus({
     const complete = dayWorkouts.length > 0 && dayWorkouts.every((w) => w.complete);
     return { date: dateStr, workouts: dayWorkouts, complete };
   });
+  const previousWeekDataRef = useRef(weekData);
+  const [carousel, setCarousel] = useState({
+    previousWeekData: null,
+    direction: 0,
+    distance: 0,
+    token: 0,
+  });
 
   const moveVisibleWeek = (amount) => {
     if (!setVisibleDate) return;
     setVisibleDate(date.add(amount, "week").format("YYYY-MM-DD"));
   };
+
+  useEffect(() => {
+    const previousDate = dayjs(previousVisibleDateRef.current);
+    const nextDate = dayjs(visibleDateKey);
+    const dayDiff = nextDate.diff(previousDate, "day");
+
+    if (dayDiff !== 0) {
+      const token = Date.now();
+      setCarousel({
+        previousWeekData: previousWeekDataRef.current,
+        direction: dayDiff > 0 ? 1 : -1,
+        distance: Math.min(420, Math.max(58, Math.abs(dayDiff) * 58)),
+        token,
+      });
+
+      const timeout = setTimeout(() => {
+        setCarousel((current) =>
+          current.token === token
+            ? { previousWeekData: null, direction: 0, distance: 0, token: 0 }
+            : current
+        );
+      }, 520);
+
+      previousVisibleDateRef.current = visibleDateKey;
+      previousWeekDataRef.current = weekData;
+      return () => clearTimeout(timeout);
+    }
+
+    previousVisibleDateRef.current = visibleDateKey;
+    previousWeekDataRef.current = weekData;
+  }, [visibleDateKey]);
+
+  useEffect(() => {
+    if (previousVisibleDateRef.current === visibleDateKey && !carousel.previousWeekData) {
+      previousWeekDataRef.current = weekData;
+    }
+  }, [carousel.previousWeekData, visibleDateKey, workouts]);
+
+  const enterOffset = carousel.direction > 0 ? carousel.distance : -carousel.distance;
+  const exitOffset = carousel.direction > 0 ? -carousel.distance : carousel.distance;
 
   return (
     <Stack spacing={1} sx={{ alignItems: "center" }}>
@@ -87,15 +136,82 @@ export default function WeeklyTrainingStatus({
         </IconButton>
       </Stack>
 
-      <Grid container sx={{ justifyContent: "center" }}>
-        {weekData.map((day) => (
-          <DayStatusView
-            day={day}
-            key={day.date}
-            setSelectedDate={setSelectedDate}
-          />
-        ))}
-      </Grid>
+      <Box
+        sx={{
+          position: "relative",
+          overflow: "hidden",
+          px: 0.5,
+          py: 0.75,
+          "--week-row-enter": `${enterOffset}px`,
+          "--week-row-exit": `${exitOffset}px`,
+          "@keyframes weeklyCarouselIn": {
+            "0%": {
+              opacity: 0.35,
+              transform: "translateX(var(--week-row-enter))",
+            },
+            "100%": {
+              opacity: 1,
+              transform: "translateX(0)",
+            },
+          },
+          "@keyframes weeklyCarouselOut": {
+            "0%": {
+              opacity: 1,
+              transform: "translateX(0)",
+            },
+            "100%": {
+              opacity: 0.15,
+              transform: "translateX(var(--week-row-exit))",
+            },
+          },
+          "@media (prefers-reduced-motion: reduce)": {
+            "& .weekly-status-row": {
+              animation: "none",
+            },
+          },
+        }}
+      >
+        {carousel.previousWeekData && (
+          <Grid
+            container
+            className="weekly-status-row"
+            sx={{
+              justifyContent: "center",
+              position: "absolute",
+              inset: "6px 4px auto 4px",
+              pointerEvents: "none",
+              animation: "weeklyCarouselOut 460ms cubic-bezier(0.2, 0, 0, 1) both",
+            }}
+          >
+            {carousel.previousWeekData.map((day) => (
+              <DayStatusView
+                day={day}
+                key={`previous-${day.date}`}
+                setSelectedDate={setSelectedDate}
+              />
+            ))}
+          </Grid>
+        )}
+        <Grid
+          container
+          key={visibleDateKey}
+          className="weekly-status-row"
+          sx={{
+            justifyContent: "center",
+            animation: carousel.direction
+              ? "weeklyCarouselIn 460ms cubic-bezier(0.2, 0, 0, 1) both"
+              : "none",
+          }}
+        >
+          {weekData.map((day) => (
+            <DayStatusView
+              day={day}
+              key={day.date}
+              setSelectedDate={setSelectedDate}
+            />
+          ))}
+        </Grid>
+      </Box>
     </Stack>
   );
 }
