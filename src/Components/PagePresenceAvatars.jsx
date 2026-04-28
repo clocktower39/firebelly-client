@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Avatar, AvatarGroup, Box, Typography } from "@mui/material";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Avatar, AvatarGroup, Box } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
@@ -10,6 +10,33 @@ const getProfilePictureUrl = (profilePicture) =>
 
 const getDisplayName = (user) =>
   `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Someone";
+
+const POSITION_STORAGE_KEY = "pagePresenceAvatars.position";
+const SCREEN_MARGIN = 10;
+
+const readStoredPosition = () => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const stored = window.localStorage.getItem(POSITION_STORAGE_KEY);
+    if (!stored) return null;
+    const position = JSON.parse(stored);
+    if (Number.isFinite(position?.x) && Number.isFinite(position?.y)) {
+      return position;
+    }
+  } catch (error) {
+    return null;
+  }
+
+  return null;
+};
+
+const saveStoredPosition = (position) => {
+  if (typeof window === "undefined" || !position) return;
+  window.localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position));
+};
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const getTrainerActorFromStorage = () => {
   const trainerAccess = localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
@@ -53,12 +80,53 @@ export default function PagePresenceAvatars({ socket }) {
   const location = useLocation();
   const user = useSelector((state) => state.user);
   const [presentUsers, setPresentUsers] = useState([]);
+  const [position, setPosition] = useState(readStoredPosition);
+  const [isDragging, setIsDragging] = useState(false);
+  const widgetRef = useRef(null);
+  const dragRef = useRef(null);
+  const positionRef = useRef(position);
 
   const pageKey = useMemo(
     () => `${location.pathname}${location.search || ""}`,
     [location.pathname, location.search]
   );
   const presenceUser = useMemo(() => buildPresenceUser(user), [user]);
+
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
+
+  const getConstrainedPosition = useCallback((nextPosition) => {
+    if (typeof window === "undefined") return nextPosition;
+
+    const rect = widgetRef.current?.getBoundingClientRect();
+    const widgetWidth = rect?.width || 72;
+    const widgetHeight = rect?.height || 72;
+    const maxX = Math.max(SCREEN_MARGIN, window.innerWidth - widgetWidth - SCREEN_MARGIN);
+    const maxY = Math.max(SCREEN_MARGIN, window.innerHeight - widgetHeight - SCREEN_MARGIN);
+
+    return {
+      x: clamp(nextPosition.x, SCREEN_MARGIN, maxX),
+      y: clamp(nextPosition.y, SCREEN_MARGIN, maxY),
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!presentUsers.length || typeof window === "undefined") return undefined;
+
+    const handleResize = () => {
+      setPosition((currentPosition) => {
+        if (!currentPosition) return currentPosition;
+        const constrained = getConstrainedPosition(currentPosition);
+        positionRef.current = constrained;
+        saveStoredPosition(constrained);
+        return constrained;
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [getConstrainedPosition, presentUsers.length]);
 
   useEffect(() => {
     if (!socket || !presenceUser?.userId || !pageKey) {
@@ -96,38 +164,113 @@ export default function PagePresenceAvatars({ socket }) {
 
   if (!otherUsers.length) return null;
 
+  const handlePointerDown = (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+
+    const rect = widgetRef.current?.getBoundingClientRect();
+    const currentPosition = positionRef.current || {
+      x: rect?.left || window.innerWidth - 82,
+      y: rect?.top || window.innerHeight - 112,
+    };
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - currentPosition.x,
+      offsetY: event.clientY - currentPosition.y,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setIsDragging(true);
+    event.preventDefault();
+  };
+
+  const handlePointerMove = (event) => {
+    const dragState = dragRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const nextPosition = getConstrainedPosition({
+      x: event.clientX - dragState.offsetX,
+      y: event.clientY - dragState.offsetY,
+    });
+    positionRef.current = nextPosition;
+    setPosition(nextPosition);
+  };
+
+  const handlePointerUp = (event) => {
+    const dragState = dragRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    dragRef.current = null;
+    setIsDragging(false);
+    saveStoredPosition(positionRef.current);
+  };
+
+  const isStacked = otherUsers.length > 1;
+
   return (
     <Box
+      ref={widgetRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       sx={{
         position: "fixed",
-        right: { xs: 12, sm: 20 },
-        bottom: { xs: 92, sm: 24 },
+        left: position ? `${position.x}px` : "auto",
+        top: position ? `${position.y}px` : "auto",
+        right: position ? "auto" : { xs: 12, sm: 20 },
+        bottom: position ? "auto" : { xs: 92, sm: 24 },
         zIndex: (theme) => theme.zIndex.modal + 5,
         display: "flex",
         alignItems: "center",
-        gap: 1,
-        px: 1.25,
-        py: 0.75,
+        justifyContent: "center",
+        width: isStacked ? "auto" : 62,
+        height: 62,
+        minWidth: isStacked ? 70 : 62,
+        px: isStacked ? 0.9 : 0,
+        py: 0,
         borderRadius: "999px",
-        bgcolor: "rgba(15, 23, 42, 0.86)",
+        background:
+          "linear-gradient(145deg, rgba(12, 18, 34, 0.96), rgba(28, 40, 68, 0.92))",
         color: "common.white",
-        boxShadow: "0 14px 34px rgba(15, 23, 42, 0.28)",
-        backdropFilter: "blur(10px)",
+        boxShadow:
+          "0 14px 34px rgba(15, 23, 42, 0.34), inset 0 0 0 1px rgba(255, 255, 255, 0.16)",
+        backdropFilter: "blur(14px)",
         pointerEvents: "auto",
+        cursor: isDragging ? "grabbing" : "grab",
+        touchAction: "none",
+        userSelect: "none",
+        transition: isDragging ? "none" : "transform 160ms ease, box-shadow 160ms ease",
+        "&:hover": {
+          transform: isDragging ? "none" : "translateY(-2px)",
+          boxShadow:
+            "0 18px 40px rgba(15, 23, 42, 0.42), inset 0 0 0 1px rgba(255, 255, 255, 0.2)",
+        },
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          right: 5,
+          bottom: 5,
+          width: 13,
+          height: 13,
+          borderRadius: "50%",
+          bgcolor: "#22c55e",
+          border: "2px solid rgba(15, 23, 42, 0.96)",
+          boxShadow: "0 0 0 3px rgba(34, 197, 94, 0.22)",
+        },
       }}
     >
-      <Typography variant="caption" sx={{ display: { xs: "none", sm: "block" }, whiteSpace: "nowrap" }}>
-        Also here
-      </Typography>
       <AvatarGroup
         max={4}
         sx={{
           "& .MuiAvatar-root": {
-            width: 34,
-            height: 34,
-            borderColor: "rgba(255, 255, 255, 0.9)",
-            boxShadow: "0 0 0 2px rgba(34, 197, 94, 0.7)",
-            fontSize: 14,
+            width: 46,
+            height: 46,
+            borderColor: "rgba(255, 255, 255, 0.92)",
+            boxShadow: "0 3px 12px rgba(0, 0, 0, 0.22)",
+            fontSize: 16,
+            fontWeight: 700,
+            bgcolor: "primary.main",
           },
         }}
       >
