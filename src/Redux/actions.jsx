@@ -14,6 +14,7 @@ export const EDIT_TRAINING = "EDIT_TRAINING";
 export const EDIT_EXERCISE_LIBRARY = "EDIT_EXERCISE_LIBRARY";
 export const EDIT_PROGRESS_EXERCISE_LIST = "EDIT_PROGRESS_EXERCISE_LIST";
 export const EDIT_PROGRESS_TARGET_EXERCISE_HISTORY = "EDIT_PROGRESS_TARGET_EXERCISE_HISTORY";
+export const EDIT_PROGRESS_EXERCISE_SUMMARIES = "EDIT_PROGRESS_EXERCISE_SUMMARIES";
 export const UPDATE_MY_TRAINERS = "UPDATE_MY_TRAINERS";
 export const GET_TRAINERS = "GET_TRAINERS";
 export const GET_CLIENTS = "GET_CLIENTS";
@@ -1310,6 +1311,30 @@ export function requestExerciseProgress(targetExercise, user) {
       exerciseId: targetExercise._id,
       userId: user._id,
       targetExerciseHistory,
+    });
+  };
+}
+
+export function requestExerciseProgressSummary(user) {
+  return async (dispatch) => {
+    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+
+    const response = await fetch(`${serverURL}/exerciseProgressSummary`, {
+      method: "post",
+      dataType: "json",
+      body: JSON.stringify({ user }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+        Authorization: bearer,
+      },
+    });
+
+    const exerciseSummaries = await response.json();
+
+    return dispatch({
+      type: EDIT_PROGRESS_EXERCISE_SUMMARIES,
+      userId: user._id,
+      exerciseSummaries: Array.isArray(exerciseSummaries) ? exerciseSummaries : [],
     });
   };
 }

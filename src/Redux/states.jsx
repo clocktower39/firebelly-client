@@ -21,6 +21,7 @@ export let training = {
 
 export let progress = {
     exerciseList: [],
+    exerciseSummariesByUser: {},
 }
 
 export let clients = [];
