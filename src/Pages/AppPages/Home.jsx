@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useOutletContext } from "react-router-d
 import queryString from "query-string";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import Loading from "../../Components/Loading";
 import SelectedDate from "../../Components/SelectedDate";
 import WeeklyClientWorkoutTracker from "../../Components/TrainingComponents/WeeklyClientWorkoutTracker";
@@ -13,10 +14,13 @@ import { requestWorkoutsByDatesIfNeeded, requestLatestMetric, serverURL } from "
 import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
 
 dayjs.extend(utc);
+dayjs.extend(customParseFormat);
 
 const EMPTY_WORKOUTS = [];
 const EMPTY_WORKOUT_USER = {};
 const EMPTY_DATES = [];
+const DATE_QUERY_FORMAT = "YYYYMMDD";
+const DATE_INPUT_FORMAT = "YYYY-MM-DD";
 
 const getTrailingWeekDates = (date) =>
   Array.from({ length: 7 }, (_, index) =>
@@ -51,20 +55,20 @@ function Home() {
   const activeWorkoutUser = !isPersonalWorkout() && workoutsUser?._id ? workoutsUser : user;
 
   const isValidDate = (date) => {
-    return dayjs(date, "YYYYMMDD").isValid();
+    return dayjs(date, DATE_QUERY_FORMAT, true).isValid();
   };
 
   const formatDate = (date) => {
-    return dayjs(date, "YYYYMMDD").format("YYYY-MM-DD");
+    return dayjs(date, DATE_QUERY_FORMAT, true).format(DATE_INPUT_FORMAT);
   };
 
-  const today = dayjs().format("YYYY-MM-DD");
+  const today = dayjs().format(DATE_INPUT_FORMAT);
   const initialDate = isValidDate(date) ? formatDate(date) : today;
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [weeklyStatusDate, setWeeklyStatusDate] = useState(initialDate);
   const [weeklyStatusDateLocked, setWeeklyStatusDateLocked] = useState(false);
-  const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
+  const selectedDateKey = dayjs(selectedDate).format(DATE_INPUT_FORMAT);
   const weeklyStatusDates = useMemo(() => getTrailingWeekDates(weeklyStatusDate), [weeklyStatusDate]);
   const requiredWorkoutDates = useMemo(
     () => [...new Set([...weeklyStatusDates, selectedDateKey])],
@@ -127,7 +131,7 @@ function Home() {
 
   useEffect(() => {
     if (selectedDate) {
-      const newDate = dayjs(selectedDate).utc().format("YYYYMMDD");
+      const newDate = dayjs(selectedDate).format(DATE_QUERY_FORMAT);
       const currentQuery = queryString.parse(location.search);
       const nextQuery = { ...currentQuery, date: newDate };
       const nextSearch = queryString.stringify(nextQuery, {
