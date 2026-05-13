@@ -12,6 +12,7 @@ import WorkoutOverview from "../../Components/TrainingComponents/WorkoutOverview
 import WeeklyTrainingStatus from "../../Components/TrainingComponents/WeeklyTrainingStatus";
 import { requestWorkoutsByDatesIfNeeded, requestLatestMetric, serverURL } from "../../Redux/actions";
 import { Avatar, Button, Grid, Paper, Stack, Typography } from '@mui/material';
+import { formatWeightWithUnit, normalizeWeightUnit } from "../../utils/weightUnits";
 
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
@@ -64,6 +65,7 @@ function Home() {
 
   const today = dayjs().format(DATE_INPUT_FORMAT);
   const initialDate = isValidDate(date) ? formatDate(date) : today;
+  const weightUnit = normalizeWeightUnit(user.workoutWeightUnit);
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [weeklyStatusDate, setWeeklyStatusDate] = useState(initialDate);
@@ -223,7 +225,9 @@ function Home() {
                 spacing={2}
                 sx={{ "& p": { color: "text.primary" } }}
               >
-                <Typography variant="body1">Weight: {latestMetric.weight ?? "—"} lbs</Typography>
+                <Typography variant="body1">
+                  Weight: {formatWeightWithUnit(latestMetric.weight, weightUnit) || "—"}
+                </Typography>
                 <Typography variant="body1">Body Fat: {latestMetric.bodyFatPercent ?? "—"}%</Typography>
                 <Typography variant="body1">BMI: {latestMetric.bmi ?? "—"}</Typography>
                 <Typography variant="body1">RHR: {latestMetric.restingHeartRate ?? "—"} bpm</Typography>

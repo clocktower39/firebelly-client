@@ -44,6 +44,7 @@ import { requestTraining, updateTraining, getExerciseList, requestExerciseProgre
 import Loading from "../../Components/Loading";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
+import { WEIGHT_UNIT_OPTIONS, displayWeightUnit, formatWeightList, normalizeWeightUnit } from "../../utils/weightUnits";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -719,6 +720,7 @@ export default function Workout({ socket }) {
   const hasSynced = useRef(false);
 
   const user = useSelector((state) => state.user);
+  const defaultWorkoutWeightUnit = normalizeWeightUnit(user.workoutWeightUnit);
   const training = useSelector((state) => {
     const workoutBuckets = Object.values(state.workouts || {});
     for (const bucket of workoutBuckets) {
@@ -752,6 +754,7 @@ export default function Workout({ socket }) {
   const [cardioViewMode, setCardioViewMode] = useState("plan");
   const [cardioSectionsOpen, setCardioSectionsOpen] = useState(DEFAULT_CARDIO_SECTION_STATE);
   const [cardioEditorMode, setCardioEditorMode] = useState(user?.isTrainer ? "full" : "quick");
+  const [activeWorkoutWeightUnit, setActiveWorkoutWeightUnit] = useState(defaultWorkoutWeightUnit);
   const [cardioNotice, setCardioNotice] = useState({
     open: false,
     message: "",
@@ -760,6 +763,13 @@ export default function Workout({ socket }) {
 
   const activeWorkoutType = workoutType || training?.workoutType || "Strength";
   const isCardio = activeWorkoutType === "Cardio";
+  const handleWorkoutWeightUnitChange = (event, nextUnit) => {
+    if (!nextUnit) return;
+    setActiveWorkoutWeightUnit(normalizeWeightUnit(nextUnit));
+  };
+  const toggleWorkoutWeightUnit = () => {
+    setActiveWorkoutWeightUnit((prev) => (normalizeWeightUnit(prev) === "kg" ? "lbs" : "kg"));
+  };
   const activeCardio = cardioDetails?.[cardioViewMode] || normalizeCardioFields({});
   const plannedCardio = cardioDetails?.plan || normalizeCardioFields({});
   const actualCardio = cardioDetails?.actual || normalizeCardioFields({});
@@ -1312,6 +1322,10 @@ export default function Workout({ socket }) {
 
     setLoading(false);
   }, [isPersonalWorkout, normalize, setBorderHighlight, training, user?.isTrainer]);
+
+  useEffect(() => {
+    setActiveWorkoutWeightUnit(defaultWorkoutWeightUnit);
+  }, [defaultWorkoutWeightUnit, params._id]);
 
   useEffect(() => {
     const eventId = new URLSearchParams(location.search).get("event");
@@ -2000,6 +2014,7 @@ export default function Workout({ socket }) {
             setLocalTraining={setLocalTraining}
             localTraining={localTraining}
             allowTrainingReorder
+            weightUnit={activeWorkoutWeightUnit}
           />
           <Snackbar
             open={cardioNotice.open}
@@ -2090,6 +2105,20 @@ export default function Workout({ socket }) {
                     )}
                     {training.isTemplate && (
                       <Chip label="Template Workout" size="small" variant="outlined" />
+                    )}
+                    {!isCardio && (
+                      <ToggleButtonGroup
+                        value={activeWorkoutWeightUnit}
+                        exclusive
+                        size="small"
+                        onChange={handleWorkoutWeightUnitChange}
+                      >
+                        {WEIGHT_UNIT_OPTIONS.map((unit) => (
+                          <ToggleButton key={unit.value} value={unit.value}>
+                            {unit.label}
+                          </ToggleButton>
+                        ))}
+                      </ToggleButtonGroup>
                     )}
                   </Stack>
                 </Grid>
@@ -2873,6 +2902,8 @@ export default function Workout({ socket }) {
                     setWorkoutFeedback={setWorkoutFeedback}
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
+                    weightUnit={activeWorkoutWeightUnit}
+                    onToggleWeightUnit={toggleWorkoutWeightUnit}
                   />
                 )}
               </Grid>
@@ -2902,6 +2933,7 @@ export default function Workout({ socket }) {
                 handleAddExerciseClose={handleAddExerciseClose}
                 confirmedNewExercise={confirmedNewExercise}
                 activeStep={activeStep}
+                weightUnit={activeWorkoutWeightUnit}
               />
               <WorkoutTrainerSessionDialog
                 open={openTrainerSessionDialog}
@@ -2995,8 +3027,9 @@ export const ExerciseListAutocomplete = ({ exerciseList, selectedExercises, setS
   );
 };
 
-const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmedNewExercise, activeStep, user, }) => {
+const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmedNewExercise, activeStep, user, weightUnit: weightUnitOverride, }) => {
   const exerciseList = useSelector((state) => state.progress.exerciseList);
+  const weightUnit = normalizeWeightUnit(weightUnitOverride || user.workoutWeightUnit);
 
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [selectedExercisesSetCount, setSelectedExercisesSetCount] = useState(4);
@@ -3026,13 +3059,13 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
   const formatHistoryLabel = (historyItem) => {
     if (!historyItem) return "No history";
     const achieved = historyItem.achieved || {};
-    const weight = Array.isArray(achieved.weight) ? achieved.weight.filter(Boolean) : [];
+    const weight = Array.isArray(achieved.weight) ? formatWeightList(achieved.weight, weightUnit) : "";
     const reps = Array.isArray(achieved.reps) ? achieved.reps.filter(Boolean) : [];
     const seconds = Array.isArray(achieved.seconds) ? achieved.seconds.filter(Boolean) : [];
     const percent = Array.isArray(achieved.percent) ? achieved.percent.filter(Boolean) : [];
     const details = [];
     if (reps.length) details.push(`${reps.join(", ")} reps`);
-    if (weight.length) details.push(`${weight.join(", ")} lb`);
+    if (weight.length) details.push(`${weight} ${displayWeightUnit(weightUnit)}`);
     if (seconds.length) details.push(`${seconds.join(", ")} sec`);
     if (percent.length) details.push(`${percent.join(", ")}%`);
     const summary = details.length ? ` • ${details.join(" | ")}` : "";

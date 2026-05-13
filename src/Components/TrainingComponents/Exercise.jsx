@@ -29,6 +29,7 @@ import EditLoader from "./EditLoader";
 import ExerciseGoalPresetField from "./ExerciseGoalPresetField";
 import useExerciseGoalPreset from "./hooks/useExerciseGoalPreset";
 import { ModalBarChartHistory } from "../../Pages/AppPages/Progress";
+import { normalizeWeightUnit } from "../../utils/weightUnits";
 
 export default function Exercise(props) {
   const {
@@ -40,6 +41,8 @@ export default function Exercise(props) {
     localTraining,
     removeExercise,
     setHeightToggle,
+    weightUnit: weightUnitOverride,
+    onToggleWeightUnit,
   } = props;
   const dispatch = useDispatch();
 
@@ -69,6 +72,7 @@ export default function Exercise(props) {
   };
 
   const user = useSelector((state) => state.user);
+  const weightUnit = normalizeWeightUnit(weightUnitOverride || user.workoutWeightUnit);
   const exerciseList = useSelector((state) => state.progress.exerciseList);
 
   const {
@@ -398,6 +402,7 @@ export default function Exercise(props) {
                     recentHistoryOptions={recentHistoryOptions}
                     selectedHistoryKey={selectedHistoryKey}
                     onChange={handleHistoryPresetChange}
+                    weightUnit={weightUnit}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, }} >
@@ -439,6 +444,8 @@ export default function Exercise(props) {
                   exerciseIndex={exerciseIndex}
                   localTraining={localTraining}
                   setLocalTraining={setLocalTraining}
+                  weightUnit={weightUnit}
+                  onToggleWeightUnit={onToggleWeightUnit}
                 />
               </Grid>
               <Grid container size={12} sx={{ alignContent: "center" }}>
@@ -592,6 +599,8 @@ export default function Exercise(props) {
                 exerciseIndex={exerciseIndex}
                 localTraining={localTraining}
                 setLocalTraining={setLocalTraining}
+                weightUnit={weightUnit}
+                onToggleWeightUnit={onToggleWeightUnit}
               />
             </>
           )}

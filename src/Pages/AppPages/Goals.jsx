@@ -43,6 +43,13 @@ import {
   requestLatestMetric,
   serverURL,
 } from "../../Redux/actions";
+import {
+  displayWeightUnit,
+  formatWeightWithUnit,
+  fromStoredLbs,
+  normalizeWeightUnit,
+  toStoredLbs,
+} from "../../utils/weightUnits";
 
 const GOAL_CATEGORIES = ["General", "Strength", "Cardio", "Skill", "Weight"];
 const DISTANCE_UNITS = ["Miles", "Kilometers", "Meters", "Yards"];
@@ -88,7 +95,7 @@ const getCategoryColor = (category) => {
   }
 };
 
-const GoalCard = ({ goal, onOpen }) => {
+const GoalCard = ({ goal, onOpen, weightUnit = "lbs" }) => {
   const isStrengthGoal = goal.category === "Strength" && goal.exercise;
   const hasUnseenAchievement = goal.achievedDate && !goal.achievementSeen;
   
@@ -145,7 +152,7 @@ const GoalCard = ({ goal, onOpen }) => {
                   </Stack>
                   {isStrengthGoal ? (
                     <Typography variant="body2" color="text.secondary">
-                      Target: {goal.targetWeight} lbs × {goal.targetReps} reps
+                      Target: {formatWeightWithUnit(goal.targetWeight, weightUnit)} × {goal.targetReps} reps
                     </Typography>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
@@ -162,17 +169,23 @@ const GoalCard = ({ goal, onOpen }) => {
   );
 };
 
-const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, latestMetric }) => {
+const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, latestMetric, weightUnit = "lbs" }) => {
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
+  const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
   const [title, setTitle] = useState(goal.title || '');
   const [description, setDescription] = useState(goal.description || '');
   const [category, setCategory] = useState(goal.category || '');
   const [selectedExercise, setSelectedExercise] = useState(goal.exercise || null);
-  const [targetWeight, setTargetWeight] = useState(goal.targetWeight || '');
+  const [targetWeight, setTargetWeight] = useState(
+    goal.targetWeight ? String(fromStoredLbs(goal.targetWeight, normalizedWeightUnit)) : ''
+  );
   const [targetReps, setTargetReps] = useState(goal.targetReps || '');
   const [distanceUnit, setDistanceUnit] = useState(goal.distanceUnit || 'Miles');
   const [distanceValue, setDistanceValue] = useState(goal.distanceValue || '');
   const [goalTime, setGoalTime] = useState(goal.goalTime || '');
-  const [goalWeight, setGoalWeight] = useState(goal.goalWeight || '');
+  const [goalWeight, setGoalWeight] = useState(
+    goal.goalWeight ? String(fromStoredLbs(goal.goalWeight, normalizedWeightUnit)) : ''
+  );
   const [currentMax, setCurrentMax] = useState(null);
   const [targetDate, setTargetDate] = useState(goal.targetDate || '');
   const [achievedDate, setAchievedDate] = useState(goal.achievedDate || '');
@@ -233,7 +246,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
     };
     if (isStrengthGoal) {
       goalData.exercise = selectedExercise?._id;
-      goalData.targetWeight = Number(targetWeight);
+      goalData.targetWeight = toStoredLbs(targetWeight, normalizedWeightUnit);
       goalData.targetReps = Number(targetReps);
       // achievedDate is auto-calculated for strength goals
       goalData.distanceUnit = null;
@@ -250,7 +263,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
       goalData.distanceUnit = null;
       goalData.distanceValue = null;
       goalData.goalTime = null;
-      goalData.goalWeight = goalWeight === '' ? null : Number(goalWeight);
+      goalData.goalWeight = goalWeight === '' ? null : toStoredLbs(goalWeight, normalizedWeightUnit);
       goalData.achievedDate = achievedDate;
     } else {
       goalData.distanceUnit = null;
@@ -267,12 +280,12 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
     setDescription(goal.description || '');
     setCategory(goal.category || '');
     setSelectedExercise(goal.exercise || null);
-    setTargetWeight(goal.targetWeight || '');
+    setTargetWeight(goal.targetWeight ? String(fromStoredLbs(goal.targetWeight, normalizedWeightUnit)) : '');
     setTargetReps(goal.targetReps || '');
     setDistanceUnit(goal.distanceUnit || 'Miles');
     setDistanceValue(goal.distanceValue || '');
     setGoalTime(goal.goalTime || '');
-    setGoalWeight(goal.goalWeight || '');
+    setGoalWeight(goal.goalWeight ? String(fromStoredLbs(goal.goalWeight, normalizedWeightUnit)) : '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
   };
@@ -341,15 +354,15 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
     setDescription(goal.description || '');
     setCategory(goal.category || '');
     setSelectedExercise(goal.exercise || null);
-    setTargetWeight(goal.targetWeight || '');
+    setTargetWeight(goal.targetWeight ? String(fromStoredLbs(goal.targetWeight, normalizedWeightUnit)) : '');
     setTargetReps(goal.targetReps || '');
     setDistanceUnit(goal.distanceUnit || 'Miles');
     setDistanceValue(goal.distanceValue || '');
     setGoalTime(goal.goalTime || '');
-    setGoalWeight(goal.goalWeight || '');
+    setGoalWeight(goal.goalWeight ? String(fromStoredLbs(goal.goalWeight, normalizedWeightUnit)) : '');
     setTargetDate(goal.targetDate || '');
     setAchievedDate(goal.achievedDate || '');
-  }, [goalId]);
+  }, [goalId, goal, normalizedWeightUnit]);
 
   // Mark achievement as seen when opening a goal with unseen achievement
   useEffect(() => {
@@ -422,7 +435,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                 <TextField
                   type="number"
                   fullWidth
-                  label="Target Weight (lbs)"
+                  label={`Target Weight (${weightUnitLabel})`}
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -442,7 +455,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                 <TextField
                   fullWidth
                   label="Current Max"
-                  value={currentMax !== null ? `${currentMax} lbs` : 'Select exercise and reps'}
+                  value={currentMax !== null ? formatWeightWithUnit(currentMax, normalizedWeightUnit) : 'Select exercise and reps'}
                   InputLabelProps={{ shrink: true }}
                   InputProps={{ readOnly: true }}
                   disabled
@@ -511,8 +524,8 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                     <TextField
                       type="text"
                       fullWidth
-                      label="Current Weight (lbs)"
-                      value={latestMetric?.weight ?? ""}
+                      label={`Current Weight (${weightUnitLabel})`}
+                      value={formatWeightWithUnit(latestMetric?.weight, normalizedWeightUnit)}
                       InputProps={{ readOnly: true }}
                       helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
                       InputLabelProps={{ shrink: true }}
@@ -522,7 +535,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                     <TextField
                       type="number"
                       fullWidth
-                      label="Goal Weight (lbs)"
+                      label={`Goal Weight (${weightUnitLabel})`}
                       value={goalWeight}
                       onChange={(e) => setGoalWeight(e.target.value)}
                       inputProps={{ step: "0.1" }}
@@ -537,8 +550,8 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                     <TextField
                       type="text"
                       fullWidth
-                      label="Current Weight (lbs)"
-                      value={latestMetric?.weight ?? ""}
+                      label={`Current Weight (${weightUnitLabel})`}
+                      value={formatWeightWithUnit(latestMetric?.weight, normalizedWeightUnit)}
                       InputProps={{ readOnly: true }}
                       helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
                       InputLabelProps={{ shrink: true }}
@@ -548,7 +561,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                     <TextField
                       type="number"
                       fullWidth
-                      label="Goal Weight (lbs)"
+                      label={`Goal Weight (${weightUnitLabel})`}
                       value={goalWeight}
                       onChange={(e) => setGoalWeight(e.target.value)}
                       inputProps={{ step: "0.1" }}
@@ -677,7 +690,9 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
   );
 };
 
-const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric }) => {
+const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, weightUnit = "lbs" }) => {
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
+  const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('General');
@@ -759,14 +774,14 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric }) 
     };
     if (isStrengthGoal) {
       goalData.exercise = selectedExercise?._id;
-      goalData.targetWeight = Number(targetWeight);
+      goalData.targetWeight = toStoredLbs(targetWeight, normalizedWeightUnit);
       goalData.targetReps = Number(targetReps);
     } else if (isCardioGoal) {
       goalData.distanceUnit = distanceUnit;
       goalData.distanceValue = distanceValue === '' ? null : Number(distanceValue);
       goalData.goalTime = goalTime || null;
     } else if (isWeightGoal) {
-      goalData.goalWeight = goalWeight === '' ? null : Number(goalWeight);
+      goalData.goalWeight = goalWeight === '' ? null : toStoredLbs(goalWeight, normalizedWeightUnit);
     }
     dispatch(addNewGoal(goalData))
       .then(() => {
@@ -828,7 +843,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric }) 
                 <TextField
                   type="number"
                   fullWidth
-                  label="Target Weight (lbs)"
+                  label={`Target Weight (${weightUnitLabel})`}
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -848,7 +863,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric }) 
                 <TextField
                   fullWidth
                   label="Current Max"
-                  value={currentMax !== null ? `${currentMax} lbs` : 'Select exercise and reps'}
+                  value={currentMax !== null ? formatWeightWithUnit(currentMax, normalizedWeightUnit) : 'Select exercise and reps'}
                   InputLabelProps={{ shrink: true }}
                   InputProps={{ readOnly: true }}
                   disabled
@@ -960,6 +975,7 @@ export default function Goals({ view = "client", client, }) {
   const latestMetric = useSelector(
     (state) => state.metrics.latestByUser[(client?._id || user._id)]
   );
+  const weightUnit = normalizeWeightUnit(user.workoutWeightUnit);
 
   const [selectedGoal, setSelectedGoal] = useState({});
   const [openGoalDetails, setOpenGoalDetails] = useState(false);
@@ -1003,7 +1019,7 @@ export default function Goals({ view = "client", client, }) {
 
           <Grid container size={12} spacing={1} sx={{ alignSelf: 'flex-start', alignContent: 'flex-start', overflowY: 'scroll', scrollbarWidth: 'none', flex: 'auto', }}>
             {goals && goals.map((goal) => (
-              <GoalCard key={goal._id} goal={goal} onOpen={handleOpenGoalDetails} />
+              <GoalCard key={goal._id} goal={goal} onOpen={handleOpenGoalDetails} weightUnit={weightUnit} />
             ))}
           </Grid>
 
@@ -1019,6 +1035,7 @@ export default function Goals({ view = "client", client, }) {
           user={user}
           exerciseLibrary={exerciseLibrary}
           latestMetric={latestMetric}
+          weightUnit={weightUnit}
         />
       )}
       <AddNewGoal
@@ -1027,6 +1044,7 @@ export default function Goals({ view = "client", client, }) {
         dispatch={dispatch}
         exerciseLibrary={exerciseLibrary}
         latestMetric={latestMetric}
+        weightUnit={weightUnit}
       />
     </>
   );

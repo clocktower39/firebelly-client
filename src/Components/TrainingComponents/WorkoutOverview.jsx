@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Box,
@@ -46,6 +46,7 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { DragHandle as DragHandleIcon, Settings } from "@mui/icons-material";
 import { updateTraining, createTraining } from "../../Redux/actions";
 import { WorkoutOptionModalView } from "../WorkoutOptionModal";
+import { formatWeightWithUnit, normalizeWeightUnit } from "../../utils/weightUnits";
 
 const WORKOUT_TYPES = [
   { label: "Strength", value: "Strength", enabled: true },
@@ -673,6 +674,7 @@ export default function WorkoutOverview({
     setSelectedDate,
   } = workoutOptionModalViewProps;
   const dispatch = useDispatch();
+  const weightUnit = normalizeWeightUnit(useSelector((state) => state.user.workoutWeightUnit));
   const [selectedWorkout, setSelectedWorkout] = useState({});
   const [viewModes, setViewModes] = useState(
     localWorkouts.reduce((acc, workout) => {
@@ -975,6 +977,7 @@ export default function WorkoutOverview({
                                           viewMode={currentViewMode}
                                           listeners={listeners}
                                           attributes={attributes}
+                                          weightUnit={weightUnit}
                                         />
                                       )}
                                     </SortableCircuit>
@@ -1276,7 +1279,9 @@ const WorkoutSet = (props) => {
     viewMode,
     listeners,
     attributes,
+    weightUnit,
   } = props;
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
 
   const renderType = (exercise) => {
     const { exerciseType, goals, achieved } = exercise;
@@ -1306,7 +1311,9 @@ const WorkoutSet = (props) => {
         return viewMode === "goals" ? (
           <>
             <Grid container>
-              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+              <Typography variant="body1">
+                One Rep Max: {formatWeightWithUnit(goals.oneRepMax, normalizedWeightUnit)}
+              </Typography>
             </Grid>
             <Grid container>
               <Typography variant="body1">
@@ -1317,7 +1324,9 @@ const WorkoutSet = (props) => {
         ) : (
           <>
             <Grid container>
-              <Typography variant="body1">One Rep Max: {goals.oneRepMax} lbs</Typography>
+              <Typography variant="body1">
+                One Rep Max: {formatWeightWithUnit(goals.oneRepMax, normalizedWeightUnit)}
+              </Typography>
             </Grid>
             <Grid container>
               <Typography variant="body1">

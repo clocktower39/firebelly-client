@@ -56,6 +56,8 @@ function SwipeableSet(props) {
     setWorkoutFeedback,
     activeStep,
     setActiveStep,
+    weightUnit,
+    onToggleWeightUnit,
   } = props;
 
   const [heightToggle, setHeightToggle] = useState(true);
@@ -199,6 +201,8 @@ function SwipeableSet(props) {
                     setLocalTraining={setLocalTraining}
                     setHeightToggle={setHeightToggle}
                     size={size}
+                    weightUnit={weightUnit}
+                    onToggleWeightUnit={onToggleWeightUnit}
                   />
                 ))}
               <Grid container size={12}>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editUser } from "../../Redux/actions";
+import { WEIGHT_UNIT_OPTIONS, normalizeWeightUnit } from "../../utils/weightUnits";
 import {
   Button,
   Container,
@@ -30,6 +31,9 @@ export default function WorkoutPreferences() {
   const user = useSelector((state) => state.user);
   const [weeklyFrequency, setWeeklyFrequency] = useState(user.weeklyFrequency || "");
   const [selectedDays, setSelectedDays] = useState(user.preferredWorkoutDays || []);
+  const [workoutWeightUnit, setWorkoutWeightUnit] = useState(
+    normalizeWeightUnit(user.workoutWeightUnit)
+  );
 
   const handleFrequencyChange = (event) => {
     setWeeklyFrequency(event.target.value);
@@ -40,7 +44,7 @@ export default function WorkoutPreferences() {
   };
 
   const savePreferences = () => {
-    dispatch(editUser({ weeklyFrequency, preferredWorkoutDays: selectedDays }));
+    dispatch(editUser({ weeklyFrequency, preferredWorkoutDays: selectedDays, workoutWeightUnit }));
   };
 
   return (
@@ -75,6 +79,29 @@ export default function WorkoutPreferences() {
                 {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                   <MenuItem key={num} value={num}>
                     {num}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid container size={12} sx={{ mt: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Workout Weight Unit
+            </Typography>
+          </Grid>
+          <Grid container size={12}>
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel id="workout-weight-unit-label">Weight unit</InputLabel>
+              <Select
+                labelId="workout-weight-unit-label"
+                id="workout-weight-unit"
+                value={workoutWeightUnit}
+                label="Weight unit"
+                onChange={(event) => setWorkoutWeightUnit(normalizeWeightUnit(event.target.value))}
+              >
+                {WEIGHT_UNIT_OPTIONS.map((unit) => (
+                  <MenuItem key={unit.value} value={unit.value}>
+                    {unit.label}
                   </MenuItem>
                 ))}
               </Select>

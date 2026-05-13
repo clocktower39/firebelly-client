@@ -39,6 +39,7 @@ import SelectedDate from "./SelectedDate";
 import WorkoutReorderEditor from "./TrainingComponents/WorkoutReorderEditor";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
+import { normalizeWeightUnit } from "../utils/weightUnits";
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
@@ -77,6 +78,7 @@ export function ModalAction(props) {
       setLocalTraining,
       localTraining,
       modalOpen,
+      weightUnit: weightUnitOverride,
     } = props;
 
     if (!training?._id) {
@@ -92,6 +94,7 @@ export function ModalAction(props) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state) => state.user);
+    const weightUnit = normalizeWeightUnit(weightUnitOverride || user.workoutWeightUnit);
     const clients = useSelector((state) => state.clients);
     const lastBulkOperation = useSelector((state) => state.lastBulkOperation);
     const [newDate, setNewDate] = useState(dayjs(new Date()).format("YYYY-MM-DD"));
@@ -807,6 +810,7 @@ export function ModalAction(props) {
             <WorkoutReorderEditor
               localTraining={draftReorderTraining}
               setLocalTraining={setDraftReorderTraining}
+              weightUnit={weightUnit}
             />
             <Grid container size={12} spacing={1} sx={{ justifyContent: "center", marginTop: "12px" }}>
               <Button variant="outlined" onClick={handleReorderCancel}>
@@ -834,6 +838,7 @@ export function ModalAction(props) {
       setLocalTraining,
       localTraining,
       allowTrainingReorder,
+      weightUnit,
     } = props;
     return (
       <Modal open={modalOpen} onClose={handleModalToggle}>
@@ -901,6 +906,7 @@ export function ModalAction(props) {
             setLocalTraining={setLocalTraining}
             localTraining={localTraining}
             modalOpen={modalOpen}
+            weightUnit={weightUnit}
           />
         </Box>
       </Modal>

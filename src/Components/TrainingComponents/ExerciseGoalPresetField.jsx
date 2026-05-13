@@ -6,6 +6,7 @@ export default function ExerciseGoalPresetField({
   recentHistoryOptions,
   selectedHistoryKey,
   onChange,
+  weightUnit,
 }) {
   if (recentHistoryOptions.length === 0) {
     return (
@@ -21,7 +22,7 @@ export default function ExerciseGoalPresetField({
       <Select label="Goal preset" value={selectedHistoryKey} onChange={onChange}>
         {recentHistoryOptions.map((option) => (
           <MenuItem key={option.key} value={option.key}>
-            {formatHistoryLabel(option.historyItem)}
+            {formatHistoryLabel(option.historyItem, weightUnit)}
           </MenuItem>
         ))}
       </Select>

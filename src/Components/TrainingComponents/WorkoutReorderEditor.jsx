@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import { DragHandle as DragHandleIcon } from "@mui/icons-material";
+import { formatWeightWithUnit, normalizeWeightUnit } from "../../utils/weightUnits";
 import {
   DndContext,
   DragOverlay,
@@ -336,10 +337,11 @@ const getExerciseCollisions = (args) => {
   return getClosestCollisionsByType(args, ["circuit"]);
 };
 
-const renderExerciseSummary = (exercise) => {
+const renderExerciseSummary = (exercise, weightUnit = "lbs") => {
   const exerciseType = exercise?.exerciseType;
   const goals = exercise?.goals || {};
   const achieved = exercise?.achieved || {};
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
 
   switch (exerciseType) {
     case "Reps":
@@ -358,7 +360,7 @@ const renderExerciseSummary = (exercise) => {
       return (
         <Typography variant="body2" color="text.secondary">
           {(goals.percent || []).length} sets: {(goals.exactReps || []).join(", ")} reps
-          {goals.oneRepMax ? ` • 1RM ${goals.oneRepMax} lbs` : ""}
+          {goals.oneRepMax ? ` • 1RM ${formatWeightWithUnit(goals.oneRepMax, normalizedWeightUnit)}` : ""}
         </Typography>
       );
     default:
@@ -436,6 +438,7 @@ const ReorderCircuitCard = ({
   exerciseIds,
   listeners,
   attributes,
+  weightUnit,
 }) => {
   return (
     <Paper sx={{ padding: "8px", marginBottom: "10px" }}>
@@ -515,7 +518,7 @@ const ReorderCircuitCard = ({
                             <Typography variant="body1">
                               {exercise?.exercise?.exerciseTitle || "Select an exercise"}
                             </Typography>
-                            {renderExerciseSummary(exercise)}
+                            {renderExerciseSummary(exercise, weightUnit)}
                           </Grid>
                         </Grid>
                       </Paper>
@@ -541,7 +544,7 @@ const ReorderCircuitCard = ({
   );
 };
 
-export default function WorkoutReorderEditor({ localTraining = [], setLocalTraining }) {
+export default function WorkoutReorderEditor({ localTraining = [], setLocalTraining, weightUnit = "lbs" }) {
   const [activeExercise, setActiveExercise] = useState(null);
   const [activeCircuit, setActiveCircuit] = useState(null);
   const lastDragMoveRef = useRef("");
@@ -746,6 +749,7 @@ const overlayTextSx = {
                             exerciseIds={exerciseIds}
                             listeners={listeners}
                             attributes={attributes}
+                            weightUnit={weightUnit}
                           />
                         )}
                       </SortableCircuit>

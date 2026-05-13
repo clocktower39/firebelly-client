@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Grid, InputAdornment, TextField, Typography } from "@mui/material";
+import { displayWeightUnit, formatWeightValue, normalizeWeightUnit, toStoredLbs } from "../../utils/weightUnits";
 
 const LoggedField = (props) => {
   const {
@@ -10,7 +11,18 @@ const LoggedField = (props) => {
     setIndex,
     exerciseSetIndex,
     setLocalTraining,
+    weightUnit = "lbs",
+    onToggleWeightUnit,
   } = props;
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
+  const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
+  const isWeightField = field.achievedAttribute === "weight";
+
+  const toStoredValue = (value) =>
+    isWeightField ? toStoredLbs(value, normalizedWeightUnit) ?? 0 : value;
+
+  const toDisplayValue = (value) =>
+    isWeightField ? formatWeightValue(value, normalizedWeightUnit) : value;
 
   const handleFocus = (e) => {
     if (Number(e.target.value) === 0) {
@@ -26,7 +38,7 @@ const LoggedField = (props) => {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
               if (e.target.value === "" && e.target.value.length === 0) {
-                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
+                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer);
               }
               // remove extra zeros from the front
               else if (Number(e.target.value) || e.target.value === "0") {
@@ -35,15 +47,15 @@ const LoggedField = (props) => {
                   while (answer[0] === "0") {
                     answer.shift();
                   }
-                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer.join("");
+                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer.join(""));
                 } else {
                   // update the local state variable
                   answer = e.target.value;
-                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = answer;
+                  exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer);
                 }
               } else {
-                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = Number(
-                  e.target.value
+                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(
+                  Number(e.target.value)
                 );
               }
             }
@@ -56,7 +68,7 @@ const LoggedField = (props) => {
   };
 
   const handleGoalAdornmentClick = (e, goalValue) => {
-    e.target.value = Number(goalValue);
+    e.target.value = Number(toDisplayValue(goalValue));
     if (e.detail === 1) {
       handleChange(e);
     }
@@ -65,8 +77,8 @@ const LoggedField = (props) => {
   return (
     <Grid size={5}>
       <TextField
-        label={field.label}
-        value={exercise.achieved[field.achievedAttribute][exerciseSetIndex] || 0}
+        label={isWeightField ? `${field.label} (${weightUnitLabel})` : field.label}
+        value={toDisplayValue(exercise.achieved[field.achievedAttribute][exerciseSetIndex]) || 0}
         inputProps={{
           inputMode: "decimal",
           pattern: "^[0-9]*\\.?[0-9]*$",
@@ -74,6 +86,11 @@ const LoggedField = (props) => {
         onChange={handleChange}
         onFocus={handleFocus}
         size="small"
+        InputLabelProps={
+          isWeightField && onToggleWeightUnit
+            ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
+            : undefined
+        }
         InputProps={{
           endAdornment: (
             <InputAdornment
@@ -104,10 +121,12 @@ const LoggedField = (props) => {
                 <Typography variant="body2" noWrap>
                   {exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
                     ? `/${
-                        Number(parentProps.exercise.goals.oneRepMax) *
-                        (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
+                        toDisplayValue(
+                          Number(parentProps.exercise.goals.oneRepMax) *
+                            (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
+                        )
                       }`
-                    : `/${parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]}`}
+                    : `/${toDisplayValue(parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex])}`}
                 </Typography>
               </Button>
             </InputAdornment>
@@ -119,7 +138,7 @@ const LoggedField = (props) => {
 };
 
 export default function LogLoader(props) {
-  const { fields, exercise, localTraining, sets, setIndex, setLocalTraining, exerciseIndex } =
+  const { fields, exercise, localTraining, sets, setIndex, setLocalTraining, exerciseIndex, weightUnit, onToggleWeightUnit } =
     props;
 
   let exerciseSets = [];
@@ -214,6 +233,8 @@ export default function LogLoader(props) {
                   exerciseSetIndex={exerciseSetIndex}
                   setIndex={setIndex}
                   setLocalTraining={setLocalTraining}
+                  weightUnit={weightUnit}
+                  onToggleWeightUnit={onToggleWeightUnit}
                 />
               );
             })}

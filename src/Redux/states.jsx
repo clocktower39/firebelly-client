@@ -2,6 +2,7 @@ export let user = {
     isTrainer: false,
     themeMode: localStorage.getItem('theme'),
     customThemes: [],
+    workoutWeightUnit: "lbs",
 }
 
 export let exerciseLibrary = [];

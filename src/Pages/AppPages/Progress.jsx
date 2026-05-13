@@ -63,6 +63,13 @@ import {
   YAxis,
 } from "recharts";
 import queryString from "query-string";
+import {
+  WEIGHT_UNIT_OPTIONS,
+  displayWeightUnit,
+  fromStoredLbs,
+  normalizeWeightUnit,
+  toStoredLbs,
+} from "../../utils/weightUnits";
 
 const modalStyle = () => ({
   position: "absolute",
@@ -186,27 +193,10 @@ const formatDateOnly = (value) => {
   }).format(new Date(Date.UTC(year, month - 1, day)));
 };
 
-const WEIGHT_UNITS = [
-  { value: "lbs", label: "lbs" },
-  { value: "kg", label: "kg" },
-];
-
 const CIRCUMFERENCE_UNITS = [
   { value: "in", label: "in" },
   { value: "cm", label: "cm" },
 ];
-
-const toLbs = (value, unit) => {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return null;
-  return unit === "kg" ? numericValue * 2.20462 : numericValue;
-};
-
-const fromLbs = (value, unit) => {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return "";
-  return unit === "kg" ? numericValue / 2.20462 : numericValue;
-};
 
 const toInches = (value, unit) => {
   const numericValue = Number(value);
@@ -359,7 +349,17 @@ const exerciseTypeFields = (exerciseType) => {
   }
 };
 
-const buildExerciseSummary = (summary) => {
+const getExerciseFieldLabel = (field, weightUnit = "lbs") =>
+  field?.goalAttribute === "weight" || field?.goalAttribute === "maxWeight"
+    ? `${field.label} (${displayWeightUnit(weightUnit)})`
+    : field?.label;
+
+const getExerciseFieldValue = (value, field, weightUnit = "lbs") =>
+  field?.goalAttribute === "weight" || field?.goalAttribute === "maxWeight"
+    ? fromStoredLbs(value, weightUnit)
+    : value;
+
+const buildExerciseSummary = (summary, weightUnit = "lbs") => {
   const historyPreview = Array.isArray(summary?.historyPreview) ? summary.historyPreview : [];
   const sortedHistory = [...historyPreview]
     .filter((entry) => entry?.date)
@@ -377,7 +377,9 @@ const buildExerciseSummary = (summary) => {
   const chartRows = primaryField
     ? sortedHistory
         .map((entry) => {
-          const values = getNumericValues(entry.achieved?.[primaryField.goalAttribute]);
+          const values = getNumericValues(entry.achieved?.[primaryField.goalAttribute])
+            .map((value) => getExerciseFieldValue(value, primaryField, weightUnit))
+            .filter((value) => Number.isFinite(Number(value)));
           if (!values.length) return null;
           return {
             date: formatChartDate(entry.date),
@@ -402,7 +404,7 @@ const buildExerciseSummary = (summary) => {
     latestDate: summary.latestDate,
     latestDateValue: getDateOnlyTimestamp(summary.latestDate) || 0,
     latestDateLabel: summary.latestDate ? formatDateOnly(summary.latestDate) : "No entries yet",
-    primaryMetricLabel: primaryField?.label || "Progress",
+    primaryMetricLabel: getExerciseFieldLabel(primaryField, weightUnit) || "Progress",
     latestValue: latestRow?.value ?? null,
     bestValue,
     chartRows,
@@ -430,6 +432,7 @@ export const ModalBarChartHistory = (props) => {
 
 export const BarChartHistory = (props) => {
   const { targetExerciseHistory } = props;
+  const weightUnit = normalizeWeightUnit(useSelector((state) => state.user.workoutWeightUnit));
   const historyCount = targetExerciseHistory.length;
   const defaultRange = useMemo(
     () => [
@@ -483,7 +486,9 @@ export const BarChartHistory = (props) => {
         };
 
         fieldConfig.repeating.forEach((field) => {
-          const values = getNumericValues(entry.achieved?.[field.goalAttribute]);
+          const values = getNumericValues(entry.achieved?.[field.goalAttribute])
+            .map((value) => getExerciseFieldValue(value, field, weightUnit))
+            .filter((value) => Number.isFinite(Number(value)));
           const best = values.length ? Math.max(...values) : null;
           const total = values.reduce((sum, value) => sum + value, 0);
           row[`${field.goalAttribute}Sets`] = values;
@@ -496,7 +501,7 @@ export const BarChartHistory = (props) => {
         });
 
         fieldConfig.nonRepeating.forEach((field) => {
-          const value = Number(entry.achieved?.[field.goalAttribute]);
+          const value = Number(getExerciseFieldValue(entry.achieved?.[field.goalAttribute], field, weightUnit));
           row[field.goalAttribute] = Number.isFinite(value) ? value : null;
         });
 
@@ -504,7 +509,7 @@ export const BarChartHistory = (props) => {
       })
       .filter((row) => Number.isFinite(row.timestamp))
       .sort((a, b) => a.timestamp - b.timestamp);
-  }, [fieldConfig, range, targetExerciseHistory]);
+  }, [fieldConfig, range, targetExerciseHistory, weightUnit]);
 
   const fieldStats = useMemo(() => {
     return fieldConfig.repeating.map((field) => {
@@ -628,7 +633,7 @@ export const BarChartHistory = (props) => {
               }}
             >
               <Typography variant="caption" color="text.secondary">
-                {stat.label}
+                {getExerciseFieldLabel(stat, weightUnit)}
               </Typography>
               <Typography variant="h4" color="primary.contrastText">
                 {formatNumber(stat.latest)}
@@ -663,7 +668,7 @@ export const BarChartHistory = (props) => {
             <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
               <Box>
                 <Typography variant="h6" color="primary.contrastText">
-                  {field.label} by Set
+                  {getExerciseFieldLabel(field, weightUnit)} by Set
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Bars show each set. The line tracks the best set from each entry.
@@ -898,6 +903,7 @@ const ExerciseProgressDashboard = ({
   selectedExerciseTitle,
   setSelectedExerciseTitle,
   onLoadExercise,
+  weightUnit = "lbs",
 }) => {
   const [exerciseSearchTerm, setExerciseSearchTerm] = useState("");
   const [exerciseSortKey, setExerciseSortKey] = useState("recent");
@@ -923,17 +929,18 @@ const ExerciseProgressDashboard = ({
             entryCount: 0,
             latestDate: null,
             historyPreview: [],
-          }
+          },
+          weightUnit
         )
       );
 
     const libraryIds = new Set(libraryCards.map((summary) => String(summary.id)));
     const summaryOnlyCards = exerciseSummaries
       .filter((summary) => summary?.exercise?._id && !libraryIds.has(String(summary.exercise._id)))
-      .map(buildExerciseSummary);
+      .map((summary) => buildExerciseSummary(summary, weightUnit));
 
     return [...libraryCards, ...summaryOnlyCards];
-  }, [exerciseList, exerciseSummaries, summariesById]);
+  }, [exerciseList, exerciseSummaries, summariesById, weightUnit]);
 
   const filteredExerciseCards = useMemo(() => {
     const words = exerciseSearchTerm.toLowerCase().split(" ").filter(Boolean);
@@ -1113,13 +1120,14 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     () => entries.length > 0 || pending.length > 0 || Boolean(latest),
     [entries.length, pending.length, latest]
   );
+  const defaultWeightUnit = normalizeWeightUnit(user.workoutWeightUnit);
 
   const [recordedAt, setRecordedAt] = useState(() => toReadableDateInput(new Date()));
   const [weight, setWeight] = useState("");
   const [bodyFatPercent, setBodyFatPercent] = useState("");
   const [restingHeartRate, setRestingHeartRate] = useState("");
   const [circumference, setCircumference] = useState({});
-  const [weightUnit, setWeightUnit] = useState("lbs");
+  const [weightUnit, setWeightUnit] = useState(defaultWeightUnit);
   const [circumferenceUnit, setCircumferenceUnit] = useState("in");
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -1145,7 +1153,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
 
   const heightInches = useMemo(() => parseHeightToInches(targetUser?.height), [targetUser?.height]);
   const bmiPreview = useMemo(
-    () => calculateBmi(toLbs(weight, weightUnit), heightInches),
+    () => calculateBmi(toStoredLbs(weight, weightUnit), heightInches),
     [weight, weightUnit, heightInches]
   );
 
@@ -1176,8 +1184,8 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
 
   const handleWeightUnitChange = (nextUnit) => {
     if (weight !== "") {
-      const weightInLbs = toLbs(weight, weightUnit);
-      const converted = fromLbs(weightInLbs, nextUnit);
+      const weightInLbs = toStoredLbs(weight, weightUnit);
+      const converted = fromStoredLbs(weightInLbs, nextUnit);
       setWeight(converted === "" ? "" : String(converted));
     }
     setWeightUnit(nextUnit);
@@ -1204,7 +1212,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     setBodyFatPercent("");
     setRestingHeartRate("");
     setCircumference({});
-    setWeightUnit("lbs");
+    setWeightUnit(defaultWeightUnit);
     setCircumferenceUnit("in");
   };
 
@@ -1213,7 +1221,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     const payload = {
       userId: isTrainerView ? userId : undefined,
       recordedAt: toStoredDateValue(recordedAt),
-      weight: weight === "" ? undefined : toLbs(weight, weightUnit),
+      weight: weight === "" ? undefined : toStoredLbs(weight, weightUnit),
       bodyFatPercent: bodyFatPercent === "" ? undefined : Number(bodyFatPercent),
       restingHeartRate: restingHeartRate === "" ? undefined : Number(restingHeartRate),
     };
@@ -1263,7 +1271,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     };
     entries.forEach((entry) => {
       if (entry.weight !== undefined && entry.weight !== null) {
-        const display = fromLbs(entry.weight, weightUnit);
+        const display = fromStoredLbs(entry.weight, weightUnit);
         const numeric = Number(display);
         if (Number.isFinite(numeric)) values.weight.push(numeric);
       }
@@ -1305,7 +1313,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
       switch (key) {
         case "weight": {
           if (entry.weight == null) return null;
-          const display = fromLbs(entry.weight, weightUnit);
+          const display = fromStoredLbs(entry.weight, weightUnit);
           const numeric = Number(display);
           return Number.isFinite(numeric) ? numeric : null;
         }
@@ -1416,7 +1424,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
           weight:
             entry.weight === undefined || entry.weight === null
               ? null
-              : Number(fromLbs(entry.weight, weightUnit)),
+              : Number(fromStoredLbs(entry.weight, weightUnit)),
           bodyFatPercent:
             entry.bodyFatPercent === undefined || entry.bodyFatPercent === null
               ? null
@@ -1441,7 +1449,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
 
   const metricSummaryCards = useMemo(() => {
     const configs = [
-      { key: "weight", label: "Weight", suffix: ` ${weightUnit}`, color: BODY_CHART_COLORS.weight },
+      { key: "weight", label: "Weight", suffix: ` ${displayWeightUnit(weightUnit)}`, color: BODY_CHART_COLORS.weight },
       { key: "bodyFatPercent", label: "Body Fat", suffix: "%", color: BODY_CHART_COLORS.bodyFatPercent },
       { key: "bmi", label: "BMI", suffix: "", color: BODY_CHART_COLORS.bmi },
       { key: "restingHeartRate", label: "Resting HR", suffix: " bpm", color: BODY_CHART_COLORS.restingHeartRate },
@@ -1517,7 +1525,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
   const openEditEntry = (entry) => {
     setEditingEntry(entry);
     setEditRecordedAt(entry.recordedAt ? toReadableDateInput(entry.recordedAt) : "");
-    const displayWeight = fromLbs(entry.weight, weightUnit);
+    const displayWeight = fromStoredLbs(entry.weight, weightUnit);
     setEditWeight(displayWeight === "" ? "" : String(Number(displayWeight).toFixed(1)));
     setEditBodyFatPercent(entry.bodyFatPercent ?? "");
     setEditRestingHeartRate(entry.restingHeartRate ?? "");
@@ -1535,8 +1543,8 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
 
   const handleEditWeightUnitChange = (nextUnit) => {
     if (editWeight !== "") {
-      const weightInLbs = toLbs(editWeight, weightUnit);
-      const converted = fromLbs(weightInLbs, nextUnit);
+      const weightInLbs = toStoredLbs(editWeight, weightUnit);
+      const converted = fromStoredLbs(weightInLbs, nextUnit);
       setEditWeight(converted === "" ? "" : String(Number(converted).toFixed(1)));
     }
     setWeightUnit(nextUnit);
@@ -1562,7 +1570,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
     const payload = {
       entryId: editingEntry._id,
       recordedAt: toStoredDateValue(editRecordedAt),
-      weight: editWeight === "" ? undefined : toLbs(editWeight, weightUnit),
+      weight: editWeight === "" ? undefined : toStoredLbs(editWeight, weightUnit),
       bodyFatPercent: editBodyFatPercent === "" ? undefined : Number(editBodyFatPercent),
       restingHeartRate: editRestingHeartRate === "" ? undefined : Number(editRestingHeartRate),
     };
@@ -1647,7 +1655,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                   label="Unit"
                   onChange={(e) => handleWeightUnitChange(e.target.value)}
                 >
-                  {WEIGHT_UNITS.map((unit) => (
+                  {WEIGHT_UNIT_OPTIONS.map((unit) => (
                     <MenuItem key={unit.value} value={unit.value}>
                       {unit.label}
                     </MenuItem>
@@ -1748,7 +1756,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
               <Typography variant="body1">
                 Weight:{" "}
                 {latestEntry.weight !== undefined
-                  ? `${Number(fromLbs(latestEntry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                  ? `${Number(fromStoredLbs(latestEntry.weight, weightUnit)).toFixed(1)} ${displayWeightUnit(weightUnit)}`
                   : "—"}
               </Typography>
               <Typography variant="body1">Body Fat: {latestEntry.bodyFatPercent ?? "—"}%</Typography>
@@ -1845,7 +1853,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                             <Area
                               type="monotone"
                               dataKey="weight"
-                              name={`Weight (${weightUnit})`}
+                              name={`Weight (${displayWeightUnit(weightUnit)})`}
                               stroke={BODY_CHART_COLORS.weight}
                               fill={BODY_CHART_COLORS.weight}
                               fillOpacity={0.18}
@@ -2005,7 +2013,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       <TableCell>{formatDateOnly(entry.recordedAt)}</TableCell>
                       <TableCell>
                         {entry.weight !== undefined
-                          ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                          ? `${Number(fromStoredLbs(entry.weight, weightUnit)).toFixed(1)} ${displayWeightUnit(weightUnit)}`
                           : "—"}
                       </TableCell>
                       <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
@@ -2183,7 +2191,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       <TableCell>{formatDateOnly(entry.recordedAt)}</TableCell>
                       <TableCell>
                         {entry.weight !== undefined
-                          ? `${Number(fromLbs(entry.weight, weightUnit)).toFixed(1)} ${weightUnit}`
+                          ? `${Number(fromStoredLbs(entry.weight, weightUnit)).toFixed(1)} ${displayWeightUnit(weightUnit)}`
                           : "—"}
                       </TableCell>
                       <TableCell>{entry.bodyFatPercent ?? "—"}</TableCell>
@@ -2265,7 +2273,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                   label="Unit"
                   onChange={(e) => handleEditWeightUnitChange(e.target.value)}
                 >
-                  {WEIGHT_UNITS.map((unit) => (
+                  {WEIGHT_UNIT_OPTIONS.map((unit) => (
                     <MenuItem key={unit.value} value={unit.value}>
                       {unit.label}
                     </MenuItem>
@@ -2300,7 +2308,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 type="text"
                 fullWidth
                 label="BMI (auto)"
-                value={calculateBmi(toLbs(editWeight, weightUnit), heightInches)}
+                value={calculateBmi(toStoredLbs(editWeight, weightUnit), heightInches)}
                 InputProps={{ readOnly: true }}
                 InputLabelProps={{ shrink: true }}
               />
@@ -2462,6 +2470,7 @@ export default function Progress(props) {
     ? clients.find((relationship) => relationship?.client?._id === client)?.client
     : null;
   const targetUser = client ? targetClient : user;
+  const weightUnit = normalizeWeightUnit(user.workoutWeightUnit);
   const isTrainerView = Boolean(client);
   const exerciseSummaries = progressState.exerciseSummariesByUser?.[targetUser?._id] || EMPTY_ARRAY;
 
@@ -2548,6 +2557,7 @@ export default function Progress(props) {
                 selectedExerciseTitle={searchValue}
                 setSelectedExerciseTitle={setSearchValue}
                 onLoadExercise={loadExerciseProgress}
+                weightUnit={weightUnit}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 10 }}>

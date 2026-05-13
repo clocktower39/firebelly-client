@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { displayWeightUnit, formatWeightList, normalizeWeightUnit } from "../../../utils/weightUnits";
 
 export const createZeroArray = (setCount) => Array(setCount).fill(0);
 
@@ -7,18 +8,21 @@ export const normalizeToSets = (values, setCount) => {
   return Array.from({ length: setCount }, (_, idx) => source[idx] ?? 0);
 };
 
-export const formatHistoryLabel = (historyItem) => {
+export const formatHistoryLabel = (historyItem, weightUnit = "lbs") => {
   if (!historyItem) return "No history";
+  const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
 
   const achieved = historyItem.achieved || {};
-  const weight = Array.isArray(achieved.weight) ? achieved.weight.filter(Boolean) : [];
+  const weight = Array.isArray(achieved.weight)
+    ? formatWeightList(achieved.weight, normalizedWeightUnit)
+    : "";
   const reps = Array.isArray(achieved.reps) ? achieved.reps.filter(Boolean) : [];
   const seconds = Array.isArray(achieved.seconds) ? achieved.seconds.filter(Boolean) : [];
   const percent = Array.isArray(achieved.percent) ? achieved.percent.filter(Boolean) : [];
   const details = [];
 
   if (reps.length) details.push(`${reps.join(", ")} reps`);
-  if (weight.length) details.push(`${weight.join(", ")} lb`);
+  if (weight.length) details.push(`${weight} ${displayWeightUnit(normalizedWeightUnit)}`);
   if (seconds.length) details.push(`${seconds.join(", ")} sec`);
   if (percent.length) details.push(`${percent.join(", ")}%`);
 
