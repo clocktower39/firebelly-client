@@ -66,6 +66,27 @@ const classes = {
   },
 };
 
+const WORKOUT_GESTURES_STORAGE_KEY = "firebelly.workoutGestures";
+const DEFAULT_WORKOUT_GESTURES = {
+  tapWeightLabelToSwitchUnit: false,
+};
+
+const readWorkoutGestures = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(WORKOUT_GESTURES_STORAGE_KEY) || "{}");
+    return {
+      ...DEFAULT_WORKOUT_GESTURES,
+      ...(stored && typeof stored === "object" ? stored : {}),
+    };
+  } catch {
+    return { ...DEFAULT_WORKOUT_GESTURES };
+  }
+};
+
+const saveWorkoutGestures = (gestures) => {
+  localStorage.setItem(WORKOUT_GESTURES_STORAGE_KEY, JSON.stringify(gestures));
+};
+
 const CARDIO_ACTIVITY_CONFIG = {
   Run: {
     distanceUnits: ["mi", "km"],
@@ -755,6 +776,8 @@ export default function Workout({ socket }) {
   const [cardioSectionsOpen, setCardioSectionsOpen] = useState(DEFAULT_CARDIO_SECTION_STATE);
   const [cardioEditorMode, setCardioEditorMode] = useState(user?.isTrainer ? "full" : "quick");
   const [activeWorkoutWeightUnit, setActiveWorkoutWeightUnit] = useState(defaultWorkoutWeightUnit);
+  const [workoutGestures, setWorkoutGestures] = useState(readWorkoutGestures);
+  const weightLabelUnitToggleEnabled = Boolean(workoutGestures.tapWeightLabelToSwitchUnit);
   const [cardioNotice, setCardioNotice] = useState({
     open: false,
     message: "",
@@ -769,6 +792,16 @@ export default function Workout({ socket }) {
   };
   const toggleWorkoutWeightUnit = () => {
     setActiveWorkoutWeightUnit((prev) => (normalizeWeightUnit(prev) === "kg" ? "lbs" : "kg"));
+  };
+  const updateWorkoutGesture = (key, value) => {
+    setWorkoutGestures((prev) => {
+      const nextGestures = {
+        ...prev,
+        [key]: value,
+      };
+      saveWorkoutGestures(nextGestures);
+      return nextGestures;
+    });
   };
   const activeCardio = cardioDetails?.[cardioViewMode] || normalizeCardioFields({});
   const plannedCardio = cardioDetails?.plan || normalizeCardioFields({});
@@ -2015,6 +2048,10 @@ export default function Workout({ socket }) {
             localTraining={localTraining}
             allowTrainingReorder
             weightUnit={activeWorkoutWeightUnit}
+            weightLabelUnitToggleEnabled={weightLabelUnitToggleEnabled}
+            setWeightLabelUnitToggleEnabled={(enabled) =>
+              updateWorkoutGesture("tapWeightLabelToSwitchUnit", enabled)
+            }
           />
           <Snackbar
             open={cardioNotice.open}
@@ -2106,20 +2143,18 @@ export default function Workout({ socket }) {
                     {training.isTemplate && (
                       <Chip label="Template Workout" size="small" variant="outlined" />
                     )}
-                    {!isCardio && (
-                      <ToggleButtonGroup
-                        value={activeWorkoutWeightUnit}
-                        exclusive
-                        size="small"
-                        onChange={handleWorkoutWeightUnitChange}
-                      >
-                        {WEIGHT_UNIT_OPTIONS.map((unit) => (
-                          <ToggleButton key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </ToggleButton>
-                        ))}
-                      </ToggleButtonGroup>
-                    )}
+                    <ToggleButtonGroup
+                      value={activeWorkoutWeightUnit}
+                      exclusive
+                      size="small"
+                      onChange={handleWorkoutWeightUnitChange}
+                    >
+                      {WEIGHT_UNIT_OPTIONS.map((unit) => (
+                        <ToggleButton key={unit.value} value={unit.value}>
+                          {unit.label}
+                        </ToggleButton>
+                      ))}
+                    </ToggleButtonGroup>
                   </Stack>
                 </Grid>
                 <Grid size={1} container sx={{ justifyContent: "center", alignItems: "center" }}>
@@ -2903,7 +2938,9 @@ export default function Workout({ socket }) {
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
                     weightUnit={activeWorkoutWeightUnit}
-                    onToggleWeightUnit={toggleWorkoutWeightUnit}
+                    onToggleWeightUnit={
+                      weightLabelUnitToggleEnabled ? toggleWorkoutWeightUnit : undefined
+                    }
                   />
                 )}
               </Grid>

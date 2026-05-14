@@ -24,6 +24,7 @@ import {
   DragIndicator,
   Download,
   Settings,
+  TouchApp,
   Queue as QueueIcon,
 } from "@mui/icons-material";
 import {
@@ -79,6 +80,8 @@ export function ModalAction(props) {
       localTraining,
       modalOpen,
       weightUnit: weightUnitOverride,
+      weightLabelUnitToggleEnabled,
+      setWeightLabelUnitToggleEnabled,
     } = props;
 
     if (!training?._id) {
@@ -822,6 +825,30 @@ export function ModalAction(props) {
             </Grid>
           </>
         );
+      case "gestures":
+        return (
+          <Grid container spacing={1}>
+            <Grid container size={12}>
+              <Typography color="text.primary" variant="subtitle1">
+                Gestures
+              </Typography>
+            </Grid>
+            <Grid container size={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={Boolean(weightLabelUnitToggleEnabled)}
+                    onChange={(event) =>
+                      setWeightLabelUnitToggleEnabled &&
+                      setWeightLabelUnitToggleEnabled(event.target.checked)
+                    }
+                  />
+                }
+                label="Tap weight labels to switch units"
+              />
+            </Grid>
+          </Grid>
+        );
       default:
         return <></>;
     }
@@ -839,6 +866,8 @@ export function ModalAction(props) {
       localTraining,
       allowTrainingReorder,
       weightUnit,
+      weightLabelUnitToggleEnabled,
+      setWeightLabelUnitToggleEnabled,
     } = props;
     return (
       <Modal open={modalOpen} onClose={handleModalToggle}>
@@ -868,6 +897,13 @@ export function ModalAction(props) {
               <Tooltip title="Reorder Workout">
                 <IconButton onClick={() => handleSetModalAction("reorder")}>
                   <DragIndicator />
+                </IconButton>
+              </Tooltip>
+            )}
+            {setWeightLabelUnitToggleEnabled && (
+              <Tooltip title="Gestures">
+                <IconButton onClick={() => handleSetModalAction("gestures")}>
+                  <TouchApp />
                 </IconButton>
               </Tooltip>
             )}
@@ -907,6 +943,8 @@ export function ModalAction(props) {
             localTraining={localTraining}
             modalOpen={modalOpen}
             weightUnit={weightUnit}
+            weightLabelUnitToggleEnabled={weightLabelUnitToggleEnabled}
+            setWeightLabelUnitToggleEnabled={setWeightLabelUnitToggleEnabled}
           />
         </Box>
       </Modal>
