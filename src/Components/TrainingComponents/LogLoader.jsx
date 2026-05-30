@@ -1,6 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Grid, InputAdornment, TextField, Typography } from "@mui/material";
-import { displayWeightUnit, formatWeightValue, normalizeWeightUnit, toStoredLbs } from "../../utils/weightUnits";
+import {
+  displayWeightUnit,
+  formatWeightInputValue,
+  normalizeWeightUnit,
+  toStoredLbs,
+} from "../../utils/weightUnits";
+
+const DECIMAL_INPUT_PATTERN = /^\d*\.?\d*$/;
+
+const isIncompleteDecimal = (value) => value === "" || value === ".";
 
 const LoggedField = (props) => {
   const {
@@ -17,12 +26,18 @@ const LoggedField = (props) => {
   const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
   const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
   const isWeightField = field.achievedAttribute === "weight";
+  const storedValue = exercise.achieved[field.achievedAttribute][exerciseSetIndex];
+  const [draftValue, setDraftValue] = useState(null);
+
+  useEffect(() => {
+    setDraftValue(null);
+  }, [normalizedWeightUnit]);
 
   const toStoredValue = (value) =>
     isWeightField ? toStoredLbs(value, normalizedWeightUnit) ?? 0 : value;
 
   const toDisplayValue = (value) =>
-    isWeightField ? formatWeightValue(value, normalizedWeightUnit) : value;
+    isWeightField ? formatWeightInputValue(value, normalizedWeightUnit) : value;
 
   const handleFocus = (e) => {
     if (Number(e.target.value) === 0) {
@@ -31,31 +46,42 @@ const LoggedField = (props) => {
   };
 
   const handleChange = (e) => {
+    const rawValue = e.target.value;
+    if (isWeightField && !DECIMAL_INPUT_PATTERN.test(rawValue)) return;
+
     let answer = 0;
+    if (isWeightField) {
+      setDraftValue(rawValue);
+    }
+
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              if (e.target.value === "" && e.target.value.length === 0) {
+              if (isWeightField) {
+                exercise.achieved[field.achievedAttribute][exerciseSetIndex] = isIncompleteDecimal(rawValue)
+                  ? 0
+                  : toStoredValue(rawValue);
+              } else if (rawValue === "" && rawValue.length === 0) {
                 exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer);
               }
               // remove extra zeros from the front
-              else if (Number(e.target.value) || e.target.value === "0") {
-                if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = e.target.value.split("");
+              else if (Number(rawValue) || rawValue === "0") {
+                if (rawValue.length > 1 && rawValue[0] === "0") {
+                  answer = rawValue.split("");
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer.join(""));
                 } else {
                   // update the local state variable
-                  answer = e.target.value;
+                  answer = rawValue;
                   exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(answer);
                 }
               } else {
                 exercise.achieved[field.achievedAttribute][exerciseSetIndex] = toStoredValue(
-                  Number(e.target.value)
+                  Number(rawValue)
                 );
               }
             }
@@ -65,6 +91,10 @@ const LoggedField = (props) => {
         return set;
       });
     });
+  };
+
+  const handleBlur = () => {
+    setDraftValue(null);
   };
 
   const handleGoalAdornmentClick = (e, goalValue) => {
@@ -78,12 +108,13 @@ const LoggedField = (props) => {
     <Grid size={5}>
       <TextField
         label={isWeightField ? `${field.label} (${weightUnitLabel})` : field.label}
-        value={toDisplayValue(exercise.achieved[field.achievedAttribute][exerciseSetIndex]) || 0}
+        value={draftValue ?? (toDisplayValue(storedValue) || 0)}
         inputProps={{
           inputMode: "decimal",
           pattern: "^[0-9]*\\.?[0-9]*$",
         }}
         onChange={handleChange}
+        onBlur={handleBlur}
         onFocus={handleFocus}
         size="small"
         InputLabelProps={

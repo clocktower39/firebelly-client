@@ -1,6 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Grid, TextField, Typography } from "@mui/material";
-import { displayWeightUnit, formatWeightValue, normalizeWeightUnit, toStoredLbs } from "../../utils/weightUnits";
+import {
+  displayWeightUnit,
+  formatWeightInputValue,
+  normalizeWeightUnit,
+  toStoredLbs,
+} from "../../utils/weightUnits";
+
+const DECIMAL_INPUT_PATTERN = /^\d*\.?\d*$/;
+
+const isIncompleteDecimal = (value) => value === "" || value === ".";
 
 const LoggedField = (props) => {
   const {
@@ -17,12 +26,18 @@ const LoggedField = (props) => {
   const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
   const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
   const isWeightField = field.goalAttribute === "weight";
+  const storedValue = exercise.goals[field.goalAttribute][exerciseSetIndex];
+  const [draftValue, setDraftValue] = useState(null);
+
+  useEffect(() => {
+    setDraftValue(null);
+  }, [normalizedWeightUnit]);
 
   const toStoredValue = (value) =>
     isWeightField ? toStoredLbs(value, normalizedWeightUnit) ?? 0 : value;
 
   const toDisplayValue = (value) =>
-    isWeightField ? formatWeightValue(value, normalizedWeightUnit) : value;
+    isWeightField ? formatWeightInputValue(value, normalizedWeightUnit) : value;
 
   const handleFocus = (e) => {
     if (Number(e.target.value) === 0) {
@@ -31,30 +46,41 @@ const LoggedField = (props) => {
   };
 
   const handleChange = (e) => {
+    const rawValue = e.target.value;
+    if (isWeightField && !DECIMAL_INPUT_PATTERN.test(rawValue)) return;
+
     let answer = 0;
+    if (isWeightField) {
+      setDraftValue(rawValue);
+    }
+
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              if (e.target.value === "" && e.target.value.length === 0) {
+              if (isWeightField) {
+                exercise.goals[field.goalAttribute][exerciseSetIndex] = isIncompleteDecimal(rawValue)
+                  ? 0
+                  : toStoredValue(rawValue);
+              } else if (rawValue === "" && rawValue.length === 0) {
                 exercise.goals[field.goalAttribute][exerciseSetIndex] = toStoredValue(answer);
               }
               // remove extra zeros from the front
-              else if (Number(e.target.value) || e.target.value === "0") {
-                if (e.target.value.length > 1 && e.target.value[0] === "0") {
-                  answer = e.target.value.split("");
+              else if (Number(rawValue) || rawValue === "0") {
+                if (rawValue.length > 1 && rawValue[0] === "0") {
+                  answer = rawValue.split("");
                   while (answer[0] === "0") {
                     answer.shift();
                   }
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = toStoredValue(answer.join(""));
                 } else {
                   // update the local state variable
-                  answer = e.target.value;
+                  answer = rawValue;
                   exercise.goals[field.goalAttribute][exerciseSetIndex] = toStoredValue(answer);
                 }
               } else {
-                exercise.goals[field.goalAttribute][exerciseSetIndex] = toStoredValue(Number(e.target.value));
+                exercise.goals[field.goalAttribute][exerciseSetIndex] = toStoredValue(Number(rawValue));
               }
             }
             return exercise;
@@ -65,16 +91,21 @@ const LoggedField = (props) => {
     });
   };
 
+  const handleBlur = () => {
+    setDraftValue(null);
+  };
+
   return (
     <Grid size={amountOfFields % 2 === 0 ? 6 : amountOfFields === 1 ? 12 : 4}>
       <TextField
         label={isWeightField ? `${field.label} (${weightUnitLabel})` : field.label}
-        value={toDisplayValue(exercise.goals[field.goalAttribute][exerciseSetIndex]) || 0}
+        value={draftValue ?? (toDisplayValue(storedValue) || 0)}
         inputProps={{
           inputMode: "decimal",
           pattern: "^[0-9]*\\.?[0-9]*$",
         }}
         onChange={handleChange}
+        onBlur={handleBlur}
         onFocus={handleFocus}
         size="small"
         fullWidth
@@ -93,23 +124,30 @@ export default function EditLoader(props) {
   const normalizedWeightUnit = normalizeWeightUnit(weightUnit);
   const weightUnitLabel = displayWeightUnit(normalizedWeightUnit);
   const [oneRepMax, setOneRepMax] = useState(
-    formatWeightValue(exercise.goals.oneRepMax || 0, normalizedWeightUnit)
+    formatWeightInputValue(exercise.goals.oneRepMax || 0, normalizedWeightUnit)
   );
+  const [oneRepMaxFocused, setOneRepMaxFocused] = useState(false);
+
+  useEffect(() => {
+    if (oneRepMaxFocused) return;
+    setOneRepMax(formatWeightInputValue(exercise.goals.oneRepMax || 0, normalizedWeightUnit));
+  }, [exercise.goals.oneRepMax, normalizedWeightUnit, oneRepMaxFocused]);
 
   const handleOneRepMaxChange = (e) => {
-    const storedOneRepMax = toStoredLbs(e.target.value, normalizedWeightUnit) ?? 0;
+    const rawValue = e.target.value;
+    if (!DECIMAL_INPUT_PATTERN.test(rawValue)) return;
+
+    const storedOneRepMax = isIncompleteDecimal(rawValue)
+      ? 0
+      : toStoredLbs(rawValue, normalizedWeightUnit) ?? 0;
+
+    setOneRepMax(rawValue);
     setLocalTraining((prev) => {
       return prev.map((set, sIndex) => {
         if (setIndex === sIndex) {
           set.map((exercise, eIndex) => {
             if (eIndex === exerciseIndex) {
-              if(Number(e.target.value)) {
-                setOneRepMax(e.target.value);
-                exercise.goals.oneRepMax = storedOneRepMax;
-              } else {
-                  setOneRepMax(0)
-                  exercise.goals.oneRepMax = 0;
-              };
+              exercise.goals.oneRepMax = storedOneRepMax;
             }
             return exercise;
           });
@@ -118,6 +156,18 @@ export default function EditLoader(props) {
       });
     });
   }
+
+  const handleOneRepMaxBlur = () => {
+    setOneRepMaxFocused(false);
+    setOneRepMax(formatWeightInputValue(exercise.goals.oneRepMax || 0, normalizedWeightUnit));
+  };
+
+  const handleOneRepMaxFocus = (e) => {
+    setOneRepMaxFocused(true);
+    if (Number(e.target.value) === 0) {
+      e.target.select();
+    }
+  };
 
   let exerciseSets = [];
   let count = 0;
@@ -139,6 +189,8 @@ export default function EditLoader(props) {
             label={`One Rep Max (${weightUnitLabel})`}
             value={oneRepMax}
             onChange={handleOneRepMaxChange}
+            onBlur={handleOneRepMaxBlur}
+            onFocus={handleOneRepMaxFocus}
             fullWidth
             InputLabelProps={
               onToggleWeightUnit

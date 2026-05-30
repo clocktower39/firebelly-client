@@ -30,6 +30,30 @@ export const formatWeightValue = (value, unit = "lbs", precision = 1) => {
   return Number(numericValue.toFixed(precision)).toString();
 };
 
+const truncateDecimalPlaces = (value, decimalPlaces = 2) => {
+  const [whole, decimal = ""] = String(value).split(".");
+  if (!decimal || decimalPlaces <= 0) return whole;
+
+  const truncatedDecimal = decimal.slice(0, decimalPlaces).replace(/0+$/, "");
+  return truncatedDecimal ? `${whole}.${truncatedDecimal}` : whole;
+};
+
+export const formatWeightInputValue = (value, unit = "lbs", decimalPlaces = 2) => {
+  const converted = fromStoredLbs(value, unit);
+  if (converted === "") return "";
+  const numericValue = Number(converted);
+  if (!Number.isFinite(numericValue)) return "";
+
+  const exactValue = numericValue.toString();
+  if (!exactValue.includes("e")) {
+    return truncateDecimalPlaces(exactValue, decimalPlaces);
+  }
+
+  // Only trims floating-point representation noise from unit conversion; it never rounds
+  // normal user-entered decimals like 12.559 to display increments like 12.56.
+  return truncateDecimalPlaces(Number(numericValue.toPrecision(12)).toString(), decimalPlaces);
+};
+
 export const formatWeightWithUnit = (value, unit = "lbs", precision = 1) => {
   const formattedValue = formatWeightValue(value, unit, precision);
   return formattedValue === "" ? "" : `${formattedValue} ${displayWeightUnit(unit)}`;
