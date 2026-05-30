@@ -127,7 +127,6 @@ function SwipeableSet(props) {
     if (activeStep >= maxSteps - 1) {
       handleStepChange(maxSteps - 2);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toggleRemoveSet]);
 
   useEffect(() => {
@@ -135,7 +134,6 @@ function SwipeableSet(props) {
     //  -1 for index correlation
     //  -1 for workout complete page
     handleStepChange(maxSteps - 2);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toggleNewSet]);
 
   useEffect(() => {

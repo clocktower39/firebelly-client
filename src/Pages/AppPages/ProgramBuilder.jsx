@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -93,7 +94,7 @@ export default function ProgramBuilder() {
   const inFlightRef = useRef(false);
 
   const authHeaders = useMemo(() => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     return {
       "Content-type": "application/json; charset=UTF-8",
       Authorization: bearer,

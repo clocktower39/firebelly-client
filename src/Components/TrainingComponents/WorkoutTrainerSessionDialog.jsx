@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -50,8 +51,8 @@ export default function WorkoutTrainerSessionDialog({
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const trainerAccessToken = user?.isTrainer
-    ? localStorage.getItem("JWT_AUTH_TOKEN")
-    : localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
+    ? getAccessToken()
+    : getDelegatedReturnAccessToken("trainer");
   const trainerId = user?.isTrainer ? user?._id : user?.trainerId || null;
   const canManageTrainerSessions = Boolean(trainerAccessToken && trainerId);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState("");

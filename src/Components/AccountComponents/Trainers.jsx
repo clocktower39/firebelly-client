@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAccessToken } from "../../api/client";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -57,7 +58,6 @@ export default function Trainers({ socket }) {
 
   useEffect(() => {
     dispatch(requestMyTrainers()).then(setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function Trainers({ socket }) {
     const loadCredits = async () => {
       setCreditsLoading(true);
       setCreditsError("");
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const acceptedTrainers = myTrainers.filter((trainer) => trainer.accepted);
       const results = await Promise.all(
         acceptedTrainers.map(async (trainer) => {

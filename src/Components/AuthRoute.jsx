@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAccessToken } from "../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -24,7 +25,7 @@ export const AuthRoute = (props) => {
   };
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("JWT_AUTH_TOKEN");
+    const accessToken = getAccessToken();
     const viewOnly = localStorage.getItem("JWT_VIEW_ONLY") === "true";
     const delegatedSession = Boolean(localStorage.getItem("JWT_DELEGATED_SESSION"));
 

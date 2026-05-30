@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAccessToken } from "../../api/client";
 import { Link } from 'react-router-dom';
 import { Box, Button, Grid, Typography } from "@mui/material";
 import { serverURL } from "../../Redux/actions";
@@ -15,7 +16,7 @@ export default function WorkoutHistory() {
   useEffect(() => {
     if (hasMoreWorkouts) {
       // Check totalPages before fetching again
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const fetchData = async () => {
         const response = await fetch(`${serverURL}/getWorkoutHistory`, {
           method: "post",

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -78,7 +79,7 @@ export default function Programs() {
   }, [assignProgram, assignStartDate, assignDayMapTouched]);
 
   useEffect(() => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const loadPrograms = async () => {
       setLoading(true);
       try {
@@ -142,7 +143,7 @@ export default function Programs() {
 
   const handleAssignProgram = async () => {
     if (!assignProgram?._id || !assignClientId || !assignStartDate) return;
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     try {
       setAssignStatus("");
       const payload = {

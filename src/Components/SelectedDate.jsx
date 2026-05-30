@@ -22,7 +22,6 @@ export default function SelectedDate(props) {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   return (

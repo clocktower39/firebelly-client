@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { serverURL } from "../Redux/actions";
+import { getDelegatedReturnAccessToken } from "../api/client";
 
 const getProfilePictureUrl = (profilePicture) =>
   profilePicture ? `${serverURL}/user/profilePicture/${profilePicture}` : undefined;
@@ -39,7 +40,7 @@ const saveStoredPosition = (position) => {
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const getTrainerActorFromStorage = () => {
-  const trainerAccess = localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
+  const trainerAccess = getDelegatedReturnAccessToken("trainer");
   if (!trainerAccess) return null;
 
   try {

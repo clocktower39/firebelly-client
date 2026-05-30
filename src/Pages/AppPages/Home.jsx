@@ -164,7 +164,6 @@ function Home() {
       setBorderHighlight(!isPersonalWorkout());
       setLoading(false);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiredWorkoutDates, missingWorkoutDates, selectedDateKey, client, isPersonalWorkout]);
 
   useEffect(() => {

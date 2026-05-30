@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAccessToken } from "./api/client";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from "react-router-dom";
 import { ThemeProvider, GlobalStyles } from "@mui/material";
@@ -83,7 +84,7 @@ function App({ }) {
     if (userId) {
       const newSocket = socketIOClient(getSocketURL(), {
         path: "/socket.io",
-        auth: { token: localStorage.getItem("JWT_AUTH_TOKEN") },
+        auth: { token: getAccessToken() },
         transports: ["websocket"],
         upgrade: false,
       });

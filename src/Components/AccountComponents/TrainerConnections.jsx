@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useSelector } from "react-redux";
 import {
   Avatar,
@@ -96,7 +97,7 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
 
   const authHeaders = {
     "Content-type": "application/json; charset=UTF-8",
-    Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+    Authorization: `Bearer ${getAccessToken()}`,
   };
 
   const loadConnections = useCallback(async () => {

@@ -1,9 +1,29 @@
 import { jwtDecode as jwt } from "jwt-decode";
 import axios from "axios";
-import { serverURL } from "../api/client";
+import {
+  authFetch,
+  getAccessToken,
+  getDelegatedReturnAccessToken,
+  hasDelegatedReturnAccessToken,
+  serverURL,
+  setAccessToken,
+  setDelegatedReturnAccessToken,
+} from "../api/client";
 import { loginChild, loginJWT, loginUser, logoutUser } from "./authActions";
 
-export { loginChild, loginJWT, loginUser, logoutUser, serverURL };
+export {
+  authFetch,
+  getAccessToken,
+  getDelegatedReturnAccessToken,
+  hasDelegatedReturnAccessToken,
+  loginChild,
+  loginJWT,
+  loginUser,
+  logoutUser,
+  serverURL,
+  setAccessToken,
+  setDelegatedReturnAccessToken,
+};
 
 export const LOGIN_USER = "LOGIN_USER";
 export const LOGOUT_USER = "LOGOUT_USER";
@@ -130,7 +150,7 @@ export function signupUser(user) {
 
 export function enterClientAccount(clientId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     try {
       const response = await fetch(`${serverURL}/relationships/client/token`, {
@@ -154,10 +174,10 @@ export function enterClientAccount(clientId) {
         return { error };
       }
 
-      const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
+      const currentAccess = getAccessToken();
 
-      if (currentAccess && !localStorage.getItem("JWT_TRAINER_AUTH_TOKEN")) {
-        localStorage.setItem("JWT_TRAINER_AUTH_TOKEN", currentAccess);
+      if (currentAccess && !hasDelegatedReturnAccessToken("trainer")) {
+        setDelegatedReturnAccessToken("trainer", currentAccess);
       }
 
       localStorage.setItem("JWT_DELEGATED_SESSION", "trainer_client");
@@ -198,7 +218,7 @@ export function requestScheduleRange({
   includeAvailability = true,
 }) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/range`, {
       method: "post",
       dataType: "json",
@@ -235,7 +255,7 @@ export function requestScheduleRange({
 
 export function createScheduleEvent(payload, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/event/create`, {
       method: "post",
       dataType: "json",
@@ -253,7 +273,7 @@ export function createScheduleEvent(payload, accessTokenOverride = null) {
 
 export function updateScheduleEvent(eventId, updates, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/event/update`, {
       method: "post",
       dataType: "json",
@@ -271,7 +291,7 @@ export function updateScheduleEvent(eventId, updates, accessTokenOverride = null
 
 export function cancelScheduleEvent(eventId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/event/cancel`, {
       method: "post",
       dataType: "json",
@@ -289,7 +309,7 @@ export function cancelScheduleEvent(eventId) {
 
 export function deleteScheduleEvent(eventId, accessTokenOverride = null) {
   return async (dispatch) => {
-    const bearer = `Bearer ${accessTokenOverride || localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${accessTokenOverride || getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/event/delete`, {
       method: "post",
       dataType: "json",
@@ -307,7 +327,7 @@ export function deleteScheduleEvent(eventId, accessTokenOverride = null) {
 
 export function requestBooking(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/book/request`, {
       method: "post",
       dataType: "json",
@@ -325,7 +345,7 @@ export function requestBooking(payload) {
 
 export function trainerBookAvailability(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/book/trainer`, {
       method: "post",
       dataType: "json",
@@ -343,7 +363,7 @@ export function trainerBookAvailability(payload) {
 
 export function respondBooking(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/schedule/book/respond`, {
       method: "post",
       dataType: "json",
@@ -361,7 +381,7 @@ export function respondBooking(payload) {
 
 export function requestSessionSummary(trainerId, clientId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/sessions/summary`, {
       method: "post",
       dataType: "json",
@@ -384,7 +404,7 @@ export function requestSessionSummary(trainerId, clientId) {
 
 export function createSessionPurchase({ clientId, sessionsPurchased, expiresAt, notes }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/sessions/purchase/create`, {
       method: "post",
       dataType: "json",
@@ -405,7 +425,7 @@ export function createSessionPurchase({ clientId, sessionsPurchased, expiresAt, 
 
 export function requestSessionPurchases({ trainerId, clientId, activeOnly = false }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/sessions/purchase/list`, {
       method: "post",
       dataType: "json",
@@ -426,7 +446,7 @@ export function requestSessionPurchases({ trainerId, clientId, activeOnly = fals
 
 export function requestWorkoutQueue(accountId, startDate) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const query = new URLSearchParams();
     if (accountId) query.set("clientId", accountId);
     if (startDate) query.set("startDate", startDate);
@@ -456,7 +476,7 @@ export function requestWorkoutQueue(accountId, startDate) {
 
 export function changePassword(currentPassword, newPassword) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/changePassword`, {
       method: "post",
@@ -473,7 +493,7 @@ export function changePassword(currentPassword, newPassword) {
     const accessToken = data.accessToken;
     const decodedAccessToken = jwt(accessToken);
 
-    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+    setAccessToken(accessToken);
     return dispatch({
       type: LOGIN_USER,
       agent: decodedAccessToken,
@@ -483,7 +503,7 @@ export function changePassword(currentPassword, newPassword) {
 
 export function editUser(user) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/updateUser`, {
       method: "post",
@@ -504,7 +524,7 @@ export function editUser(user) {
         error: "User not updated",
       });
     } else {
-      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
+      setAccessToken(data.accessToken);
       const decodedAccessToken = jwt(data.accessToken);
       return dispatch({
         type: LOGIN_USER,
@@ -517,7 +537,7 @@ export function editUser(user) {
 // Fetches daily training information
 export function requestTraining(trainingId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     let url = `${serverURL}/training`;
     let requestbody = { _id: trainingId, client: null };
@@ -564,7 +584,7 @@ export function requestTraining(trainingId) {
 // Fetches workouts by date
 export function requestWorkoutsByDate(date, client = null,) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     let url = `${serverURL}/workouts`;
     let requestbody = { date, client };
@@ -594,7 +614,7 @@ export function requestWorkoutsByDate(date, client = null,) {
 
 export function requestWorkoutsByRange(rangeStart, rangeEnd, client = null, filters = {}) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/workoutsRange`, {
       method: "post",
@@ -670,7 +690,7 @@ export function requestWorkoutsByDatesIfNeeded(dateKeys, client = null) {
 // Fetches entire month of workout data
 export function requestWorkoutsByMonth(date, client) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const endpoint = "workoutMonth";
     const payload = JSON.stringify({
@@ -711,7 +731,7 @@ export function requestWorkoutsByMonth(date, client) {
 
 export function requestWorkoutsByYear(year, client) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const endpoint = "workoutYear";
     const payload = JSON.stringify({
@@ -753,7 +773,7 @@ export function requestWorkoutsByYear(year, client) {
 // Creates new daily training workouts
 export function createTraining({ training, user }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     await fetch(`${serverURL}/createTraining`, {
       method: "post",
@@ -813,7 +833,7 @@ export function createTraining({ training, user }) {
 
 export function createTrainingForAccount({ training, accountId }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/createTraining`, {
       method: "post",
@@ -857,7 +877,7 @@ export function createTrainingForAccount({ training, accountId }) {
 // Pushes updates to daily training information
 export function updateTraining(trainingId, updatedTraining) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const data = await fetch(`${serverURL}/updateTraining`, {
       method: "post",
@@ -889,7 +909,7 @@ export function updateTraining(trainingId, updatedTraining) {
 // Updates training date
 export function updateWorkoutDateById(training, newDate, newTitle) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const state = getState();
 
     const data = await fetch(`${serverURL}/updateWorkoutDateById`, {
@@ -939,7 +959,7 @@ export function updateWorkoutDateById(training, newDate, newTitle) {
 // Updates training date
 export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTitle, newAccount) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const data = await fetch(`${serverURL}/copyWorkoutById`, {
       method: "post",
@@ -975,7 +995,7 @@ export function copyWorkoutById(trainingId, newDate, copyOption = "exact", newTi
 
 export function getTrainingRangeEnd(startDate, userId) {
   return async () => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/trainingRangeEnd`, {
       method: "post",
@@ -1013,7 +1033,7 @@ export function bulkMoveCopyWorkouts({
   titleSuffix = "",
 }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/bulkMoveCopyWorkouts`, {
       method: "post",
@@ -1079,7 +1099,7 @@ export function bulkMoveCopyWorkouts({
 
 export function undoBulkMoveCopy(operation) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/undoBulkMoveCopy`, {
       method: "post",
@@ -1132,7 +1152,7 @@ export function undoBulkMoveCopy(operation) {
 // Delete a training record
 export function deleteWorkoutById(trainingId, accountId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const data = await fetch(`${serverURL}/deleteWorkoutById`, {
       method: "post",
@@ -1164,7 +1184,7 @@ export function deleteWorkoutById(trainingId, accountId) {
 // Fetches training stats from a range
 export function requestTrainingWeek(date, workoutUser) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/trainingWeek`, {
       method: "post",
@@ -1193,7 +1213,7 @@ export function requestTrainingWeek(date, workoutUser) {
 // Fetches entire exercise list for the user
 export function requestMyExerciseList(user) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/myExerciseList`, {
       method: "post",
@@ -1217,7 +1237,7 @@ export function requestMyExerciseList(user) {
 
 export function getExerciseList() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/exerciseLibrary`, {
       dataType: "json",
@@ -1246,7 +1266,7 @@ export function requestExerciseProgress(targetExercise, user) {
       return; // Already cached
     }
 
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/exerciseHistory`, {
       method: "post",
@@ -1274,7 +1294,7 @@ export function requestExerciseProgress(targetExercise, user) {
 
 export function requestExerciseProgressSummary(user) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/exerciseProgressSummary`, {
       method: "post",
@@ -1298,7 +1318,7 @@ export function requestExerciseProgressSummary(user) {
 
 export function requestExerciseLibrary() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/exerciseLibrary`, {
       headers: {
@@ -1317,7 +1337,7 @@ export function requestExerciseLibrary() {
 
 export function updateExercise(exercise) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const state = getState();
 
     const response = await fetch(`${serverURL}/updateExercise`, {
@@ -1353,7 +1373,7 @@ export function updateExercise(exercise) {
 
 export function createExercise(exercise) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const state = getState();
 
     const response = await fetch(`${serverURL}/createExercise`, {
@@ -1386,7 +1406,7 @@ export function createExercise(exercise) {
 
 export function mergeExercises({ sourceExerciseId, targetExerciseId, deleteSource = true }) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const state = getState();
 
     const response = await fetch(`${serverURL}/mergeExercises`, {
@@ -1426,7 +1446,7 @@ export function mergeExercises({ sourceExerciseId, targetExerciseId, deleteSourc
 
 export function updateUserSettings(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/updateUser`, {
       method: "post",
       dataType: "json",
@@ -1446,7 +1466,7 @@ export function updateUserSettings(payload) {
     const accessToken = data.accessToken;
     const decodedAccessToken = jwt(accessToken);
 
-    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+    setAccessToken(accessToken);
     return dispatch({
       type: LOGIN_USER,
       user: decodedAccessToken,
@@ -1460,7 +1480,7 @@ export function updateThemeMode(mode) {
 
 export function requestMyTrainers() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/relationships/myTrainers`, {
       headers: {
@@ -1479,7 +1499,7 @@ export function requestMyTrainers() {
 
 export function requestClients() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/relationships/myClients`, {
       headers: {
@@ -1506,7 +1526,7 @@ export function requestClients() {
 
 export function changeRelationshipStatus(client, accepted) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     fetch(`${serverURL}/changeRelationshipStatus`, {
       method: "post",
@@ -1522,7 +1542,7 @@ export function changeRelationshipStatus(client, accepted) {
 
 export function updateRelationshipProfile({ client, engagementStatus, serviceTags }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/relationships/profile`, {
       method: "post",
@@ -1556,7 +1576,7 @@ export function updateRelationshipProfile({ client, engagementStatus, serviceTag
 
 export function getTrainers() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/trainers`, {
       headers: {
@@ -1575,7 +1595,7 @@ export function getTrainers() {
 
 export function requestTrainer(trainer) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/manageRelationship`, {
       method: "post",
@@ -1595,7 +1615,7 @@ export function requestTrainer(trainer) {
 
 export function removeRelationship(trainer, client) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/removeRelationship`, {
       method: "post",
@@ -1615,7 +1635,7 @@ export function removeRelationship(trainer, client) {
 
 export function updateMetricsApproval(trainer, metricsApprovalRequired) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/relationships/metricsApproval`, {
       method: "post",
@@ -1640,7 +1660,7 @@ export function updateMetricsApproval(trainer, metricsApprovalRequired) {
 
 export function getGoals({ requestedBy = "client", client }) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     let url = `${serverURL}/goals`;
     let response;
@@ -1679,7 +1699,7 @@ export function getGoals({ requestedBy = "client", client }) {
 
 export function updateGoal(updatedGoal) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/updateGoal`, {
       method: "post",
@@ -1701,7 +1721,7 @@ export function updateGoal(updatedGoal) {
 
 export function addNewGoal(newGoal) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/createGoal`, {
       method: "post",
@@ -1723,7 +1743,7 @@ export function addNewGoal(newGoal) {
 
 export function deleteGoal(goalId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/removeGoal`, {
       method: "post",
@@ -1747,7 +1767,7 @@ export function deleteGoal(goalId) {
 
 export function addGoalComment(goalId, newComment) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/commentGoal`, {
       method: "post",
@@ -1769,7 +1789,7 @@ export function addGoalComment(goalId, newComment) {
 
 export function removeGoalComment(goalId, commentId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/removeGoalComment`, {
       method: "post",
@@ -1791,7 +1811,7 @@ export function removeGoalComment(goalId, commentId) {
 
 export function markAchievementSeen(goalId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/goals/markAchievementSeen`, {
       method: "post",
@@ -1813,7 +1833,7 @@ export function markAchievementSeen(goalId) {
 
 export function requestMetrics({ userId } = {}) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/list`, {
       method: "post",
       dataType: "json",
@@ -1837,7 +1857,7 @@ export function requestMetrics({ userId } = {}) {
 
 export function requestPendingMetrics() {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/pending`, {
       method: "post",
       dataType: "json",
@@ -1860,7 +1880,7 @@ export function requestPendingMetrics() {
 
 export function requestLatestMetric({ userId } = {}) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/latest`, {
       method: "post",
       dataType: "json",
@@ -1884,7 +1904,7 @@ export function requestLatestMetric({ userId } = {}) {
 
 export function createMetricEntry(payload) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/create`, {
       method: "post",
       dataType: "json",
@@ -1908,7 +1928,7 @@ export function createMetricEntry(payload) {
 
 export function reviewMetricEntry(entryId, approved) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/review`, {
       method: "post",
       dataType: "json",
@@ -1931,7 +1951,7 @@ export function reviewMetricEntry(entryId, approved) {
 
 export function updateMetricEntry(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/update`, {
       method: "post",
       dataType: "json",
@@ -1954,7 +1974,7 @@ export function updateMetricEntry(payload) {
 
 export function deleteMetricEntry(entryId, userId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const response = await fetch(`${serverURL}/metrics/delete`, {
       method: "post",
       dataType: "json",
@@ -1980,7 +2000,7 @@ export function deleteMetricEntry(entryId, userId) {
 
 export function getConversations() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/conversation/getConversations`, {
       headers: {
@@ -2005,7 +2025,7 @@ export function getConversations() {
 
 export function sendMessage(conversationId, message) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/conversation/message/send`, {
       method: "post",
@@ -2042,7 +2062,7 @@ export function socketMessage(conversation) {
 
 export function deleteMessage(conversationId, messageId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     const response = await fetch(`${serverURL}/conversation/message/delete`, {
       method: "post",
@@ -2070,7 +2090,7 @@ export function deleteMessage(conversationId, messageId) {
 
 export function uploadProfilePicture(formData) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
 
     axios
       .post(`${serverURL}/user/upload/profilePicture`, formData, {
@@ -2080,7 +2100,7 @@ export function uploadProfilePicture(formData) {
         const accessToken = res.data.accessToken;
         const decodedAccessToken = jwt(accessToken);
 
-        localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
+        setAccessToken(accessToken);
         return dispatch({
           type: LOGIN_USER,
           user: decodedAccessToken,

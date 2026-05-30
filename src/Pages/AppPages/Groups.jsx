@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -49,7 +50,7 @@ export default function Groups() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const loadGroups = async () => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     setLoading(true);
     try {
       const response = await fetch(`${serverURL}/groups`, {
@@ -77,7 +78,7 @@ export default function Groups() {
 
   const handleCreateGroup = async () => {
     if (!createName.trim()) return;
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     try {
       const response = await fetch(`${serverURL}/groups`, {
         method: "post",

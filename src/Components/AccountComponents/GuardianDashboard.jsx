@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAccessToken, setAccessToken, setDelegatedReturnAccessToken } from "../../api/client";
 import {
   Box,
   Button,
@@ -36,7 +37,7 @@ const GuardianDashboard = () => {
 
   const authHeaders = {
     "Content-type": "application/json; charset=UTF-8",
-    Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+    Authorization: `Bearer ${getAccessToken()}`,
   };
 
   const canManageFamily =
@@ -131,10 +132,10 @@ const GuardianDashboard = () => {
       return;
     }
 
-    const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
-    if (currentAccess) localStorage.setItem("JWT_GUARDIAN_AUTH_TOKEN", currentAccess);
+    const currentAccess = getAccessToken();
+    if (currentAccess) setDelegatedReturnAccessToken("guardian", currentAccess);
 
-    localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
+    setAccessToken(data.accessToken);
     localStorage.setItem("JWT_VIEW_ONLY", "true");
     dispatch(loginJWT(data.accessToken));
     navigate("/");

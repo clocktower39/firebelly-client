@@ -1,0 +1,69 @@
+import js from "@eslint/js";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+
+const browserGlobals = {
+  console: "readonly",
+  document: "readonly",
+  fetch: "readonly",
+  FormData: "readonly",
+  localStorage: "readonly",
+  navigator: "readonly",
+  setInterval: "readonly",
+  clearInterval: "readonly",
+  setTimeout: "readonly",
+  clearTimeout: "readonly",
+  ClipboardItem: "readonly",
+  window: "readonly",
+  URL: "readonly",
+  URLSearchParams: "readonly",
+  requestAnimationFrame: "readonly",
+  structuredClone: "readonly",
+  process: "readonly",
+};
+
+export default [
+  { ignores: ["dist", "node_modules"] },
+  js.configs.recommended,
+  {
+    files: ["**/*.{js,jsx}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+      globals: browserGlobals,
+    },
+    settings: {
+      react: { version: "detect" },
+    },
+    plugins: {
+      react,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    rules: {
+      ...react.configs.recommended.rules,
+      ...react.configs["jsx-runtime"].rules,
+      ...reactHooks.configs.recommended.rules,
+      "no-case-declarations": "off",
+      "no-empty-pattern": "off",
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "react/jsx-key": "off",
+      "react/no-unescaped-entities": "off",
+      "react/no-unknown-property": "off",
+      "react/prop-types": "off",
+      "react/jsx-no-target-blank": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/static-components": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
+];

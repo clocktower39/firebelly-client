@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { getAccessToken } from "../../api/client";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Autocomplete,
@@ -211,7 +212,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
       return;
     }
     try {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const response = await fetch(`${serverURL}/goals/exerciseMaxAtReps`, {
         method: "POST",
         headers: {
@@ -725,7 +726,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
       return;
     }
     try {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const response = await fetch(`${serverURL}/goals/exerciseMaxAtReps`, {
         method: "POST",
         headers: {
@@ -994,7 +995,6 @@ export default function Goals({ view = "client", client, }) {
     setSelectedGoal(prev => {
       return prev ? goals.filter(goal => goal._id === prev._id)[0] : prev;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goals]);
 
   useEffect(() => {

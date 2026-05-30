@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+import {
+  getDelegatedReturnAccessToken,
+  hasDelegatedReturnAccessToken,
+  setAccessToken,
+  setDelegatedReturnAccessToken,
+} from "../../api/client";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -51,8 +57,8 @@ export default function NavDrawer() {
   const goals = useSelector((state) => state.goals);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const viewAsTrainer = Boolean(localStorage.getItem("JWT_TRAINER_AUTH_TOKEN"));
-  const viewAsGuardian = Boolean(localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN"));
+  const viewAsTrainer = hasDelegatedReturnAccessToken("trainer");
+  const viewAsGuardian = hasDelegatedReturnAccessToken("guardian");
   const isImpersonating = viewAsTrainer || viewAsGuardian;
   const roleLabel = isImpersonating
     ? viewAsTrainer
@@ -168,16 +174,16 @@ export default function NavDrawer() {
   const toggleDrawer = () => setOpen((prev) => !prev);
 
   const handleReturnFromView = () => {
-    const trainerAccess = localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
-    const guardianAccess = localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN");
+    const trainerAccess = getDelegatedReturnAccessToken("trainer");
+    const guardianAccess = getDelegatedReturnAccessToken("guardian");
     const returnAccess = trainerAccess || guardianAccess;
 
-    if (returnAccess) localStorage.setItem("JWT_AUTH_TOKEN", returnAccess);
+    if (returnAccess) setAccessToken(returnAccess);
     localStorage.removeItem("JWT_VIEW_ONLY");
     localStorage.removeItem("JWT_DELEGATED_SESSION");
-    localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
+    setDelegatedReturnAccessToken("guardian", null);
     localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
-    localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
+    setDelegatedReturnAccessToken("trainer", null);
     localStorage.removeItem("JWT_TRAINER_REFRESH_TOKEN");
 
     if (returnAccess) {

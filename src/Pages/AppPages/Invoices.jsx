@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -31,7 +32,7 @@ import { requestClients, serverURL } from "../../Redux/actions";
 
 const buildAuthHeaders = () => ({
   "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+  Authorization: `Bearer ${getAccessToken()}`,
 });
 
 const defaultLineItem = () => ({
@@ -214,10 +215,6 @@ export default function Invoices() {
     }
   }, [billToType, targetId, user.isTrainer]);
 
-  if (!user.isTrainer) {
-    return <Typography>You are not a trainer. This page is unavailable.</Typography>;
-  }
-
   const selectedClient = clients.find((clientRel) => clientRel.client?._id === selectedClientId);
   const selectedGroup = groups.find((entry) => entry.group?._id === selectedGroupId);
 
@@ -250,6 +247,10 @@ export default function Invoices() {
     sessionTypes.forEach((type) => map.set(type._id, type));
     return map;
   }, [sessionTypes]);
+
+  if (!user.isTrainer) {
+    return <Typography>You are not a trainer. This page is unavailable.</Typography>;
+  }
 
 
   const handleLineItemChange = (index, field, value) => {

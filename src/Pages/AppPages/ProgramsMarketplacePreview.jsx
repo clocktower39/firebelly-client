@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import {
   Box,
   Card,
@@ -16,7 +17,7 @@ export default function ProgramsMarketplacePreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const loadPrograms = async () => {
       setLoading(true);
       try {

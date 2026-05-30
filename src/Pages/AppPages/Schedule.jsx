@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -360,7 +361,7 @@ export default function Schedule() {
 
   const loadSessionTypes = useCallback(async () => {
     if (!user.isTrainer) return;
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     try {
       setSessionTypesStatus("");
       const response = await fetch(`${serverURL}/session-types`, {
@@ -486,7 +487,7 @@ export default function Schedule() {
     }
     setBillingLoading(true);
     try {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const response = await fetch(`${serverURL}/billing/summary`, {
         method: "post",
         dataType: "json",
@@ -803,7 +804,7 @@ export default function Schedule() {
 
   const handleSaveSessionType = async () => {
     if (!sessionTypeForm.name.trim()) return;
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const payload = {
       name: sessionTypeForm.name.trim(),
       description: sessionTypeForm.description.trim(),
@@ -883,7 +884,7 @@ export default function Schedule() {
   };
 
   const handleDeleteSessionType = async (typeId) => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     try {
       const response = await fetch(`${serverURL}/session-types/${typeId}`, {
         method: "delete",

@@ -139,7 +139,6 @@ export default function Calendar(props) {
 
   useEffect(() => {
     getWorkoutMonthData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -724,7 +723,6 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
     if (scrollToDate) {
       handleScroll(workoutRef);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollToDate]);
 
   const Wrapper = viewMode === "grid" ? Box : ListItem;

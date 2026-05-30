@@ -731,7 +731,6 @@ const ExerciseListAutocomplete = (props) => {
 
   useEffect(() => {
     exercise.set(title);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title]);
 
   useEffect(() => {
@@ -2489,7 +2488,6 @@ export default function Progress(props) {
     if (matchedExercise) {
       loadExerciseProgress(matchedExercise);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseList, searchValue, targetUser?._id]);
 
   useEffect(() => {
@@ -2504,7 +2502,6 @@ export default function Progress(props) {
         loadExerciseProgress(matchedSearchExercise);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseList]);
 
   useEffect(() => {

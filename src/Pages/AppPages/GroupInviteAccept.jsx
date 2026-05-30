@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -66,7 +67,7 @@ export default function GroupInviteAccept() {
     setAccepting(true);
     setError("");
     try {
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const response = await fetch(`${serverURL}/groups/invitations/accept`, {
         method: "post",
         headers: {

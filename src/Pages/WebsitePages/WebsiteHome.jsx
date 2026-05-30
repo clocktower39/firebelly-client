@@ -33,15 +33,8 @@ export default function Home() {
   const dispatch = useDispatch();
   const wide = useWindowWidth(775);
 
-  const handleLoginAttempt = async (e) => {
-    dispatch(loginJWT(localStorage.getItem("JWT_AUTH_TOKEN")));
-  };
-
   useEffect(() => {
-    if (localStorage.getItem("JWT_AUTH_TOKEN") !== null) {
-      handleLoginAttempt();
-    }
-    // eslint-disable-next-line
+    dispatch(loginJWT());
   }, []);
 
   return (

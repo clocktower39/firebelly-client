@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef, Fragment, useMemo } from "react";
+import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -809,8 +810,8 @@ export default function Workout({ socket }) {
   const isTrainerEditingClient =
     !!user?.isTrainer && !!training?.user?._id && String(user._id) !== String(training.user._id);
   const trainerAccessToken = user?.isTrainer
-    ? localStorage.getItem("JWT_AUTH_TOKEN")
-    : localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
+    ? getAccessToken()
+    : getDelegatedReturnAccessToken("trainer");
   const activeTrainerId = user?.isTrainer ? user._id : user?.trainerId || null;
   const canManageTrainerSession =
     !!trainerAccessToken &&
@@ -1369,7 +1370,7 @@ export default function Workout({ socket }) {
       return;
     }
 
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     const url = eventId ? `${serverURL}/schedule/event` : `${serverURL}/schedule/event/by-workout`;
     const body = eventId ? { _id: eventId } : { workoutId };
 

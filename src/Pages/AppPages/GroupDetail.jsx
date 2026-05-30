@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -166,7 +167,7 @@ export default function GroupDetail() {
   );
 
   const authHeaders = useMemo(() => {
-    const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+    const bearer = `Bearer ${getAccessToken()}`;
     return {
       "Content-type": "application/json; charset=UTF-8",
       Authorization: bearer,
@@ -450,7 +451,7 @@ export default function GroupDetail() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
+      const bearer = `Bearer ${getAccessToken()}`;
       const response = await fetch(`${serverURL}/groups/${groupId}/picture`, {
         method: "post",
         headers: {

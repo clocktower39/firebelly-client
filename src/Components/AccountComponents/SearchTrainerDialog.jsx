@@ -61,7 +61,6 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
 
   useEffect(() => {
     dispatch(getTrainers());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

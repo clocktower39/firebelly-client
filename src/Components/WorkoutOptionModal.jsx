@@ -84,16 +84,6 @@ export function ModalAction(props) {
       setWeightLabelUnitToggleEnabled,
     } = props;
 
-    if (!training?._id) {
-      return (
-        <Grid container sx={{ justifyContent: "center", padding: "10px" }}>
-          <Typography variant="caption" color="text.secondary">
-            Loading workout options...
-          </Typography>
-        </Grid>
-      );
-    }
-  
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = useSelector((state) => state.user);
@@ -136,7 +126,7 @@ export function ModalAction(props) {
       lastBulkOperation &&
       training?.user?._id &&
       String(lastBulkOperation.userId) === String(training.user._id);
-  
+
     const handleTitleChange = (e) => setNewTitle(e.target.value);
     const handleMoveModeChange = (e) => setMoveMode(e.target.value);
     const handleRangeStartChange = (e) => {
@@ -389,6 +379,16 @@ export function ModalAction(props) {
       training?.user?._id,
       includeCompleted,
     ]);
+
+    if (!training?._id) {
+      return (
+        <Grid container sx={{ justifyContent: "center", padding: "10px" }}>
+          <Typography variant="caption" color="text.secondary">
+            Loading workout options...
+          </Typography>
+        </Grid>
+      );
+    }
   
     switch (actionType) {
       case "move":

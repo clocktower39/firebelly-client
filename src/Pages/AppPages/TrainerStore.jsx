@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import { useSearchParams, Link } from "react-router-dom";
 import {
   Button,
@@ -16,7 +17,7 @@ import { requestMyTrainers, serverURL } from "../../Redux/actions";
 
 const buildHeaders = () => ({
   "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+  Authorization: `Bearer ${getAccessToken()}`,
 });
 
 export default function TrainerStore() {

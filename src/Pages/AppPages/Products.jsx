@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { getAccessToken } from "../../api/client";
 import {
   Button,
   Card,
@@ -35,7 +36,7 @@ const defaultForm = {
 
 const buildHeaders = () => ({
   "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`,
+  Authorization: `Bearer ${getAccessToken()}`,
 });
 
 export default function Products() {
@@ -82,7 +83,6 @@ export default function Products() {
     if (!user.isTrainer) return;
     loadProducts();
     loadSessionTypes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.isTrainer]);
 
   if (!user.isTrainer) {
