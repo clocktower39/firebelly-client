@@ -434,14 +434,14 @@ export default function Schedule() {
   const refreshSchedule = () => {
     const effectiveTrainerId = isTrainerView ? user._id : selectedTrainerId;
     if (!effectiveTrainerId) return;
-    const monthStart = selectedDate.startOf("month").startOf("day").toISOString();
-    const monthEnd = selectedDate.startOf("month").add(1, "month").startOf("day").toISOString();
+    const visibleWeekStart = selectedDate.startOf("week").startOf("day");
+    const visibleWeekEnd = visibleWeekStart.add(7, "day").startOf("day");
     const requestedClientId =
       isTrainerView && selectedClientIds.length === 1 ? selectedClientIds[0] : null;
     dispatch(
       requestScheduleRange({
-        startDate: monthStart,
-        endDate: monthEnd,
+        startDate: visibleWeekStart.toISOString(),
+        endDate: visibleWeekEnd.toISOString(),
         trainerId: effectiveTrainerId,
         clientId: isTrainerView ? requestedClientId : user._id,
         includeAvailability: true,
