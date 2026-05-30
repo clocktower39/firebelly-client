@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import axios from "axios";
-import { serverURL } from "../Redux/actions"; // Adjust the import based on your project structure
+import { useDispatch } from "react-redux";
+import { apiFetch } from "../api/client";
+import { loginJWT } from "../Redux/actions";
 
 function VerifyEmail() {
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
@@ -14,26 +16,22 @@ function VerifyEmail() {
 
   useEffect(() => {
     if (token && email) {
-      axios
-        .get(`${serverURL}/verify-email`, {
-          params: { token, email },
+      apiFetch(`/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`, {
+        auth: false,
+      })
+        .then((data) => {
+          setStatusMessage(data.message || "Email verified successfully!");
+          if (data.accessToken) {
+            dispatch(loginJWT(data.accessToken));
+          }
         })
-        .then((response) => {
-          setStatusMessage(response.data.message || "Email verified successfully!");
-          // Optionally redirect the user after verification
-          // setTimeout(() => {
-          //   navigate("/login");
-          // }, 3000);
-        })
-        .catch((error) => {
-          setErrorMessage(
-            error.response?.data?.error || "Failed to verify email. Please try again."
-          );
+        .catch(() => {
+          setErrorMessage("Failed to verify email. Please try again.");
         });
     } else {
       setErrorMessage("Invalid verification link.");
     }
-  }, [token, email]);
+  }, [dispatch, token, email]);
 
   return (
     <div className="verification-container">

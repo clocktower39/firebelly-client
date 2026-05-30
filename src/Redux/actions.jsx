@@ -1,5 +1,9 @@
 import { jwtDecode as jwt } from "jwt-decode";
 import axios from "axios";
+import { serverURL } from "../api/client";
+import { loginChild, loginJWT, loginUser, logoutUser } from "./authActions";
+
+export { loginChild, loginJWT, loginUser, logoutUser, serverURL };
 
 export const LOGIN_USER = "LOGIN_USER";
 export const LOGOUT_USER = "LOGOUT_USER";
@@ -37,9 +41,6 @@ export const EDIT_WORKOUT_QUEUE = "EDIT_WORKOUT_QUEUE";
 export const SET_LAST_BULK_OPERATION = "SET_LAST_BULK_OPERATION";
 export const CLEAR_LAST_BULK_OPERATION = "CLEAR_LAST_BULK_OPERATION";
 export const REMOVE_WORKOUTS = "REMOVE_WORKOUTS";
-
-const defaultServerURL = import.meta.env.DEV ? "/api" : "https://firebellyfitness.herokuapp.com";
-export const serverURL = import.meta.env.VITE_API_URL || defaultServerURL;
 
 const getDateKey = (value) => {
   if (!value) return "";
@@ -127,104 +128,6 @@ export function signupUser(user) {
   };
 }
 
-// Retrieves new JWT Token from username and password post request
-export function loginUser(user) {
-  return async (dispatch) => {
-    const response = await fetch(`${serverURL}/login`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(user),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    });
-    const data = await response.json();
-    if (data.error) {
-      return dispatch({
-        type: ERROR,
-        error: data.error,
-      });
-    }
-    const accessToken = data.accessToken;
-    const refreshToken = data.refreshToken;
-    const decodedAccessToken = jwt(accessToken);
-
-    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
-    localStorage.setItem("JWT_REFRESH_TOKEN", refreshToken);
-    return dispatch({
-      type: LOGIN_USER,
-      user: decodedAccessToken,
-    });
-  };
-}
-
-export function loginChild({ username, pin }) {
-  return async (dispatch) => {
-    const response = await fetch(`${serverURL}/login-child`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ username, pin }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    });
-    const data = await response.json();
-    if (data.error) {
-      return dispatch({
-        type: ERROR,
-        error: data.error,
-      });
-    }
-    const accessToken = data.accessToken;
-    const refreshToken = data.refreshToken;
-    const decodedAccessToken = jwt(accessToken);
-
-    localStorage.setItem("JWT_AUTH_TOKEN", accessToken);
-    localStorage.setItem("JWT_REFRESH_TOKEN", refreshToken);
-    return dispatch({
-      type: LOGIN_USER,
-      user: decodedAccessToken,
-    });
-  };
-}
-
-export const loginJWT = (accessTokenOverride) => {
-  return async (dispatch) => {
-    if (accessTokenOverride) {
-      const decodedAccessToken = jwt(accessTokenOverride);
-      localStorage.setItem("JWT_AUTH_TOKEN", accessTokenOverride);
-      return dispatch({
-        type: LOGIN_USER,
-        user: decodedAccessToken,
-      });
-    }
-
-    const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
-
-    const response = await fetch(`${serverURL}/refresh-tokens`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", // Set the content type to JSON
-      },
-      body: JSON.stringify({ refreshToken }), // Send the refresh token in the request body
-    });
-
-    const data = await response.json();
-    if (data.accessToken) {
-      const decodedAccessToken = jwt(data.accessToken);
-      localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
-      return dispatch({
-        type: LOGIN_USER,
-        user: decodedAccessToken,
-      });
-    } else {
-      return dispatch({
-        type: LOGOUT_USER,
-      });
-    }
-  };
-};
-
 export function enterClientAccount(clientId) {
   return async (dispatch) => {
     const bearer = `Bearer ${localStorage.getItem("JWT_AUTH_TOKEN")}`;
@@ -233,6 +136,7 @@ export function enterClientAccount(clientId) {
       const response = await fetch(`${serverURL}/relationships/client/token`, {
         method: "POST",
         dataType: "json",
+        credentials: "include",
         body: JSON.stringify({ clientId }),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
@@ -251,14 +155,9 @@ export function enterClientAccount(clientId) {
       }
 
       const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
-      const currentRefresh = localStorage.getItem("JWT_REFRESH_TOKEN");
 
       if (currentAccess && !localStorage.getItem("JWT_TRAINER_AUTH_TOKEN")) {
         localStorage.setItem("JWT_TRAINER_AUTH_TOKEN", currentAccess);
-      }
-
-      if (currentRefresh && !localStorage.getItem("JWT_TRAINER_REFRESH_TOKEN")) {
-        localStorage.setItem("JWT_TRAINER_REFRESH_TOKEN", currentRefresh);
       }
 
       localStorage.setItem("JWT_DELEGATED_SESSION", "trainer_client");
@@ -273,22 +172,6 @@ export function enterClientAccount(clientId) {
       });
       return { error };
     }
-  };
-}
-
-export function logoutUser() {
-  return async (dispatch) => {
-    localStorage.removeItem("JWT_AUTH_TOKEN");
-    localStorage.removeItem("JWT_REFRESH_TOKEN");
-    localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
-    localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");
-    localStorage.removeItem("JWT_TRAINER_AUTH_TOKEN");
-    localStorage.removeItem("JWT_TRAINER_REFRESH_TOKEN");
-    localStorage.removeItem("JWT_VIEW_ONLY");
-    localStorage.removeItem("JWT_DELEGATED_SESSION");
-    return dispatch({
-      type: LOGOUT_USER,
-    });
   };
 }
 

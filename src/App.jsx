@@ -83,7 +83,7 @@ function App({ }) {
     if (userId) {
       const newSocket = socketIOClient(getSocketURL(), {
         path: "/socket.io",
-        query: { userId },
+        auth: { token: localStorage.getItem("JWT_AUTH_TOKEN") },
         transports: ["websocket"],
         upgrade: false,
       });

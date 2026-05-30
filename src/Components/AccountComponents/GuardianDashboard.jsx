@@ -132,9 +132,7 @@ const GuardianDashboard = () => {
     }
 
     const currentAccess = localStorage.getItem("JWT_AUTH_TOKEN");
-    const currentRefresh = localStorage.getItem("JWT_REFRESH_TOKEN");
     if (currentAccess) localStorage.setItem("JWT_GUARDIAN_AUTH_TOKEN", currentAccess);
-    if (currentRefresh) localStorage.setItem("JWT_GUARDIAN_REFRESH_TOKEN", currentRefresh);
 
     localStorage.setItem("JWT_AUTH_TOKEN", data.accessToken);
     localStorage.setItem("JWT_VIEW_ONLY", "true");

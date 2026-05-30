@@ -4,7 +4,6 @@ import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { loginJWT } from "../Redux/actions";
 import Loading from "./Loading";
-import Footer from "./Footer";
 
 export const AuthRoute = (props) => {
   const dispatch = useDispatch();
@@ -26,26 +25,19 @@ export const AuthRoute = (props) => {
 
   useEffect(() => {
     const accessToken = localStorage.getItem("JWT_AUTH_TOKEN");
-    const refreshToken = localStorage.getItem("JWT_REFRESH_TOKEN");
     const viewOnly = localStorage.getItem("JWT_VIEW_ONLY") === "true";
     const delegatedSession = Boolean(localStorage.getItem("JWT_DELEGATED_SESSION"));
 
-    if (accessToken) {
-      if (checkTokenExpiry(accessToken)) {
-        if (!user._id) {
-          dispatch(loginJWT(accessToken)).then(() => setLoading(false));
-        } else {
-          setLoading(false);
-        }
+    if (accessToken && checkTokenExpiry(accessToken)) {
+      if (!user._id) {
+        dispatch(loginJWT(accessToken)).then(() => setLoading(false));
       } else {
-        if (refreshToken && !viewOnly && !delegatedSession) {
-          dispatch(loginJWT())
-            .then(() => setLoading(false))
-            .catch(() => setLoading(false));
-        } else {
-          setLoading(false);
-        }
+        setLoading(false);
       }
+    } else if (!viewOnly && !delegatedSession) {
+      dispatch(loginJWT())
+        .then(() => setLoading(false))
+        .catch(() => setLoading(false));
     } else {
       setLoading(false);
     }

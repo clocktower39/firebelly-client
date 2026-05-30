@@ -169,14 +169,10 @@ export default function NavDrawer() {
 
   const handleReturnFromView = () => {
     const trainerAccess = localStorage.getItem("JWT_TRAINER_AUTH_TOKEN");
-    const trainerRefresh = localStorage.getItem("JWT_TRAINER_REFRESH_TOKEN");
     const guardianAccess = localStorage.getItem("JWT_GUARDIAN_AUTH_TOKEN");
-    const guardianRefresh = localStorage.getItem("JWT_GUARDIAN_REFRESH_TOKEN");
     const returnAccess = trainerAccess || guardianAccess;
-    const returnRefresh = trainerRefresh || guardianRefresh;
 
     if (returnAccess) localStorage.setItem("JWT_AUTH_TOKEN", returnAccess);
-    if (returnRefresh) localStorage.setItem("JWT_REFRESH_TOKEN", returnRefresh);
     localStorage.removeItem("JWT_VIEW_ONLY");
     localStorage.removeItem("JWT_DELEGATED_SESSION");
     localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
