@@ -6,9 +6,17 @@ let accessTokenMemory = null;
 let trainerReturnAccessToken = null;
 let guardianReturnAccessToken = null;
 let refreshPromise = null;
+let authChannel = null;
 const originalFetch = globalThis.fetch?.bind(globalThis);
 const nativeFetch = (...args) => originalFetch(...args);
 let fetchInstalled = false;
+const pendingAccessTokenRequests = new Map();
+const AUTH_CHANNEL_NAME = "firebelly-auth";
+const AUTH_MESSAGE = {
+  requestAccessToken: "REQUEST_ACCESS_TOKEN",
+  accessToken: "ACCESS_TOKEN",
+  clearAuth: "CLEAR_AUTH",
+};
 
 export const apiUrl = (pathOrUrl) => {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
@@ -17,6 +25,69 @@ export const apiUrl = (pathOrUrl) => {
 };
 
 export const getAccessToken = () => accessTokenMemory;
+
+const getAuthChannel = () => {
+  if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") return null;
+  if (authChannel) return authChannel;
+
+  authChannel = new BroadcastChannel(AUTH_CHANNEL_NAME);
+  authChannel.addEventListener("message", (event) => {
+    const message = event.data || {};
+
+    if (message.type === AUTH_MESSAGE.requestAccessToken && accessTokenMemory) {
+      authChannel.postMessage({
+        type: AUTH_MESSAGE.accessToken,
+        requestId: message.requestId,
+        accessToken: accessTokenMemory,
+      });
+      return;
+    }
+
+    if (message.type === AUTH_MESSAGE.accessToken && message.requestId) {
+      const pending = pendingAccessTokenRequests.get(message.requestId);
+      if (!pending) return;
+
+      clearTimeout(pending.timeoutId);
+      pendingAccessTokenRequests.delete(message.requestId);
+      if (message.accessToken) setAccessToken(message.accessToken);
+      pending.resolve(message.accessToken || null);
+      return;
+    }
+
+    if (message.type === AUTH_MESSAGE.clearAuth) {
+      accessTokenMemory = null;
+      trainerReturnAccessToken = null;
+      guardianReturnAccessToken = null;
+    }
+  });
+
+  return authChannel;
+};
+
+export const initializeAuthTokenSync = () => {
+  getAuthChannel();
+};
+
+export const requestAccessTokenFromOpenTab = (timeoutMs = 500) => {
+  if (accessTokenMemory) return Promise.resolve(accessTokenMemory);
+
+  const channel = getAuthChannel();
+  if (!channel) return Promise.resolve(null);
+
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return new Promise((resolve) => {
+    const timeoutId = setTimeout(() => {
+      pendingAccessTokenRequests.delete(requestId);
+      resolve(null);
+    }, timeoutMs);
+
+    pendingAccessTokenRequests.set(requestId, { resolve, timeoutId });
+    channel.postMessage({
+      type: AUTH_MESSAGE.requestAccessToken,
+      requestId,
+    });
+  });
+};
 
 export const setDelegatedReturnAccessToken = (type, token) => {
   if (type === "guardian") {
@@ -42,6 +113,7 @@ export const clearAuthStorage = () => {
   accessTokenMemory = null;
   trainerReturnAccessToken = null;
   guardianReturnAccessToken = null;
+  getAuthChannel()?.postMessage({ type: AUTH_MESSAGE.clearAuth });
   localStorage.removeItem("JWT_REFRESH_TOKEN");
   localStorage.removeItem("JWT_GUARDIAN_AUTH_TOKEN");
   localStorage.removeItem("JWT_GUARDIAN_REFRESH_TOKEN");

@@ -345,27 +345,6 @@ export default function NavDrawer() {
                 </Badge>
               </IconButton>
               <Button component={Link} to="/"
-                onClick={(e) => {
-                  const isHome = window.location.pathname === "/";
-                  const hasQuery = window.location.search.length > 0;
-
-                  // Case 1: Already on "/", no query — reload
-                  if (isHome && !hasQuery) {
-                    e.preventDefault();
-                    navigate(0); // force reload
-                    return;
-                  }
-
-                  // Case 2: At "/?date=...", clear it
-                  if (hasQuery) {
-                    e.preventDefault();
-                    navigate("/"); // go to clean "/"
-                    navigate(0);
-                    return;
-                  }
-
-                  // Otherwise allow normal navigation
-                }}
                 sx={{
                   textTransform: "none",
                   px: 1,

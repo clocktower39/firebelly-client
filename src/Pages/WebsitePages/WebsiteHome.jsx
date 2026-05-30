@@ -34,7 +34,7 @@ export default function Home() {
   const wide = useWindowWidth(775);
 
   useEffect(() => {
-    dispatch(loginJWT());
+    dispatch(loginJWT(undefined, { clearOnFailure: false }));
   }, []);
 
   return (

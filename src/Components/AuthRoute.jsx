@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAccessToken } from "../api/client";
+import { getAccessToken, requestAccessTokenFromOpenTab } from "../api/client";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useOutletContext } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -25,23 +25,44 @@ export const AuthRoute = (props) => {
   };
 
   useEffect(() => {
-    const accessToken = getAccessToken();
+    let active = true;
     const viewOnly = localStorage.getItem("JWT_VIEW_ONLY") === "true";
     const delegatedSession = Boolean(localStorage.getItem("JWT_DELEGATED_SESSION"));
 
-    if (accessToken && checkTokenExpiry(accessToken)) {
-      if (!user._id) {
-        dispatch(loginJWT(accessToken)).then(() => setLoading(false));
-      } else {
-        setLoading(false);
+    const finishLoading = () => {
+      if (active) setLoading(false);
+    };
+
+    const resumeSession = async () => {
+      const hydrateAccessToken = async (accessToken) => {
+        if (!accessToken || !checkTokenExpiry(accessToken)) return false;
+        if (!user._id) {
+          await dispatch(loginJWT(accessToken));
+        }
+        return true;
+      };
+
+      if (await hydrateAccessToken(getAccessToken())) {
+        finishLoading();
+        return;
       }
-    } else if (!viewOnly && !delegatedSession) {
-      dispatch(loginJWT())
-        .then(() => setLoading(false))
-        .catch(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+
+      if (await hydrateAccessToken(await requestAccessTokenFromOpenTab())) {
+        finishLoading();
+        return;
+      }
+
+      if (!viewOnly && !delegatedSession) {
+        await dispatch(loginJWT(undefined, { clearOnFailure: Boolean(user._id) }));
+      }
+      finishLoading();
+    };
+
+    resumeSession().catch(finishLoading);
+
+    return () => {
+      active = false;
+    };
   }, [dispatch, user._id]);
 
   return loading ? (

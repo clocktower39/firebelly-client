@@ -51,8 +51,10 @@ export function loginChild({ username, pin }) {
   };
 }
 
-export const loginJWT = (accessTokenOverride) => {
+export const loginJWT = (accessTokenOverride, options = {}) => {
   return async (dispatch) => {
+    const { clearOnFailure = true } = options;
+
     if (accessTokenOverride) {
       const decodedAccessToken = jwt(accessTokenOverride);
       setAccessToken(accessTokenOverride);
@@ -77,10 +79,17 @@ export const loginJWT = (accessTokenOverride) => {
       });
     }
 
-    clearAuthStorage();
-    return dispatch({
-      type: "LOGOUT_USER",
-    });
+    if (clearOnFailure) {
+      clearAuthStorage();
+      return dispatch({
+        type: "LOGOUT_USER",
+      });
+    }
+
+    return {
+      authenticated: false,
+      error: data?.error || "Unable to resume session.",
+    };
   };
 };
 

@@ -18,7 +18,7 @@ import {
   CheckBox as CheckBoxIcon,
   CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
 } from "@mui/icons-material";
-import { enterClientAccount, requestClients, requestWorkoutsByRange } from "../../Redux/actions";
+import { enterClientAccount, requestClients, requestWorkoutsByDatesIfNeeded } from "../../Redux/actions";
 import {
   getRelationshipEngagementStatus,
   isRelationshipActivelyCoached,
@@ -81,12 +81,21 @@ export default function WeeklyClientWorkoutTracker({
     () => Array.from({ length: 7 }, (_, index) => weekStart.add(index, "day")),
     [weekStart]
   );
-  const acceptedClientKey = useMemo(
-    () => acceptedClients.map((client) => client._id).join("|"),
-    [acceptedClients]
+  const clientsToLoad = useMemo(() => {
+    if (mode !== "day") return acceptedClients;
+
+    const selectedWeekday = displayDate.day();
+    return acceptedClients.filter((client) =>
+      (client.preferredWorkoutDays || []).map(Number).includes(selectedWeekday)
+    );
+  }, [acceptedClients, displayDate, mode]);
+  const dateKeysToLoad = useMemo(
+    () =>
+      mode === "day"
+        ? [displayDate.format("YYYY-MM-DD")]
+        : weekDays.map((day) => day.format("YYYY-MM-DD")),
+    [displayDate, mode, weekDays]
   );
-  const rangeStart = weekStart.format("YYYY-MM-DD");
-  const rangeEnd = weekStart.add(6, "day").format("YYYY-MM-DD");
 
   useEffect(() => {
     if (user?.isTrainer) {
@@ -95,7 +104,7 @@ export default function WeeklyClientWorkoutTracker({
   }, [dispatch, user?.isTrainer]);
 
   useEffect(() => {
-    if (!user?.isTrainer || acceptedClients.length === 0) {
+    if (!user?.isTrainer || clientsToLoad.length === 0) {
       setLoadingWeek(false);
       return;
     }
@@ -104,8 +113,8 @@ export default function WeeklyClientWorkoutTracker({
     setLoadingWeek(true);
 
     Promise.all(
-      acceptedClients.map((client) =>
-        dispatch(requestWorkoutsByRange(rangeStart, rangeEnd, client._id))
+      clientsToLoad.map((client) =>
+        dispatch(requestWorkoutsByDatesIfNeeded(dateKeysToLoad, client._id))
       )
     ).finally(() => {
       if (active) {
@@ -116,7 +125,7 @@ export default function WeeklyClientWorkoutTracker({
     return () => {
       active = false;
     };
-  }, [acceptedClientKey, acceptedClients, dispatch, rangeEnd, rangeStart, user?.isTrainer]);
+  }, [clientsToLoad, dateKeysToLoad, dispatch, user?.isTrainer]);
 
   const unscheduledClients = useMemo(
     () =>
@@ -481,7 +490,7 @@ export default function WeeklyClientWorkoutTracker({
               size="small"
               variant="outlined"
               icon={<CircularProgress size={14} />}
-              label="Refreshing week"
+              label={mode === "day" ? "Refreshing day" : "Refreshing week"}
             />
           )}
         </Stack>

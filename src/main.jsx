@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import "./index.css";
 import { Provider } from "react-redux";
 import { store } from "./Redux/store";
-import { installAuthenticatedFetch } from "./api/client";
+import { initializeAuthTokenSync, installAuthenticatedFetch } from "./api/client";
 
 // Temporary remove <React.StrictMode> parent container for react-beautiful-dnd, will replace with @dnd-kit/core
 /*
@@ -13,6 +13,7 @@ import { installAuthenticatedFetch } from "./api/client";
 */
 
 installAuthenticatedFetch();
+initializeAuthTokenSync();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>

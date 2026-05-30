@@ -160,7 +160,7 @@ function Home() {
       setLoading(true);
     }
 
-    dispatch(requestWorkoutsByDatesIfNeeded(requiredWorkoutDates, client)).finally(() => {
+    dispatch(requestWorkoutsByDatesIfNeeded(missingWorkoutDates, client)).finally(() => {
       setBorderHighlight(!isPersonalWorkout());
       setLoading(false);
     });
