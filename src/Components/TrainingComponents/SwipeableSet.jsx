@@ -19,6 +19,7 @@ import {
   Paper,
   Radio,
   RadioGroup,
+  Slide,
   TextField,
   Toolbar,
   Tooltip,
@@ -33,10 +34,13 @@ import {
 } from "@mui/icons-material";
 import SwipeableViewsModule from "react-swipeable-views";
 import Exercise from "./Exercise";
-import { ExerciseListAutocomplete, Transition } from "../../Pages/AppPages/Workout";
+import { ExerciseListAutocomplete } from "../../features/workout/components/AddExercisesDialog";
 import dayjs from "dayjs";
 
 const SwipeableViews = SwipeableViewsModule.default ?? SwipeableViewsModule;
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 function SwipeableSet(props) {
   const {
