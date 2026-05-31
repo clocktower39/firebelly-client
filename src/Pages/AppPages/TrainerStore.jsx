@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { billingApi } from "../../api/billingApi";
 import { useSearchParams, Link } from "react-router-dom";
 import {
   Button,
@@ -13,12 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { requestMyTrainers, serverURL } from "../../Redux/actions";
-
-const buildHeaders = () => ({
-  "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${getAccessToken()}`,
-});
+import { requestMyTrainers } from "../../Redux/actions";
 
 export default function TrainerStore() {
   const [searchParams] = useSearchParams();
@@ -44,11 +39,7 @@ export default function TrainerStore() {
     if (!trainerId) return;
     const fetchProducts = async () => {
       try {
-        const response = await fetch(
-          `${serverURL}/products?trainerId=${trainerId}&activeOnly=true`,
-          { headers: buildHeaders() }
-        );
-        const data = await response.json();
+        const data = await billingApi.listProducts({ trainerId, activeOnly: true });
         if (data?.error) throw new Error(data.error);
         setProducts(data.products || []);
       } catch (err) {
@@ -86,18 +77,13 @@ export default function TrainerStore() {
       return;
     }
     try {
-      const response = await fetch(`${serverURL}/invoices/request`, {
-        method: "post",
-        headers: buildHeaders(),
-        body: JSON.stringify({
-          trainerId,
-          lineItems: cartItems.map(({ product, quantity }) => ({
-            productId: product._id,
-            quantity,
-          })),
-        }),
+      const data = await billingApi.requestInvoice({
+        trainerId,
+        lineItems: cartItems.map(({ product, quantity }) => ({
+          productId: product._id,
+          quantity,
+        })),
       });
-      const data = await response.json();
       if (data?.error) throw new Error(data.error);
       setStatus("Purchase request sent to trainer.");
       setQuantities({});

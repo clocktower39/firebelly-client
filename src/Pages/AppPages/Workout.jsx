@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, Fragment, useMemo } from "react";
 import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
+import { scheduleApi } from "../../api/scheduleApi";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -764,20 +765,11 @@ export default function Workout({ socket }) {
       return;
     }
 
-    const bearer = `Bearer ${getAccessToken()}`;
-    const url = eventId ? `${serverURL}/schedule/event` : `${serverURL}/schedule/event/by-workout`;
-    const body = eventId ? { _id: eventId } : { workoutId };
+    const request = eventId
+      ? scheduleApi.getEvent(eventId)
+      : scheduleApi.getEventByWorkout(workoutId);
 
-    fetch(url, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    })
-      .then((res) => res.json())
+    request
       .then((data) => {
         if (data?.event) {
           setScheduleEvent(data.event);

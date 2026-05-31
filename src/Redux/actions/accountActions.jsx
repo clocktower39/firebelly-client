@@ -1,70 +1,24 @@
 import { jwtDecode as jwt } from "jwt-decode";
-import axios from "axios";
+import { accountApi } from "../../api/accountApi";
+import { authApi } from "../../api/authApi";
 import {
-  authFetch,
   getAccessToken,
-  getDelegatedReturnAccessToken,
   hasDelegatedReturnAccessToken,
-  serverURL,
   setAccessToken,
   setDelegatedReturnAccessToken,
 } from "../../api/client";
 import { loginUser, loginJWT } from "../authActions";
 import {
-  ADD_METRIC_ENTRY,
-  ADD_NEW_GOAL,
-  ADD_WORKOUT,
-  CLEAR_LAST_BULK_OPERATION,
-  DELETE_GOAL,
-  DELETE_METRIC_ENTRY,
-  EDIT_EXERCISE_LIBRARY,
-  EDIT_HOME_WORKOUTS,
-  EDIT_METRICS_ENTRIES,
-  EDIT_METRICS_LATEST,
-  EDIT_METRICS_PENDING,
-  EDIT_MYACCOUNT,
-  EDIT_PROGRESS_EXERCISE_LIST,
-  EDIT_PROGRESS_EXERCISE_SUMMARIES,
-  EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
-  EDIT_SCHEDULE_EVENTS,
-  EDIT_SESSION_SUMMARY,
-  EDIT_TRAINING,
-  EDIT_WORKOUT_QUEUE,
-  EDIT_WORKOUTS,
   ERROR,
   GET_CLIENTS,
-  GET_GOALS,
   GET_TRAINERS,
   LOGIN_USER,
-  LOGOUT_USER,
-  SIGNUP_USER,
-  REMOVE_WORKOUTS,
-  REVIEW_METRIC_ENTRY,
-  SET_LAST_BULK_OPERATION,
-  UPDATE_CONVERSATION_MESSAGES,
-  UPDATE_CONVERSATIONS,
-  UPDATE_GOAL,
-  UPDATE_METRIC_ENTRY,
   UPDATE_MY_TRAINERS,
-  UPSERT_WORKOUT,
 } from "../actionTypes";
-import {
-  getContiguousDateRanges,
-  getDateKeysInRange,
-  normalizeWorkoutWeights,
-} from "../actionUtils";
 
 export function signupUser(user) {
   return async (dispatch) => {
-    const response = await fetch(`${serverURL}/signup`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(user),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    });
-    const data = await response.json();
+    const data = await authApi.signup(user);
     if (data.error) {
       dispatch({
         type: ERROR,
@@ -79,20 +33,8 @@ export function signupUser(user) {
 
 export function enterClientAccount(clientId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
     try {
-      const response = await fetch(`${serverURL}/relationships/client/token`, {
-        method: "POST",
-        dataType: "json",
-        credentials: "include",
-        body: JSON.stringify({ clientId }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
+      const data = await authApi.getClientAccessToken(clientId);
 
       if (!data.accessToken) {
         const error = data.error || "Unable to enter client view.";
@@ -126,18 +68,7 @@ export function enterClientAccount(clientId) {
 
 export function changePassword(currentPassword, newPassword) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/changePassword`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ currentPassword, newPassword }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await authApi.changePassword({ currentPassword, newPassword });
     if (data.error) return data;
 
     const accessToken = data.accessToken;
@@ -153,20 +84,7 @@ export function changePassword(currentPassword, newPassword) {
 
 export function editUser(user) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/updateUser`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        ...user,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await authApi.updateUser({ ...user });
 
     if (data.status === "error") {
       return dispatch({
@@ -188,17 +106,7 @@ export function editUser(user) {
 
 export function updateUserSettings(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/updateUser`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await authApi.updateUser(payload);
     if (data.error) {
       return dispatch({
         type: ERROR,
@@ -222,15 +130,7 @@ export function updateThemeMode(mode) {
 
 export function requestMyTrainers() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/relationships/myTrainers`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let myTrainers = await response.json();
+    let myTrainers = await accountApi.getMyTrainers();
 
     return dispatch({
       type: UPDATE_MY_TRAINERS,
@@ -241,15 +141,7 @@ export function requestMyTrainers() {
 
 export function requestClients() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/relationships/myClients`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let clients = await response.json();
+    let clients = await accountApi.getMyClients();
 
     if (!Array.isArray(clients)) {
       dispatch({
@@ -268,39 +160,17 @@ export function requestClients() {
 
 export function changeRelationshipStatus(client, accepted) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    fetch(`${serverURL}/changeRelationshipStatus`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ client, accepted }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    }).then(() => dispatch(requestClients()));
+    accountApi.changeRelationshipStatus({ client, accepted }).then(() => dispatch(requestClients()));
   };
 }
 
 export function updateRelationshipProfile({ client, engagementStatus, serviceTags }) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/relationships/profile`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
-        client,
-        engagementStatus,
-        serviceTags,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
+    const data = await accountApi.updateRelationshipProfile({
+      client,
+      engagementStatus,
+      serviceTags,
     });
-
-    const data = await response.json();
 
     if (data?.error || data?.message) {
       const error = data?.error || data?.message || "Unable to update client settings.";
@@ -318,15 +188,7 @@ export function updateRelationshipProfile({ client, engagementStatus, serviceTag
 
 export function getTrainers() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/trainers`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let trainers = await response.json();
+    let trainers = await accountApi.getTrainers();
 
     return dispatch({
       type: GET_TRAINERS,
@@ -337,18 +199,7 @@ export function getTrainers() {
 
 export function requestTrainer(trainer) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/manageRelationship`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ trainer }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let data = await response.json();
+    let data = await accountApi.requestTrainer(trainer);
     if (data.status === "success") {
       dispatch(requestMyTrainers());
     }
@@ -357,18 +208,8 @@ export function requestTrainer(trainer) {
 
 export function removeRelationship(trainer, client) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/removeRelationship`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ trainer, client }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    if (response.status === 200) {
+    const data = await accountApi.removeRelationship({ trainer, client });
+    if (!data?.error) {
       dispatch(requestMyTrainers());
       dispatch(requestClients());
     }
@@ -377,18 +218,7 @@ export function removeRelationship(trainer, client) {
 
 export function updateMetricsApproval(trainer, metricsApprovalRequired) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/relationships/metricsApproval`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ trainer, metricsApprovalRequired }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await accountApi.updateMetricsApproval({ trainer, metricsApprovalRequired });
     if (data.error) {
       return dispatch({
         type: ERROR,

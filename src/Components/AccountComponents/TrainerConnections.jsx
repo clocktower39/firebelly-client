@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { accountApi } from "../../api/accountApi";
 import { useSelector } from "react-redux";
 import {
   Avatar,
@@ -35,7 +35,6 @@ import {
   Delete as DeleteIcon,
   Message as MessageIcon,
 } from "@mui/icons-material";
-import { serverURL } from "../../Redux/actions";
 import Messages from "../Messages";
 
 const DEFAULT_PERMISSION_STORAGE_KEY = "TRAINER_CONNECTION_DEFAULT_PERMISSIONS";
@@ -95,18 +94,10 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
   const [defaultPermissions, setDefaultPermissions] = useState(loadDefaultPermissions);
   const [openMessageDrawer, setOpenMessageDrawer] = useState(false);
 
-  const authHeaders = {
-    "Content-type": "application/json; charset=UTF-8",
-    Authorization: `Bearer ${getAccessToken()}`,
-  };
-
   const loadConnections = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${serverURL}/trainer-connections`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await accountApi.getTrainerConnections();
       if (data.error) throw new Error(data.error);
       setConnections({
         pending: data.pending || { incoming: [], outgoing: [] },
@@ -142,12 +133,7 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
     if (searchQuery.trim().length < 2) return;
     setSearching(true);
     try {
-      const response = await fetch(`${serverURL}/trainer-connections/search`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({ query: searchQuery }),
-      });
-      const data = await response.json();
+      const data = await accountApi.searchTrainerConnections({ query: searchQuery });
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (err) {
       setSearchResults([]);
@@ -158,12 +144,10 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
 
   const requestConnection = async (recipientId) => {
     try {
-      const response = await fetch(`${serverURL}/trainer-connections/request`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({ recipientId, permissions: defaultPermissionList }),
+      const data = await accountApi.requestTrainerConnection({
+        recipientId,
+        permissions: defaultPermissionList,
       });
-      const data = await response.json();
       if (data.error) throw new Error(data.error);
       setSearchDialogOpen(false);
       setSearchQuery("");
@@ -176,12 +160,7 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
 
   const respondToConnection = async (connectionId, accept) => {
     try {
-      const response = await fetch(`${serverURL}/trainer-connections/respond`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({ connectionId, accept }),
-      });
-      const data = await response.json();
+      const data = await accountApi.respondTrainerConnection({ connectionId, accept });
       if (data.error) throw new Error(data.error);
       loadConnections();
     } catch (err) {
@@ -191,12 +170,7 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
 
   const removeConnection = async (connectionId) => {
     try {
-      const response = await fetch(`${serverURL}/trainer-connections/remove`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({ connectionId }),
-      });
-      const data = await response.json();
+      const data = await accountApi.removeTrainerConnection({ connectionId });
       if (data.error) throw new Error(data.error);
       loadConnections();
     } catch (err) {

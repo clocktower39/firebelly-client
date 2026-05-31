@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
+import { scheduleApi } from "../../api/scheduleApi";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -18,7 +19,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { createScheduleEvent, deleteScheduleEvent, serverURL, updateScheduleEvent } from "../../Redux/actions";
+import { createScheduleEvent, deleteScheduleEvent, updateScheduleEvent } from "../../Redux/actions";
 
 dayjs.extend(utc);
 
@@ -87,16 +88,10 @@ export default function WorkoutTrainerSessionDialog({
   useEffect(() => {
     if (!open || !canManageTrainerSessions) return;
 
-    const bearer = `Bearer ${trainerAccessToken}`;
     let active = true;
 
-    fetch(`${serverURL}/session-types`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    })
-      .then((res) => res.json())
+    scheduleApi
+      .getSessionTypes(trainerAccessToken)
       .then((data) => {
         if (!active) return;
         if (data?.error) {
@@ -125,22 +120,13 @@ export default function WorkoutTrainerSessionDialog({
       return;
     }
 
-    const bearer = `Bearer ${trainerAccessToken}`;
     let active = true;
     setExistingEvent(null);
     setEventLoading(true);
     setEventStatus("");
 
-    fetch(`${serverURL}/schedule/event/by-workout`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ workoutId: selectedWorkout._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    })
-      .then((res) => res.json())
+    scheduleApi
+      .getEventByWorkout(selectedWorkout._id, trainerAccessToken)
       .then((data) => {
         if (!active) return;
         if (data?.error) {

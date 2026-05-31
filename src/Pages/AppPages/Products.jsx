@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { billingApi } from "../../api/billingApi";
+import { scheduleApi } from "../../api/scheduleApi";
 import {
   Button,
   Card,
@@ -18,7 +19,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useSelector } from "react-redux";
-import { serverURL } from "../../Redux/actions";
 
 const defaultForm = {
   itemType: "SESSION",
@@ -33,11 +33,6 @@ const defaultForm = {
   deliverableType: "NONE",
   deliverableValue: "",
 };
-
-const buildHeaders = () => ({
-  "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${getAccessToken()}`,
-});
 
 export default function Products() {
   const user = useSelector((state) => state.user);
@@ -55,10 +50,7 @@ export default function Products() {
 
   const loadProducts = async () => {
     try {
-      const response = await fetch(`${serverURL}/products?trainerId=${user._id}&activeOnly=false`, {
-        headers: buildHeaders(),
-      });
-      const data = await response.json();
+      const data = await billingApi.listProducts({ trainerId: user._id, activeOnly: false });
       if (data?.error) throw new Error(data.error);
       setProducts(data.products || []);
     } catch (err) {
@@ -68,10 +60,7 @@ export default function Products() {
 
   const loadSessionTypes = async () => {
     try {
-      const response = await fetch(`${serverURL}/session-types`, {
-        headers: buildHeaders(),
-      });
-      const data = await response.json();
+      const data = await scheduleApi.getSessionTypes();
       if (data?.error) throw new Error(data.error);
       setSessionTypes(data.sessionTypes || []);
     } catch (err) {
@@ -155,15 +144,9 @@ export default function Products() {
     };
 
     try {
-      const url = editingId
-        ? `${serverURL}/products/${editingId}`
-        : `${serverURL}/products`;
-      const response = await fetch(url, {
-        method: editingId ? "put" : "post",
-        headers: buildHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = editingId
+        ? await billingApi.updateProduct(editingId, payload)
+        : await billingApi.createProduct(payload);
       if (data?.error) throw new Error(data.error);
       setStatus("");
       resetForm();
@@ -175,11 +158,7 @@ export default function Products() {
 
   const handleDelete = async (productId) => {
     try {
-      const response = await fetch(`${serverURL}/products/${productId}`, {
-        method: "delete",
-        headers: buildHeaders(),
-      });
-      const data = await response.json();
+      const data = await billingApi.deleteProduct(productId);
       if (data?.error) throw new Error(data.error);
       loadProducts();
     } catch (err) {

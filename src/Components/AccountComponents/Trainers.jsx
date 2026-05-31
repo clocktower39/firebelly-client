@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAccessToken } from "../../api/client";
+import { billingApi } from "../../api/billingApi";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -69,24 +69,14 @@ export default function Trainers({ socket }) {
     const loadCredits = async () => {
       setCreditsLoading(true);
       setCreditsError("");
-      const bearer = `Bearer ${getAccessToken()}`;
       const acceptedTrainers = myTrainers.filter((trainer) => trainer.accepted);
       const results = await Promise.all(
         acceptedTrainers.map(async (trainer) => {
           try {
-            const response = await fetch(`${serverURL}/billing/summary`, {
-              method: "post",
-              dataType: "json",
-              headers: {
-                "Content-type": "application/json; charset=UTF-8",
-                Authorization: bearer,
-              },
-              body: JSON.stringify({
-                trainerId: trainer.trainer,
-                clientId: user._id,
-              }),
+            const data = await billingApi.getSummary({
+              trainerId: trainer.trainer,
+              clientId: user._id,
             });
-            const data = await response.json();
             if (data?.error) {
               throw new Error(data.error);
             }

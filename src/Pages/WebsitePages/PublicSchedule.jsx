@@ -4,6 +4,7 @@ import { Avatar, Box, Button, Card, CardContent, Container, Divider, Stack, Text
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { scheduleApi } from "../../api/scheduleApi";
 import { serverURL } from "../../Redux/actions";
 
 dayjs.extend(utc);
@@ -27,19 +28,12 @@ export default function PublicSchedule() {
     const weekStart = selectedDate.startOf("week").startOf("day").toISOString();
     const weekEnd = selectedDate.startOf("week").add(7, "day").startOf("day").toISOString();
 
-    fetch(`${serverURL}/schedule/public/range`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({
+    scheduleApi
+      .getPublicRange({
         startDate: weekStart,
         endDate: weekEnd,
         trainerId,
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-    })
-      .then((res) => res.json())
+      })
       .then((data) => {
         if (data?.error) {
           setTrainerError(data.error);
@@ -56,8 +50,8 @@ export default function PublicSchedule() {
 
   useEffect(() => {
     if (!trainerId) return;
-    fetch(`${serverURL}/public/trainer/${trainerId}`)
-      .then((res) => res.json())
+    scheduleApi
+      .getPublicTrainer(trainerId)
       .then((data) => {
         if (data?.error) {
           setTrainerError(data.error);

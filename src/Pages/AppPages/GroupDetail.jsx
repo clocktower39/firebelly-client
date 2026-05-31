@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { groupApi } from "../../api/groupApi";
+import { programApi } from "../../api/programApi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -166,20 +167,9 @@ export default function GroupDetail() {
     [analytics]
   );
 
-  const authHeaders = useMemo(() => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    return {
-      "Content-type": "application/json; charset=UTF-8",
-      Authorization: bearer,
-    };
-  }, []);
-
   const loadGroup = async () => {
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.getGroup(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -192,10 +182,7 @@ export default function GroupDetail() {
 
   const loadMembers = async () => {
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/members`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.getMembers(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -207,10 +194,7 @@ export default function GroupDetail() {
 
   const loadAssignments = async () => {
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/assignments`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.getAssignments(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -222,10 +206,7 @@ export default function GroupDetail() {
 
   const loadPrograms = async () => {
     try {
-      const response = await fetch(`${serverURL}/programs?includeShared=true`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await programApi.listPrograms({ includeShared: true });
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -327,12 +308,7 @@ export default function GroupDetail() {
     setMemberSearchLoading(true);
     setMemberSearchError("");
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/member-search`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify({ query: memberSearchQuery.trim() }),
-      });
-      const data = await response.json();
+      const data = await groupApi.searchMembers(groupId, { query: memberSearchQuery.trim() });
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -359,12 +335,7 @@ export default function GroupDetail() {
           ? group?.archivedAt || new Date().toISOString()
           : null,
       };
-      const response = await fetch(`${serverURL}/groups/${groupId}`, {
-        method: "put",
-        headers: authHeaders,
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await groupApi.updateGroup(groupId, payload);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -381,10 +352,7 @@ export default function GroupDetail() {
     if (!canAdmin) return;
     setInviteError("");
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/invitations`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.getInvitations(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -399,15 +367,10 @@ export default function GroupDetail() {
     setInviteSending(true);
     setInviteError("");
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/invitations`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify({
-          email: inviteEmail.trim(),
-          role: inviteRole,
-        }),
+      const data = await groupApi.createInvitation(groupId, {
+        email: inviteEmail.trim(),
+        role: inviteRole,
       });
-      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -425,14 +388,7 @@ export default function GroupDetail() {
     if (!inviteId) return;
     if (!window.confirm("Revoke this invite?")) return;
     try {
-      const response = await fetch(
-        `${serverURL}/groups/${groupId}/invitations/${inviteId}`,
-        {
-          method: "delete",
-          headers: authHeaders,
-        }
-      );
-      const data = await response.json();
+      const data = await groupApi.deleteInvitation(groupId, inviteId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -451,15 +407,7 @@ export default function GroupDetail() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const bearer = `Bearer ${getAccessToken()}`;
-      const response = await fetch(`${serverURL}/groups/${groupId}/picture`, {
-        method: "post",
-        headers: {
-          Authorization: bearer,
-        },
-        body: formData,
-      });
-      const data = await response.json();
+      const data = await groupApi.uploadPicture(groupId, formData);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -479,11 +427,7 @@ export default function GroupDetail() {
     setPictureUploading(true);
     setPictureError("");
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/picture`, {
-        method: "delete",
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.deletePicture(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -500,14 +444,10 @@ export default function GroupDetail() {
     setAnalyticsLoading(true);
     setAnalyticsError("");
     try {
-      const params = new URLSearchParams();
-      if (analyticsStartDate) params.append("startDate", analyticsStartDate);
-      if (analyticsEndDate) params.append("endDate", analyticsEndDate);
-      const url = params.toString()
-        ? `${serverURL}/groups/${groupId}/analytics?${params.toString()}`
-        : `${serverURL}/groups/${groupId}/analytics`;
-      const response = await fetch(url, { headers: authHeaders });
-      const data = await response.json();
+      const params = {};
+      if (analyticsStartDate) params.startDate = analyticsStartDate;
+      if (analyticsEndDate) params.endDate = analyticsEndDate;
+      const data = await groupApi.getAnalytics(groupId, params);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -529,12 +469,7 @@ export default function GroupDetail() {
         planId: billingPlanId || null,
         trialEndsAt: billingTrialEndsAt || null,
       };
-      const response = await fetch(`${serverURL}/groups/${groupId}/billing`, {
-        method: "put",
-        headers: authHeaders,
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await groupApi.updateBilling(groupId, payload);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -551,10 +486,7 @@ export default function GroupDetail() {
     setChatLoading(true);
     setChatError("");
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/chat`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.getChat(groupId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -569,12 +501,7 @@ export default function GroupDetail() {
   const handleSendChatMessage = async () => {
     if (!chatMessage.trim()) return;
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/chat/messages`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify({ message: chatMessage.trim() }),
-      });
-      const data = await response.json();
+      const data = await groupApi.createChatMessage(groupId, { message: chatMessage.trim() });
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -588,14 +515,7 @@ export default function GroupDetail() {
   const handleDeleteChatMessage = async (messageId) => {
     if (!messageId) return;
     try {
-      const response = await fetch(
-        `${serverURL}/groups/${groupId}/chat/messages/${messageId}`,
-        {
-          method: "delete",
-          headers: authHeaders,
-        }
-      );
-      const data = await response.json();
+      const data = await groupApi.deleteChatMessage(groupId, messageId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -608,15 +528,10 @@ export default function GroupDetail() {
   const handleAddMember = async () => {
     if (!memberUserId) return;
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/members`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify({
-          userId: memberUserId,
-          role: memberRole,
-        }),
+      const data = await groupApi.addMember(groupId, {
+        userId: memberUserId,
+        role: memberRole,
       });
-      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -634,12 +549,7 @@ export default function GroupDetail() {
 
   const handleUpdateMemberRole = async (memberId, nextRole) => {
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/members/${memberId}`, {
-        method: "put",
-        headers: authHeaders,
-        body: JSON.stringify({ role: nextRole }),
-      });
-      const data = await response.json();
+      const data = await groupApi.updateMember(groupId, memberId, { role: nextRole });
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -657,11 +567,7 @@ export default function GroupDetail() {
   const handleRemoveMember = async (memberId) => {
     if (!window.confirm("Remove this member from the group?")) return;
     try {
-      const response = await fetch(`${serverURL}/groups/${groupId}/members/${memberId}`, {
-        method: "delete",
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await groupApi.removeMember(groupId, memberId);
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -696,12 +602,7 @@ export default function GroupDetail() {
         payload.dayMap = assignDayMap;
       }
 
-      const response = await fetch(`${serverURL}/groups/${groupId}/assignments`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await groupApi.createAssignment(groupId, payload);
       if (data?.error) {
         throw new Error(data.error);
       }

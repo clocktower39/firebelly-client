@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { Button, Grid, TextField, Typography } from "@mui/material";
 import { loginUser, loginChild } from "../Redux/actions";
-import { serverURL } from "../Redux/actions";
+import { authApi } from "../api/authApi";
 
 const classes = {
   JCcenter: { justifyContent: "center" },
@@ -104,14 +104,8 @@ export const Login = () => {
       return;
     }
 
-    fetch(`${serverURL}/resend-verification-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    })
-      .then((response) => response.json())
+    authApi
+      .resendVerificationEmail(email)
       .then((data) => {
         if (data.status === "success") {
           setError(

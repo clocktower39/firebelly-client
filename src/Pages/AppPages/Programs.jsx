@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { programApi } from "../../api/programApi";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +24,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { requestClients, serverURL } from "../../Redux/actions";
+import { requestClients } from "../../Redux/actions";
 
 export default function Programs() {
   const dispatch = useDispatch();
@@ -79,17 +79,10 @@ export default function Programs() {
   }, [assignProgram, assignStartDate, assignDayMapTouched]);
 
   useEffect(() => {
-    const bearer = `Bearer ${getAccessToken()}`;
     const loadPrograms = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${serverURL}/programs?includeShared=true`, {
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-        });
-        const data = await response.json();
+        const data = await programApi.listPrograms({ includeShared: true });
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -143,7 +136,6 @@ export default function Programs() {
 
   const handleAssignProgram = async () => {
     if (!assignProgram?._id || !assignClientId || !assignStartDate) return;
-    const bearer = `Bearer ${getAccessToken()}`;
     try {
       setAssignStatus("");
       const payload = {
@@ -153,15 +145,7 @@ export default function Programs() {
       if (assignDayMap.length) {
         payload.dayMap = assignDayMap;
       }
-      const response = await fetch(`${serverURL}/programs/${assignProgram._id}/assign`, {
-        method: "post",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await programApi.assignProgram(assignProgram._id, payload);
       if (data?.error) {
         throw new Error(data.error);
       }

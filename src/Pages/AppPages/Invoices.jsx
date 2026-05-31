@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { billingApi } from "../../api/billingApi";
+import { groupApi } from "../../api/groupApi";
+import { scheduleApi } from "../../api/scheduleApi";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -28,12 +30,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { requestClients, serverURL } from "../../Redux/actions";
-
-const buildAuthHeaders = () => ({
-  "Content-type": "application/json; charset=UTF-8",
-  Authorization: `Bearer ${getAccessToken()}`,
-});
+import { requestClients } from "../../Redux/actions";
 
 const defaultLineItem = () => ({
   itemType: "SESSION",
@@ -91,10 +88,7 @@ export default function Invoices() {
     if (!user.isTrainer) return;
     const fetchSessionTypes = async () => {
       try {
-        const response = await fetch(`${serverURL}/session-types`, {
-          headers: buildAuthHeaders(),
-        });
-        const data = await response.json();
+        const data = await scheduleApi.getSessionTypes();
         if (data.error) {
           setSessionTypesStatus(data.error);
           return;
@@ -129,10 +123,7 @@ export default function Invoices() {
     if (!user.isTrainer) return;
     const fetchGroups = async () => {
       try {
-        const response = await fetch(`${serverURL}/groups`, {
-          headers: buildAuthHeaders(),
-        });
-        const data = await response.json();
+        const data = await groupApi.listGroups();
         if (data.error) {
           setError(data.error);
           return;
@@ -157,13 +148,7 @@ export default function Invoices() {
         clientId: billToType === "CLIENT" ? targetId : null,
         groupId: billToType === "GROUP" ? targetId : null,
       };
-      const response = await fetch(`${serverURL}/billing/summary`, {
-        method: "post",
-        dataType: "json",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await billingApi.getSummary(payload);
       if (data.error) {
         setError(data.error);
         return;
@@ -186,13 +171,7 @@ export default function Invoices() {
         clientId: billToType === "CLIENT" ? targetId : null,
         groupId: billToType === "GROUP" ? targetId : null,
       };
-      const response = await fetch(`${serverURL}/invoices/list`, {
-        method: "post",
-        dataType: "json",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await billingApi.listInvoices(payload);
       if (data.error) {
         setError(data.error);
         return;
@@ -336,13 +315,7 @@ export default function Invoices() {
         terms: terms.trim(),
         lineItems: normalizedLineItems,
       };
-      const response = await fetch(`${serverURL}/invoices`, {
-        method: "post",
-        dataType: "json",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
+      const data = await billingApi.createInvoice(payload);
       if (data.error) {
         setError(data.error);
         return;
@@ -357,13 +330,7 @@ export default function Invoices() {
 
   const handleStatusUpdate = async (invoiceId, nextStatus) => {
     try {
-      const response = await fetch(`${serverURL}/invoices/status`, {
-        method: "post",
-        dataType: "json",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify({ invoiceId, status: nextStatus }),
-      });
-      const data = await response.json();
+      const data = await billingApi.updateInvoiceStatus({ invoiceId, status: nextStatus });
       if (data.error) {
         setError(data.error);
         return;
@@ -377,11 +344,7 @@ export default function Invoices() {
 
   const handleDownloadPdf = async (invoice) => {
     try {
-      const response = await fetch(`${serverURL}/invoices/pdf`, {
-        method: "post",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify({ invoiceId: invoice._id }),
-      });
+      const response = await billingApi.downloadInvoicePdf({ invoiceId: invoice._id });
       if (!response.ok) {
         const data = await response.json();
         setError(data.error || "Unable to download PDF.");
@@ -426,17 +389,11 @@ export default function Invoices() {
     }
     setSendingEmail(true);
     try {
-      const response = await fetch(`${serverURL}/invoices/email`, {
-        method: "post",
-        dataType: "json",
-        headers: buildAuthHeaders(),
-        body: JSON.stringify({
-          invoiceId: emailInvoice._id,
-          recipientEmail: emailRecipient.trim(),
-          message: emailMessage.trim(),
-        }),
+      const data = await billingApi.sendInvoiceEmail({
+        invoiceId: emailInvoice._id,
+        recipientEmail: emailRecipient.trim(),
+        message: emailMessage.trim(),
       });
-      const data = await response.json();
       if (data.error) {
         setError(data.error);
         return;

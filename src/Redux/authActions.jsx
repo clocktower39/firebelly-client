@@ -1,13 +1,10 @@
 import { jwtDecode as jwt } from "jwt-decode";
-import { apiFetch, clearAuthStorage, setAccessToken } from "../api/client";
+import { authApi } from "../api/authApi";
+import { clearAuthStorage, setAccessToken } from "../api/client";
 
 export function loginUser(user) {
   return async (dispatch) => {
-    const data = await apiFetch("/login", {
-      method: "POST",
-      body: user,
-      auth: false,
-    });
+    const data = await authApi.login(user);
     if (data.error) {
       return dispatch({
         type: "ERROR",
@@ -28,11 +25,7 @@ export function loginUser(user) {
 
 export function loginChild({ username, pin }) {
   return async (dispatch) => {
-    const data = await apiFetch("/login-child", {
-      method: "POST",
-      body: { username, pin },
-      auth: false,
-    });
+    const data = await authApi.loginChild({ username, pin });
     if (data.error) {
       return dispatch({
         type: "ERROR",
@@ -64,11 +57,7 @@ export const loginJWT = (accessTokenOverride, options = {}) => {
       });
     }
 
-    const data = await apiFetch("/refresh-tokens", {
-      method: "POST",
-      body: {},
-      auth: false,
-    });
+    const data = await authApi.refresh();
 
     if (data.accessToken) {
       const decodedAccessToken = jwt(data.accessToken);
@@ -96,11 +85,7 @@ export const loginJWT = (accessTokenOverride, options = {}) => {
 export function logoutUser() {
   return async (dispatch) => {
     try {
-      await apiFetch("/logout", {
-        method: "POST",
-        body: {},
-        auth: false,
-      });
+      await authApi.logout();
     } catch (err) {
       // Local logout should still complete if the network request fails.
     }

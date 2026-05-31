@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { billingApi } from "../../api/billingApi";
+import { scheduleApi } from "../../api/scheduleApi";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -256,16 +257,9 @@ export default function Schedule() {
 
   const loadSessionTypes = useCallback(async () => {
     if (!user.isTrainer) return;
-    const bearer = `Bearer ${getAccessToken()}`;
     try {
       setSessionTypesStatus("");
-      const response = await fetch(`${serverURL}/session-types`, {
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
+      const data = await scheduleApi.getSessionTypes();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -382,20 +376,10 @@ export default function Schedule() {
     }
     setBillingLoading(true);
     try {
-      const bearer = `Bearer ${getAccessToken()}`;
-      const response = await fetch(`${serverURL}/billing/summary`, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          trainerId: billingTrainerId,
-          clientId: billingClientId,
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
+      const data = await billingApi.getSummary({
+        trainerId: billingTrainerId,
+        clientId: billingClientId,
       });
-      const data = await response.json();
       if (data.error) {
         setBillingSummary(null);
         return;
@@ -699,7 +683,6 @@ export default function Schedule() {
 
   const handleSaveSessionType = async () => {
     if (!sessionTypeForm.name.trim()) return;
-    const bearer = `Bearer ${getAccessToken()}`;
     const payload = {
       name: sessionTypeForm.name.trim(),
       description: sessionTypeForm.description.trim(),
@@ -716,29 +699,10 @@ export default function Schedule() {
     };
     try {
       if (editingSessionTypeId) {
-        const response = await fetch(
-          `${serverURL}/session-types/${editingSessionTypeId}`,
-          {
-            method: "put",
-            headers: {
-              "Content-type": "application/json; charset=UTF-8",
-              Authorization: bearer,
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-        const data = await response.json();
+        const data = await scheduleApi.updateSessionType(editingSessionTypeId, payload);
         if (data?.error) throw new Error(data.error);
       } else {
-        const response = await fetch(`${serverURL}/session-types`, {
-          method: "post",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-          body: JSON.stringify(payload),
-        });
-        const data = await response.json();
+        const data = await scheduleApi.createSessionType(payload);
         if (data?.error) throw new Error(data.error);
       }
       setSessionTypesStatus("");
@@ -779,16 +743,8 @@ export default function Schedule() {
   };
 
   const handleDeleteSessionType = async (typeId) => {
-    const bearer = `Bearer ${getAccessToken()}`;
     try {
-      const response = await fetch(`${serverURL}/session-types/${typeId}`, {
-        method: "delete",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
+      const data = await scheduleApi.deleteSessionType(typeId);
       if (data?.error) throw new Error(data.error);
       if (editingSessionTypeId === typeId) {
         resetSessionTypeForm();

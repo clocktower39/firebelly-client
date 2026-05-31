@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { workoutApi } from "../../api/workoutApi";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -32,7 +32,6 @@ import {
   GridView as GridViewIcon,
   ViewList as ListViewIcon,
 } from "@mui/icons-material";
-import { serverURL } from "../../Redux/actions";
 
 const formatTemplateSummary = (workout) => {
   const totalExercises =
@@ -55,19 +54,10 @@ export default function WorkoutTemplates() {
 
   useEffect(() => {
     if (!user?.isTrainer) return;
-    const bearer = `Bearer ${getAccessToken()}`;
     const loadTemplates = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${serverURL}/workoutTemplates`, {
-          method: "post",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-          body: JSON.stringify({ includeShared: true }),
-        });
-        const data = await response.json();
+        const data = await workoutApi.getWorkoutTemplates({ includeShared: true });
         if (data?.error) {
           throw new Error(data.error);
         }

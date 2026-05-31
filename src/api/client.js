@@ -9,7 +9,6 @@ let refreshPromise = null;
 let authChannel = null;
 const originalFetch = globalThis.fetch?.bind(globalThis);
 const nativeFetch = (...args) => originalFetch(...args);
-let fetchInstalled = false;
 const pendingAccessTokenRequests = new Map();
 const AUTH_CHANNEL_NAME = "firebelly-auth";
 const AUTH_MESSAGE = {
@@ -189,25 +188,6 @@ export const authFetch = async (
   }
 
   return response;
-};
-
-export const installAuthenticatedFetch = () => {
-  if (fetchInstalled || typeof window === "undefined") return;
-  fetchInstalled = true;
-  window.fetch = (input, options = {}) => {
-    const url = typeof input === "string" ? input : input?.url;
-    const isApiRequest =
-      typeof url === "string" &&
-      (url.startsWith(serverURL) ||
-        (serverURL === "/api" && url.startsWith("/api/")) ||
-        url.startsWith("/api/"));
-
-    if (!isApiRequest) {
-      return nativeFetch(input, options);
-    }
-
-    return authFetch(url, options);
-  };
 };
 
 export const apiFetch = async (

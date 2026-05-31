@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { groupApi } from "../../api/groupApi";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -50,16 +50,9 @@ export default function Groups() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const loadGroups = async () => {
-    const bearer = `Bearer ${getAccessToken()}`;
     setLoading(true);
     try {
-      const response = await fetch(`${serverURL}/groups`, {
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-      const data = await response.json();
+      const data = await groupApi.listGroups();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -78,23 +71,14 @@ export default function Groups() {
 
   const handleCreateGroup = async () => {
     if (!createName.trim()) return;
-    const bearer = `Bearer ${getAccessToken()}`;
     try {
-      const response = await fetch(`${serverURL}/groups`, {
-        method: "post",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-        body: JSON.stringify({
-          name: createName.trim(),
-          description: createDescription,
-          sport: createSport,
-          season: createSeason,
-          timezone: createTimezone,
-        }),
+      const data = await groupApi.createGroup({
+        name: createName.trim(),
+        description: createDescription,
+        sport: createSport,
+        season: createSeason,
+        timezone: createTimezone,
       });
-      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }

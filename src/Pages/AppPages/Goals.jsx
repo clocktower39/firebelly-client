@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getAccessToken } from "../../api/client";
+import { goalApi } from "../../api/goalApi";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Autocomplete,
@@ -212,19 +212,10 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
       return;
     }
     try {
-      const bearer = `Bearer ${getAccessToken()}`;
-      const response = await fetch(`${serverURL}/goals/exerciseMaxAtReps`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-        body: JSON.stringify({
-          exerciseId: selectedExercise._id,
-          targetReps: Number(targetReps),
-        }),
+      const data = await goalApi.getExerciseMaxAtReps({
+        exerciseId: selectedExercise._id,
+        targetReps: Number(targetReps),
       });
-      const data = await response.json();
       setCurrentMax(data.maxWeight || 0);
     } catch (err) {
       console.error("Error fetching current max:", err);
@@ -726,19 +717,10 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
       return;
     }
     try {
-      const bearer = `Bearer ${getAccessToken()}`;
-      const response = await fetch(`${serverURL}/goals/exerciseMaxAtReps`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-        body: JSON.stringify({
-          exerciseId: selectedExercise._id,
-          targetReps: Number(targetReps),
-        }),
+      const data = await goalApi.getExerciseMaxAtReps({
+        exerciseId: selectedExercise._id,
+        targetReps: Number(targetReps),
       });
-      const data = await response.json();
       setCurrentMax(data.maxWeight || 0);
     } catch (err) {
       console.error("Error fetching current max:", err);

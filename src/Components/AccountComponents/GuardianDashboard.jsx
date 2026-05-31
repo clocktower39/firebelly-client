@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAccessToken, setAccessToken, setDelegatedReturnAccessToken } from "../../api/client";
+import { authApi } from "../../api/authApi";
 import {
   Box,
   Button,
@@ -14,7 +15,7 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { loginJWT, serverURL } from "../../Redux/actions";
+import { loginJWT } from "../../Redux/actions";
 
 const GuardianDashboard = () => {
   const user = useSelector((state) => state.user);
@@ -35,21 +36,13 @@ const GuardianDashboard = () => {
     consentChecked: false,
   });
 
-  const authHeaders = {
-    "Content-type": "application/json; charset=UTF-8",
-    Authorization: `Bearer ${getAccessToken()}`,
-  };
-
   const canManageFamily =
     !user?.viewOnly && ["adult", "guardian"].includes(user?.accountType);
 
   const loadChildren = async () => {
     setStatus("");
     try {
-      const response = await fetch(`${serverURL}/guardian/children`, {
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await authApi.listGuardianChildren();
       setChildren(data.children || []);
     } catch (err) {
       setStatus("Unable to load children.");
@@ -77,33 +70,24 @@ const GuardianDashboard = () => {
 
   const handleCreateChild = async () => {
     setStatus("");
-    const response = await fetch(`${serverURL}/guardian/child`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({
-        firstName: childForm.firstName,
-        lastName: childForm.lastName,
-        username: childForm.username,
-        pin: childForm.pin,
-        dateOfBirth: childForm.dateOfBirth,
-        email: childForm.email || undefined,
-      }),
+    const data = await authApi.createGuardianChild({
+      firstName: childForm.firstName,
+      lastName: childForm.lastName,
+      username: childForm.username,
+      pin: childForm.pin,
+      dateOfBirth: childForm.dateOfBirth,
+      email: childForm.email || undefined,
     });
-    const data = await response.json();
     if (data.error) {
       setStatus(data.error?.username || data.error?.email || data.error || "Unable to create child.");
       return;
     }
 
     if (childForm.consentChecked && data.child?.ageBand === "u13") {
-      await fetch(`${serverURL}/guardian/child/consent`, {
-        method: "POST",
-        headers: authHeaders,
-        body: JSON.stringify({
-          childId: data.child._id,
-          scope: childForm.consentScope,
-          method: "guardian_dashboard",
-        }),
+      await authApi.updateGuardianChildConsent({
+        childId: data.child._id,
+        scope: childForm.consentScope,
+        method: "guardian_dashboard",
       });
     }
 
@@ -121,12 +105,7 @@ const GuardianDashboard = () => {
   };
 
   const handleViewAsChild = async (childId) => {
-    const response = await fetch(`${serverURL}/guardian/child/token`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ childId }),
-    });
-    const data = await response.json();
+    const data = await authApi.getGuardianChildToken({ childId });
     if (!data.accessToken) {
       setStatus(data.error || "Unable to enter child view.");
       return;
@@ -143,12 +122,11 @@ const GuardianDashboard = () => {
 
   const handleConsent = async (childId) => {
     const scope = consentScopeByChild[childId] || "collection_only";
-    const response = await fetch(`${serverURL}/guardian/child/consent`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ childId, scope, method: "guardian_dashboard" }),
+    const data = await authApi.updateGuardianChildConsent({
+      childId,
+      scope,
+      method: "guardian_dashboard",
     });
-    const data = await response.json();
     if (data.error) {
       setStatus(data.error || "Unable to record consent.");
       return;
@@ -162,12 +140,7 @@ const GuardianDashboard = () => {
       setStatus("Please enter an email address.");
       return;
     }
-    const response = await fetch(`${serverURL}/guardian/child/add-email`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ childId, email }),
-    });
-    const data = await response.json();
+    const data = await authApi.addGuardianChildEmail({ childId, email });
     if (data.error) {
       setStatus(data.error?.email || data.error || "Unable to add email.");
       return;

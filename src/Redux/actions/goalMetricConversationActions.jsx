@@ -1,90 +1,30 @@
 import { jwtDecode as jwt } from "jwt-decode";
-import axios from "axios";
-import {
-  authFetch,
-  getAccessToken,
-  getDelegatedReturnAccessToken,
-  hasDelegatedReturnAccessToken,
-  serverURL,
-  setAccessToken,
-  setDelegatedReturnAccessToken,
-} from "../../api/client";
-import { loginUser, loginJWT } from "../authActions";
+import { authApi } from "../../api/authApi";
+import { conversationApi } from "../../api/conversationApi";
+import { goalApi } from "../../api/goalApi";
+import { metricApi } from "../../api/metricApi";
+import { setAccessToken } from "../../api/client";
 import {
   ADD_METRIC_ENTRY,
   ADD_NEW_GOAL,
-  ADD_WORKOUT,
-  CLEAR_LAST_BULK_OPERATION,
   DELETE_GOAL,
   DELETE_METRIC_ENTRY,
-  EDIT_EXERCISE_LIBRARY,
-  EDIT_HOME_WORKOUTS,
   EDIT_METRICS_ENTRIES,
   EDIT_METRICS_LATEST,
   EDIT_METRICS_PENDING,
-  EDIT_MYACCOUNT,
-  EDIT_PROGRESS_EXERCISE_LIST,
-  EDIT_PROGRESS_EXERCISE_SUMMARIES,
-  EDIT_PROGRESS_TARGET_EXERCISE_HISTORY,
-  EDIT_SCHEDULE_EVENTS,
-  EDIT_SESSION_SUMMARY,
-  EDIT_TRAINING,
-  EDIT_WORKOUT_QUEUE,
-  EDIT_WORKOUTS,
   ERROR,
-  GET_CLIENTS,
   GET_GOALS,
-  GET_TRAINERS,
   LOGIN_USER,
-  LOGOUT_USER,
-  SIGNUP_USER,
-  REMOVE_WORKOUTS,
   REVIEW_METRIC_ENTRY,
-  SET_LAST_BULK_OPERATION,
   UPDATE_CONVERSATION_MESSAGES,
   UPDATE_CONVERSATIONS,
   UPDATE_GOAL,
   UPDATE_METRIC_ENTRY,
-  UPDATE_MY_TRAINERS,
-  UPSERT_WORKOUT,
 } from "../actionTypes";
-import {
-  getContiguousDateRanges,
-  getDateKeysInRange,
-  normalizeWorkoutWeights,
-} from "../actionUtils";
 
 export function getGoals({ requestedBy = "client", client }) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    let url = `${serverURL}/goals`;
-    let response;
-
-    if (requestedBy === "trainer") {
-      url = `${serverURL}/clientGoals`;
-      response = await fetch(url, {
-        method: "post",
-        dataType: "json",
-        body: JSON.stringify({
-          requestedBy,
-          client,
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-    } else {
-      response = await fetch(url, {
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-      });
-    }
-
-    let goals = await response.json();
+    let goals = await goalApi.getGoals({ requestedBy, client });
 
     return dispatch({
       type: GET_GOALS,
@@ -95,18 +35,7 @@ export function getGoals({ requestedBy = "client", client }) {
 
 export function updateGoal(updatedGoal) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/updateGoal`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(updatedGoal),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let goal = await response.json();
+    let goal = await goalApi.updateGoal(updatedGoal);
 
     return dispatch({
       type: UPDATE_GOAL,
@@ -117,18 +46,7 @@ export function updateGoal(updatedGoal) {
 
 export function addNewGoal(newGoal) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/createGoal`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(newGoal),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let goal = await response.json();
+    let goal = await goalApi.createGoal(newGoal);
 
     return dispatch({
       type: ADD_NEW_GOAL,
@@ -139,18 +57,7 @@ export function addNewGoal(newGoal) {
 
 export function deleteGoal(goalId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/removeGoal`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ goalId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let results = await response.json();
+    let results = await goalApi.deleteGoal(goalId);
 
     if (results.status === "Record deleted") {
       return dispatch({
@@ -163,18 +70,7 @@ export function deleteGoal(goalId) {
 
 export function addGoalComment(goalId, newComment) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/commentGoal`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ _id: goalId, comment: newComment }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let goal = await response.json();
+    let goal = await goalApi.addComment(goalId, newComment);
 
     return dispatch({
       type: UPDATE_GOAL,
@@ -185,18 +81,7 @@ export function addGoalComment(goalId, newComment) {
 
 export function removeGoalComment(goalId, commentId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/removeGoalComment`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ _id: goalId, commentId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let goal = await response.json();
+    let goal = await goalApi.removeComment(goalId, commentId);
 
     return dispatch({
       type: UPDATE_GOAL,
@@ -207,18 +92,7 @@ export function removeGoalComment(goalId, commentId) {
 
 export function markAchievementSeen(goalId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/goals/markAchievementSeen`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ goalId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    let goal = await response.json();
+    let goal = await goalApi.markAchievementSeen(goalId);
 
     return dispatch({
       type: UPDATE_GOAL,
@@ -229,17 +103,7 @@ export function markAchievementSeen(goalId) {
 
 export function requestMetrics({ userId } = {}) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/list`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ userId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const entries = await response.json();
+    const entries = await metricApi.list({ userId });
 
     dispatch({
       type: EDIT_METRICS_ENTRIES,
@@ -253,17 +117,7 @@ export function requestMetrics({ userId } = {}) {
 
 export function requestPendingMetrics() {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/pending`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({}),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const entries = await response.json();
+    const entries = await metricApi.pending();
 
     dispatch({
       type: EDIT_METRICS_PENDING,
@@ -276,17 +130,7 @@ export function requestPendingMetrics() {
 
 export function requestLatestMetric({ userId } = {}) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/latest`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ userId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const latest = await response.json();
+    const latest = await metricApi.latest({ userId });
 
     dispatch({
       type: EDIT_METRICS_LATEST,
@@ -300,17 +144,7 @@ export function requestLatestMetric({ userId } = {}) {
 
 export function createMetricEntry(payload) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/create`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const entry = await response.json();
+    const entry = await metricApi.create(payload);
 
     dispatch({
       type: ADD_METRIC_ENTRY,
@@ -324,17 +158,7 @@ export function createMetricEntry(payload) {
 
 export function reviewMetricEntry(entryId, approved) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/review`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ entryId, approved }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const entry = await response.json();
+    const entry = await metricApi.review({ entryId, approved });
 
     dispatch({
       type: REVIEW_METRIC_ENTRY,
@@ -347,17 +171,7 @@ export function reviewMetricEntry(entryId, approved) {
 
 export function updateMetricEntry(payload) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/update`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const entry = await response.json();
+    const entry = await metricApi.update(payload);
 
     dispatch({
       type: UPDATE_METRIC_ENTRY,
@@ -370,17 +184,7 @@ export function updateMetricEntry(payload) {
 
 export function deleteMetricEntry(entryId, userId) {
   return async (dispatch) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    const response = await fetch(`${serverURL}/metrics/delete`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ entryId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await metricApi.delete(entryId);
 
     if (data?.status === "success") {
       dispatch({
@@ -396,15 +200,7 @@ export function deleteMetricEntry(entryId, userId) {
 
 export function getConversations() {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/conversation/getConversations`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await conversationApi.getConversations();
     if (data.error) {
       return dispatch({
         type: ERROR,
@@ -421,18 +217,7 @@ export function getConversations() {
 
 export function sendMessage(conversationId, message) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/conversation/message/send`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ conversationId, message }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await conversationApi.sendMessage({ conversationId, message });
     if (data.error) {
       return dispatch({
         type: ERROR,
@@ -458,18 +243,7 @@ export function socketMessage(conversation) {
 
 export function deleteMessage(conversationId, messageId) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
-
-    const response = await fetch(`${serverURL}/conversation/message/delete`, {
-      method: "post",
-      dataType: "json",
-      body: JSON.stringify({ conversationId, messageId }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-        Authorization: bearer,
-      },
-    });
-    const data = await response.json();
+    const data = await conversationApi.deleteMessage({ conversationId, messageId });
     if (data.error) {
       return dispatch({
         type: ERROR,
@@ -486,24 +260,14 @@ export function deleteMessage(conversationId, messageId) {
 
 export function uploadProfilePicture(formData) {
   return async (dispatch, getState) => {
-    const bearer = `Bearer ${getAccessToken()}`;
+    const data = await authApi.uploadProfilePicture(formData);
+    const accessToken = data.accessToken;
+    const decodedAccessToken = jwt(accessToken);
 
-    axios
-      .post(`${serverURL}/user/upload/profilePicture`, formData, {
-        headers: { Authorization: bearer },
-      })
-      .then(async (res) => {
-        const accessToken = res.data.accessToken;
-        const decodedAccessToken = jwt(accessToken);
-
-        setAccessToken(accessToken);
-        return dispatch({
-          type: LOGIN_USER,
-          user: decodedAccessToken,
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    setAccessToken(accessToken);
+    return dispatch({
+      type: LOGIN_USER,
+      user: decodedAccessToken,
+    });
   };
 }

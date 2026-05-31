@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { programApi } from "../../api/programApi";
 import {
   Box,
   Card,
@@ -9,7 +9,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { serverURL } from "../../Redux/actions";
 
 export default function ProgramsMarketplacePreview() {
   const [programs, setPrograms] = useState([]);
@@ -17,17 +16,10 @@ export default function ProgramsMarketplacePreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bearer = `Bearer ${getAccessToken()}`;
     const loadPrograms = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${serverURL}/programs?status=PUBLISHED`, {
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-        });
-        const data = await response.json();
+        const data = await programApi.listPrograms({ status: "PUBLISHED" });
         if (data?.error) {
           throw new Error(data.error);
         }

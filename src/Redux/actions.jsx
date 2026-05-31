@@ -1,5 +1,4 @@
 export {
-  authFetch,
   getAccessToken,
   getDelegatedReturnAccessToken,
   hasDelegatedReturnAccessToken,

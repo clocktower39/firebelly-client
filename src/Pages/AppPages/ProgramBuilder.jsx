@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { programApi } from "../../api/programApi";
+import { workoutApi } from "../../api/workoutApi";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -32,7 +33,6 @@ import {
 } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { Alert } from "@mui/material";
-import { serverURL } from "../../Redux/actions";
 
 const DEFAULT_WEEKS = 4;
 const DEFAULT_DAYS = 5;
@@ -93,14 +93,6 @@ export default function ProgramBuilder() {
   const saveTimerRef = useRef(null);
   const inFlightRef = useRef(false);
 
-  const authHeaders = useMemo(() => {
-    const bearer = `Bearer ${getAccessToken()}`;
-    return {
-      "Content-type": "application/json; charset=UTF-8",
-      Authorization: bearer,
-    };
-  }, []);
-
   const setSavedMessage = useCallback((message) => {
     setSaveMessage(message);
     setSaveError("");
@@ -115,10 +107,7 @@ export default function ProgramBuilder() {
     async (id) => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${serverURL}/programs/${id}`, {
-          headers: authHeaders,
-        });
-        const data = await response.json();
+        const data = await programApi.getProgram(id);
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -131,23 +120,18 @@ export default function ProgramBuilder() {
         setIsLoading(false);
       }
     },
-    [authHeaders, setErrorMessage]
+    [setErrorMessage]
   );
 
   const createProgram = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${serverURL}/programs`, {
-        method: "post",
-        headers: authHeaders,
-        body: JSON.stringify({
-          title: "",
-          description: "",
-          weeksCount: DEFAULT_WEEKS,
-          daysPerWeek: DEFAULT_DAYS,
-        }),
+      const data = await programApi.createProgram({
+        title: "",
+        description: "",
+        weeksCount: DEFAULT_WEEKS,
+        daysPerWeek: DEFAULT_DAYS,
       });
-      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -159,24 +143,19 @@ export default function ProgramBuilder() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, navigate, setErrorMessage]);
+  }, [navigate, setErrorMessage]);
 
   const saveDraft = useCallback(async () => {
     if (!program?._id || inFlightRef.current) return;
     inFlightRef.current = true;
     setIsSaving(true);
     try {
-      const response = await fetch(`${serverURL}/programs/${program._id}`, {
-        method: "put",
-        headers: authHeaders,
-        body: JSON.stringify({
-          title: program.title,
-          description: program.description,
-          weeksCount: program.weeksCount,
-          daysPerWeek: program.daysPerWeek,
-        }),
+      const data = await programApi.updateProgram(program._id, {
+        title: program.title,
+        description: program.description,
+        weeksCount: program.weeksCount,
+        daysPerWeek: program.daysPerWeek,
       });
-      const data = await response.json();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -189,18 +168,14 @@ export default function ProgramBuilder() {
       inFlightRef.current = false;
       setIsSaving(false);
     }
-  }, [authHeaders, program, setErrorMessage, setSavedMessage]);
+  }, [program, setErrorMessage, setSavedMessage]);
 
   const publishProgram = useCallback(async () => {
     if (!program?._id || inFlightRef.current) return;
     inFlightRef.current = true;
     setIsSaving(true);
     try {
-      const response = await fetch(`${serverURL}/programs/${program._id}/publish`, {
-        method: "post",
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await programApi.publishProgram(program._id);
       if (data?.errors?.length) {
         throw new Error(data.errors.join(" "));
       }
@@ -216,21 +191,18 @@ export default function ProgramBuilder() {
       inFlightRef.current = false;
       setIsSaving(false);
     }
-  }, [authHeaders, program, setErrorMessage, setSavedMessage]);
+  }, [program, setErrorMessage, setSavedMessage]);
 
   const updateDaySlot = useCallback(
     async (weekIndex, dayIndex, workoutId) => {
       if (!program?._id) return;
       try {
-        const response = await fetch(
-          `${serverURL}/programs/${program._id}/days/${weekIndex + 1}/${dayIndex + 1}`,
-          {
-            method: "put",
-            headers: authHeaders,
-            body: JSON.stringify({ workoutId }),
-          }
-        );
-        const data = await response.json();
+        const data = await programApi.updateProgramDay({
+          programId: program._id,
+          week: weekIndex + 1,
+          day: dayIndex + 1,
+          workoutId,
+        });
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -244,25 +216,20 @@ export default function ProgramBuilder() {
         setErrorMessage(err.message || "Unable to update day.");
       }
     },
-    [authHeaders, program, setErrorMessage]
+    [program, setErrorMessage]
   );
 
   const createWorkoutForDay = useCallback(
     async (weekIndex, dayIndex) => {
       if (!program?._id || !user?._id) return;
       try {
-        const response = await fetch(`${serverURL}/createTraining`, {
-          method: "post",
-          headers: authHeaders,
-          body: JSON.stringify({
-            userId: user._id,
-            title: `${program.title || "Program"} • Week ${weekIndex + 1} Day ${dayIndex + 1}`,
-            category: [],
-            training: [[]],
-            isTemplate: true,
-          }),
+        const data = await workoutApi.createTraining({
+          userId: user._id,
+          title: `${program.title || "Program"} • Week ${weekIndex + 1} Day ${dayIndex + 1}`,
+          category: [],
+          training: [[]],
+          isTemplate: true,
         });
-        const data = await response.json();
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -278,7 +245,7 @@ export default function ProgramBuilder() {
         setErrorMessage(err.message || "Unable to create workout.");
       }
     },
-    [authHeaders, location.pathname, navigate, program, updateDaySlot, user]
+    [location.pathname, navigate, program, updateDaySlot, user]
   );
 
   const handleEditDay = useCallback(
@@ -298,11 +265,7 @@ export default function ProgramBuilder() {
 
   const loadTemplates = useCallback(async () => {
     try {
-      const response = await fetch(`${serverURL}/workoutTemplates`, {
-        method: "post",
-        headers: authHeaders,
-      });
-      const data = await response.json();
+      const data = await workoutApi.getWorkoutTemplates();
       if (data?.error) {
         throw new Error(data.error);
       }
@@ -310,7 +273,7 @@ export default function ProgramBuilder() {
     } catch (err) {
       setErrorMessage(err.message || "Unable to load templates.");
     }
-  }, [authHeaders, setErrorMessage]);
+  }, [setErrorMessage]);
 
   const handleOpenImportDialog = useCallback(
     (weekIndex, dayIndex) => {
@@ -406,16 +369,11 @@ export default function ProgramBuilder() {
             ? sourceWorkout.title.replace(/Week \d+/i, `Week ${targetWeekIndex + 1}`)
             : `Week ${targetWeekIndex + 1} Day ${dayIndex + 1}`;
 
-          const response = await fetch(`${serverURL}/copyWorkoutById`, {
-            method: "post",
-            headers: authHeaders,
-            body: JSON.stringify({
-              _id: day.workoutId,
-              newTitle,
-              option: "exact",
-            }),
+          const data = await workoutApi.copyWorkoutById({
+            _id: day.workoutId,
+            newTitle,
+            option: "exact",
           });
-          const data = await response.json();
           if (data?.error) {
             throw new Error(data.error);
           }
@@ -434,7 +392,6 @@ export default function ProgramBuilder() {
     }
   }, [
     activeWeekIndex,
-    authHeaders,
     copyWeekTarget,
     program,
     setErrorMessage,
@@ -483,12 +440,7 @@ export default function ProgramBuilder() {
 
     missingIds.forEach(async (id) => {
       try {
-        const response = await fetch(`${serverURL}/training`, {
-          method: "post",
-          headers: authHeaders,
-          body: JSON.stringify({ _id: id }),
-        });
-        const data = await response.json();
+        const data = await workoutApi.getTraining({ _id: id });
         if (data?._id) {
           setWorkoutCache((prev) => ({ ...prev, [data._id]: data }));
         }
@@ -496,7 +448,7 @@ export default function ProgramBuilder() {
         setErrorMessage("Unable to load workout details.");
       }
     });
-  }, [authHeaders, program, setErrorMessage, workoutCache]);
+  }, [program, setErrorMessage, workoutCache]);
 
   if (isLoading || !program) {
     return (

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getAccessToken } from "../../api/client";
+import { workoutApi } from "../../api/workoutApi";
 import { Link } from 'react-router-dom';
 import { Box, Button, Grid, Typography } from "@mui/material";
-import { serverURL } from "../../Redux/actions";
 import dayjs from "dayjs";
 
 export default function WorkoutHistory() {
@@ -16,21 +15,8 @@ export default function WorkoutHistory() {
   useEffect(() => {
     if (hasMoreWorkouts) {
       // Check totalPages before fetching again
-      const bearer = `Bearer ${getAccessToken()}`;
       const fetchData = async () => {
-        const response = await fetch(`${serverURL}/getWorkoutHistory`, {
-          method: "post",
-          dataType: "json",
-          body: JSON.stringify({
-            page,
-          }),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-            Authorization: bearer,
-          },
-        });
-        const data = await response.json();
-        return data;
+        return workoutApi.getWorkoutHistory({ page });
       };
 
       fetchData().then((data) => {

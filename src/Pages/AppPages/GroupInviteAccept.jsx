@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAccessToken } from "../../api/client";
+import { groupApi } from "../../api/groupApi";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -11,7 +11,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { serverURL } from "../../Redux/actions";
 
 const roleLabels = {
   TRAINER: "Trainer",
@@ -45,8 +44,7 @@ export default function GroupInviteAccept() {
         return;
       }
       try {
-        const response = await fetch(`${serverURL}/groups/invitations/${token}`);
-        const data = await response.json();
+        const data = await groupApi.getInvite(token);
         if (data?.error) {
           throw new Error(data.error);
         }
@@ -67,16 +65,7 @@ export default function GroupInviteAccept() {
     setAccepting(true);
     setError("");
     try {
-      const bearer = `Bearer ${getAccessToken()}`;
-      const response = await fetch(`${serverURL}/groups/invitations/accept`, {
-        method: "post",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-          Authorization: bearer,
-        },
-        body: JSON.stringify({ token }),
-      });
-      const data = await response.json();
+      const data = await groupApi.acceptInvite({ token });
       if (data?.error) {
         throw new Error(data.error);
       }
