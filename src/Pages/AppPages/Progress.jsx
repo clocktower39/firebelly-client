@@ -756,11 +756,6 @@ const ExerciseListAutocomplete = (props) => {
       filterOptions={(options, { inputValue }) =>
         options.filter(option => matchWords(option, inputValue))
       }
-      renderTags={(value, getTagProps) =>
-        value.map((option, index) => (
-          <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-        ))
-      }
       renderInput={(params) => (
         <TextField {...params} label="Search" placeholder="Exercises" />
       )}

@@ -17,9 +17,11 @@ export default function SchedulePageHeader({
     <Grid container size={12}>
       <Stack
         direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
         spacing={1}
+        sx={{
+          justifyContent: "space-between",
+          alignItems: { xs: "flex-start", sm: "center" },
+        }}
       >
         <Typography variant="h4">Scheduling</Typography>
         {isTrainerView && (
@@ -29,7 +31,7 @@ export default function SchedulePageHeader({
         )}
       </Stack>
       {isTrainerView && clientParam && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: "center" }}>
           <Button component={Link} to="/clients" size="small" variant="outlined">
             Back to Clients
           </Button>
@@ -57,7 +59,7 @@ export default function SchedulePageHeader({
         </Typography>
       )}
       {billingSummary && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+        <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: "center" }}>
           <Chip
             size="small"
             label={`Remaining: ${billingSummary.remainingSessions}`}
@@ -78,4 +80,3 @@ export default function SchedulePageHeader({
     </Grid>
   );
 }
-

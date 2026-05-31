@@ -86,21 +86,21 @@ export default function CopyShareDialogs({
               type="date"
               value={copyDate}
               onChange={(event) => setCopyDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="Start time"
               type="time"
               value={copyStartTime}
               onChange={(event) => setCopyStartTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="End time"
               type="time"
               value={copyEndTime}
               onChange={(event) => setCopyEndTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
           </Stack>
         </DialogContent>
@@ -129,14 +129,14 @@ export default function CopyShareDialogs({
               type="date"
               value={copyDaySourceDate}
               onChange={(event) => setCopyDaySourceDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="Target date"
               type="date"
               value={copyDayDate}
               onChange={(event) => setCopyDayDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <Typography variant="caption" color="text.secondary">
               Overlaps will be skipped automatically.
@@ -172,7 +172,7 @@ export default function CopyShareDialogs({
               type="date"
               value={copyWeekDate}
               onChange={(event) => setCopyWeekDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <Typography variant="caption" color="text.secondary">
               Overlaps will be skipped automatically.
@@ -204,7 +204,7 @@ export default function CopyShareDialogs({
               type="date"
               value={shareWeekStartDate}
               onChange={(event) => setShareWeekStartDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <FormControlLabel
               control={
@@ -259,7 +259,7 @@ export default function CopyShareDialogs({
                     type="color"
                     value={shareHighlightColor}
                     onChange={(event) => setShareHighlightColor(event.target.value)}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                   />
                 )}
               </Stack>

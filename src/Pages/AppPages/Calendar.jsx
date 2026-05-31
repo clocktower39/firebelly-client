@@ -51,7 +51,7 @@ import {
   LocalizationProvider,
   DateCalendar,
   DayCalendarSkeleton,
-  PickersDay,
+  PickerDay,
 } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
@@ -330,9 +330,13 @@ export default function Calendar(props) {
         }}
       >
         <Box sx={{ px: 2, py: 1, flexShrink: 0 }}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between" alignItems="center">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{ justifyContent: "space-between", alignItems: "center" }}
+          >
             <Typography variant="h6">Calendar</Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Button size="small" variant="outlined" onClick={() => setShowCalendar((prev) => !prev)}>
                 {showCalendar ? "Hide calendar" : "Show calendar"}
               </Button>
@@ -371,7 +375,7 @@ export default function Calendar(props) {
 
         <Collapse in={showFilters} timeout="auto" unmountOnExit sx={{ flexShrink: 0 }}>
           <Box sx={{ px: 2, py: 1 }}>
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={2} sx={{ alignItems: "center" }}>
               <Grid size={{ xs: 12, }}>
                 <TextField
                   fullWidth
@@ -379,17 +383,23 @@ export default function Calendar(props) {
                   placeholder="Title, muscle group, or exercise"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  sx={{ alignItems: "center" }}
+                >
                   <Stack direction="row" spacing={1}>
                     <Chip
                       label="All"
@@ -459,7 +469,11 @@ export default function Calendar(props) {
               </Grid>
             </Grid>
             <Divider sx={{ my: 2 }} />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="space-between">
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ justifyContent: "space-between" }}
+            >
               <Typography variant="body2">
                 Showing {filteredWorkouts.length} of{" "}
                 {calendarViewMode === "year" ? yearWorkouts.length : monthWorkouts.length} workouts
@@ -490,7 +504,11 @@ export default function Calendar(props) {
           <Box>
             {calendarViewMode === "year" ? (
               <Box sx={{ px: 2, pb: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ alignItems: "center", justifyContent: "space-between" }}
+                >
                   <Button size="small" onClick={() => handleYearViewChange(-1)}>
                     <ArrowBack fontSize="small" />
                   </Button>
@@ -545,7 +563,7 @@ export default function Calendar(props) {
                     ))}
                   </Box>
                 </Box>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                   <Typography variant="caption" color="text.secondary">
                     Complete
                   </Typography>
@@ -615,7 +633,7 @@ function ServerDay(props) {
         ) : undefined
       }
     >
-      <PickersDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
+      <PickerDay {...other} outsideCurrentMonth={outsideCurrentMonth} day={day} />
     </Badge>
   );
 }
@@ -637,7 +655,7 @@ const Workouts = ({ history, scrollToDate, setSelectedWorkout, handleModalToggle
 
   if (viewMode === "grid") {
     return (
-      <Grid container spacing={2} sx={{ px: 2, pb: 2 }} alignItems="stretch">
+      <Grid container spacing={2} sx={{ px: 2, pb: 2, alignItems: "stretch" }}>
         {history.map((workout) => (
           <Grid key={workout._id} size={{ xs: 12, sm: 6, lg: 4 }}>
             <Workout
@@ -762,7 +780,11 @@ const Workout = ({ workout, scrollToDate, setSelectedWorkout, handleModalToggle,
         }}
       >
         <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "space-between", alignItems: "flex-start" }}
+          >
             <Box>
               <Typography variant="h6">{workout?.title}</Typography>
               <Typography variant="caption" sx={{ display: "block", opacity: 0.8 }}>

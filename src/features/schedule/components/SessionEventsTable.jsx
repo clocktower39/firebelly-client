@@ -42,7 +42,7 @@ function HeaderCell({
 }) {
   return (
     <TableCell>
-      <Stack direction="row" spacing={1} alignItems="center">
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <Button
           size="small"
           variant="text"
@@ -208,7 +208,7 @@ export default function SessionEventsTable({
                         <TableCell>{getRowPayoutLabel(event)}</TableCell>
                       )}
                     <TableCell>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
+                      <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                         {event.workoutId && (
                           <Button
                             size="small"

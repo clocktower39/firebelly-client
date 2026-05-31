@@ -1514,7 +1514,7 @@ export default function Workout({ socket }) {
                   )}
                 </Grid>
                 <Grid size={10} container sx={{ justifyContent: "center" }}>
-                  <Stack spacing={0.5} alignItems="center">
+                  <Stack spacing={0.5} sx={{ alignItems: "center" }}>
                     <Typography variant="h5">
                       {training.date
                         ? dayjs.utc(training.date).format("MMMM Do, YYYY")
@@ -1553,7 +1553,11 @@ export default function Workout({ socket }) {
                 </Grid>
                 {scheduleEvent && (
                   <Grid container size={12} sx={{ justifyContent: "center", paddingTop: "5px" }}>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent="center">
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ flexWrap: "wrap", justifyContent: "center" }}
+                    >
                       <Chip
                         label={scheduleEvent.eventType}
                         color={
@@ -1589,7 +1593,7 @@ export default function Workout({ socket }) {
                 )}
 
                 <Grid container size={12} spacing={2} sx={{ paddingTop: "15px" }}>
-                  <Grid size={12} container alignContent="center">
+                  <Grid size={12} container sx={{ alignContent: "center" }}>
                     <TextField
                       label="Title"
                       placeholder="Workout Title"
@@ -1605,10 +1609,13 @@ export default function Workout({ socket }) {
                           <Stack spacing={2.5}>
                             <Stack
                               direction="row"
-                              alignItems="center"
-                              justifyContent="space-between"
                               spacing={1}
-                              sx={{ flexWrap: "wrap", gap: "8px" }}
+                              sx={{
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                flexWrap: "wrap",
+                                gap: "8px",
+                              }}
                             >
                               <Stack spacing={0.5}>
                                 <Typography variant="h6">Cardio Details</Typography>
@@ -1616,7 +1623,7 @@ export default function Workout({ socket }) {
                                   Start with the basics. Open the plus buttons for the extras.
                                 </Typography>
                               </Stack>
-                              <Stack direction="row" spacing={1} alignItems="center">
+                              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                                 <ToggleButtonGroup
                                   value={cardioViewMode}
                                   exclusive
@@ -1746,7 +1753,7 @@ export default function Workout({ socket }) {
                                   value={activeCardio.distance}
                                   onChange={handleCardioChange("distance")}
                                   fullWidth
-                                  inputProps={{ min: 0, step: "0.01" }}
+                                  slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                                 />
                               </Grid>
                               <Grid size={{ xs: 4, sm: 2 }}>
@@ -1783,20 +1790,23 @@ export default function Workout({ socket }) {
                                   value={activeCardio[primaryCardioMetricField]}
                                   onChange={handleCardioDerivedChange(primaryCardioMetricField)}
                                   fullWidth
-                                  inputProps={
-                                    primaryCardioMetric === "speed" ? { min: 0, step: "0.1" } : undefined
-                                  }
+                                  slotProps={{
+                                    htmlInput:
+                                      primaryCardioMetric === "speed"
+                                        ? { min: 0, step: "0.1" }
+                                        : undefined,
+                                    input: {
+                                      endAdornment: renderAutoAdornment(
+                                        cardioAuto?.[cardioViewMode]?.[primaryCardioMetricAutoKey]
+                                      ),
+                                    },
+                                  }}
                                   error={primaryMetricHasError}
                                   helperText={
                                     primaryMetricHasError
                                       ? getDerivedMetricErrorText(primaryCardioMetric)
                                       : primaryCardioMetricHelperText
                                   }
-                                  InputProps={{
-                                    endAdornment: renderAutoAdornment(
-                                      cardioAuto?.[cardioViewMode]?.[primaryCardioMetricAutoKey]
-                                    ),
-                                  }}
                                 />
                               </Grid>
                             </Grid>
@@ -1915,22 +1925,23 @@ export default function Workout({ socket }) {
                                       value={activeCardio[secondaryCardioMetricField]}
                                       onChange={handleCardioDerivedChange(secondaryCardioMetricField)}
                                       fullWidth
-                                      inputProps={
-                                        secondaryCardioMetric === "speed"
-                                          ? { min: 0, step: "0.1" }
-                                          : undefined
-                                      }
+                                      slotProps={{
+                                        htmlInput:
+                                          secondaryCardioMetric === "speed"
+                                            ? { min: 0, step: "0.1" }
+                                            : undefined,
+                                        input: {
+                                          endAdornment: renderAutoAdornment(
+                                            cardioAuto?.[cardioViewMode]?.[secondaryCardioMetricAutoKey]
+                                          ),
+                                        },
+                                      }}
                                       error={secondaryMetricHasError}
                                       helperText={
                                         secondaryMetricHasError
                                           ? getDerivedMetricErrorText(secondaryCardioMetric)
                                           : secondaryCardioMetricHelperText
                                       }
-                                      InputProps={{
-                                        endAdornment: renderAutoAdornment(
-                                          cardioAuto?.[cardioViewMode]?.[secondaryCardioMetricAutoKey]
-                                        ),
-                                      }}
                                     />
                                   </Grid>
                                 )}
@@ -1941,7 +1952,7 @@ export default function Workout({ socket }) {
                                     value={activeCardio.rpe}
                                     onChange={handleCardioChange("rpe")}
                                     fullWidth
-                                    inputProps={{ min: 1, max: 10 }}
+                                    slotProps={{ htmlInput: { min: 1, max: 10 } }}
                                   />
                                 </Grid>
                                 <Grid size={{ xs: 8, sm: 3 }}>
@@ -1966,7 +1977,7 @@ export default function Workout({ socket }) {
                                     value={activeCardio.avgHeartRate}
                                     onChange={handleCardioChange("avgHeartRate")}
                                     fullWidth
-                                    inputProps={{ min: 0 }}
+                                    slotProps={{ htmlInput: { min: 0 } }}
                                   />
                                 </Grid>
                                 {activeCardioConfig.showCadence && (
@@ -1977,7 +1988,7 @@ export default function Workout({ socket }) {
                                       value={activeCardio.cadence}
                                       onChange={handleCardioChange("cadence")}
                                       fullWidth
-                                      inputProps={{ min: 0, step: "1" }}
+                                      slotProps={{ htmlInput: { min: 0, step: "1" } }}
                                     />
                                   </Grid>
                                 )}
@@ -1990,7 +2001,7 @@ export default function Workout({ socket }) {
                                         value={activeCardio.strideLength}
                                         onChange={handleCardioChange("strideLength")}
                                         fullWidth
-                                        inputProps={{ min: 0, step: "0.1" }}
+                                        slotProps={{ htmlInput: { min: 0, step: "0.1" } }}
                                       />
                                     </Grid>
                                     <Grid size={{ xs: 6, sm: 2 }}>
@@ -2073,7 +2084,7 @@ export default function Workout({ socket }) {
                                       value={activeCardio.elevationGain}
                                       onChange={handleCardioChange("elevationGain")}
                                       fullWidth
-                                      inputProps={{ min: 0 }}
+                                      slotProps={{ htmlInput: { min: 0 } }}
                                     />
                                   </Grid>
                                 )}
@@ -2119,21 +2130,23 @@ export default function Workout({ socket }) {
                                     value={activeCardio.temperature}
                                     onChange={handleCardioChange("temperature")}
                                     fullWidth
-                                    inputProps={{ step: "0.1" }}
-                                    InputProps={{
-                                      endAdornment: (
-                                        <InputAdornment position="end">
-                                          <Select
-                                            size="small"
-                                            variant="standard"
-                                            value={activeCardio.temperatureUnit}
-                                            onChange={handleCardioChange("temperatureUnit")}
-                                          >
-                                            <MenuItem value="F">F</MenuItem>
-                                            <MenuItem value="C">C</MenuItem>
-                                          </Select>
-                                        </InputAdornment>
-                                      ),
+                                    slotProps={{
+                                      htmlInput: { step: "0.1" },
+                                      input: {
+                                        endAdornment: (
+                                          <InputAdornment position="end">
+                                            <Select
+                                              size="small"
+                                              variant="standard"
+                                              value={activeCardio.temperatureUnit}
+                                              onChange={handleCardioChange("temperatureUnit")}
+                                            >
+                                              <MenuItem value="F">F</MenuItem>
+                                              <MenuItem value="C">C</MenuItem>
+                                            </Select>
+                                          </InputAdornment>
+                                        ),
+                                      },
                                     }}
                                   />
                                 </Grid>
@@ -2164,7 +2177,10 @@ export default function Workout({ socket }) {
                         <Collapse in={cardioSectionsOpen.segments} unmountOnExit>
                           <Paper variant="outlined" sx={{ padding: "16px" }}>
                             <Stack spacing={2}>
-                              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                              <Stack
+                                direction="row"
+                                sx={{ alignItems: "center", justifyContent: "space-between" }}
+                              >
                                 <Typography variant="subtitle1">Splits & Intervals</Typography>
                                 <Button
                                   variant="outlined"
@@ -2182,7 +2198,7 @@ export default function Workout({ socket }) {
                               ) : (
                                 (activeCardio.segments || []).map((segment, index) => (
                                   <Paper key={`cardio-segment-${index}`} variant="outlined" sx={{ padding: "12px" }}>
-                                    <Grid container spacing={2} alignItems="center">
+                                    <Grid container spacing={2} sx={{ alignItems: "center" }}>
                                       <Grid size={{ xs: 12, sm: 3 }}>
                                         <TextField
                                           label="Label"
@@ -2198,7 +2214,7 @@ export default function Workout({ socket }) {
                                           value={segment.distance}
                                           onChange={handleCardioSegmentChange(index, "distance")}
                                           fullWidth
-                                          inputProps={{ min: 0, step: "0.01" }}
+                                          slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                                         />
                                       </Grid>
                                       <Grid size={{ xs: 6, sm: 2 }}>
@@ -2230,10 +2246,14 @@ export default function Workout({ socket }) {
                                           value={segment.rpe}
                                           onChange={handleCardioSegmentChange(index, "rpe")}
                                           fullWidth
-                                          inputProps={{ min: 1, max: 10 }}
+                                          slotProps={{ htmlInput: { min: 1, max: 10 } }}
                                         />
                                       </Grid>
-                                      <Grid size={{ xs: 2, sm: 1 }} container justifyContent="flex-end">
+                                      <Grid
+                                        size={{ xs: 2, sm: 1 }}
+                                        container
+                                        sx={{ justifyContent: "flex-end" }}
+                                      >
                                         <Tooltip title="Remove split">
                                           <IconButton onClick={() => handleRemoveCardioSegment(index)}>
                                             <Delete />
@@ -2245,7 +2265,7 @@ export default function Workout({ socket }) {
                                 ))
                               )}
                               {(activeCardio.segments || []).length > 0 && (
-                                <Stack direction="row" spacing={2} flexWrap="wrap">
+                                <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
                                   <Typography variant="body2" color="text.secondary">
                                     Total distance: {splitSummary.totalDistance || "—"} {activeCardio.distanceUnit}
                                   </Typography>
@@ -2264,7 +2284,7 @@ export default function Workout({ socket }) {
                     </>
                   ) : (
                     <Grid size={12} container sx={classes.TrainingCategoryInputContainer}>
-                      <Grid size={12} container alignContent="center">
+                      <Grid size={12} container sx={{ alignContent: "center" }}>
                         <Autocomplete
                           disableCloseOnSelect
                           value={trainingCategory}
@@ -2275,7 +2295,7 @@ export default function Workout({ socket }) {
                           options={categories.map((option) => option)}
                           freeSolo
                           onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
-                          renderTags={(value, getTagProps) =>
+                          renderValue={(value, getTagProps) =>
                             value.map((option, index) => {
                               const { key, ...tagProps } = getTagProps({ index });
                               return (
@@ -2287,10 +2307,6 @@ export default function Workout({ socket }) {
                             <TextField
                               {...params}
                               label="Muscle Groups"
-                              InputProps={{
-                                ...params.InputProps,
-                                endAdornment: <>{params.InputProps.endAdornment}</>,
-                              }}
                             />
                           )}
                         />

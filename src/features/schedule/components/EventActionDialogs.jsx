@@ -177,7 +177,7 @@ export default function EventActionDialogs({
                   type="time"
                   value={selectionStartTime}
                   onChange={(event) => setSelectionStartTime(event.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                 />
                 <TextField
@@ -185,7 +185,7 @@ export default function EventActionDialogs({
                   type="time"
                   value={selectionEndTime}
                   onChange={(event) => setSelectionEndTime(event.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                 />
               </Stack>
@@ -194,7 +194,7 @@ export default function EventActionDialogs({
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={1}
-                  alignItems={{ xs: "stretch", sm: "center" }}
+                  sx={{ alignItems: { xs: "stretch", sm: "center" } }}
                 >
                   <FormControl fullWidth>
                     <InputLabel>Client</InputLabel>
@@ -330,14 +330,14 @@ export default function EventActionDialogs({
               type="time"
               value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="End time"
               type="time"
               value={endTime}
               onChange={(event) => setEndTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <ToggleButtonGroup
               exclusive
@@ -525,7 +525,7 @@ export default function EventActionDialogs({
             {editClientProfile && (
               <Stack spacing={1}>
                 <Typography variant="subtitle2">Athlete</Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                   <Avatar src={editClientAvatar} sx={{ width: 32, height: 32 }}>
                     {editClientName ? editClientName[0] : "A"}
                   </Avatar>
@@ -559,21 +559,21 @@ export default function EventActionDialogs({
               type="date"
               value={editDate}
               onChange={(event) => setEditDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="Start time"
               type="time"
               value={editStartTime}
               onChange={(event) => setEditStartTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="End time"
               type="time"
               value={editEndTime}
               onChange={(event) => setEditEndTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             {isTrainerView && editEvent?.eventType === "AVAILABILITY" && (
               <>
@@ -650,24 +650,25 @@ export default function EventActionDialogs({
                     type="number"
                     value={editPriceAmount}
                     onChange={(event) => setEditPriceAmount(event.target.value)}
-                    inputProps={{ min: 0, step: "0.01" }}
-                    InputProps={
-                      currencyAffix.position === "start"
-                        ? {
-                            startAdornment: (
-                              <Box sx={{ mr: 1, color: "text.secondary" }}>
-                                {currencyAffix.label}
-                              </Box>
-                            ),
-                          }
-                        : {
-                            endAdornment: (
-                              <Box sx={{ ml: 1, color: "text.secondary" }}>
-                                {currencyAffix.label}
-                              </Box>
-                            ),
-                          }
-                    }
+                    slotProps={{
+                      htmlInput: { min: 0, step: "0.01" },
+                      input:
+                        currencyAffix.position === "start"
+                          ? {
+                              startAdornment: (
+                                <Box sx={{ mr: 1, color: "text.secondary" }}>
+                                  {currencyAffix.label}
+                                </Box>
+                              ),
+                            }
+                          : {
+                              endAdornment: (
+                                <Box sx={{ ml: 1, color: "text.secondary" }}>
+                                  {currencyAffix.label}
+                                </Box>
+                              ),
+                            },
+                    }}
                     fullWidth
                   />
                   <FormControl fullWidth>
@@ -694,7 +695,7 @@ export default function EventActionDialogs({
                     type="number"
                     value={editPayoutAmount}
                     onChange={(event) => setEditPayoutAmount(event.target.value)}
-                    inputProps={{ min: 0, step: "0.01" }}
+                    slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                     fullWidth
                   />
                   <FormControl fullWidth>

@@ -54,6 +54,23 @@ import {
 
 const GOAL_CATEGORIES = ["General", "Strength", "Cardio", "Skill", "Weight"];
 const DISTANCE_UNITS = ["Miles", "Kilometers", "Meters", "Yards"];
+const shrinkLabelSlotProps = { inputLabel: { shrink: true } };
+const readOnlyShrinkSlotProps = {
+  inputLabel: { shrink: true },
+  input: { readOnly: true },
+};
+const distanceNumberSlotProps = {
+  inputLabel: { shrink: true },
+  htmlInput: { step: "0.01" },
+};
+const weightNumberSlotProps = {
+  inputLabel: { shrink: true },
+  htmlInput: { step: "0.1" },
+};
+const timeInputSlotProps = {
+  inputLabel: { shrink: true },
+  htmlInput: { inputMode: "numeric", pattern: "[0-9:]*" },
+};
 const DISTANCE_UNIT_TO_METERS = {
   Miles: 1609.344,
   Kilometers: 1000,
@@ -131,7 +148,11 @@ const GoalCard = ({ goal, onOpen, weightUnit = "lbs" }) => {
             <CardActionArea onClick={() => onOpen(goal)}>
               <CardContent>
                 <Stack spacing={1}>
-                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: "center", flexWrap: "wrap" }}
+                  >
                     {goal.category && (
                       <Chip
                         label={goal.category}
@@ -381,7 +402,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
           <Grid container size={6}>
             Goal Details
           </Grid>
-          <Grid container size={6} justifyContent="flex-end">
+          <Grid container size={6} sx={{ justifyContent: "flex-end", alignItems: "center" }}>
             <Tooltip title="Delete">
               <IconButton variant="contained" onClick={handleOpenDeleteConfirmation}>
                 <Delete />
@@ -419,7 +440,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   onChange={(e, newValue) => setSelectedExercise(newValue)}
                   isOptionEqualToValue={(option, value) => option?._id === value?._id}
                   renderInput={(params) => (
-                    <TextField {...params} label="Exercise" InputLabelProps={{ shrink: true }} />
+                    <TextField {...params} label="Exercise" slotProps={shrinkLabelSlotProps} />
                   )}
                 />
               </Grid>
@@ -430,7 +451,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   label={`Target Weight (${weightUnitLabel})`}
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               <Grid container size={{ xs: 6, sm: 3 }}>
@@ -440,7 +461,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   label="Target Reps"
                   value={targetReps}
                   onChange={(e) => setTargetReps(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               <Grid container size={{ xs: 12, sm: 6 }}>
@@ -448,8 +469,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   fullWidth
                   label="Current Max"
                   value={currentMax !== null ? formatWeightWithUnit(currentMax, normalizedWeightUnit) : 'Select exercise and reps'}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{ readOnly: true }}
+                  slotProps={readOnlyShrinkSlotProps}
                   disabled
                 />
               </Grid>
@@ -463,7 +483,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   label="Title"
                   value={title}
                   onChange={(e) => handleChange(e, setTitle)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               {isCardioGoal && (
@@ -491,8 +511,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       label="Distance"
                       value={distanceValue}
                       onChange={(e) => setDistanceValue(e.target.value)}
-                      inputProps={{ step: "0.01" }}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={distanceNumberSlotProps}
                     />
                   </Grid>
                   <Grid container size={{ xs: 12, sm: 4 }}>
@@ -503,9 +522,8 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       value={goalTime}
                       onChange={handleGoalTimeChange}
                       placeholder="HH:MM:SS"
-                      inputProps={{ inputMode: "numeric", pattern: "[0-9:]*" }}
                       helperText="Format: HH:MM:SS (minutes/seconds 00-59)"
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={timeInputSlotProps}
                     />
                   </Grid>
                 </>
@@ -518,9 +536,8 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       fullWidth
                       label={`Current Weight (${weightUnitLabel})`}
                       value={formatWeightWithUnit(latestMetric?.weight, normalizedWeightUnit)}
-                      InputProps={{ readOnly: true }}
                       helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={readOnlyShrinkSlotProps}
                     />
                   </Grid>
                   <Grid container size={{ xs: 12, sm: 4 }}>
@@ -530,8 +547,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       label={`Goal Weight (${weightUnitLabel})`}
                       value={goalWeight}
                       onChange={(e) => setGoalWeight(e.target.value)}
-                      inputProps={{ step: "0.1" }}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={weightNumberSlotProps}
                     />
                   </Grid>
                 </>
@@ -544,9 +560,8 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       fullWidth
                       label={`Current Weight (${weightUnitLabel})`}
                       value={formatWeightWithUnit(latestMetric?.weight, normalizedWeightUnit)}
-                      InputProps={{ readOnly: true }}
                       helperText={latestMetric?.weight ? "Pulled from Body Metrics" : "No metrics yet"}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={readOnlyShrinkSlotProps}
                     />
                   </Grid>
                   <Grid container size={{ xs: 12, sm: 4 }}>
@@ -556,8 +571,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                       label={`Goal Weight (${weightUnitLabel})`}
                       value={goalWeight}
                       onChange={(e) => setGoalWeight(e.target.value)}
-                      inputProps={{ step: "0.1" }}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={weightNumberSlotProps}
                     />
                   </Grid>
                 </>
@@ -571,7 +585,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
               label="Target Date"
               value={targetDate.substr(0, 10)}
               onChange={(e) => handleChange(e, setTargetDate)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={shrinkLabelSlotProps}
             />
           </Grid>
           {isStrengthGoal ? (
@@ -581,8 +595,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   fullWidth
                   label="Achieved Date"
                   value={new Date(goal.achievedDate).toLocaleDateString()}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{ readOnly: true }}
+                  slotProps={readOnlyShrinkSlotProps}
                   disabled
                   helperText="Automatically set when goal is achieved in a workout"
                 />
@@ -596,7 +609,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                 label="Achieved Date"
                 value={achievedDate.substr(0, 10)}
                 onChange={(e) => handleChange(e, setAchievedDate)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={shrinkLabelSlotProps}
               />
             </Grid>
           )}
@@ -608,7 +621,7 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
               label="Description"
               value={description}
               onChange={(e) => handleChange(e, setDescription)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={shrinkLabelSlotProps}
             />
           </Grid>
           <Grid container size={12} spacing={2} sx={{ justifyContent: 'center' }}>
@@ -634,14 +647,20 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   <Grid container size={2} sx={{ justifyContent: 'center', alignItems: 'center', }}>
                     <Avatar src={comment?.user?.profilePicture ? `${serverURL}/user/profilePicture/${comment.user.profilePicture}` : null} />
                   </Grid>
-                  <Grid container size={10}>
-                    <Grid container size={12}>
-                      <Typography variant="body1">
-                        {comment?.user?.firstName} {comment?.user?.lastName}
-                      </Typography>
-                      <Typography variant="caption" component="p" sx={{ padding: '2.5px 5px', }}>
-                        {comment.createdDate.substr(0, 10)}
-                      </Typography>
+                  <Grid container size={10} sx={{ minWidth: 0 }}>
+                    <Grid
+                      container
+                      size={12}
+                      sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}
+                    >
+                      <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                        <Typography variant="body1">
+                          {comment?.user?.firstName} {comment?.user?.lastName}
+                        </Typography>
+                        <Typography variant="caption" component="p" sx={{ padding: 0 }}>
+                          {comment.createdDate.substr(0, 10)}
+                        </Typography>
+                      </Stack>
                       {comment?.user?._id === user?._id && (
                         <Tooltip title="Delete comment">
                           <IconButton
@@ -669,10 +688,16 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               label="Note"
-              InputProps={{
-                endAdornment: <Button variant="contained" sx={{}} onClick={handleCommentSubmit}>Submit</Button>
+              slotProps={{
+                inputLabel: { shrink: true },
+                input: {
+                  endAdornment: (
+                    <Button variant="contained" sx={{}} onClick={handleCommentSubmit}>
+                      Submit
+                    </Button>
+                  ),
+                },
               }}
-              InputLabelProps={{ shrink: true }}
             />
           </Grid>
         </Grid>
@@ -818,7 +843,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   onChange={(e, newValue) => setSelectedExercise(newValue)}
                   isOptionEqualToValue={(option, value) => option?._id === value?._id}
                   renderInput={(params) => (
-                    <TextField {...params} label="Exercise" InputLabelProps={{ shrink: true }} />
+                    <TextField {...params} label="Exercise" slotProps={shrinkLabelSlotProps} />
                   )}
                 />
               </Grid>
@@ -829,7 +854,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   label={`Target Weight (${weightUnitLabel})`}
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               <Grid container size={{ xs: 6, sm: 3 }}>
@@ -839,7 +864,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   label="Target Reps"
                   value={targetReps}
                   onChange={(e) => setTargetReps(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               <Grid container size={{ xs: 12, sm: 6 }}>
@@ -847,8 +872,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   fullWidth
                   label="Current Max"
                   value={currentMax !== null ? formatWeightWithUnit(currentMax, normalizedWeightUnit) : 'Select exercise and reps'}
-                  InputLabelProps={{ shrink: true }}
-                  InputProps={{ readOnly: true }}
+                  slotProps={readOnlyShrinkSlotProps}
                   disabled
                 />
               </Grid>
@@ -862,7 +886,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   label="Title"
                   value={title}
                   onChange={(e) => handleChange(e, setTitle)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={shrinkLabelSlotProps}
                 />
               </Grid>
               {isCardioGoal && (
@@ -890,8 +914,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                       label="Distance"
                       value={distanceValue}
                       onChange={(e) => setDistanceValue(e.target.value)}
-                      inputProps={{ step: "0.01" }}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={distanceNumberSlotProps}
                     />
                   </Grid>
                   <Grid container size={{ xs: 12, sm: 4 }}>
@@ -902,9 +925,8 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                       value={goalTime}
                       onChange={handleGoalTimeChange}
                       placeholder="HH:MM:SS"
-                      inputProps={{ inputMode: "numeric", pattern: "[0-9:]*" }}
                       helperText="Format: HH:MM:SS (minutes/seconds 00-59)"
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={timeInputSlotProps}
                     />
                   </Grid>
                 </>
@@ -918,7 +940,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
               label="Target Date"
               value={targetDate.substr(0, 10)}
               onChange={(e) => handleChange(e, setTargetDate)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={shrinkLabelSlotProps}
             />
           </Grid>
           <Grid container size={12}>
@@ -929,7 +951,7 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
               label="Description"
               value={description}
               onChange={(e) => handleChange(e, setDescription)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={shrinkLabelSlotProps}
             />
           </Grid>
           <Grid container size={12} spacing={2} sx={{ justifyContent: 'center' }}>

@@ -203,7 +203,10 @@ function Home() {
       {latestMetric && (
         <Grid container size={12} sx={{ marginTop: "10px" }}>
           <Paper elevation={5} sx={{ width: "100%", padding: "5px", margin: "5px" }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Stack
+              direction="row"
+              sx={{ alignItems: "center", justifyContent: "space-between", gap: 1 }}
+            >
               <Typography variant="h6" color="text.primary">Latest Body Metrics</Typography>
               <Button
                 component={Link}

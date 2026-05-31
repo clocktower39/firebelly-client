@@ -30,7 +30,7 @@ export default function WeekNavigator({
                 weekPickerRef.current.focus();
               }
             }}
-            InputProps={{ readOnly: true }}
+            slotProps={{ input: { readOnly: true } }}
           />
           <Button onClick={() => setSelectedDate(selectedDate.add(1, "week"))}>
             <ArrowForward sx={{ color: "primary.dark" }} />
@@ -54,4 +54,3 @@ export default function WeekNavigator({
     </Grid>
   );
 }
-

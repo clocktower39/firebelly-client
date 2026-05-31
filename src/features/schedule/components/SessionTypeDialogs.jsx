@@ -63,7 +63,7 @@ export default function SessionTypeDialogs({
                   <Card key={type._id} variant="outlined">
                     <CardContent>
                       <Stack spacing={0.5}>
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                           <Typography variant="subtitle1">{type.name}</Typography>
                           {type.active === false && <Chip size="small" label="Inactive" />}
                         </Stack>
@@ -171,7 +171,7 @@ export default function SessionTypeDialogs({
                     durationMinutes: event.target.value,
                   }))
                 }
-                inputProps={{ min: 1, step: "1" }}
+                slotProps={{ htmlInput: { min: 1, step: "1" } }}
                 disabled={sessionTypeForm.isDefault}
                 fullWidth
               />
@@ -185,7 +185,7 @@ export default function SessionTypeDialogs({
                     creditsRequired: event.target.value,
                   }))
                 }
-                inputProps={{ min: 0, step: "0.5" }}
+                slotProps={{ htmlInput: { min: 0, step: "0.5" } }}
                 disabled={sessionTypeForm.isDefault}
                 fullWidth
               />
@@ -198,7 +198,7 @@ export default function SessionTypeDialogs({
                 onChange={(event) =>
                   setSessionTypeForm((prev) => ({ ...prev, defaultPrice: event.target.value }))
                 }
-                inputProps={{ min: 0, step: "0.01" }}
+                slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                 fullWidth
               />
               <FormControl fullWidth>
@@ -224,7 +224,7 @@ export default function SessionTypeDialogs({
                 onChange={(event) =>
                   setSessionTypeForm((prev) => ({ ...prev, defaultPayout: event.target.value }))
                 }
-                inputProps={{ min: 0, step: "0.01" }}
+                slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                 fullWidth
               />
               <FormControl fullWidth>

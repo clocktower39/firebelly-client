@@ -238,7 +238,7 @@ export default function NavDrawer() {
           sx={{ width: 32, height: 32, bgcolor: "primary.main" }}
         />
         <Box>
-          <Typography variant="subtitle1" fontWeight={600}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             Firebelly Fitness
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -361,7 +361,7 @@ export default function NavDrawer() {
                   sx={{ width: 32, height: 32 }}
                 />
                 <Box sx={{ textAlign: "left" }}>
-                  <Typography variant="subtitle1" fontWeight={600} lineHeight={1.2}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
                     Firebelly
                   </Typography>
                   <Typography
@@ -377,7 +377,7 @@ export default function NavDrawer() {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               {user._id && (
                 <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                  <Typography variant="body2" fontWeight={500}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
                     {user.firstName} {user.lastName}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">

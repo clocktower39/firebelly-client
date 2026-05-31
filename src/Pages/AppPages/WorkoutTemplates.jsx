@@ -144,7 +144,7 @@ export default function WorkoutTemplates() {
   if (!user?.isTrainer) {
     return (
       <Box sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
-        <Stack spacing={2} alignItems="flex-start">
+        <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
           <Typography variant="h5">Template Workouts</Typography>
           <Typography color="text.secondary">
             Template workouts are only available to trainers.
@@ -160,7 +160,11 @@ export default function WorkoutTemplates() {
   return (
     <Box sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
       <Stack spacing={3}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ alignItems: "center" }}
+        >
           <Typography variant="h4" sx={{ flex: 1 }}>
             Template Workouts
           </Typography>
@@ -176,12 +180,14 @@ export default function WorkoutTemplates() {
               placeholder="Search templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                },
               }}
               sx={{ minWidth: 200 }}
             />
@@ -259,8 +265,13 @@ export default function WorkoutTemplates() {
               <Grid key={workout._id} size={{ xs: 12, md: 6 }}>
                 <Card variant="outlined" sx={{ height: "100%" }}>
                   <CardContent>
-                    <Stack spacing={1}>
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                    <Stack spacing={1} sx={{ minWidth: 0 }}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        sx={{ alignItems: "center", flexWrap: "wrap", minWidth: 0 }}
+                      >
                         <Typography variant="h6">{workout.title || "Untitled Workout"}</Typography>
                         <Chip label="Template" size="small" variant="outlined" />
                         {workout.isShared && (
@@ -276,9 +287,20 @@ export default function WorkoutTemplates() {
                         {formatTemplateSummary(workout)}
                       </Typography>
                       {workout.category?.length > 0 && (
-                        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          useFlexGap
+                          sx={{ flexWrap: "wrap", minWidth: 0, overflow: "visible" }}
+                        >
                           {workout.category.map((cat) => (
-                            <Chip key={cat} label={cat} size="small" variant="outlined" />
+                            <Chip
+                              key={cat}
+                              label={cat}
+                              size="small"
+                              variant="outlined"
+                              sx={{ maxWidth: "100%" }}
+                            />
                           ))}
                         </Stack>
                       )}
@@ -326,7 +348,12 @@ export default function WorkoutTemplates() {
                   >
                     <ListItemText
                       primary={
-                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          useFlexGap
+                          sx={{ alignItems: "center", flexWrap: "wrap", minWidth: 0 }}
+                        >
                           <Typography>{workout.title || "Untitled Workout"}</Typography>
                           <Chip label="Template" size="small" variant="outlined" />
                           {workout.isShared && (
@@ -340,7 +367,18 @@ export default function WorkoutTemplates() {
                         </Stack>
                       }
                       secondary={
-                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mt: 0.5 }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          useFlexGap
+                          sx={{
+                            mt: 0.5,
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            minWidth: 0,
+                            overflow: "visible",
+                          }}
+                        >
                           <Typography variant="body2" component="span">
                             {formatTemplateSummary(workout)}
                           </Typography>
@@ -348,7 +386,13 @@ export default function WorkoutTemplates() {
                             <>
                               <Typography variant="body2" component="span" color="text.secondary">•</Typography>
                               {workout.category.map((cat) => (
-                                <Chip key={cat} label={cat} size="small" variant="outlined" sx={{ height: 20 }} />
+                                <Chip
+                                  key={cat}
+                                  label={cat}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ height: 20, maxWidth: "100%" }}
+                                />
                               ))}
                             </>
                           )}

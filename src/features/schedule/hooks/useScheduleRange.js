@@ -110,27 +110,39 @@ export default function useScheduleRange({
   }, []);
 
   const totalizePrices = useCallback(
-    (events) =>
-      (events || []).reduce((acc, event) => {
+    (events) => {
+      const centsByCurrency = (events || []).reduce((acc, event) => {
         if (!isCountableSession(event)) return acc;
         const resolved = resolveEventAmount(event);
         if (!resolved) return acc;
-        acc[resolved.currency] = (acc[resolved.currency] || 0) + resolved.amount;
+        acc[resolved.currency] =
+          (acc[resolved.currency] || 0) + Math.round(resolved.amount * 100);
         return acc;
-      }, {}),
+      }, {});
+
+      return Object.fromEntries(
+        Object.entries(centsByCurrency).map(([currency, cents]) => [currency, cents / 100])
+      );
+    },
     [isCountableSession, resolveEventAmount]
   );
 
   const totalizeCancelled = useCallback(
-    (events) =>
-      (events || []).reduce((acc, event) => {
+    (events) => {
+      const centsByCurrency = (events || []).reduce((acc, event) => {
         if (event.eventType === "AVAILABILITY") return acc;
         if (event.status !== "CANCELLED") return acc;
         const resolved = resolveEventAmount(event);
         if (!resolved) return acc;
-        acc[resolved.currency] = (acc[resolved.currency] || 0) + resolved.amount;
+        acc[resolved.currency] =
+          (acc[resolved.currency] || 0) + Math.round(resolved.amount * 100);
         return acc;
-      }, {}),
+      }, {});
+
+      return Object.fromEntries(
+        Object.entries(centsByCurrency).map(([currency, cents]) => [currency, cents / 100])
+      );
+    },
     [resolveEventAmount]
   );
 

@@ -100,20 +100,21 @@ const LoggedField = (props) => {
       <TextField
         label={isWeightField ? `${field.label} (${weightUnitLabel})` : field.label}
         value={draftValue ?? (toDisplayValue(storedValue) || 0)}
-        inputProps={{
-          inputMode: "decimal",
-          pattern: "^[0-9]*\\.?[0-9]*$",
-        }}
         onChange={handleChange}
         onBlur={handleBlur}
         onFocus={handleFocus}
         size="small"
         fullWidth
-        InputLabelProps={
-          isWeightField && onToggleWeightUnit
-            ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
-            : undefined
-        }
+        slotProps={{
+          htmlInput: {
+            inputMode: "decimal",
+            pattern: "^[0-9]*\\.?[0-9]*$",
+          },
+          inputLabel:
+            isWeightField && onToggleWeightUnit
+              ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
+              : undefined,
+        }}
       />
     </Grid>
   );
@@ -192,11 +193,11 @@ export default function EditLoader(props) {
             onBlur={handleOneRepMaxBlur}
             onFocus={handleOneRepMaxFocus}
             fullWidth
-            InputLabelProps={
-              onToggleWeightUnit
+            slotProps={{
+              inputLabel: onToggleWeightUnit
                 ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
-                : undefined
-            }
+                : undefined,
+            }}
           />
         </Grid>
       ))}

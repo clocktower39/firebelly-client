@@ -41,8 +41,10 @@ export default function SelectedDate(props) {
           color="primary"
           value={selectedDate}
           onChange={(e) => setSelectedDate(convertToReadableDateInput(e.target.value))}
-          InputLabelProps={{
-            shrink: true,
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
           }}
         />
 

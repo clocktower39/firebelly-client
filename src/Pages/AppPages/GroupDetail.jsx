@@ -348,7 +348,7 @@ export default function GroupDetail() {
     }
   };
 
-  const loadInvites = async () => {
+  async function loadInvites() {
     if (!canAdmin) return;
     setInviteError("");
     try {
@@ -360,7 +360,7 @@ export default function GroupDetail() {
     } catch (err) {
       setInviteError(err.message || "Unable to load invites.");
     }
-  };
+  }
 
   const handleSendInvite = async () => {
     if (!inviteEmail.trim()) return;
@@ -440,7 +440,7 @@ export default function GroupDetail() {
     }
   };
 
-  const loadAnalytics = async () => {
+  async function loadAnalytics() {
     setAnalyticsLoading(true);
     setAnalyticsError("");
     try {
@@ -457,7 +457,7 @@ export default function GroupDetail() {
     } finally {
       setAnalyticsLoading(false);
     }
-  };
+  }
 
   const handleSaveBilling = async () => {
     if (!canAdmin) return;
@@ -482,7 +482,7 @@ export default function GroupDetail() {
     }
   };
 
-  const loadChat = async () => {
+  async function loadChat() {
     setChatLoading(true);
     setChatError("");
     try {
@@ -496,7 +496,7 @@ export default function GroupDetail() {
     } finally {
       setChatLoading(false);
     }
-  };
+  }
 
   const handleSendChatMessage = async () => {
     if (!chatMessage.trim()) return;

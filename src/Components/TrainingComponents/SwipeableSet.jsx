@@ -31,10 +31,12 @@ import {
   RemoveCircle,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import SwipeableViews from "react-swipeable-views";
+import SwipeableViewsModule from "react-swipeable-views";
 import Exercise from "./Exercise";
 import { ExerciseListAutocomplete, Transition } from "../../Pages/AppPages/Workout";
 import dayjs from "dayjs";
+
+const SwipeableViews = SwipeableViewsModule.default ?? SwipeableViewsModule;
 
 function SwipeableSet(props) {
   const {
@@ -108,7 +110,7 @@ function SwipeableSet(props) {
 
   useEffect(() => {
     const update = () => {
-      ref.current.updateHeight();
+      ref.current?.updateHeight?.();
     };
 
     // Initial update

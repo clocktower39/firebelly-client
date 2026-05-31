@@ -1097,7 +1097,7 @@ export default function WorkoutOverview({
           </Paper>
         ) : activeCircuit ? (
           <Paper sx={{ padding: "0 5px", marginBottom: "10px", opacity: 0.9, boxShadow: 3 }}>
-            <Grid container alignItems="center">
+            <Grid container sx={{ alignItems: "center" }}>
               <Grid size={12}>
                 <Typography variant="h6">
                   <span>Circuit {activeCircuit.circuitIndex + 1}</span>
@@ -1342,7 +1342,7 @@ const WorkoutSet = (props) => {
 
   return (
     <Paper sx={{ padding: "0 5px", marginBottom: "10px" }}>
-      <Grid container alignItems="center">
+      <Grid container sx={{ alignItems: "center" }}>
         <Grid size={12}>
           <Typography variant="h6">
             <Box

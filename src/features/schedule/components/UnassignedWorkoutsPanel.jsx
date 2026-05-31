@@ -136,7 +136,7 @@ export default function UnassignedWorkoutsPanel({
                         <Typography variant="subtitle1">
                           {workout.title || "Untitled"}
                         </Typography>
-                        <Stack direction="row" spacing={1} alignItems="center">
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                           <Avatar
                             src={
                               workout.user?.profilePicture
@@ -156,7 +156,7 @@ export default function UnassignedWorkoutsPanel({
                             {workout.category.join(", ")}
                           </Typography>
                         )}
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
                           <Button
                             size="small"
                             variant="outlined"

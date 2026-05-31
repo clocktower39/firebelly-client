@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -365,33 +364,31 @@ export default function Exercise(props) {
                     filterOptions={(options, { inputValue }) => 
                       options.filter(option => matchWords(option.exerciseTitle, inputValue))
                     }
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                      ))
-                    }
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         label="Exercise Title"
                         placeholder="Exercises"
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              <Tooltip title="View Progress Chart">
-                                <IconButton variant="contained" onClick={handleModalExercise}>
-                                  <Info />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Log Exercise">
-                                <IconButton variant="contained" onClick={handleEditToggle}>
-                                  <FactCheck />
-                                </IconButton>
-                              </Tooltip>
-                              {params.InputProps.endAdornment}
-                            </>
-                          ),
+                        slotProps={{
+                          ...params.slotProps,
+                          input: {
+                            ...params.slotProps?.input,
+                            endAdornment: (
+                              <>
+                                <Tooltip title="View Progress Chart">
+                                  <IconButton variant="contained" onClick={handleModalExercise}>
+                                    <Info />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Log Exercise">
+                                  <IconButton variant="contained" onClick={handleEditToggle}>
+                                    <FactCheck />
+                                  </IconButton>
+                                </Tooltip>
+                                {params.slotProps?.input?.endAdornment}
+                              </>
+                            ),
+                          },
                         }}
                       />
                     )}

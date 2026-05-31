@@ -160,7 +160,11 @@ export default function Programs() {
     <>
       <Box sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
         <Stack spacing={3}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{ alignItems: "center" }}
+        >
           <Typography variant="h4" sx={{ flex: 1 }}>
             Programs
           </Typography>
@@ -202,7 +206,11 @@ export default function Programs() {
               <Card variant="outlined" sx={{ height: "100%" }}>
                 <CardContent>
                   <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center", flexWrap: "wrap" }}
+                    >
                       <Typography variant="h6">
                         {program.title || "Untitled Program"}
                       </Typography>
@@ -221,7 +229,7 @@ export default function Programs() {
                         />
                       )}
                     </Stack>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: "text.primary", opacity: 0.72 }}>
                       {program.description || "No description"}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -294,7 +302,7 @@ export default function Programs() {
               type="date"
               value={assignStartDate}
               onChange={(event) => setAssignStartDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
               fullWidth
             />
             {!!assignProgram?.daysPerWeek && (

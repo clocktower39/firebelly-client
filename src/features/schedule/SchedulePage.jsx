@@ -1421,7 +1421,11 @@ export default function Schedule() {
         />
         <Grid container size={12} sx={{ minWidth: 0 }}>
           <Stack spacing={2} sx={{ minWidth: 0 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ alignItems: "baseline" }}
+            >
               <Typography variant="h6">
                 Week of {weekRangeLabel}
               </Typography>
@@ -1429,7 +1433,7 @@ export default function Schedule() {
                 <Typography variant="body2" color="text.secondary">
                   Week total:{" "}
                   {Object.entries(weekTotals)
-                    .map(([currency, total]) => `${currency} ${total.toFixed(2)}`)
+                    .map(([currency, total]) => formatPrice(total, currency))
                     .join(" • ")}
                 </Typography>
               )}

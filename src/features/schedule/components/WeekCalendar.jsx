@@ -96,7 +96,11 @@ export default function WeekCalendar({
         <Card sx={{ width: "100%" }}>
           <CardContent>
             <Stack spacing={2}>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="baseline">
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={1}
+                sx={{ alignItems: "baseline" }}
+              >
                 <Typography variant="h6">Week View</Typography>
                 {isTrainerView && !isShareMode && (
                   <Typography variant="body2" color="text.secondary">
@@ -105,7 +109,11 @@ export default function WeekCalendar({
                 )}
               </Stack>
               {isTrainerView && !isShareMode && (
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  sx={{ alignItems: "center" }}
+                >
                   <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
                 </Stack>
               )}
@@ -115,7 +123,11 @@ export default function WeekCalendar({
                 </Typography>
               )}
               {!isShareMode && (
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  sx={{ alignItems: "center" }}
+                >
                   <Typography variant="caption" color="text.secondary">
                     Zoom
                   </Typography>
@@ -410,7 +422,11 @@ export default function WeekCalendar({
                                     <Typography variant="caption">Open</Typography>
                                   ) : (
                                     <Stack spacing={0.25}>
-                                      <Stack direction="row" spacing={0.5} alignItems="center">
+                                      <Stack
+                                        direction="row"
+                                        spacing={0.5}
+                                        sx={{ alignItems: "center" }}
+                                      >
                                         {!(
                                           isShareMode &&
                                           shareHideDetails &&
@@ -544,7 +560,10 @@ export default function WeekCalendar({
                           color: "text.secondary",
                         }}
                       >
-                        {formatTotals(totals)}
+                        <Stack spacing={0.25} sx={{ alignItems: "flex-start" }}>
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {formatTotals(totals)}
+                          </Typography>
                         {Object.keys(dayCancelledByColumn[index] || {}).length > 0 && (
                           <Typography variant="caption" color="error" display="block">
                             Lost: {formatTotals(dayCancelledByColumn[index])}
@@ -553,6 +572,7 @@ export default function WeekCalendar({
                         <Typography variant="caption" color="text.secondary" display="block">
                           {dayCountsByColumn[index]} sessions
                         </Typography>
+                        </Stack>
                       </Box>
                     ))}
                     <Box
@@ -565,7 +585,10 @@ export default function WeekCalendar({
                         color: "text.secondary",
                       }}
                     >
-                      {formatTotals(weekTotals)}
+                      <Stack spacing={0.25} sx={{ alignItems: "flex-start" }}>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {formatTotals(weekTotals)}
+                        </Typography>
                       {Object.keys(weekCancelledTotals || {}).length > 0 && (
                         <Typography variant="caption" color="error" display="block">
                           Lost: {formatTotals(weekCancelledTotals)}
@@ -574,6 +597,7 @@ export default function WeekCalendar({
                       <Typography variant="caption" color="text.secondary" display="block">
                         {weekEventCount} sessions
                       </Typography>
+                      </Stack>
                     </Box>
                   </Box>
                 </Box>

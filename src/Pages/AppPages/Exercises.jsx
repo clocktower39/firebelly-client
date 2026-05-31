@@ -98,19 +98,11 @@ export default function Exercises() {
           filterOptions={(options, { inputValue }) =>
             options.filter(option => matchWords(option.exerciseTitle, inputValue))
           }
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-            ))
-          }
           renderInput={(params) => (
             <TextField
               {...params}
               label="Selected Exercise"
               placeholder="Exercises"
-              InputProps={{
-                ...params.InputProps,
-              }}
             />
           )}
         />
@@ -333,10 +325,11 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               value={exercise.muscleGroups.primary}
               onChange={(e, getTagProps) => handleMuscleGroupChange("primary", getTagProps)}
               freeSolo
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip key={index} label={option} {...getTagProps({ index })} />
-                ))
+              renderValue={(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+                })
               }
               renderInput={(params) => (
                 <TextField
@@ -358,10 +351,11 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
               freeSolo
               value={exercise.muscleGroups.secondary}
               onChange={(e, getTagProps) => handleMuscleGroupChange("secondary", getTagProps)}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip key={index} label={option} {...getTagProps({ index })} />
-                ))
+              renderValue={(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+                })
               }
               renderInput={(params) => (
                 <TextField
@@ -381,10 +375,11 @@ const ExerciseLibrarySection = ({ selectedExercise }) => {
                 value={exercise[field.fieldName]}
                 onChange={handleArrayChange(field.fieldName)}
                 freeSolo
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip key={index} label={option} {...getTagProps({ index })} />
-                  ))
+                renderValue={(value, getTagProps) =>
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+                  })
                 }
                 renderInput={(params) => (
                   <TextField
@@ -503,10 +498,11 @@ const ExerciseAddSection = () => {
             value={exercise.muscleGroups.primary}
             onChange={(e, getTagProps) => handleMuscleGroupChange("primary", getTagProps)}
             freeSolo
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={index} label={option} {...getTagProps({ index })} />
-              ))
+            renderValue={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -526,10 +522,11 @@ const ExerciseAddSection = () => {
             freeSolo
             value={exercise.muscleGroups.secondary}
             onChange={(e, getTagProps) => handleMuscleGroupChange("secondary", getTagProps)}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
-                <Chip key={index} label={option} {...getTagProps({ index })} />
-              ))
+            renderValue={(value, getTagProps) =>
+              value.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+              })
             }
             renderInput={(params) => (
               <TextField
@@ -549,10 +546,11 @@ const ExerciseAddSection = () => {
               value={exercise[field.fieldName]}
               onChange={handleArrayChange(field.fieldName)}
               freeSolo
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip key={index} label={option} {...getTagProps({ index })} />
-                ))
+              renderValue={(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index });
+                  return <Chip key={key ?? `${option}-${index}`} label={option} {...tagProps} />;
+                })
               }
               renderInput={(params) => (
                 <TextField

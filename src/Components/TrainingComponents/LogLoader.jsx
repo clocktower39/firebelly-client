@@ -109,59 +109,60 @@ const LoggedField = (props) => {
       <TextField
         label={isWeightField ? `${field.label} (${weightUnitLabel})` : field.label}
         value={draftValue ?? (toDisplayValue(storedValue) || 0)}
-        inputProps={{
-          inputMode: "decimal",
-          pattern: "^[0-9]*\\.?[0-9]*$",
-        }}
         onChange={handleChange}
         onBlur={handleBlur}
         onFocus={handleFocus}
         size="small"
-        InputLabelProps={
-          isWeightField && onToggleWeightUnit
-            ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
-            : undefined
-        }
-        InputProps={{
-          endAdornment: (
-            <InputAdornment
-              position="start"
-              sx={{ fontSize: "10px", textAlign: "right", userSelect: "none" }}
-            >
-              <Button
-                sx={{
-                  color: "#fff",
-                  display: "inline-block",
-                  padding: 0,
-                  minHeight: 0,
-                  minWidth: 0,
-                }}
-                onClick={(e) => {
-                  exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
-                    ? handleGoalAdornmentClick(
-                        e,
-                        Number(parentProps.exercise.goals.oneRepMax) *
-                          (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
-                      )
-                    : handleGoalAdornmentClick(
-                        e,
-                        parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]
-                      );
-                }}
+        slotProps={{
+          htmlInput: {
+            inputMode: "decimal",
+            pattern: "^[0-9]*\\.?[0-9]*$",
+          },
+          inputLabel:
+            isWeightField && onToggleWeightUnit
+              ? { onClick: onToggleWeightUnit, sx: { cursor: "pointer" } }
+              : undefined,
+          input: {
+            endAdornment: (
+              <InputAdornment
+                position="start"
+                sx={{ fontSize: "10px", textAlign: "right", userSelect: "none" }}
               >
-                <Typography variant="body2" noWrap>
-                  {exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
-                    ? `/${
-                        toDisplayValue(
+                <Button
+                  sx={{
+                    color: "#fff",
+                    display: "inline-block",
+                    padding: 0,
+                    minHeight: 0,
+                    minWidth: 0,
+                  }}
+                  onClick={(e) => {
+                    exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
+                      ? handleGoalAdornmentClick(
+                          e,
                           Number(parentProps.exercise.goals.oneRepMax) *
                             (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
                         )
-                      }`
-                    : `/${toDisplayValue(parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex])}`}
-                </Typography>
-              </Button>
-            </InputAdornment>
-          ),
+                      : handleGoalAdornmentClick(
+                          e,
+                          parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex]
+                        );
+                  }}
+                >
+                  <Typography variant="body2" noWrap>
+                    {exercise.exerciseType === "Reps with %" && field.goalAttribute === "weight"
+                      ? `/${
+                          toDisplayValue(
+                            Number(parentProps.exercise.goals.oneRepMax) *
+                              (Number(parentProps.exercise.goals.percent[exerciseSetIndex]) / 100)
+                          )
+                        }`
+                      : `/${toDisplayValue(parentProps.exercise.goals[field.goalAttribute][exerciseSetIndex])}`}
+                  </Typography>
+                </Button>
+              </InputAdornment>
+            ),
+          },
         }}
       />
     </Grid>

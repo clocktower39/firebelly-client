@@ -102,11 +102,19 @@ export default function WeeklyTrainingStatus({
 
   return (
     <Stack spacing={1} sx={{ alignItems: "center" }}>
-      <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: "center", justifyContent: "center" }}
+      >
         <IconButton size="small" onClick={() => moveVisibleWeek(-1)}>
           <ChevronLeft />
         </IconButton>
-        <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" sx={{ minWidth: 160 }}>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          sx={{ alignItems: "center", justifyContent: "center", minWidth: 160 }}
+        >
           <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
             {dayjs(weekStart).format("MMM D")} - {dayjs(weekEnd).format("MMM D")}
           </Typography>
@@ -236,10 +244,14 @@ const DayStatusView = ({ day, setSelectedDate }) => {
       }
     >
       <Box
-        sx={{ position: "relative", color: "primary" }}
+        sx={{
+          position: "relative",
+          color: "primary.main",
+        }}
         key={day.date}
         onClick={handleMoveToDate}
         component={Button}
+        aria-label={`Select ${dayjs(day.date).format("dddd, MMMM D")}`}
       >
         <CircularProgress
           variant="determinate"
@@ -257,21 +269,20 @@ const DayStatusView = ({ day, setSelectedDate }) => {
             color: day.complete ? "green" : "red", // Change color based on completion status
             animationDuration: "550ms",
             position: "absolute",
-            left: 10,
           }}
           size={45}
           thickness={1}
         />
         <Box
-          top={0}
-          left={0}
-          bottom={0}
-          right={0}
-          position="absolute"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          flexDirection="column"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            lineHeight: 1,
+          }}
         >
           <Box sx={{ color: "primary.contrastText" }}>
             <Typography variant="body2" component="div">
