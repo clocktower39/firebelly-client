@@ -406,30 +406,28 @@ export default function Exercise(props) {
                   <TextField
                     label="Type"
                     select
-                    SelectProps={{ native: true }}
                     fullWidth
                     value={exerciseType}
                     onChange={handleTypeChange}
                   >
-                    <option value="Rep Range">Rep Range</option>
-                    <option value="Reps">Reps</option>
-                    <option value="Reps with %">Reps with %</option>
-                    <option value="Time">Time</option>
+                    <MenuItem value="Rep Range">Rep Range</MenuItem>
+                    <MenuItem value="Reps">Reps</MenuItem>
+                    <MenuItem value="Reps with %">Reps with %</MenuItem>
+                    <MenuItem value="Time">Time</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, }} >
                   <TextField
                     label="Sets"
                     select
-                    SelectProps={{ native: true }}
                     fullWidth
                     value={sets}
                     onChange={handleSetChange}
                   >
                     {[...Array(21)].map((x, i) => (
-                      <option key={i} value={i}>
+                      <MenuItem key={i} value={i}>
                         {i}
-                      </option>
+                      </MenuItem>
                     ))}
                   </TextField>
                 </Grid>
