@@ -1,9 +1,12 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import {
+  BOOKING_INTERVAL_MINUTES,
+  DEFAULT_BOOKING_MINUTES,
+  dayCodes,
+} from "../constants";
 
 dayjs.extend(utc);
-
-export const dayCodes = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
 export const buildWeeklyRule = (date) => {
   const dayCode = dayCodes[dayjs(date).day()];
@@ -14,37 +17,6 @@ export const buildScopeKey = (trainerId, clientId) => `${trainerId || "me"}:${cl
 
 export const formatRange = (event) =>
   `${dayjs(event.startDateTime).format("h:mm A")} - ${dayjs(event.endDateTime).format("h:mm A")}`;
-
-export const scheduleColors = {
-  APPOINTMENT: "primary",
-  INDEPENDENT: "secondary",
-  AVAILABILITY: "info",
-};
-
-export const statusColors = {
-  OPEN: "success",
-  REQUESTED: "warning",
-  BOOKED: "primary",
-  COMPLETED: "default",
-  CANCELLED: "error",
-};
-
-export const tableColumnLabels = {
-  date: "Date",
-  time: "Time",
-  type: "Type",
-  status: "Status",
-  client: "Client",
-  price: "Price",
-};
-
-export const WEEK_START_HOUR = 6;
-export const WEEK_END_HOUR = 20;
-export const SLOT_MINUTES = 30;
-export const SLOT_HEIGHT = 28;
-export const HEADER_HEIGHT = 56;
-export const BOOKING_INTERVAL_MINUTES = 15;
-export const DEFAULT_BOOKING_MINUTES = 60;
 
 export const alignUpToInterval = (value, intervalMinutes = BOOKING_INTERVAL_MINUTES) => {
   const time = dayjs(value);
@@ -124,9 +96,3 @@ export const pickDefaultBookingEnd = (startValue, endOptions) => {
   );
   return (preferred || endOptions[endOptions.length - 1]).value;
 };
-
-export const EMPTY_EVENTS = [];
-export const EMPTY_SCHEDULE_DATA = { events: EMPTY_EVENTS };
-export const EMPTY_WORKOUTS_BY_ACCOUNT = {};
-export const EMPTY_WORKOUT_QUEUE_BY_ACCOUNT = {};
-export const EMPTY_WORKOUTS = [];
