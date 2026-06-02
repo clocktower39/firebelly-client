@@ -580,7 +580,7 @@ export default function Clients({ socket }) {
       <Dialog
         open={openCalendar}
         onClose={handleCloseCalendar}
-        PaperProps={{ sx: { minHeight: "80%", height: "80vh", overflow: "hidden" } }}
+        slotProps={{ paper: { sx: { minHeight: "80%", height: "80vh", overflow: "hidden" } } }}
       >
         <DialogContent sx={{ p: 1, height: "100%", overflowY: "auto" }}>
           <Calendar view="trainer" client={selectedClient} embedded />

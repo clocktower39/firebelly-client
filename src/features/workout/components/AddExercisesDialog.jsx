@@ -130,12 +130,16 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
   return (
     <Dialog
       open={addExerciseOpen}
-      TransitionComponent={Transition}
       fullWidth
       maxWidth='sm'
-      PaperProps={{
-        sx: {
-          height: "80%",
+      slots={{
+        transition: Transition,
+      }}
+      slotProps={{
+        paper: {
+          sx: {
+            height: "80%",
+          },
         },
       }}
     >
@@ -183,7 +187,7 @@ const AddExercisesDialog = ({ addExerciseOpen, handleAddExerciseClose, confirmed
             <TextField
               label="Sets"
               select
-              SelectProps={{ native: true }}
+              slotProps={{ select: { native: true } }}
               fullWidth
               value={selectedExercisesSetCount}
               onChange={handleSelectedExercisesSetCountChange}

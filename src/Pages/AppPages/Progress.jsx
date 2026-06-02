@@ -33,7 +33,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { ArrowDownward, ArrowUpward, FilterList, Search, Star, StarBorder } from "@mui/icons-material";
+import {
+  ArrowDownward,
+  ArrowUpward,
+  Close as CloseIcon,
+  FilterList,
+  Search,
+  Star,
+  StarBorder,
+} from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import {
   requestClients,
@@ -96,6 +104,31 @@ const modalStyle = () => ({
     borderRadius: 999,
   },
 });
+
+const progressModalShellStyle = () => ({
+  ...modalStyle(),
+  borderRadius: { xs: 2, sm: 3 },
+  overflow: "hidden",
+  p: 0,
+});
+
+const progressModalScrollStyle = {
+  maxHeight: { xs: "calc(100dvh - 24px)", sm: "calc(100dvh - 48px)" },
+  overflowY: "auto",
+  overflowX: "hidden",
+  WebkitOverflowScrolling: "touch",
+  p: { xs: 1.5, sm: 3 },
+  pt: { xs: 6, sm: 6 },
+  "&::-webkit-scrollbar": {
+    width: 8,
+  },
+  "&::-webkit-scrollbar-thumb": {
+    bgcolor: "rgba(148, 163, 184, 0.55)",
+    borderRadius: 999,
+  },
+};
+
+const RESPONSIVE_CHART_INITIAL_DIMENSION = { width: 1, height: 1 };
 
 const CIRCUMFERENCE_FIELDS = [
   { key: "neck", label: "Neck" },
@@ -418,13 +451,28 @@ export const ModalBarChartHistory = (props) => {
   const targetExerciseHistory = targetExercise?.history?.[workoutUser._id] || [];
 
   return (
-    <Modal
-      keepMounted
-      open={open}
-      onClose={handleClose}
-    >
-      <Box sx={modalStyle()}>
-        <BarChartHistory targetExerciseHistory={targetExerciseHistory} />
+    <Modal open={open} onClose={handleClose}>
+      <Box sx={progressModalShellStyle()}>
+        <IconButton
+          aria-label="Close progress modal"
+          onClick={handleClose}
+          sx={{
+            position: "absolute",
+            top: { xs: 8, sm: 12 },
+            left: { xs: 8, sm: 12 },
+            zIndex: 2,
+            color: "primary.contrastText",
+            bgcolor: "rgba(15, 23, 42, 0.34)",
+            "&:hover": {
+              bgcolor: "rgba(15, 23, 42, 0.5)",
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <Box sx={progressModalScrollStyle}>
+          <BarChartHistory targetExerciseHistory={targetExerciseHistory} />
+        </Box>
       </Box>
     </Modal>
   );
@@ -603,7 +651,7 @@ export const BarChartHistory = (props) => {
 
       {historyCount > 1 && (
         <Paper sx={{ p: 2, bgcolor: "background.ATCPaperBackground" }}>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <Typography variant="caption" color="text.secondary" sx={{ minWidth: 80 }}>
               Date range
             </Typography>
@@ -665,7 +713,7 @@ export const BarChartHistory = (props) => {
               border: "1px solid rgba(148, 163, 184, 0.18)",
             }}
           >
-            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
               <Box>
                 <Typography variant="h6" color="primary.contrastText">
                   {getExerciseFieldLabel(field, weightUnit)} by Set
@@ -676,8 +724,12 @@ export const BarChartHistory = (props) => {
               </Box>
             </Stack>
 
-            <Box sx={{ width: "100%", height: { xs: 280, sm: 360 }, mt: 2 }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <Box sx={{ width: "100%", minWidth: 0, height: { xs: 280, sm: 360 }, mt: 2 }}>
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+              >
                 <ComposedChart data={chartRows} margin={{ top: 12, right: 18, left: -10, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.22)" />
                   <XAxis dataKey="date" tick={{ fill: "currentColor", fontSize: 12 }} />
@@ -791,7 +843,7 @@ const ExerciseSummaryCard = ({
       }}
     >
       <Stack spacing={1}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <Box sx={{ minWidth: 0 }}>
             <Typography
               variant="subtitle2"
@@ -832,9 +884,13 @@ const ExerciseSummaryCard = ({
           )}
         </Stack>
 
-        <Box sx={{ height: 72 }}>
+        <Box sx={{ height: 72, minWidth: 0 }}>
           {hasChart ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+            >
               <LineChart data={summary.chartRows}>
                 <Tooltip
                   content={({ active, payload }) => {
@@ -876,9 +932,9 @@ const ExerciseSummaryCard = ({
                 height: "100%",
                 borderRadius: 2,
                 bgcolor: "rgba(148, 163, 184, 0.08)",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              alignItems="center"
-              justifyContent="center"
             >
               <Typography variant="caption" color="text.secondary">
                 {summary.entryCount ? "More entries needed for chart" : "No progress yet"}
@@ -996,7 +1052,7 @@ const ExerciseProgressDashboard = ({
     <Stack spacing={2} sx={{ width: "100%" }}>
       <Paper sx={{ p: 2, bgcolor: "background.ATCPaperBackground" }}>
         <Stack spacing={2}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ alignItems: { md: "center" } }}>
             <Box sx={{ flex: 1 }}>
               <Typography variant="h5" color="primary.contrastText">
                 Exercise Progress
@@ -1693,7 +1749,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
             <Grid container size={12}>
               <Divider sx={{ width: "100%", margin: "10px 0" }} />
             </Grid>
-            <Grid container size={{ xs: 12, sm: 6 }} alignItems="center">
+            <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
               <Typography variant="subtitle1">Circumference ({circumferenceUnit})</Typography>
             </Grid>
             <Grid container size={{ xs: 12, sm: 6 }}>
@@ -1777,7 +1833,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
             }}
           >
             <Stack spacing={2}>
-              <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
                 <Box>
                   <Typography variant="h6" color="primary.contrastText">
                     Metrics Trends
@@ -1838,7 +1894,11 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                         Weight Trend
                       </Typography>
                       <Box sx={{ height: 280, mt: 1 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer
+                          width="100%"
+                          height="100%"
+                          initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+                        >
                           <AreaChart data={metricChartRows} margin={{ top: 12, right: 16, left: -10, bottom: 6 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.22)" />
                             <XAxis dataKey="date" tick={{ fill: "currentColor", fontSize: 12 }} />
@@ -1866,7 +1926,11 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                         Body Composition
                       </Typography>
                       <Box sx={{ height: 280, mt: 1 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer
+                          width="100%"
+                          height="100%"
+                          initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+                        >
                           <LineChart data={metricChartRows} margin={{ top: 12, right: 16, left: -10, bottom: 6 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.22)" />
                             <XAxis dataKey="date" tick={{ fill: "currentColor", fontSize: 12 }} />
@@ -1903,7 +1967,11 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                         Resting Heart Rate
                       </Typography>
                       <Box sx={{ height: 260, mt: 1 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer
+                          width="100%"
+                          height="100%"
+                          initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+                        >
                           <AreaChart data={metricChartRows} margin={{ top: 12, right: 16, left: -10, bottom: 6 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.22)" />
                             <XAxis dataKey="date" tick={{ fill: "currentColor", fontSize: 12 }} />
@@ -1928,7 +1996,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                   <Grid size={{ xs: 12, md: 6 }}>
                     <Paper sx={{ p: 2, bgcolor: "background.paper", height: "100%" }}>
                       <Stack spacing={1.5}>
-                        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1}>
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
                           <Box>
                             <Typography variant="subtitle1" color="primary.contrastText">
                               Circumference
@@ -1953,7 +2021,11 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                           />
                         </Stack>
                         <Box sx={{ height: 260 }}>
-                          <ResponsiveContainer width="100%" height="100%">
+                          <ResponsiveContainer
+                            width="100%"
+                            height="100%"
+                            initialDimension={RESPONSIVE_CHART_INITIAL_DIMENSION}
+                          >
                             <LineChart data={metricChartRows} margin={{ top: 12, right: 16, left: -10, bottom: 6 }}>
                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.22)" />
                               <XAxis dataKey="date" tick={{ fill: "currentColor", fontSize: 12 }} />
@@ -2065,7 +2137,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">Recorded</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("recordedAt")}>
                           {metricsSortKey === "recordedAt" && metricsSortDirection === "desc" ? (
@@ -2083,7 +2155,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">Weight</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("weight")}>
                           {metricsSortKey === "weight" && metricsSortDirection === "desc" ? (
@@ -2101,7 +2173,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">Body Fat</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("bodyFatPercent")}>
                           {metricsSortKey === "bodyFatPercent" && metricsSortDirection === "desc" ? (
@@ -2119,7 +2191,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">BMI</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("bmi")}>
                           {metricsSortKey === "bmi" && metricsSortDirection === "desc" ? (
@@ -2137,7 +2209,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">RHR</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("restingHeartRate")}>
                           {metricsSortKey === "restingHeartRate" && metricsSortDirection === "desc" ? (
@@ -2157,7 +2229,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                         <Typography variant="caption">Circumference</Typography>
                         <IconButton size="small" onClick={() => toggleMetricsSort("circumference")}>
                           {metricsSortKey === "circumference" && metricsSortDirection === "desc" ? (
@@ -2311,7 +2383,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
             <Grid container size={12}>
               <Divider sx={{ width: "100%", margin: "10px 0" }} />
             </Grid>
-            <Grid container size={{ xs: 12, sm: 6 }} alignItems="center">
+            <Grid container size={{ xs: 12, sm: 6 }} sx={{ alignItems: "center" }}>
               <Typography variant="subtitle1">Circumference ({circumferenceUnit})</Typography>
             </Grid>
             <Grid container size={{ xs: 12, sm: 6 }}>
@@ -2369,7 +2441,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
         anchorEl={metricsFilterAnchor}
         open={Boolean(metricsFilterAnchor)}
         onClose={closeMetricsFilter}
-        PaperProps={{ sx: { minWidth: 260, p: 2 } }}
+        slotProps={{ paper: { sx: { minWidth: 260, p: 2 } } }}
       >
         <Stack spacing={2}>
           <Typography variant="subtitle2">{metricsFilterLabel || "Filter"}</Typography>

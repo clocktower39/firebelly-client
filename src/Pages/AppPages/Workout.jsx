@@ -21,7 +21,7 @@ import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import AddExercisesDialog from "../../features/workout/components/AddExercisesDialog";
 import { requestTraining, updateTraining, getExerciseList, upsertWorkout } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
-import CardioDetailsEditor from "../../features/workout/components/CardioDetailsEditor";
+import CardioDetailsEditor from "../../features/workout/components/cardio/CardioDetailsEditor";
 import WorkoutHeader from "../../features/workout/components/WorkoutHeader";
 import useWorkoutCardio from "../../features/workout/hooks/useWorkoutCardio";
 import useWorkoutDirtyState from "../../features/workout/hooks/useWorkoutDirtyState";

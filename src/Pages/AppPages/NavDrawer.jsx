@@ -432,10 +432,12 @@ export default function NavDrawer() {
       <Dialog
         open={openGymBarCodeDialog}
         onClose={handleCloseGymBarCodeDialog}
-        PaperProps={{
-          sx: {
-            width: "100%",
-            height: "90vh",
+        slotProps={{
+          paper: {
+            sx: {
+              width: "100%",
+              height: "90vh",
+            },
           },
         }}
       >

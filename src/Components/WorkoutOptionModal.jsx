@@ -749,19 +749,19 @@ export function ModalAction(props) {
                     Are you sure you would like to delete the following training:
                   </Typography>
                 </Grid>
-                <Grid container size={12} justifyContent="center">
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography color="text.primary">{training?.title}</Typography>
                 </Grid>
-                <Grid container size={12} justifyContent="center">
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography color="text.primary">
                     {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                   </Typography>
                 </Grid>
-                <Grid container size={12} justifyContent="center">
+                <Grid container size={12} sx={{ justifyContent: "center" }}>
                   <Typography color="text.primary">{training.category.join(", ")}</Typography>
                 </Grid>
               </Grid>
-              <Grid container size={12} justifyContent="center">
+              <Grid container size={12} sx={{ justifyContent: "center" }}>
                 <Button variant="contained" onClick={handleDelete}>
                   Confrim
                 </Button>
@@ -794,7 +794,7 @@ export function ModalAction(props) {
         return (
           <>
             <Grid container spacing={1} >
-              <Grid container size={12} justifyContent="center" >
+              <Grid container size={12} sx={{ justifyContent: "center" }} >
                 <Typography color="text.primary">
                   Export training from {dayjs.utc(selectedDate).format("MMMM Do YYYY")}
                 </Typography>
@@ -882,7 +882,7 @@ export function ModalAction(props) {
               : null,
           ]}
         >
-          <Typography variant="h5" textAlign="center" color="text.primary" gutterBottom>
+          <Typography variant="h5" sx={{ textAlign: "center" }} color="text.primary" gutterBottom>
             Workout Settings
           </Typography>
           <Grid container sx={{ justifyContent: "center" }}>

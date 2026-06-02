@@ -442,7 +442,7 @@ const ReorderCircuitCard = ({
 }) => {
   return (
     <Paper sx={{ padding: "8px", marginBottom: "10px" }}>
-      <Grid container alignItems="center" sx={{ marginBottom: "6px" }}>
+      <Grid container sx={{ alignItems: "center", marginBottom: "6px" }}>
         <Grid size={12}>
           <Box
             {...listeners}
@@ -499,7 +499,7 @@ const ReorderCircuitCard = ({
                         variant="outlined"
                         sx={{ marginBottom: "8px", padding: "8px 10px" }}
                       >
-                        <Grid container alignItems="center" spacing={1}>
+                        <Grid container spacing={1} sx={{ alignItems: "center" }}>
                           <Grid size={1}>
                             <Box
                               {...exerciseListeners}
@@ -787,7 +787,7 @@ const overlayTextSx = {
                   <Paper
                     sx={{ ...overlayPaperSx, opacity: 0.9, boxShadow: 3, padding: "8px 10px" }}
                   >
-                    <Grid container alignItems="center" spacing={1}>
+                    <Grid container spacing={1} sx={{ alignItems: "center" }}>
                       <Grid size={1}>
                         <DragHandleIcon fontSize="small" />
                       </Grid>

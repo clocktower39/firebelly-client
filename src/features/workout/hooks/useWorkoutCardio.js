@@ -15,6 +15,7 @@ import {
   getCardioDistanceUnitOptions,
   getCardioPromptMissing,
   getCardioRouteOptions,
+  getCardioSurfaceOptions,
   getCardioStyleOptions,
   getCardioStylePresets,
   getDerivedMetricHelperText,
@@ -35,6 +36,8 @@ import {
   shortenHrZoneLabel,
   truncateText,
 } from "../utils/workoutUtils";
+
+const EMPTY_WORKOUTS = [];
 
 export default function useWorkoutCardio({ isCardio, training, user }) {
   const [cardioDetails, setCardioDetails] = useState(() => normalizeCardio(training?.cardio));
@@ -176,7 +179,7 @@ export default function useWorkoutCardio({ isCardio, training, user }) {
   ]);
   const workoutsForMileage = useSelector((state) => {
     const accountId = training?.user?._id || user._id;
-    return state.workouts?.[accountId]?.workouts || [];
+    return state.workouts?.[accountId]?.workouts || EMPTY_WORKOUTS;
   });
   const shoeMileage = useMemo(() => {
     const shoeName = normalizeShoeName(activeCardio.shoes);

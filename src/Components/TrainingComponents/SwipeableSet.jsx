@@ -666,10 +666,10 @@ const FeedbackDialog = ({
   return (
     <Dialog
       open={feedbackDialogOpen}
-      TransitionComponent={Transition}
       fullWidth
       maxWidth="sm"
-      PaperProps={{ sx: { height: "80%" } }}
+      slots={{ transition: Transition }}
+      slotProps={{ paper: { sx: { height: "80%" } } }}
     >
       <AppBar sx={{ position: "relative" }}>
         <Toolbar>

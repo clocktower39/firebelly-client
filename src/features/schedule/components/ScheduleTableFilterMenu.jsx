@@ -54,7 +54,7 @@ export default function ScheduleTableFilterMenu({
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       transformOrigin={{ vertical: "top", horizontal: "left" }}
-      PaperProps={{ sx: { minWidth: 220, p: 1 } }}
+      slotProps={{ paper: { sx: { minWidth: 220, p: 1 } } }}
     >
       <Stack spacing={1}>
         <Typography variant="subtitle1">{tableFilterLabel || "Column options"}</Typography>
@@ -371,4 +371,3 @@ export default function ScheduleTableFilterMenu({
     </Menu>
   );
 }
-
