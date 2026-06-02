@@ -235,7 +235,7 @@ export default function Products() {
                     onChange={(event) =>
                       handleChange("creditsPerUnit", event.target.value)
                     }
-                    inputProps={{ min: 0, step: "0.5" }}
+                    slotProps={{ htmlInput: { min: 0, step: "0.5" } }}
                     fullWidth
                   />
                 </Stack>
@@ -251,7 +251,7 @@ export default function Products() {
                   type="number"
                   value={form.price}
                   onChange={(event) => handleChange("price", event.target.value)}
-                  inputProps={{ min: 0, step: "0.01" }}
+                  slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                   fullWidth
                 />
                 <FormControl fullWidth>

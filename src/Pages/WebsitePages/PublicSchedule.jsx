@@ -197,7 +197,7 @@ export default function PublicSchedule() {
                   weekPickerRef.current.focus();
                 }
               }}
-              InputProps={{ readOnly: true }}
+              slotProps={{ input: { readOnly: true } }}
             />
             <Button onClick={() => setSelectedDate(selectedDate.add(1, "week"))}>
               <ArrowForward sx={{ color: "primary.dark" }} />

@@ -440,7 +440,17 @@ const GoalDetails = ({ goal, open, onClose, dispatch, user, exerciseLibrary, lat
                   onChange={(e, newValue) => setSelectedExercise(newValue)}
                   isOptionEqualToValue={(option, value) => option?._id === value?._id}
                   renderInput={(params) => (
-                    <TextField {...params} label="Exercise" slotProps={shrinkLabelSlotProps} />
+                    <TextField
+                      {...params}
+                      label="Exercise"
+                      slotProps={{
+                        ...params.slotProps,
+                        inputLabel: {
+                          ...params.slotProps?.inputLabel,
+                          shrink: true,
+                        },
+                      }}
+                    />
                   )}
                 />
               </Grid>
@@ -843,7 +853,17 @@ const AddNewGoal = ({ open, onClose, dispatch, exerciseLibrary, latestMetric, we
                   onChange={(e, newValue) => setSelectedExercise(newValue)}
                   isOptionEqualToValue={(option, value) => option?._id === value?._id}
                   renderInput={(params) => (
-                    <TextField {...params} label="Exercise" slotProps={shrinkLabelSlotProps} />
+                    <TextField
+                      {...params}
+                      label="Exercise"
+                      slotProps={{
+                        ...params.slotProps,
+                        inputLabel: {
+                          ...params.slotProps?.inputLabel,
+                          shrink: true,
+                        },
+                      }}
+                    />
                   )}
                 />
               </Grid>

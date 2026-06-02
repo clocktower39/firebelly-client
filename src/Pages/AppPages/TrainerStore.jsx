@@ -144,7 +144,7 @@ export default function TrainerStore() {
                         onChange={(event) =>
                           handleQuantityChange(product._id, event.target.value)
                         }
-                        inputProps={{ min: 0, step: "1" }}
+                        slotProps={{ htmlInput: { min: 0, step: "1" } }}
                         sx={{ width: 120 }}
                       />
                     </CardActions>

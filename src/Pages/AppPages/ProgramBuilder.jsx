@@ -516,7 +516,7 @@ export default function ProgramBuilder() {
                 <TextField
                   label="Weeks"
                   type="number"
-                  inputProps={{ min: 1, max: 52 }}
+                  slotProps={{ htmlInput: { min: 1, max: 52 } }}
                   value={weeksCount}
                   onFocus={(event) => event.target.select()}
                   onChange={(event) => {
@@ -536,7 +536,7 @@ export default function ProgramBuilder() {
                 <TextField
                   label="Days per week"
                   type="number"
-                  inputProps={{ min: 1, max: 7 }}
+                  slotProps={{ htmlInput: { min: 1, max: 7 } }}
                   value={daysPerWeek}
                   onFocus={(event) => event.target.select()}
                   onChange={(event) => {
@@ -675,12 +675,14 @@ export default function ProgramBuilder() {
                   placeholder="Search..."
                   value={importSearch}
                   onChange={(e) => setImportSearch(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                   sx={{ flex: 1 }}
                 />

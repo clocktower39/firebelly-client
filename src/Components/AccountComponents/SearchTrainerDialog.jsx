@@ -93,7 +93,7 @@ export default function SearchTrainerDialog({ open, handleClose, currentRelation
               onChange={(e) => handleChange(e, setSearch)}
               fullWidth
               label="Search"
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
           </Grid>
           <Grid container size={12} >

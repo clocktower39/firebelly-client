@@ -526,19 +526,21 @@ export default function TrainerConnections({ embedded = false, socket = null }) 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && searchTrainers()}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Button onClick={searchTrainers} disabled={searching}>
-                      Search
-                    </Button>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Button onClick={searchTrainers} disabled={searching}>
+                        Search
+                      </Button>
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
             {searching && (

@@ -408,8 +408,10 @@ export default function NavDrawer() {
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
-              MenuListProps={{
-                "aria-labelledby": "account-menu-button",
+              slotProps={{
+                list: {
+                  "aria-labelledby": "account-menu-button",
+                },
               }}
             >
               <MenuItem component={Link} to="/account" onClick={handleMenuClose}>

@@ -292,14 +292,14 @@ export default function WorkoutTrainerSessionDialog({
               label="Workout Date"
               value={getWorkoutDateLabel(selectedWorkout)}
               fullWidth
-              InputProps={{ readOnly: true }}
+              slotProps={{ input: { readOnly: true } }}
             />
             <TextField
               label="Start Time"
               type="time"
               value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
               fullWidth
               disabled={!canManageTrainerSessions || eventLoading}
             />
@@ -329,7 +329,7 @@ export default function WorkoutTrainerSessionDialog({
               type="number"
               value={durationMinutes}
               onChange={(event) => setDurationMinutes(event.target.value)}
-              inputProps={{ min: 15, step: 15 }}
+              slotProps={{ htmlInput: { min: 15, step: 15 } }}
               fullWidth
               disabled={!canManageTrainerSessions || eventLoading}
             />

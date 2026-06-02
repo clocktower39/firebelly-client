@@ -198,7 +198,7 @@ const GuardianDashboard = () => {
               <TextField
                 label="Date of Birth"
                 type="date"
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
                 value={childForm.dateOfBirth}
                 onChange={(e) => setChildForm({ ...childForm, dateOfBirth: e.target.value })}
                 fullWidth

@@ -157,7 +157,7 @@ export default function ScheduleTableFilterMenu({
                       }
                     >
                       <Checkbox size="small" checked={isChecked} />
-                      <ListItemText primary={type} primaryTypographyProps={{ variant: "body2" }} />
+                      <ListItemText primary={type} slotProps={{ primary: { variant: "body2" } }} />
                     </MenuItem>
                   );
                 })}
@@ -194,7 +194,7 @@ export default function ScheduleTableFilterMenu({
                       <Checkbox size="small" checked={isChecked} />
                       <ListItemText
                         primary={day.format("ddd, MMM D")}
-                        primaryTypographyProps={{ variant: "body2" }}
+                        slotProps={{ primary: { variant: "body2" } }}
                       />
                     </MenuItem>
                   );
@@ -231,7 +231,7 @@ export default function ScheduleTableFilterMenu({
                       <Checkbox size="small" checked={isChecked} />
                       <ListItemText
                         primary={timeLabel}
-                        primaryTypographyProps={{ variant: "body2" }}
+                        slotProps={{ primary: { variant: "body2" } }}
                       />
                     </MenuItem>
                   );
@@ -268,7 +268,7 @@ export default function ScheduleTableFilterMenu({
                       <Checkbox size="small" checked={isChecked} />
                       <ListItemText
                         primary={status}
-                        primaryTypographyProps={{ variant: "body2" }}
+                        slotProps={{ primary: { variant: "body2" } }}
                       />
                     </MenuItem>
                   );
@@ -316,7 +316,7 @@ export default function ScheduleTableFilterMenu({
                         <Checkbox size="small" checked={isChecked} />
                         <ListItemText
                           primary={client}
-                          primaryTypographyProps={{ variant: "body2" }}
+                          slotProps={{ primary: { variant: "body2" } }}
                         />
                       </MenuItem>
                     );
@@ -353,7 +353,7 @@ export default function ScheduleTableFilterMenu({
                       <Checkbox size="small" checked={isChecked} />
                       <ListItemText
                         primary={priceLabel}
-                        primaryTypographyProps={{ variant: "body2" }}
+                        slotProps={{ primary: { variant: "body2" } }}
                       />
                     </MenuItem>
                   );

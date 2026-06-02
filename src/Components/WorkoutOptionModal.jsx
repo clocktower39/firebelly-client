@@ -430,7 +430,7 @@ export function ModalAction(props) {
                     type="date"
                     value={rangeStart}
                     onChange={handleRangeStartChange}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                   />
                   <TextField
                     fullWidth
@@ -438,7 +438,7 @@ export function ModalAction(props) {
                     type="date"
                     value={rangeEnd}
                     onChange={handleRangeEndChange}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                   />
                   <TextField
                     fullWidth
@@ -446,7 +446,7 @@ export function ModalAction(props) {
                     type="date"
                     value={rangeTargetDate}
                     onChange={handleRangeTargetChange}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     disabled={targetQueue}
                   />
                   <FormControlLabel
@@ -594,7 +594,7 @@ export function ModalAction(props) {
                   type="date"
                   value={rangeStart}
                   onChange={handleRangeStartChange}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
                 <TextField
                   fullWidth
@@ -602,7 +602,7 @@ export function ModalAction(props) {
                   type="date"
                   value={rangeEnd}
                   onChange={handleRangeEndChange}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
                 <TextField
                   fullWidth
@@ -610,7 +610,7 @@ export function ModalAction(props) {
                   type="date"
                   value={rangeTargetDate}
                   onChange={handleRangeTargetChange}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   disabled={targetQueue}
                 />
                 <FormControlLabel

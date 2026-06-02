@@ -297,7 +297,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.primary}
                 onChange={handleColorChange("primary")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>
@@ -307,7 +307,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.secondary}
                 onChange={handleColorChange("secondary")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>
@@ -317,7 +317,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.backgroundDefault}
                 onChange={handleColorChange("backgroundDefault")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>
@@ -327,7 +327,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.backgroundPaper}
                 onChange={handleColorChange("backgroundPaper")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>
@@ -337,7 +337,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.textPrimary}
                 onChange={handleColorChange("textPrimary")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>
@@ -347,7 +347,7 @@ export default function AccountSettings() {
                 type="color"
                 value={themeColors.textSecondary}
                 onChange={handleColorChange("textSecondary")}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid size={12}>

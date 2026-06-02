@@ -976,16 +976,18 @@ export default function GroupDetail() {
                     multiline
                     minRows={2}
                     fullWidth
-                    InputProps={{
-                      endAdornment: (
-                        <Button
-                          variant="contained"
-                          onClick={handleSendChatMessage}
-                          disabled={!chatMessage.trim()}
-                        >
-                          Send
-                        </Button>
-                      ),
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <Button
+                            variant="contained"
+                            onClick={handleSendChatMessage}
+                            disabled={!chatMessage.trim()}
+                          >
+                            Send
+                          </Button>
+                        ),
+                      },
                     }}
                   />
                 </Stack>
@@ -1118,7 +1120,7 @@ export default function GroupDetail() {
                       type="date"
                       value={analyticsStartDate}
                       onChange={(event) => setAnalyticsStartDate(event.target.value)}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{ inputLabel: { shrink: true } }}
                       fullWidth
                     />
                     <TextField
@@ -1126,7 +1128,7 @@ export default function GroupDetail() {
                       type="date"
                       value={analyticsEndDate}
                       onChange={(event) => setAnalyticsEndDate(event.target.value)}
-                      InputLabelProps={{ shrink: true }}
+                      slotProps={{ inputLabel: { shrink: true } }}
                       fullWidth
                     />
                     <Button
@@ -1223,7 +1225,7 @@ export default function GroupDetail() {
                     type="date"
                     value={billingTrialEndsAt}
                     onChange={(event) => setBillingTrialEndsAt(event.target.value)}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     fullWidth
                     disabled={!canAdmin}
                   />
@@ -1462,7 +1464,7 @@ export default function GroupDetail() {
               type="date"
               value={assignStartDate}
               onChange={(event) => setAssignStartDate(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
               fullWidth
             />
             {!!selectedProgram?.daysPerWeek && (

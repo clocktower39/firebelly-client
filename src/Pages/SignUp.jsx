@@ -28,7 +28,7 @@ const SignupInput = ({
         error={error === true ? true : false}
         helperText={error === true ? helperText : false}
         type={type}
-        InputLabelProps={type === "date" ? { shrink: true } : undefined}
+        slotProps={type === "date" ? { inputLabel: { shrink: true } } : undefined}
         onKeyDown={(e) => handleKeyDown(e)}
         onChange={(e) =>
           setFormData((prev) => ({

@@ -140,9 +140,7 @@ export default function MyAccount() {
               value={dateOfBirth}
               onChange={(e) => handleChange(e.target.value, setDateOfBirth)}
               fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
           </Grid>
           <Grid container size={12}>

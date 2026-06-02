@@ -171,7 +171,7 @@ export default function SessionCounter() {
                   type="number"
                   value={sessionsPurchased}
                   onChange={(event) => setSessionsPurchased(event.target.value)}
-                  inputProps={{ min: 1 }}
+                  slotProps={{ htmlInput: { min: 1 } }}
                   fullWidth
                 />
                 <TextField
@@ -179,7 +179,7 @@ export default function SessionCounter() {
                   type="date"
                   value={expiresAt}
                   onChange={(event) => setExpiresAt(event.target.value)}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{ inputLabel: { shrink: true } }}
                   fullWidth
                 />
                 <TextField

@@ -566,7 +566,7 @@ export default function Invoices() {
                     type="date"
                     value={dueAt}
                     onChange={(event) => setDueAt(event.target.value)}
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     fullWidth
                   />
                 </Stack>
@@ -626,7 +626,7 @@ export default function Invoices() {
                           onChange={(event) =>
                             handleLineItemChange(idx, "quantity", event.target.value)
                           }
-                          inputProps={{ min: 1 }}
+                          slotProps={{ htmlInput: { min: 1 } }}
                           fullWidth
                         />
                         <TextField
@@ -636,7 +636,7 @@ export default function Invoices() {
                           onChange={(event) =>
                             handleLineItemChange(idx, "unitPrice", event.target.value)
                           }
-                          inputProps={{ min: 0, step: "0.01" }}
+                          slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                           fullWidth
                         />
                         <TextField
@@ -646,7 +646,7 @@ export default function Invoices() {
                           onChange={(event) =>
                             handleLineItemChange(idx, "sessionCredits", event.target.value)
                           }
-                          inputProps={{ min: 0, step: "0.5" }}
+                          slotProps={{ htmlInput: { min: 0, step: "0.5" } }}
                           disabled={item.itemType !== "SESSION"}
                           fullWidth
                         />
@@ -675,7 +675,7 @@ export default function Invoices() {
                     type="number"
                     value={tax}
                     onChange={(event) => setTax(event.target.value)}
-                    inputProps={{ min: 0, step: "0.01" }}
+                    slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                     fullWidth
                   />
                   <TextField
@@ -683,7 +683,7 @@ export default function Invoices() {
                     type="number"
                     value={discount}
                     onChange={(event) => setDiscount(event.target.value)}
-                    inputProps={{ min: 0, step: "0.01" }}
+                    slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
                     fullWidth
                   />
                 </Stack>

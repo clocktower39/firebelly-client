@@ -1092,8 +1092,10 @@ const ExerciseProgressDashboard = ({
                 placeholder="Search exercises"
                 value={exerciseSearchTerm}
                 onChange={(event) => setExerciseSearchTerm(event.target.value)}
-                InputProps={{
-                  startAdornment: <Search fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />,
+                slotProps={{
+                  input: {
+                    startAdornment: <Search fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />,
+                  },
                 }}
               />
             </Grid>
@@ -1683,7 +1685,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Recorded Date"
                 value={recordedAt}
                 onChange={(e) => setRecordedAt(e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 3 }}>
@@ -1693,8 +1695,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Weight"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                inputProps={{ step: "0.1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "0.1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 2 }}>
@@ -1720,8 +1724,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Body Fat %"
                 value={bodyFatPercent}
                 onChange={(e) => setBodyFatPercent(e.target.value)}
-                inputProps={{ step: "0.1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "0.1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 4 }}>
@@ -1731,8 +1737,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Resting HR (bpm)"
                 value={restingHeartRate}
                 onChange={(e) => setRestingHeartRate(e.target.value)}
-                inputProps={{ step: "1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 4 }}>
@@ -1741,8 +1749,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 fullWidth
                 label="BMI (auto)"
                 value={bmiPreview}
-                InputProps={{ readOnly: true }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { readOnly: true },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
 
@@ -1776,8 +1786,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                   label={field.label}
                   value={circumference[field.key] || ""}
                   onChange={(e) => handleCircumferenceChange(field.key, e.target.value)}
-                  inputProps={{ step: "0.1" }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    htmlInput: { step: "0.1" },
+                    inputLabel: { shrink: true },
+                  }}
                 />
               </Grid>
             ))}
@@ -2317,7 +2329,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Recorded Date"
                 value={editRecordedAt}
                 onChange={(e) => setEditRecordedAt(e.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 3 }}>
@@ -2327,8 +2339,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Weight"
                 value={editWeight}
                 onChange={(e) => setEditWeight(e.target.value)}
-                inputProps={{ step: "0.1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "0.1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 2 }}>
@@ -2354,8 +2368,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Body Fat %"
                 value={editBodyFatPercent}
                 onChange={(e) => setEditBodyFatPercent(e.target.value)}
-                inputProps={{ step: "0.1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "0.1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 4 }}>
@@ -2365,8 +2381,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 label="Resting HR (bpm)"
                 value={editRestingHeartRate}
                 onChange={(e) => setEditRestingHeartRate(e.target.value)}
-                inputProps={{ step: "1" }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  htmlInput: { step: "1" },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
             <Grid container size={{ xs: 12, sm: 4 }}>
@@ -2375,8 +2393,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 fullWidth
                 label="BMI (auto)"
                 value={calculateBmi(toStoredLbs(editWeight, weightUnit), heightInches)}
-                InputProps={{ readOnly: true }}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  input: { readOnly: true },
+                  inputLabel: { shrink: true },
+                }}
               />
             </Grid>
 
@@ -2415,8 +2435,10 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                       [field.key]: e.target.value,
                     }))
                   }
-                  inputProps={{ step: "0.1" }}
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    htmlInput: { step: "0.1" },
+                    inputLabel: { shrink: true },
+                  }}
                 />
               </Grid>
             ))}
@@ -2454,7 +2476,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 onChange={(event) =>
                   setMetricsDateRange((prev) => ({ ...prev, from: event.target.value }))
                 }
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
               <TextField
                 label="To"
@@ -2463,7 +2485,7 @@ const BodyMetrics = ({ targetUser, isTrainerView }) => {
                 onChange={(event) =>
                   setMetricsDateRange((prev) => ({ ...prev, to: event.target.value }))
                 }
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
               <Button size="small" onClick={() => setMetricsDateRange({ from: "", to: "" })}>
                 Clear

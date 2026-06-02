@@ -136,12 +136,14 @@ const MessageInput = ({ conversationId }) => {
               setMessage(e.target.value);
               e.target.value === "" ? setError(true) : setError(false);
             }}
-            InputProps={{
-              endAdornment: (
-                <Button variant="contained" color="primary" onClick={(e) => handleMessageSubmit(e)}>
-                  Send
-                </Button>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <Button variant="contained" color="primary" onClick={(e) => handleMessageSubmit(e)}>
+                    Send
+                  </Button>
+                ),
+              },
             }}
           />
         </Grid>
