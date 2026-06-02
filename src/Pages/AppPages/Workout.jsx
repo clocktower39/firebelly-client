@@ -5,21 +5,19 @@ import { useParams, useOutletContext, useNavigate, useLocation } from "react-rou
 import dayjs from "dayjs";
 import {
   Alert,
-  Autocomplete,
   Button,
-  Chip,
-  Divider,
   Grid,
   Snackbar,
   TextField,
 } from "@mui/material";
-import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import WorkoutTrainerSessionDialog from "../../Components/TrainingComponents/WorkoutTrainerSessionDialog";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import AddExercisesDialog from "../../features/workout/components/AddExercisesDialog";
 import { requestTraining, updateTraining, getExerciseList } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import CardioDetailsEditor from "../../features/workout/components/cardio/CardioDetailsEditor";
+import StrengthWorkoutEditor from "../../features/workout/components/StrengthWorkoutEditor";
+import WorkoutCategoryField from "../../features/workout/components/WorkoutCategoryField";
 import WorkoutHeader from "../../features/workout/components/WorkoutHeader";
 import useWorkoutCardio from "../../features/workout/hooks/useWorkoutCardio";
 import useWorkoutDirtyState from "../../features/workout/hooks/useWorkoutDirtyState";
@@ -32,12 +30,6 @@ import { readWorkoutGestures, saveWorkoutGestures } from "../../features/workout
 
 dayjs.extend(utc);
 dayjs.extend(advancedFormat);
-
-const classes = {
-  TrainingCategoryInputContainer: {
-    marginBottom: "20px",
-  },
-};
 
 export default function Workout({ socket }) {
   const dispatch = useDispatch();
@@ -185,10 +177,6 @@ export default function Workout({ socket }) {
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
-
-  const handleTrainingCategory = (getTagProps) => {
-    setTrainingCategory(getTagProps);
-  };
 
   const handleTitleChange = (e) => {
     setTrainingTitle(e.target.value);
@@ -451,67 +439,38 @@ export default function Workout({ socket }) {
                   {isCardio ? (
                     <CardioDetailsEditor {...cardioEditorProps} />
                   ) : (
-                    <Grid size={12} container sx={classes.TrainingCategoryInputContainer}>
-                      <Grid size={12} container sx={{ alignContent: "center" }}>
-                        <Autocomplete
-                          disableCloseOnSelect
-                          value={trainingCategory}
-                          fullWidth
-                          multiple
-                          id="tags-filled"
-                          defaultValue={trainingCategory.map((category) => category)}
-                          options={categories.map((option) => option)}
-                          freeSolo
-                          onChange={(e, getTagProps) => handleTrainingCategory(getTagProps)}
-                          renderValue={(value, getTagProps) =>
-                            value.map((option, index) => {
-                              const { key, ...tagProps } = getTagProps({ index });
-                              return (
-                                <Chip key={`${option}-${index}`} variant="outlined" label={option} {...tagProps} />
-                              )
-                            })
-                          }
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Muscle Groups"
-                            />
-                          )}
-                        />
-                      </Grid>
-                    </Grid>
+                    <WorkoutCategoryField
+                      categories={categories}
+                      onChange={setTrainingCategory}
+                      trainingCategory={trainingCategory}
+                    />
                   )}
                 </Grid>
                 {!isCardio && (
-                  <Grid size={12}>
-                    <Divider sx={{ margin: "25px 0px" }} />
-                  </Grid>
-                )}
-                {!isCardio && training.training.length > 0 && (
-                  <SwipeableSet
-                    workoutUser={training.user}
+                  <StrengthWorkoutEditor
+                    activeStep={activeStep}
+                    activeWorkoutWeightUnit={activeWorkoutWeightUnit}
+                    localTraining={localTraining}
                     newExercise={newExercise}
                     newSet={newSet}
-                    removeSet={removeSet}
-                    removeExercise={removeExercise}
-                    localTraining={localTraining}
-                    setLocalTraining={setLocalTraining}
-                    save={save}
-                    toggleNewSet={toggleNewSet}
-                    toggleRemoveSet={toggleRemoveSet}
-                    maxSteps={localTraining.length + 1}
-                    selectedDate={training.date}
-                    size={size}
-                    workoutCompleteStatus={workoutCompleteStatus}
-                    setWorkoutCompleteStatus={setWorkoutCompleteStatus}
-                    workoutFeedback={workoutFeedback}
-                    setWorkoutFeedback={setWorkoutFeedback}
-                    activeStep={activeStep}
-                    setActiveStep={setActiveStep}
-                    weightUnit={activeWorkoutWeightUnit}
                     onToggleWeightUnit={
                       weightLabelUnitToggleEnabled ? toggleWorkoutWeightUnit : undefined
                     }
+                    removeExercise={removeExercise}
+                    removeSet={removeSet}
+                    save={save}
+                    selectedDate={training.date}
+                    setActiveStep={setActiveStep}
+                    setLocalTraining={setLocalTraining}
+                    setWorkoutCompleteStatus={setWorkoutCompleteStatus}
+                    setWorkoutFeedback={setWorkoutFeedback}
+                    showSets={training.training.length > 0}
+                    size={size}
+                    toggleNewSet={toggleNewSet}
+                    toggleRemoveSet={toggleRemoveSet}
+                    workoutCompleteStatus={workoutCompleteStatus}
+                    workoutFeedback={workoutFeedback}
+                    workoutUser={training.user}
                   />
                 )}
               </Grid>
