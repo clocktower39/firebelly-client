@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
-import { scheduleApi } from "../../api/scheduleApi";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -24,6 +23,7 @@ import CardioDetailsEditor from "../../features/workout/components/cardio/Cardio
 import WorkoutHeader from "../../features/workout/components/WorkoutHeader";
 import useWorkoutCardio from "../../features/workout/hooks/useWorkoutCardio";
 import useWorkoutDirtyState from "../../features/workout/hooks/useWorkoutDirtyState";
+import useWorkoutScheduleEvent from "../../features/workout/hooks/useWorkoutScheduleEvent";
 import useWorkoutSocketSync from "../../features/workout/hooks/useWorkoutSocketSync";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
@@ -74,7 +74,6 @@ export default function Workout({ socket }) {
   const [workoutFeedback, setWorkoutFeedback] = useState(training?.workoutFeedback || { difficulty: 1, comments: [] });
   const [addExerciseOpen, setAddExerciseOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [scheduleEvent, setScheduleEvent] = useState(null);
   const [openTrainerSessionDialog, setOpenTrainerSessionDialog] = useState(false);
   const [workoutType, setWorkoutType] = useState(training?.workoutType || "Strength");
   const [activeWorkoutWeightUnit, setActiveWorkoutWeightUnit] = useState(defaultWorkoutWeightUnit);
@@ -136,6 +135,10 @@ export default function Workout({ socket }) {
     userId: user._id,
     workoutId: params._id,
   });
+  const { scheduleEvent, setScheduleEvent } = useWorkoutScheduleEvent({
+    locationSearch: location.search,
+    workoutId: params._id,
+  });
 
   // Hydrate locals when Redux training changes and set the baseline snapshot
   useEffect(() => {
@@ -179,30 +182,6 @@ export default function Workout({ socket }) {
   useEffect(() => {
     setActiveWorkoutWeightUnit(defaultWorkoutWeightUnit);
   }, [defaultWorkoutWeightUnit, params._id]);
-
-  useEffect(() => {
-    const eventId = new URLSearchParams(location.search).get("event");
-    const workoutId = params._id;
-
-    if (!eventId && !workoutId) {
-      setScheduleEvent(null);
-      return;
-    }
-
-    const request = eventId
-      ? scheduleApi.getEvent(eventId)
-      : scheduleApi.getEventByWorkout(workoutId);
-
-    request
-      .then((data) => {
-        if (data?.event) {
-          setScheduleEvent(data.event);
-        } else {
-          setScheduleEvent(null);
-        }
-      })
-      .catch(() => setScheduleEvent(null));
-  }, [location.search, params._id]);
 
   const [toggleNewSet, setToggleNewSet] = useState(false);
   const [toggleRemoveSet, setToggleRemoveSet] = useState(false);
