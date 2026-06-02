@@ -1,10 +1,9 @@
-import { useCallback, useState, useEffect, useRef, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { getAccessToken, getDelegatedReturnAccessToken } from "../../api/client";
 import { scheduleApi } from "../../api/scheduleApi";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useOutletContext, useNavigate, useLocation } from "react-router-dom";
 import dayjs from "dayjs";
-import { debounce } from "lodash";
 import {
   Alert,
   Autocomplete,
@@ -19,12 +18,13 @@ import SwipeableSet from "../../Components/TrainingComponents/SwipeableSet";
 import WorkoutTrainerSessionDialog from "../../Components/TrainingComponents/WorkoutTrainerSessionDialog";
 import { WorkoutOptionModalView } from "../../Components/WorkoutOptionModal";
 import AddExercisesDialog from "../../features/workout/components/AddExercisesDialog";
-import { requestTraining, updateTraining, getExerciseList, upsertWorkout } from "../../Redux/actions";
+import { requestTraining, updateTraining, getExerciseList } from "../../Redux/actions";
 import Loading from "../../Components/Loading";
 import CardioDetailsEditor from "../../features/workout/components/cardio/CardioDetailsEditor";
 import WorkoutHeader from "../../features/workout/components/WorkoutHeader";
 import useWorkoutCardio from "../../features/workout/hooks/useWorkoutCardio";
 import useWorkoutDirtyState from "../../features/workout/hooks/useWorkoutDirtyState";
+import useWorkoutSocketSync from "../../features/workout/hooks/useWorkoutSocketSync";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import utc from "dayjs/plugin/utc";
 import { normalizeWeightUnit } from "../../utils/weightUnits";
@@ -48,8 +48,6 @@ export default function Workout({ socket }) {
   const returnPath = searchParams.get("return");
   const sourceView = searchParams.get("source");
   const isProgramBuilder = sourceView === "program";
-  const isLocalUpdate = useRef(true);
-  const hasSynced = useRef(false);
 
   const user = useSelector((state) => state.user);
   const defaultWorkoutWeightUnit = normalizeWeightUnit(user.workoutWeightUnit);
@@ -129,52 +127,21 @@ export default function Workout({ socket }) {
     workoutType,
   });
 
-  const buildSocketWorkout = useCallback(() => {
-    if (!training?._id) return null;
-    return {
-      ...training,
-      ...buildLocalComposite(),
-      user: training.user,
-    };
-  }, [buildLocalComposite, training]);
-
-  const getWorkoutAccountId = useCallback(
-    (workout = training) => {
-      const owner = workout?.user;
-      if (!owner) return user._id;
-      return typeof owner === "object" ? owner._id : owner;
-    },
-    [training, user._id]
-  );
-
-  const applyRemoteWorkoutPayload = useCallback(
-    (payload) => {
-      const source = payload?.currentState || payload;
-      const incomingWorkout = source?.workout || source?.updatedWorkout || (source?._id ? source : null);
-      const incomingTraining = Array.isArray(source)
-        ? source
-        : Array.isArray(source?.updatedTraining)
-        ? source.updatedTraining
-        : Array.isArray(incomingWorkout?.training)
-        ? incomingWorkout.training
-        : null;
-
-      if (incomingWorkout?._id) {
-        dispatch(upsertWorkout(incomingWorkout, source.accountId || getWorkoutAccountId(incomingWorkout)));
-      }
-
-      if (incomingTraining) {
-        setLocalTraining(incomingTraining);
-      }
-    },
-    [dispatch, getWorkoutAccountId]
-  );
+  const { emitWorkoutUpdate, suppressNextSocketEmit } = useWorkoutSocketSync({
+    buildLocalComposite,
+    localTraining,
+    setLocalTraining,
+    socket,
+    training,
+    userId: user._id,
+    workoutId: params._id,
+  });
 
   // Hydrate locals when Redux training changes and set the baseline snapshot
   useEffect(() => {
     if (!training?._id) return;
 
-    isLocalUpdate.current = false;
+    suppressNextSocketEmit();
     // Optional: hydrate local UI from Redux when workout is loaded/switched
     setLocalTraining(training.training ?? []);
     setTrainingCategory(training.category ?? []);
@@ -199,7 +166,15 @@ export default function Workout({ socket }) {
     }
 
     setLoading(false);
-  }, [hydrateCardio, isPersonalWorkout, setBaseline, setBorderHighlight, training, user?.isTrainer]);
+  }, [
+    hydrateCardio,
+    isPersonalWorkout,
+    setBaseline,
+    setBorderHighlight,
+    suppressNextSocketEmit,
+    training,
+    user?.isTrainer,
+  ]);
 
   useEffect(() => {
     setActiveWorkoutWeightUnit(defaultWorkoutWeightUnit);
@@ -389,12 +364,7 @@ export default function Workout({ socket }) {
     ).then((savedWorkout) => {
       if (!savedWorkout) return null;
       const workout = savedWorkout?._id ? savedWorkout : payload;
-      socket?.emit("liveTrainingUpdate", {
-        workoutId: params._id,
-        accountId: getWorkoutAccountId(workout),
-        updatedTraining: workout.training || localTraining,
-        workout,
-      });
+      emitWorkoutUpdate(workout);
       return workout;
     });
   };
@@ -433,130 +403,6 @@ export default function Workout({ socket }) {
       setLoading(false);
     });
   }, [dispatch, params._id]);
-
-  ///////////////////////////////
-  // 1. Join Room & Request State
-  ///////////////////////////////
-  useEffect(() => {
-    if (socket && params._id) {
-      hasSynced.current = false;
-      // Join the workout room.
-      socket.emit("joinWorkout", { workoutId: params._id });
-      // Immediately ask any existing clients for their current state.
-      socket.emit("requestCurrentState", { workoutId: params._id });
-    }
-    return () => {
-      if (socket && params._id) {
-        socket.emit("leaveWorkout", { workoutId: params._id });
-      }
-    };
-  }, [socket, params._id]);
-
-  ///////////////////////////////
-  // 2. Handshake: Listen for Current State
-  ///////////////////////////////
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleCurrentState = (payload) => {
-      if (payload?.workoutId && payload.workoutId !== params._id) return;
-      // Only update if we haven’t already synced.
-      if (!hasSynced.current) {
-        isLocalUpdate.current = false;
-        applyRemoteWorkoutPayload(payload?.currentState || payload);
-        hasSynced.current = true;
-      }
-    };
-
-    socket.on("currentState", handleCurrentState);
-    return () => {
-      socket.off("currentState", handleCurrentState);
-    };
-  }, [applyRemoteWorkoutPayload, params._id, socket]);
-
-  ///////////////////////////////
-  // 3. Respond to Current State Requests
-  ///////////////////////////////
-  useEffect(() => {
-    if (!socket || !params._id) return;
-    const handleCurrentStateRequest = ({ workoutId, requester }) => {
-      if (workoutId !== params._id || !requester) return;
-      socket.emit("currentState", {
-        workoutId: params._id,
-        requester,
-        currentState: buildSocketWorkout() || localTraining,
-      });
-    };
-
-    socket.on("requestCurrentState", handleCurrentStateRequest);
-    return () => {
-      socket.off("requestCurrentState", handleCurrentStateRequest);
-    };
-  }, [buildSocketWorkout, localTraining, params._id, socket]);
-
-  ///////////////////////////////
-  // 3. Timeout: Mark as Synced If No Handshake Arrives
-  ///////////////////////////////
-  useEffect(() => {
-    if (!socket || !params._id) return;
-    // If no handshake is received within 2 seconds, allow local emissions.
-    const timer = setTimeout(() => {
-      if (!hasSynced.current) {
-        hasSynced.current = true;
-      }
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [socket, params._id]);
-
-  ///////////////////////////////
-  // 4. Listen for Live Training Updates
-  ///////////////////////////////
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleLiveUpdate = (payload) => {
-      if (payload?.workoutId && payload.workoutId !== params._id) return;
-      // This update is coming from another client.
-      isLocalUpdate.current = false;
-      applyRemoteWorkoutPayload(payload);
-    };
-
-    socket.on("liveTrainingUpdate", handleLiveUpdate);
-    return () => {
-      socket.off("liveTrainingUpdate", handleLiveUpdate);
-    };
-  }, [applyRemoteWorkoutPayload, params._id, socket]);
-
-  ///////////////////////////////
-  // 5. Debounced Emission for Local Updates
-  ///////////////////////////////
-  useEffect(() => {
-    if (!socket || !params._id) return;
-
-    // If the change came from a remote update, skip emitting.
-    if (!isLocalUpdate.current) {
-      isLocalUpdate.current = true;
-      return;
-    }
-    // If we haven't yet been synced by an existing client, do not emit.
-    if (!hasSynced.current) return;
-
-    const debouncedEmit = debounce(() => {
-      const workout = buildSocketWorkout();
-      socket.emit("liveTrainingUpdate", {
-        workoutId: params._id,
-        accountId: getWorkoutAccountId(workout),
-        updatedTraining: localTraining,
-        workout,
-      });
-    }, 1000); // 1-second debounce
-
-    debouncedEmit();
-
-    return () => {
-      debouncedEmit.cancel();
-    };
-  }, [buildSocketWorkout, getWorkoutAccountId, localTraining, socket, params._id]);
 
   return (
     <>
