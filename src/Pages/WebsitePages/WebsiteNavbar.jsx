@@ -11,9 +11,18 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { FitnessCenter, Home, Restaurant, Workspaces } from "@mui/icons-material";
+import { ArrowOutward, FitnessCenter, Home, Route, ViewQuilt } from "@mui/icons-material";
 import useWindowWidth from "../../Hooks/WindowWidth";
 import FireBellyLogo from "../../img/fireBellyLogo.jpg";
+
+const APP_URL = "https://app.firebellyfitness.com";
+
+const navItems = [
+  { label: "Home", to: "/#", icon: Home },
+  { label: "Features", to: "/#features", icon: FitnessCenter },
+  { label: "How it works", to: "/#workflow", icon: Route },
+  { label: "Preview", to: "/#preview", icon: ViewQuilt },
+];
 
 const classes = {
   Toolbar: {
@@ -24,15 +33,17 @@ const classes = {
     justifyContent: "space-between",
     flexWrap: "nowrap",
     minHeight: "64px",
-    backgroundColor: "#000000",
+    backgroundColor: "rgba(2, 6, 23, 0.92)",
+    gap: 1,
   },
   NavLink: {
     textTransform: "none",
     color: "#e5e7eb",
-    borderRadius: 9999,
+    borderRadius: "8px",
     px: 1.5,
+    minWidth: "44px",
     "&:hover": {
-      backgroundColor: "rgba(15, 23, 42, 0.6)",
+      backgroundColor: "rgba(249, 115, 22, 0.12)",
     },
   },
   NavAccountContainer: {
@@ -71,14 +82,14 @@ export default function WebsiteNavbar() {
             to="/#"
             sx={{
               position: "relative",
-              borderRadius: 2,
+              borderRadius: "8px",
               backgroundColor: "rgba(15, 23, 42, 0.7)",
-              "&:hover": { backgroundColor: "#000000", },
+              "&:hover": { backgroundColor: "rgba(15, 23, 42, 0.95)" },
             }}
           >
             <Avatar src={FireBellyLogo} alt="Logo" sx={{ width: 56, height: 56 }} />
           </IconButton>
-          <Box>
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
             <Typography
               variant="subtitle1"
               sx={{
@@ -89,8 +100,11 @@ export default function WebsiteNavbar() {
             >
               Firebelly Fitness
             </Typography>
-            <Typography variant="caption" color="rgba(148,163,184,0.95)">
-              Coaching, training, and tools that fit your life
+            <Typography
+              variant="caption"
+              color="rgba(148,163,184,0.95)"
+            >
+              Workout software for coaches and athletes
             </Typography>
           </Box>
         </Box>
@@ -108,51 +122,43 @@ export default function WebsiteNavbar() {
           spacing={wide ? 1 : 0}
           sx={{ alignItems: "center" }}
         >
-          <Button sx={classes.NavLink} component={Link} to="/#">
-            <Stack justifyContent="center" alignItems="center" spacing={0.5}>
-              <Box sx={{ display: wide ? "block" : "none" }}>Home</Box>
-              <Home fontSize="small" />
-            </Stack>
-          </Button>
-          <Button sx={classes.NavLink} component={Link} to="/#nutrition">
-            <Stack justifyContent="center" alignItems="center" spacing={0.5}>
-              <Box sx={{ display: wide ? "block" : "none" }}>Nutrition</Box>
-              <Restaurant fontSize="small" />
-            </Stack>
-          </Button>
-          <Button sx={classes.NavLink} component={Link} to="/#workshops">
-            <Stack justifyContent="center" alignItems="center" spacing={0.5}>
-              <Box sx={{ display: wide ? "block" : "none" }}>Workshops</Box>
-              <Workspaces fontSize="small" />
-            </Stack>
-          </Button>
-          <Button sx={classes.NavLink} component={Link} to="/#training">
-            <Stack justifyContent="center" alignItems="center" spacing={0.5}>
-              <Box sx={{ display: wide ? "block" : "none" }}>Training</Box>
-              <FitnessCenter fontSize="small" />
-            </Stack>
-          </Button>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button key={item.label} sx={classes.NavLink} component={Link} to={item.to}>
+                <Stack spacing={0.5} sx={{ justifyContent: "center", alignItems: "center" }}>
+                  <Box sx={{ display: wide ? "block" : "none" }}>{item.label}</Box>
+                  <Icon fontSize="small" />
+                </Stack>
+              </Button>
+            );
+          })}
         </Stack>
 
         <Box sx={classes.NavAccountContainer}>
           <Button
-            href="https://app.firebellyfitness.com/login"
+            href={`${APP_URL}/login`}
             sx={{
               ...classes.NavAccountOptions,
-              color: "#f97316",
+              color: "#f8fafc",
               mb: 0.5,
             }}
           >
             Login
           </Button>
           <Button
-            href="https://app.firebellyfitness.com/signup"
+            href={APP_URL}
+            endIcon={wide ? <ArrowOutward fontSize="small" /> : null}
             sx={{
               ...classes.NavAccountOptions,
-              color: "#ffffff",
+              color: "#111827",
+              backgroundColor: "#f97316",
+              borderRadius: "8px",
+              px: 1.5,
+              "&:hover": { backgroundColor: "#fb923c" },
             }}
           >
-            Sign up
+            Launch
           </Button>
         </Box>
       </Toolbar>
