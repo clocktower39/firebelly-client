@@ -153,7 +153,7 @@ function App({ }) {
       subdomain === "192" ||
       subdomain === "10" ||
       host === "localhost:3000"
-      ? true
+      ? false
       : true;
   };
 
